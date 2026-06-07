@@ -130,6 +130,7 @@ MyDSL.Windows.registry = MyDSL.Windows.registry or {
   MyDSL_Live             = { obj=nil, type="UserWindow", visible=true,  created=false },
   MyDSL_Tick             = { obj=nil, type="UserWindow", visible=true,  created=false },
   MyDSL_Combat           = { obj=nil, type="UserWindow", visible=true,  created=false },
+  MyDSL_History          = { obj=nil, type="UserWindow", visible=true,  created=false },
   MyDSL_Scan             = { obj=nil, type="UserWindow", visible=true,  created=false },
   MyDSL_Group            = { obj=nil, type="UserWindow", visible=true,  created=false },
   MyDSL_Target           = { obj=nil, type="UserWindow", visible=true,  created=false },

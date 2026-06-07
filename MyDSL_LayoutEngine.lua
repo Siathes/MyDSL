@@ -100,6 +100,9 @@ MyDSL.Layout.defaults = MyDSL.Layout.defaults or {
   -- MyDSL_Combat: bottom-left — condensed combat damage log.
   MyDSL_Combat           = { x=0.00, y=0.60, w=0.34, h=0.22 },
 
+  -- MyDSL_History: general informational output — sailing, quests, atmosphere events.
+  MyDSL_History          = { x=0.34, y=0.82, w=0.32, h=0.18 },
+
   -- MyDSL_Scan: right of combat — scan/look-around results.
   MyDSL_Scan             = { x=0.34, y=0.60, w=0.32, h=0.22 },
 
