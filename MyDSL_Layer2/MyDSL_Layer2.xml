@@ -1,17 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE MudletPackage>
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE MudletPackage>
 <MudletPackage version="1.001">
   <ScriptPackage>
-    <Script isActive="yes" isFolder="no">
-      <name>MyDSL_DataLayer</name>
-      <packageName>MyDSL_Layer2</packageName>
-      <script><![CDATA[
--- =============================================================================
+    <ScriptGroup isActive="yes" isFolder="yes">
+      <name>MyDSL_Layer2</name>
+      <script/>
+      <packageName/>
+      <eventHandlerList>
+</eventHandlerList>
+      <Script isActive="yes" isFolder="no">
+        <name>MyDSL_DataLayer</name>
+        <script>-- =============================================================================
 -- MyDSL_DataLayer.lua  --  Layer 1: Data Collection
 -- =============================================================================
 -- Zero display logic. Never sends commands to the game.
 -- All data lives under MyDSL.State[section] and MyDSL.Data[charName][section].
--- Other modules receive updates via raiseEvent("MyDSL.<section>.updated")
+-- Other modules receive updates via raiseEvent("MyDSL.&lt;section&gt;.updated")
 -- or by registering a Lua callback with MyDSL.on(section, fn).
 -- =============================================================================
 
@@ -736,7 +739,7 @@ function MyDSL.parseWhoLine(line)
 
   entry.kingdom = parts[1]
   entry.name    = parts[2]
-  if #parts > 2 then
+  if #parts &gt; 2 then
     local t = {}
     for i = 3, #parts do t[#t + 1] = parts[i] end
     entry.title = table.concat(t, " ")
@@ -965,14 +968,14 @@ end
 ------------------------------------------------------------------------
 debugc("[MyDSL] DataLayer v1.0 loaded. Character: "
   .. tostring(MyDSL.Char() or "(not yet known)"))
-      ]]></script>
-      <eventHandlerList/>
-    </Script>
-    <Script isActive="yes" isFolder="no">
-      <name>MyDSL_ThemeEngine</name>
-      <packageName>MyDSL_Layer2</packageName>
-      <script><![CDATA[
--- =============================================================================
+</script>
+        <packageName/>
+        <eventHandlerList>
+</eventHandlerList>
+      </Script>
+      <Script isActive="yes" isFolder="no">
+        <name>MyDSL_ThemeEngine</name>
+        <script>-- =============================================================================
 -- MyDSL_ThemeEngine.lua  --  Layer 2, File 1 of 3: Visual Theme System
 -- =============================================================================
 -- This file owns all visual constants: fonts, colors, borders.
@@ -1182,21 +1185,21 @@ end
 
 -- colorToEcho(rgba)
 -- Converts an RGBA table to a Mudlet decho color tag.
--- decho uses the format "<r,g,b>" for foreground color.
+-- decho uses the format "&lt;r,g,b&gt;" for foreground color.
 -- Alpha is not supported by decho, so we ignore it here.
 --
--- Example: { r=210, g=50, b=50, a=255 }  →  "<210,50,50>"
+-- Example: { r=210, g=50, b=50, a=255 }  →  "&lt;210,50,50&gt;"
 --
 -- decho tags are used inline in strings passed to decho(), e.g.:
---   decho("<210,50,50>WARNING<r>\n")
--- The "<r>" at the end resets the color back to default.
+--   decho("&lt;210,50,50&gt;WARNING&lt;r&gt;\n")
+-- The "&lt;r&gt;" at the end resets the color back to default.
 
 function MyDSL.Theme.colorToEcho(rgba)
-  if not rgba then return "<255,255,255>" end
+  if not rgba then return "&lt;255,255,255&gt;" end
   local r = rgba.r or 255
   local g = rgba.g or 255
   local b = rgba.b or 255
-  return string.format("<%d,%d,%d>", r, g, b)
+  return string.format("&lt;%d,%d,%d&gt;", r, g, b)
 end
 
 
@@ -1233,14 +1236,14 @@ end
 -- LOAD CONFIRMATION
 ------------------------------------------------------------------------
 debugc("[MyDSL] ThemeEngine loaded.")
-      ]]></script>
-      <eventHandlerList/>
-    </Script>
-    <Script isActive="yes" isFolder="no">
-      <name>MyDSL_LayoutEngine</name>
-      <packageName>MyDSL_Layer2</packageName>
-      <script><![CDATA[
--- =============================================================================
+</script>
+        <packageName/>
+        <eventHandlerList>
+</eventHandlerList>
+      </Script>
+      <Script isActive="yes" isFolder="no">
+        <name>MyDSL_LayoutEngine</name>
+        <script>-- =============================================================================
 -- MyDSL_LayoutEngine.lua  --  Layer 2, File 2 of 3: Window Layout System
 -- =============================================================================
 -- This file owns where every window lives on screen.
@@ -1472,7 +1475,7 @@ function MyDSL.Layout.validate()
       for _, field in ipairs({"x", "y", "w", "h"}) do
         local v = pos[field]
         -- A value is invalid if it's nil, not a number, or outside 0.0–1.0.
-        if type(v) ~= "number" or v < 0.0 or v > 1.0 then
+        if type(v) ~= "number" or v &lt; 0.0 or v &gt; 1.0 then
           bad = true
           break
         end
@@ -1524,7 +1527,7 @@ function MyDSL.Layout.set(windowName, x, y, w, h)
   -- We check them in a loop so the error message can name the bad field.
   local values = { x=x, y=y, w=w, h=h }
   for field, val in pairs(values) do
-    if type(val) ~= "number" or val < 0.0 or val > 1.0 then
+    if type(val) ~= "number" or val &lt; 0.0 or val &gt; 1.0 then
       debugc(string.format(
         "[MyDSL] LayoutEngine: invalid value for %s.%s = %s (must be 0.0–1.0, got %s)",
         windowName, field, tostring(val), type(val)
@@ -1605,7 +1608,7 @@ function MyDSL.Layout.isOnScreen(windowName)
 
   -- The window is on-screen only if its far edge doesn't exceed screen size
   -- and its near edge isn't negative.
-  return px >= 0 and py >= 0 and (px + pw) <= sw and (py + ph) <= sh
+  return px &gt;= 0 and py &gt;= 0 and (px + pw) &lt;= sw and (py + ph) &lt;= sh
 end
 
 -- applyToWindow(windowName, winObj)
@@ -1724,14 +1727,14 @@ MyDSL.Layout.load()
 -- LOAD CONFIRMATION
 ------------------------------------------------------------------------
 debugc("[MyDSL] LayoutEngine loaded.")
-      ]]></script>
-      <eventHandlerList/>
-    </Script>
-    <Script isActive="yes" isFolder="no">
-      <name>MyDSL_WindowRegistry</name>
-      <packageName>MyDSL_Layer2</packageName>
-      <script><![CDATA[
--- =============================================================================
+</script>
+        <packageName/>
+        <eventHandlerList>
+</eventHandlerList>
+      </Script>
+      <Script isActive="yes" isFolder="no">
+        <name>MyDSL_WindowRegistry</name>
+        <script>-- =============================================================================
 -- MyDSL_WindowRegistry.lua  --  Layer 2, File 3 of 3: Window Registry
 -- =============================================================================
 -- This file creates and tracks all 18 UI windows.
@@ -2231,8 +2234,11 @@ MyDSL.Windows.ensureAll()
 -- LOAD CONFIRMATION
 ------------------------------------------------------------------------
 debugc("[MyDSL] WindowRegistry loaded. " .. tostring(table.getn and table.getn(MyDSL.Windows.registry) or 18) .. " windows registered.")
-      ]]></script>
-      <eventHandlerList/>
-    </Script>
+</script>
+        <packageName/>
+        <eventHandlerList>
+</eventHandlerList>
+      </Script>
+    </ScriptGroup>
   </ScriptPackage>
 </MudletPackage>
