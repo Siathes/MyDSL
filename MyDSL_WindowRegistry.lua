@@ -136,7 +136,7 @@ MyDSL.Windows.registry = MyDSL.Windows.registry or {
   MyDSL_Target           = { obj=nil, type="UserWindow", visible=true,  created=false },
   MyDSL_RightHere        = { obj=nil, type="UserWindow", visible=true,  created=false },
   MyDSL_PlayersNear      = { obj=nil, type="UserWindow", visible=true,  created=false },
-  MyDSL_CreatureReference= { obj=nil, type="UserWindow", visible=true,  created=false },
+  MyDSL_CreatureReference= { obj=nil, type="UserWindow", visible=false, created=false },
   MyDSL_Mapper           = { obj=nil, type="UserWindow", visible=false, created=false },  -- hidden by default; shows on demand
   MyDSL_Inventory        = { obj=nil, type="UserWindow", visible=false, created=false },  -- hidden by default; toggled by inv command
   MyDSL_Equipment        = { obj=nil, type="UserWindow", visible=false, created=false },  -- hidden by default; toggled by eq command
@@ -144,7 +144,7 @@ MyDSL.Windows.registry = MyDSL.Windows.registry or {
   -- ---- Adjustable.Container windows (anchored inside the main Mudlet console) --
 
   MyDSL_MoonWeather      = { obj=nil, type="Container",  visible=true,  created=false },
-  MyDSL_AsciiMap         = { obj=nil, type="Container",  visible=true,  created=false },
+  MyDSL_AsciiMap         = { obj=nil, type="Container",  visible=false, created=false },
   MyDSL_Banner           = { obj=nil, type="Container",  visible=false, created=false },  -- hidden until content arrives
   MyDSL_Bloodbath        = { obj=nil, type="Container",  visible=false, created=false },  -- hidden until content arrives
 }

@@ -391,28 +391,49 @@ function M.captionForRoom(roomData, path, source)
   return room
 end
 
+local function getWindowEntry()
+  if not (MyDSL and MyDSL.Windows and MyDSL.Windows.registry) then return nil end
+  local reg = MyDSL.Windows.registry
+  return reg["MyDSL_RoomPicture"] or reg[M.windowName] or reg["Location"]
+end
+
+local function getWindowObject()
+  local entry = getWindowEntry()
+  if type(entry) == "table" then
+    return entry.obj or entry.win or entry.window or entry.userWindow or entry.container
+  end
+  return M.ui and M.ui.win or nil
+end
+
 function M.ensureUI()
   M.loadProfiles()
   M.ui = M.ui or {}
   if M.ui.win and M.ui.image and M.ui.caption then return true end
 
-  local WinClass = Geyser and (Geyser.UserWindow or Geyser.Window)
-  if not WinClass then
-    echoR("Geyser.UserWindow/Geyser.Window is unavailable.")
-    return false
+  -- Check DSL2 registry first — avoids creating a duplicate window
+  local existing = getWindowObject()
+  if existing then
+    M.ui.win = existing
+  else
+    local WinClass = Geyser and (Geyser.UserWindow or Geyser.Window)
+    if not WinClass then
+      echoR("Geyser.UserWindow/Geyser.Window is unavailable.")
+      return false
+    end
+    M.ui.win = WinClass:new({
+      name = M.windowName,
+      x = M.config.x,
+      y = M.config.y,
+      width = M.config.w,
+      height = M.config.h,
+      restoreLayout = true,
+      autoDock = true,
+    })
   end
 
-  M.ui.win = WinClass:new({
-    name = M.windowName,
-    x = M.config.x,
-    y = M.config.y,
-    width = M.config.w,
-    height = M.config.h,
-    restoreLayout = true,
-    autoDock = true,
-  })
+  if not M.ui.win then return false end
 
-  if M.ui.win and M.ui.win.setTitle then
+  if M.ui.win.setTitle then
     pcall(function() M.ui.win:setTitle(M.title) end)
   end
 

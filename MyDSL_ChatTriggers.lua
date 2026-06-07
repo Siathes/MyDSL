@@ -30,7 +30,7 @@ local function route(tabName, pattern)
     if demonnic and demonnic.chat then
       demonnic.chat:append(tabName)
     end
-    deleteLine()
+    -- deleteLine() removed for testing — add back once routing confirmed
   end)
   MyDSL.ChatTriggers._triggers[#MyDSL.ChatTriggers._triggers + 1] = id
 end
@@ -54,9 +54,9 @@ route("Group", [[\w+ group-tells you:]])
 -- OOC
 -- "[OOC] ..."  /  "[OCLAN] ..."  /  "[OKING] ..."
 ------------------------------------------------------------------------
-route("OOC", [[\[OOC\]]])
-route("OOC", [[\[OCLAN\]]])
-route("OOC", [[\[OKING\]]])
+route("OOC", [=[\[OOC\]]=])
+route("OOC", [=[\[OCLAN\]]=])
+route("OOC", [=[\[OKING\]]=])
 
 ------------------------------------------------------------------------
 -- CITY  (broad public channels)

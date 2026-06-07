@@ -914,7 +914,7 @@ MyDSL.Windows.registry = MyDSL.Windows.registry or {
   MyDSL_Target           = { obj=nil, type="UserWindow", visible=true,  created=false },
   MyDSL_RightHere        = { obj=nil, type="UserWindow", visible=true,  created=false },
   MyDSL_PlayersNear      = { obj=nil, type="UserWindow", visible=true,  created=false },
-  MyDSL_CreatureReference= { obj=nil, type="UserWindow", visible=true,  created=false },
+  MyDSL_CreatureReference= { obj=nil, type="UserWindow", visible=false, created=false },
   MyDSL_Mapper           = { obj=nil, type="UserWindow", visible=false, created=false },  -- hidden by default; shows on demand
   MyDSL_Inventory        = { obj=nil, type="UserWindow", visible=false, created=false },  -- hidden by default; toggled by inv command
   MyDSL_Equipment        = { obj=nil, type="UserWindow", visible=false, created=false },  -- hidden by default; toggled by eq command
@@ -922,7 +922,7 @@ MyDSL.Windows.registry = MyDSL.Windows.registry or {
   -- ---- Adjustable.Container windows (anchored inside the main Mudlet console) --
 
   MyDSL_MoonWeather      = { obj=nil, type="Container",  visible=true,  created=false },
-  MyDSL_AsciiMap         = { obj=nil, type="Container",  visible=true,  created=false },
+  MyDSL_AsciiMap         = { obj=nil, type="Container",  visible=false, created=false },
   MyDSL_Banner           = { obj=nil, type="Container",  visible=false, created=false },  -- hidden until content arrives
   MyDSL_Bloodbath        = { obj=nil, type="Container",  visible=false, created=false },  -- hidden until content arrives
 }
@@ -6887,28 +6887,49 @@ function M.captionForRoom(roomData, path, source)
   return room
 end
 
+local function getWindowEntry()
+  if not (MyDSL and MyDSL.Windows and MyDSL.Windows.registry) then return nil end
+  local reg = MyDSL.Windows.registry
+  return reg["MyDSL_RoomPicture"] or reg[M.windowName] or reg["Location"]
+end
+
+local function getWindowObject()
+  local entry = getWindowEntry()
+  if type(entry) == "table" then
+    return entry.obj or entry.win or entry.window or entry.userWindow or entry.container
+  end
+  return M.ui and M.ui.win or nil
+end
+
 function M.ensureUI()
   M.loadProfiles()
   M.ui = M.ui or {}
   if M.ui.win and M.ui.image and M.ui.caption then return true end
 
-  local WinClass = Geyser and (Geyser.UserWindow or Geyser.Window)
-  if not WinClass then
-    echoR("Geyser.UserWindow/Geyser.Window is unavailable.")
-    return false
+  -- Check DSL2 registry first — avoids creating a duplicate window
+  local existing = getWindowObject()
+  if existing then
+    M.ui.win = existing
+  else
+    local WinClass = Geyser and (Geyser.UserWindow or Geyser.Window)
+    if not WinClass then
+      echoR("Geyser.UserWindow/Geyser.Window is unavailable.")
+      return false
+    end
+    M.ui.win = WinClass:new({
+      name = M.windowName,
+      x = M.config.x,
+      y = M.config.y,
+      width = M.config.w,
+      height = M.config.h,
+      restoreLayout = true,
+      autoDock = true,
+    })
   end
 
-  M.ui.win = WinClass:new({
-    name = M.windowName,
-    x = M.config.x,
-    y = M.config.y,
-    width = M.config.w,
-    height = M.config.h,
-    restoreLayout = true,
-    autoDock = true,
-  })
+  if not M.ui.win then return false end
 
-  if M.ui.win and M.ui.win.setTitle then
+  if M.ui.win.setTitle then
     pcall(function() M.ui.win:setTitle(M.title) end)
   end
 
@@ -7299,7 +7320,7 @@ local function route(tabName, pattern)
     if demonnic and demonnic.chat then
       demonnic.chat:append(tabName)
     end
-    deleteLine()
+    -- deleteLine() removed for testing — add back once routing confirmed
   end)
   MyDSL.ChatTriggers._triggers[#MyDSL.ChatTriggers._triggers + 1] = id
 end
@@ -7323,9 +7344,9 @@ route("Group", [[\w+ group-tells you:]])
 -- OOC
 -- "[OOC] ..."  /  "[OCLAN] ..."  /  "[OKING] ..."
 ------------------------------------------------------------------------
-route("OOC", [[\[OOC\]]])
-route("OOC", [[\[OCLAN\]]])
-route("OOC", [[\[OKING\]]])
+route("OOC", [=[\[OOC\]]=])
+route("OOC", [=[\[OCLAN\]]=])
+route("OOC", [=[\[OKING\]]=])
 
 ------------------------------------------------------------------------
 -- CITY  (broad public channels)
