@@ -1820,44 +1820,17 @@ local function pixelsFromLayout(windowName)
 end
 
 -- applyTheme(windowName, winObj)
--- Sets the visual stylesheet on a Geyser window object.
--- A "stylesheet" in Geyser is a Qt CSS string — the same format as
--- web CSS but applied to a Qt widget rather than an HTML element.
--- winObj:setStyleSheet(css) sends this string directly to the Qt layer.
---
--- We read values from ThemeEngine rather than hardcoding colors here.
--- This means changing the theme in ThemeEngine automatically changes
--- the appearance of all windows the next time applyTheme() is called.
---
--- Example of what the CSS string looks like in practice:
---   "background-color: rgba(18,20,28,0.95); border: 1px solid rgba(60,70,90,1.00);"
+-- Placeholder — visual theming is deferred to Layer 3.
+-- Geyser.UserWindow and Adjustable.Container do not expose setStyleSheet.
+-- Theme values (colors, fonts, borders) will be applied in Layer 3 when
+-- MiniConsole and Label children are created inside each window frame.
 
 local function applyTheme(windowName, winObj)
-  if not winObj then return end
-
-  -- Read color values through the ThemeEngine accessor.
-  -- get() checks per-window overrides first, then falls back to defaults.
-  local bg     = MyDSL.Theme.get(windowName, "bgColor")
-  local border = MyDSL.Theme.get(windowName, "borderColor")
-  local bsize  = MyDSL.Theme.get(windowName, "borderSize") or 1
-
-  -- colorToCSS() converts our {r,g,b,a} table into the "rgba(r,g,b,a)"
-  -- string that CSS expects. Alpha is converted from 0–255 to 0.0–1.0.
-  local bgCSS     = MyDSL.Theme.colorToCSS(bg)
-  local borderCSS = MyDSL.Theme.colorToCSS(border)
-
-  -- Build the full stylesheet string using string.format().
-  -- %s is replaced by a string value, %d by an integer.
-  local css = string.format(
-    "background-color: %s; border: %dpx solid %s;",
-    bgCSS, bsize, borderCSS
-  )
-
-  -- Apply the stylesheet to the window object.
-  -- The colon syntax (:) means "call this method on winObj, passing
-  -- winObj itself as the hidden first argument 'self'". See Section 5
-  -- for a full explanation of Lua's colon method syntax.
-  winObj:setStyleSheet(css)
+  -- Visual theming (stylesheet) is not available directly on
+  -- Geyser.UserWindow or Adjustable.Container objects.
+  -- Theming is applied in Layer 3 when MiniConsole/Label children
+  -- are created inside each window. This function is a placeholder.
+  return
 end
 
 
