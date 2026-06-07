@@ -24,37 +24,14 @@ Passive observation only. Automate to assist, not to play.
 Every module optional and toggleable. Stale data beats spam.
 
 ## Current State
-Layer 1 complete but has one known bug (see below).
-Clean profile DSL2 being set up — fresh start, no legacy baggage.
-Layer 2 not started.
-
-## Known Bug in MyDSL_DataLayer.lua (fix before wiring in)
-The State initializer uses MyDSL.State = MyDSL.State or { char=..., login=..., ... }
-If MyDSL.State already exists (set by another module first), the or {} guard skips
-initialization, leaving sub-sections like login nil — causing crash at line 74.
-Fix: replace the single or{} block with per-section guards:
-  MyDSL.State = MyDSL.State or {}
-  MyDSL.State.char    = MyDSL.State.char    or { last_updated = 0 }
-  MyDSL.State.login   = MyDSL.State.login   or { last_updated = 0 }
-  MyDSL.State.room    = MyDSL.State.room    or { last_updated = 0 }
-  MyDSL.State.affects = MyDSL.State.affects or { last_updated = 0 }
-  MyDSL.State.tick    = MyDSL.State.tick    or { last_updated = 0 }
-  MyDSL.State.score   = MyDSL.State.score   or { last_updated = 0 }
-  MyDSL.State.lunar   = MyDSL.State.lunar   or { last_updated = 0 }
-  MyDSL.State.time    = MyDSL.State.time    or { last_updated = 0 }
-  MyDSL.State.weather = MyDSL.State.weather or { last_updated = 0 }
-  MyDSL.State.who     = MyDSL.State.who     or { last_updated = 0 }
-  MyDSL.State.group   = MyDSL.State.group   or { last_updated = 0 }
-  MyDSL.State.unread  = MyDSL.State.unread  or { last_updated = 0 }
-  MyDSL.State.inv     = MyDSL.State.inv     or { last_updated = 0 }
-  MyDSL.State.map     = MyDSL.State.map     or { last_updated = 0 }
-  MyDSL.State.improve = MyDSL.State.improve or { last_updated = 0 }
-  MyDSL.State.flags   = MyDSL.State.flags   or { last_updated = 0 }
-Also fix MyDSL.Char() to be defensive:
-  function MyDSL.Char()
-    local login = MyDSL.State and MyDSL.State.login
-    return login and login.name or nil
-  end
+Layer 1 complete — MyDSL_DataLayer.lua, bug fixed, committed.
+Layer 2 complete — three files committed:
+  - MyDSL_ThemeEngine.lua (4fd497d) — theme defaults, overrides, color helpers
+  - MyDSL_LayoutEngine.lua — percentage layout, persistence, resize handling
+  - MyDSL_WindowRegistry.lua (f118faa) — 18 windows, toggle/show/hide, state persistence
+Layer 2 files are NOT yet wired into Mudlet (no script entries in autosave.xml).
+Next task: wire Layer 2 into Mudlet load order via the Script editor, then test.
+Layer 3 not started.
 
 ## Why DSL2 (clean profile)
 DSL1 accumulated: 60+ dead audit-phase scripts, duplicate GMCP handlers,
