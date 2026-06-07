@@ -32,9 +32,9 @@ function MyDSL.DB.sync()
   local tick  = MyDSL.State and MyDSL.State.tick  or {}
 
   MyDSL.DB.live = {
-    hp      = char.hp,      maxHp      = char.max_hp,
-    mana    = char.mana,    maxMana    = char.max_mana,
-    move    = char.move,    maxMove    = char.max_move,
+    hp      = char.hp,      maxhp      = char.max_hp,
+    mana    = char.mana,    maxmana    = char.max_mana,
+    move    = char.move,    maxmove    = char.max_move,
     name    = login.name,   level      = login.level,
   }
   MyDSL.DB.score = {
