@@ -133,6 +133,8 @@ MyDSL.Windows.registry = MyDSL.Windows.registry or {
   MyDSL_Scan             = { obj=nil, type="UserWindow", visible=true,  created=false },
   MyDSL_Group            = { obj=nil, type="UserWindow", visible=true,  created=false },
   MyDSL_Target           = { obj=nil, type="UserWindow", visible=true,  created=false },
+  MyDSL_RightHere        = { obj=nil, type="UserWindow", visible=true,  created=false },
+  MyDSL_PlayersNear      = { obj=nil, type="UserWindow", visible=true,  created=false },
   MyDSL_CreatureReference= { obj=nil, type="UserWindow", visible=true,  created=false },
   MyDSL_Mapper           = { obj=nil, type="UserWindow", visible=false, created=false },  -- hidden by default; shows on demand
   MyDSL_Inventory        = { obj=nil, type="UserWindow", visible=false, created=false },  -- hidden by default; toggled by inv command

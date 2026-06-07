@@ -86,6 +86,12 @@ MyDSL.Layout.defaults = MyDSL.Layout.defaults or {
   -- MyDSL_Target: left side mid — target info and health bar.
   MyDSL_Target           = { x=0.00, y=0.36, w=0.18, h=0.24 },
 
+  -- MyDSL_RightHere: clickable mob list from scan — paired with Target window.
+  MyDSL_RightHere        = { x=0.00, y=0.60, w=0.18, h=0.22 },
+
+  -- MyDSL_PlayersNear: players-near-you output from scan parsing.
+  MyDSL_PlayersNear      = { x=0.18, y=0.60, w=0.16, h=0.22 },
+
   -- MyDSL_Mapper: same slot as Target — shown on demand.
   MyDSL_Mapper           = { x=0.00, y=0.36, w=0.18, h=0.24 },
 
