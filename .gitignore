@@ -1,0 +1,38 @@
+# Mudlet runtime & session data
+command_history_*
+current
+deleteOldProfiles
+echo
+enable-accessibility
+gui-drop
+run-lua-code
+
+# Connection credentials (auto-login password)
+login
+
+# Binary / large asset files — not useful in version control
+map.dat
+map/
+map downloads/
+Sounds/
+Portrait/
+RoomPics/
+media/
+
+# Runtime logs and dynamic data
+log/
+MyDSL/logs/
+MyDSL/portraits/
+MyDSL/roompics/
+MyDSL/data/
+
+# Analysis & snapshot artifacts from Claude Code development sessions
+MyDSL_audit_snapshot_*.txt
+MyDSL_phase*.txt
+MyDSL_Audit_Phase*/
+
+# Archives
+*.zip
+
+# Claude Code session data
+.claude/
