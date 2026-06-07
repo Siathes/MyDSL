@@ -1,14 +1,15 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE MudletPackage>
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE MudletPackage>
 <MudletPackage version="1.001">
   <ScriptPackage>
     <ScriptGroup isActive="yes" isFolder="yes">
       <name>MyDSL_Full</name>
       <packageName>MyDSL_Full</packageName>
-      <script/>
-      <eventHandlerList/>
+      <script></script>
+      <eventHandlerList />
       <Script isActive="yes" isFolder="no">
         <name>MyDSL_ThemeEngine</name>
-        <packageName/>
+        <packageName></packageName>
         <script>-- =============================================================================
 -- MyDSL_ThemeEngine.lua  --  Layer 2, File 1 of 3: Visual Theme System
 -- =============================================================================
@@ -271,11 +272,11 @@ end
 ------------------------------------------------------------------------
 debugc("[MyDSL] ThemeEngine loaded.")
 </script>
-        <eventHandlerList/>
+        <eventHandlerList />
       </Script>
       <Script isActive="yes" isFolder="no">
         <name>MyDSL_LayoutEngine</name>
-        <packageName/>
+        <packageName></packageName>
         <script>-- =============================================================================
 -- MyDSL_LayoutEngine.lua  --  Layer 2, File 2 of 3: Window Layout System
 -- =============================================================================
@@ -770,11 +771,11 @@ MyDSL.Layout.load()
 ------------------------------------------------------------------------
 debugc("[MyDSL] LayoutEngine loaded.")
 </script>
-        <eventHandlerList/>
+        <eventHandlerList />
       </Script>
       <Script isActive="yes" isFolder="no">
         <name>MyDSL_WindowRegistry</name>
-        <packageName/>
+        <packageName></packageName>
         <script>-- =============================================================================
 -- MyDSL_WindowRegistry.lua  --  Layer 2, File 3 of 3: Window Registry
 -- =============================================================================
@@ -1252,11 +1253,11 @@ MyDSL.Windows.ensureAll()
 ------------------------------------------------------------------------
 debugc("[MyDSL] WindowRegistry loaded. " .. tostring(table.getn and table.getn(MyDSL.Windows.registry) or 18) .. " windows registered.")
 </script>
-        <eventHandlerList/>
+        <eventHandlerList />
       </Script>
       <Script isActive="yes" isFolder="no">
         <name>MyDSL_DataLayer</name>
-        <packageName/>
+        <packageName></packageName>
         <script>-- =============================================================================
 -- MyDSL_DataLayer.lua  --  Layer 1: Data Collection
 -- =============================================================================
@@ -2217,11 +2218,11 @@ end
 debugc("[MyDSL] DataLayer v1.0 loaded. Character: "
   .. tostring(MyDSL.Char() or "(not yet known)"))
 </script>
-        <eventHandlerList/>
+        <eventHandlerList />
       </Script>
       <Script isActive="yes" isFolder="no">
         <name>MyDSL_DataBridge</name>
-        <packageName/>
+        <packageName></packageName>
         <script>-- =============================================================================
 -- MyDSL_DataBridge.lua  --  Layer 3: State→DB translation
 -- =============================================================================
@@ -2304,11 +2305,11 @@ MyDSL.DB.sync()
 
 debugc("[MyDSL] DataBridge loaded.")
 </script>
-        <eventHandlerList/>
+        <eventHandlerList />
       </Script>
       <Script isActive="yes" isFolder="no">
         <name>MyDSL_RouteHelper</name>
-        <packageName/>
+        <packageName></packageName>
         <script>-- =============================================================================
 -- MyDSL_RouteHelper.lua  --  Layer 3: Text routing to windows
 -- =============================================================================
@@ -2424,11 +2425,11 @@ end
 
 debugc("[MyDSL] RouteHelper loaded.")
 </script>
-        <eventHandlerList/>
+        <eventHandlerList />
       </Script>
       <Script isActive="yes" isFolder="no">
         <name>MyDSL_TickSource</name>
-        <packageName/>
+        <packageName></packageName>
         <script>
 --[[=====================================================================
   MyDSL.TickSource v4C1 PNP40
@@ -2679,11 +2680,11 @@ end
 
 T.boot()
 </script>
-        <eventHandlerList/>
+        <eventHandlerList />
       </Script>
       <Script isActive="yes" isFolder="no">
         <name>MyDSL_ChatWrapper</name>
-        <packageName/>
+        <packageName></packageName>
         <script>--[[=====================================================================
   MyDSL.ChatWrapper v4C11 QuietWindowSetup
   ----------------------------------------------------------------------
@@ -3333,11 +3334,11 @@ end
 
 C.install()
 </script>
-        <eventHandlerList/>
+        <eventHandlerList />
       </Script>
       <Script isActive="yes" isFolder="no">
         <name>MyDSL_AffectsView</name>
-        <packageName/>
+        <packageName></packageName>
         <script>
 --[[=====================================================================
   MyDSL.AffectsView v4C16 QuietBoot
@@ -4412,11 +4413,11 @@ end
 
 A.install()
 </script>
-        <eventHandlerList/>
+        <eventHandlerList />
       </Script>
       <Script isActive="yes" isFolder="no">
         <name>MyDSL_LiveView</name>
-        <packageName/>
+        <packageName></packageName>
         <script>
 --[[=====================================================================
   MyDSL LiveView v1A14
@@ -5157,11 +5158,11 @@ end
 
 L.boot()
 </script>
-        <eventHandlerList/>
+        <eventHandlerList />
       </Script>
       <Script isActive="yes" isFolder="no">
         <name>MyDSL_TickView</name>
-        <packageName/>
+        <packageName></packageName>
         <script>
 --[[=====================================================================
   MyDSL TickView v4C5 QuietBoot
@@ -5574,11 +5575,11 @@ end
 
 V.boot()
 </script>
-        <eventHandlerList/>
+        <eventHandlerList />
       </Script>
       <Script isActive="yes" isFolder="no">
         <name>MyDSL_PortraitView</name>
-        <packageName/>
+        <packageName></packageName>
         <script>
 --[[=====================================================================
   MyDSL.PortraitView v4C4 CoverDefault
@@ -6488,11 +6489,11 @@ end
 P.init()
 
         </script>
-        <eventHandlerList/>
+        <eventHandlerList />
       </Script>
       <Script isActive="yes" isFolder="no">
         <name>MyDSL_LocationView</name>
-        <packageName/>
+        <packageName></packageName>
         <script>
 --[[=====================================================================
   MyDSL.LocationView v4C3 RoomPicCanonical
@@ -7261,11 +7262,11 @@ RoomPic = M
 M.boot()
 
         </script>
-        <eventHandlerList/>
+        <eventHandlerList />
       </Script>
       <Script isActive="yes" isFolder="no">
         <name>MyDSL_ChatTriggers</name>
-        <packageName/>
+        <packageName></packageName>
         <script>-- =============================================================================
 -- MyDSL_ChatTriggers.lua  --  Layer 3: Chat channel routing
 -- =============================================================================
@@ -7352,8 +7353,16 @@ route("Local", [[\w+ whispers:]])
 
 debugc("[MyDSL] ChatTriggers loaded.")
 </script>
-        <eventHandlerList/>
+        <eventHandlerList />
       </Script>
     </ScriptGroup>
   </ScriptPackage>
+  <AliasPackage />
+  <ActionPackage />
+  <KeyPackage />
+  <TimerPackage />
+  <TriggerPackage />
+  <VariablePackage>
+    <HiddenVariables />
+  </VariablePackage>
 </MudletPackage>

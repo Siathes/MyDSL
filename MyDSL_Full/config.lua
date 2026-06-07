@@ -1,7 +1,5 @@
-mpackage = {
-  name        = "MyDSL_Full",
-  version     = "1.0",
-  author      = "DSL2 Project",
-  description = "DSL Observer UI — Layer 1 Data + Layer 2 Window + Layer 3 Display",
-  dependencies = {},
-}
+mpackage = [[MyDSL_Full]]
+author = [[DSL2 Project]]
+title = [[DSL Observer UI — Full Package]]
+description = [[DSL Observer UI: Layer 1 Data Collection (DataLayer), Layer 2 Window Management (ThemeEngine, LayoutEngine, WindowRegistry), Layer 3 Display (DataBridge, RouteHelper, TickSource, ChatWrapper, AffectsView, LiveView, TickView, PortraitView, LocationView, ChatTriggers).]]
+version = [[1.0]]
