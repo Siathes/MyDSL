@@ -2220,6 +2220,93 @@ debugc("[MyDSL] DataLayer v1.0 loaded. Character: "
         <eventHandlerList/>
       </Script>
       <Script isActive="yes" isFolder="no">
+        <name>MyDSL_DataBridge</name>
+        <packageName/>
+        <script>-- =============================================================================
+-- MyDSL_DataBridge.lua  --  Layer 3: State→DB translation
+-- =============================================================================
+-- Bridges MyDSL.State.* (DSL2 DataLayer) to MyDSL.DB.* (expected by DSL1-era
+-- display modules: LiveView, TickView, TickSource).
+-- Must load AFTER DataLayer (position 5 in full package).
+-- =============================================================================
+
+MyDSL    = MyDSL    or {}
+MyDSL.DB = MyDSL.DB or {}
+
+MyDSL.DB._handlers = MyDSL.DB._handlers or {}
+
+-- Kill handlers from any previous load to prevent duplicates.
+local function deregisterHandlers()
+  for _, id in pairs(MyDSL.DB._handlers) do
+    pcall(killAnonymousEventHandler, id)
+  end
+  MyDSL.DB._handlers = {}
+end
+deregisterHandlers()
+
+
+------------------------------------------------------------------------
+-- SYNC  — copies State fields into DB namespaces expected by DSL1 modules
+------------------------------------------------------------------------
+
+function MyDSL.DB.sync()
+  local char  = MyDSL.State and MyDSL.State.char  or {}
+  local login = MyDSL.State and MyDSL.State.login or {}
+  local room  = MyDSL.State and MyDSL.State.room  or {}
+  local tick  = MyDSL.State and MyDSL.State.tick  or {}
+
+  MyDSL.DB.live = {
+    hp      = char.hp,      maxHp      = char.max_hp,
+    mana    = char.mana,    maxMana    = char.max_mana,
+    move    = char.move,    maxMove    = char.max_move,
+    name    = login.name,   level      = login.level,
+  }
+  MyDSL.DB.score = {
+    str        = char.str,          int        = char.int,
+    wis        = char.wis,          dex        = char.dex,
+    con        = char.con,
+    gold       = char.gold,         silver     = char.silver,
+    weight     = char.carry_weight, maxWeight  = char.can_carry_weight,
+    tnl        = char.tnl,          wimpy      = char.wimpy,
+    stance     = char.stance,       language   = char.language,
+    flying     = char.is_flying,    riding     = char.is_riding,
+    fighting   = char.is_fighting,
+  }
+  MyDSL.DB.room = { name = room.name, exits = room.exits, area = room.area }
+  MyDSL.DB.tick = { remaining = tick.remaining, average = tick.average or 40, percent = tick.percent }
+  MyDSL.DB.timers          = MyDSL.DB.timers or {}
+  MyDSL.DB.timers.tick     = MyDSL.DB.tick
+  MyDSL.DB.xp              = { tnl = char.tnl }
+end
+
+
+------------------------------------------------------------------------
+-- EVENT HANDLERS  — sync whenever any upstream data changes
+------------------------------------------------------------------------
+
+local function onAny()
+  pcall(MyDSL.DB.sync)
+end
+
+MyDSL.DB._handlers.char     = registerAnonymousEventHandler("MyDSL.char.updated",  onAny)
+MyDSL.DB._handlers.room     = registerAnonymousEventHandler("MyDSL.room.updated",  onAny)
+MyDSL.DB._handlers.login    = registerAnonymousEventHandler("MyDSL.login.updated", onAny)
+MyDSL.DB._handlers.tick     = registerAnonymousEventHandler("MyDSL.tick.updated",  onAny)
+MyDSL.DB._handlers.gchar    = registerAnonymousEventHandler("gmcp.char_data",      onAny)
+MyDSL.DB._handlers.groom    = registerAnonymousEventHandler("gmcp.room_data",      onAny)
+MyDSL.DB._handlers.gtick    = registerAnonymousEventHandler("gmcp.tick",           onAny)
+
+
+------------------------------------------------------------------------
+-- INITIAL SYNC  — populate DB from whatever State already holds
+------------------------------------------------------------------------
+MyDSL.DB.sync()
+
+debugc("[MyDSL] DataBridge loaded.")
+</script>
+        <eventHandlerList/>
+      </Script>
+      <Script isActive="yes" isFolder="no">
         <name>MyDSL_RouteHelper</name>
         <packageName/>
         <script>-- =============================================================================
@@ -7174,6 +7261,97 @@ RoomPic = M
 M.boot()
 
         </script>
+        <eventHandlerList/>
+      </Script>
+      <Script isActive="yes" isFolder="no">
+        <name>MyDSL_ChatTriggers</name>
+        <packageName/>
+        <script>-- =============================================================================
+-- MyDSL_ChatTriggers.lua  --  Layer 3: Chat channel routing
+-- =============================================================================
+-- Intercepts chat channel lines and routes them to EMCO tabs via
+-- demonnic.chat:append(). Lines are removed from the main console.
+-- Must load LAST — demonnic.chat is created by ChatWrapper (position 8).
+-- =============================================================================
+
+MyDSL              = MyDSL              or {}
+MyDSL.ChatTriggers = MyDSL.ChatTriggers or {}
+
+-- Kill any triggers from a previous load.
+MyDSL.ChatTriggers._triggers = MyDSL.ChatTriggers._triggers or {}
+local function deregisterTriggers()
+  for _, id in pairs(MyDSL.ChatTriggers._triggers) do
+    pcall(killAnonymousEventHandler, id)
+    pcall(killTrigger, id)
+  end
+  MyDSL.ChatTriggers._triggers = {}
+end
+deregisterTriggers()
+
+
+------------------------------------------------------------------------
+-- HELPER  — register one regex trigger that routes to a named tab
+------------------------------------------------------------------------
+
+local function route(tabName, pattern)
+  local id = tempRegexTrigger(pattern, function()
+    if demonnic and demonnic.chat then
+      demonnic.chat:append(tabName)
+    end
+    deleteLine()
+  end)
+  MyDSL.ChatTriggers._triggers[#MyDSL.ChatTriggers._triggers + 1] = id
+end
+
+
+------------------------------------------------------------------------
+-- TELLS
+-- "Kien tells you: ..."  /  "You tell Kien: ..."
+------------------------------------------------------------------------
+route("Tells", [[\w+ tells you:]])
+route("Tells", [[You tell \w+:]])
+
+------------------------------------------------------------------------
+-- GROUP CHAT
+-- "Kien group-says: ..."  /  "Kien group-tells you: ..."
+------------------------------------------------------------------------
+route("Group", [[\w+ group-says:]])
+route("Group", [[\w+ group-tells you:]])
+
+------------------------------------------------------------------------
+-- OOC
+-- "[OOC] ..."  /  "[OCLAN] ..."  /  "[OKING] ..."
+------------------------------------------------------------------------
+route("OOC", [[\[OOC\]]])
+route("OOC", [[\[OCLAN\]]])
+route("OOC", [[\[OKING\]]])
+
+------------------------------------------------------------------------
+-- CITY  (broad public channels)
+-- gossip / kingdom / clan / auction / shout / yell /
+-- NEWBIE / congratulates / QUEST / pray / broadcast
+------------------------------------------------------------------------
+route("City", [[\w+ gossips:]])
+route("City", [[\w+ kingdom-says:]])
+route("City", [[\w+ clan-says:]])
+route("City", [[\w+ auctions:]])
+route("City", [[\w+ shouts:]])
+route("City", [[\w+ yells:]])
+route("City", [[NEWBIE:]])
+route("City", [[\w+ congratulates]])
+route("City", [[QUEST:]])
+route("City", [[\w+ prays:]])
+route("City", [[\w+ broadcasts:]])
+
+------------------------------------------------------------------------
+-- LOCAL  (room-level speech)
+-- "Kien says: ..."  /  "Kien whispers: ..."
+------------------------------------------------------------------------
+route("Local", [[\w+ says:]])
+route("Local", [[\w+ whispers:]])
+
+debugc("[MyDSL] ChatTriggers loaded.")
+</script>
         <eventHandlerList/>
       </Script>
     </ScriptGroup>
