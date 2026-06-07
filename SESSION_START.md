@@ -101,15 +101,8 @@ risks more collisions. Clean profile solves all three gaps simultaneously.
 char_data, login_data, room_data, affect_data, add_affect, remove_affect, tick
 No GMCP for: score, inventory, equipment, weather, lunar, who — text capture only.
 
-## Git Log (DSL1 repo)
-7aaf250 — Add PNP package reference
-2d615ba — SESSION_START updated with audit findings
-be22de9 — Complete system audit
-0b35e2d — Snapshot runtime state
-1043499 — SESSION_START complete
-42934f5 — Layer 1 complete
-ed2469e — Philosophy + session template
-d4ca810 — Initial commit (DSL1 working state)
+## Git Log (DSL2 repo)
+e6af3d1 — DSL2 clean profile — carry-over files from DSL1 with DataLayer bug fix
 
 ## How To Continue (new session)
 1. Read this file
