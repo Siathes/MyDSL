@@ -1959,15 +1959,14 @@ cecho("\n&lt;yellow&gt;* * * * * * * * Day arrives across Algoron * * * * * * * 
 			<colorTriggerBgColor>#000000</colorTriggerBgColor>
 			<regexCodeList/>
 			<regexCodePropertyList/>
-			<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isRunAllTriggers="no">
+			<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 				<name>Tells</name>
 				<script>demonnic.chat:append("Tells")</script>
-				<packageName/>
-				<filter>no</filter>
 				<triggerType>0</triggerType>
 				<conditonLineDelta>0</conditonLineDelta>
 				<mStayOpen>0</mStayOpen>
-				<mCommand></mCommand>
+				<mCommand />
+				<packageName />
 				<mFgColor>#ffffff</mFgColor>
 				<mBgColor>#222222</mBgColor>
 				<mSoundFile></mSoundFile>
@@ -1978,19 +1977,18 @@ cecho("\n&lt;yellow&gt;* * * * * * * * Day arrives across Algoron * * * * * * * 
 					<string>^\a?.+\s+tells you(?:\s+\([^)]+\))?\s+'.*'$</string>
 				</regexCodeList>
 				<regexCodePropertyList>
-					<int>1</int>
-					<int>1</int>
+					<integer>1</integer>
+					<integer>1</integer>
 				</regexCodePropertyList>
 			</Trigger>
-			<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isRunAllTriggers="no">
+			<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 				<name>Group Tells</name>
 				<script>demonnic.chat:append("Group")</script>
-				<packageName/>
-				<filter>no</filter>
 				<triggerType>0</triggerType>
 				<conditonLineDelta>0</conditonLineDelta>
 				<mStayOpen>0</mStayOpen>
-				<mCommand></mCommand>
+				<mCommand />
+				<packageName />
 				<mFgColor>#ffffff</mFgColor>
 				<mBgColor>#222222</mBgColor>
 				<mSoundFile></mSoundFile>
@@ -2001,54 +1999,54 @@ cecho("\n&lt;yellow&gt;* * * * * * * * Day arrives across Algoron * * * * * * * 
 					<string>^\a?You tell the group\s+'.*'$</string>
 				</regexCodeList>
 				<regexCodePropertyList>
-					<int>1</int>
-					<int>1</int>
+					<integer>1</integer>
+					<integer>1</integer>
 				</regexCodePropertyList>
 			</Trigger>
-			<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isRunAllTriggers="no">
+			<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 				<name>Says</name>
 				<script>demonnic.chat:append("Local")</script>
-				<packageName/>
-				<filter>no</filter>
 				<triggerType>0</triggerType>
 				<conditonLineDelta>0</conditonLineDelta>
 				<mStayOpen>0</mStayOpen>
-				<mCommand></mCommand>
+				<mCommand />
+				<packageName />
 				<mFgColor>#ffffff</mFgColor>
 				<mBgColor>#222222</mBgColor>
 				<mSoundFile></mSoundFile>
 				<colorTriggerFgColor>#000000</colorTriggerFgColor>
 				<colorTriggerBgColor>#000000</colorTriggerBgColor>
 				<regexCodeList>
-					<string>^\a?(?:You say|.+\s+says)\s+'.*'$</string>
+					<string>^\a?(?:You say|.+\s+says)\s+(?:\([^)]+\)\s+)?'.*'$</string>
 					<string>says (to You) '</string>
+					<string>You say in a raspy voice</string>
+					<string>says (to</string>
 					<string>says softly '</string>
 					<string>says growlingly '</string>
-					<string>says (to</string>
 					<string>says in a low toned manner (to</string>
 					<string>says softly (to</string>
 					<string>says growlingly (to</string>
 				</regexCodeList>
 				<regexCodePropertyList>
-					<int>1</int>
-					<int>0</int>
-					<int>0</int>
-					<int>0</int>
-					<int>0</int>
-					<int>0</int>
-					<int>0</int>
-					<int>0</int>
+					<integer>1</integer>
+					<integer>0</integer>
+					<integer>0</integer>
+					<integer>0</integer>
+					<integer>0</integer>
+					<integer>0</integer>
+					<integer>0</integer>
+					<integer>0</integer>
+					<integer>0</integer>
 				</regexCodePropertyList>
 			</Trigger>
-			<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isRunAllTriggers="no">
+			<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 				<name>Whispers</name>
 				<script>demonnic.chat:append("Local")</script>
-				<packageName/>
-				<filter>no</filter>
 				<triggerType>0</triggerType>
 				<conditonLineDelta>0</conditonLineDelta>
 				<mStayOpen>0</mStayOpen>
-				<mCommand></mCommand>
+				<mCommand />
+				<packageName />
 				<mFgColor>#ffffff</mFgColor>
 				<mBgColor>#222222</mBgColor>
 				<mSoundFile></mSoundFile>
@@ -2058,18 +2056,17 @@ cecho("\n&lt;yellow&gt;* * * * * * * * Day arrives across Algoron * * * * * * * 
 					<string>^\a?(?:You whisper|.+\s+whispers)(?:\s+\([^)]+\))?\s+'.*'$</string>
 				</regexCodeList>
 				<regexCodePropertyList>
-					<int>1</int>
+					<integer>1</integer>
 				</regexCodePropertyList>
 			</Trigger>
-			<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isRunAllTriggers="no">
+			<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 				<name>Yells</name>
 				<script>demonnic.chat:append("Local")</script>
-				<packageName/>
-				<filter>no</filter>
 				<triggerType>0</triggerType>
 				<conditonLineDelta>0</conditonLineDelta>
 				<mStayOpen>0</mStayOpen>
-				<mCommand></mCommand>
+				<mCommand />
+				<packageName />
 				<mFgColor>#ffffff</mFgColor>
 				<mBgColor>#222222</mBgColor>
 				<mSoundFile></mSoundFile>
@@ -2079,18 +2076,17 @@ cecho("\n&lt;yellow&gt;* * * * * * * * Day arrives across Algoron * * * * * * * 
 					<string>^\a?(?:You yell|.+\s+yells)\s+'.*'$</string>
 				</regexCodeList>
 				<regexCodePropertyList>
-					<int>1</int>
+					<integer>1</integer>
 				</regexCodePropertyList>
 			</Trigger>
-			<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isRunAllTriggers="no">
+			<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 				<name>Shouts</name>
 				<script>demonnic.chat:append("Local")</script>
-				<packageName/>
-				<filter>no</filter>
 				<triggerType>0</triggerType>
 				<conditonLineDelta>0</conditonLineDelta>
 				<mStayOpen>0</mStayOpen>
-				<mCommand></mCommand>
+				<mCommand />
+				<packageName />
 				<mFgColor>#ffffff</mFgColor>
 				<mBgColor>#222222</mBgColor>
 				<mSoundFile></mSoundFile>
@@ -2100,19 +2096,18 @@ cecho("\n&lt;yellow&gt;* * * * * * * * Day arrives across Algoron * * * * * * * 
 					<string>^\a?(?:You shout|.+\s+shouts)\s+'.*'$</string>
 				</regexCodeList>
 				<regexCodePropertyList>
-					<int>1</int>
+					<integer>1</integer>
 				</regexCodePropertyList>
 			</Trigger>
-			<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isRunAllTriggers="no">
+			<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 				<name>Gossip</name>
 				<script>demonnic.chat:append("City")
 deleteLine()</script>
-				<packageName/>
-				<filter>no</filter>
 				<triggerType>0</triggerType>
 				<conditonLineDelta>0</conditonLineDelta>
 				<mStayOpen>0</mStayOpen>
-				<mCommand></mCommand>
+				<mCommand />
+				<packageName />
 				<mFgColor>#ffffff</mFgColor>
 				<mBgColor>#222222</mBgColor>
 				<mSoundFile></mSoundFile>
@@ -2122,19 +2117,18 @@ deleteLine()</script>
 					<string>^\a?.+\s+gossips\s+'.*'$</string>
 				</regexCodeList>
 				<regexCodePropertyList>
-					<int>1</int>
+					<integer>1</integer>
 				</regexCodePropertyList>
 			</Trigger>
-			<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isRunAllTriggers="no">
+			<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 				<name>Clan Gossip</name>
 				<script>demonnic.chat:append("City")
 deleteLine()</script>
-				<packageName/>
-				<filter>no</filter>
 				<triggerType>0</triggerType>
 				<conditonLineDelta>0</conditonLineDelta>
 				<mStayOpen>0</mStayOpen>
-				<mCommand></mCommand>
+				<mCommand />
+				<packageName />
 				<mFgColor>#ffffff</mFgColor>
 				<mBgColor>#222222</mBgColor>
 				<mSoundFile></mSoundFile>
@@ -2144,18 +2138,17 @@ deleteLine()</script>
 					<string>^\a?.+\s+clan gossips\s+'.*'$</string>
 				</regexCodeList>
 				<regexCodePropertyList>
-					<int>1</int>
+					<integer>1</integer>
 				</regexCodePropertyList>
 			</Trigger>
-			<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isRunAllTriggers="no">
+			<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 				<name>Kingdom</name>
 				<script>demonnic.chat:append("City")</script>
-				<packageName/>
-				<filter>no</filter>
 				<triggerType>0</triggerType>
 				<conditonLineDelta>0</conditonLineDelta>
 				<mStayOpen>0</mStayOpen>
-				<mCommand></mCommand>
+				<mCommand />
+				<packageName />
 				<mFgColor>#ffffff</mFgColor>
 				<mBgColor>#222222</mBgColor>
 				<mSoundFile></mSoundFile>
@@ -2166,20 +2159,19 @@ deleteLine()</script>
 					<string>Kingdom: '</string>
 				</regexCodeList>
 				<regexCodePropertyList>
-					<int>0</int>
-					<int>0</int>
+					<integer>0</integer>
+					<integer>0</integer>
 				</regexCodePropertyList>
 			</Trigger>
-			<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isRunAllTriggers="no">
+			<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 				<name>OOC</name>
 				<script>demonnic.chat:append("OOC")
 deleteLine()</script>
-				<packageName/>
-				<filter>no</filter>
 				<triggerType>0</triggerType>
 				<conditonLineDelta>0</conditonLineDelta>
 				<mStayOpen>0</mStayOpen>
-				<mCommand></mCommand>
+				<mCommand />
+				<packageName />
 				<mFgColor>#ffffff</mFgColor>
 				<mBgColor>#222222</mBgColor>
 				<mSoundFile></mSoundFile>
@@ -2189,19 +2181,18 @@ deleteLine()</script>
 					<string>^\a?.+\sOOC:\s+'.*'$</string>
 				</regexCodeList>
 				<regexCodePropertyList>
-					<int>1</int>
+					<integer>1</integer>
 				</regexCodePropertyList>
 			</Trigger>
-			<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isRunAllTriggers="no">
+			<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 				<name>Auctions</name>
 				<script>demonnic.chat:append("OOC")
 deleteLine()</script>
-				<packageName/>
-				<filter>no</filter>
 				<triggerType>0</triggerType>
 				<conditonLineDelta>0</conditonLineDelta>
 				<mStayOpen>0</mStayOpen>
-				<mCommand></mCommand>
+				<mCommand />
+				<packageName />
 				<mFgColor>#ffffff</mFgColor>
 				<mBgColor>#222222</mBgColor>
 				<mSoundFile></mSoundFile>
@@ -2211,19 +2202,18 @@ deleteLine()</script>
 					<string>^\a?.+\s+auctions:\s+'.*'$</string>
 				</regexCodeList>
 				<regexCodePropertyList>
-					<int>1</int>
+					<integer>1</integer>
 				</regexCodePropertyList>
 			</Trigger>
-			<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isRunAllTriggers="no">
+			<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 				<name>Radios</name>
 				<script>demonnic.chat:append("OOC")
 deleteLine()</script>
-				<packageName/>
-				<filter>no</filter>
 				<triggerType>0</triggerType>
 				<conditonLineDelta>0</conditonLineDelta>
 				<mStayOpen>0</mStayOpen>
-				<mCommand></mCommand>
+				<mCommand />
+				<packageName />
 				<mFgColor>#ffffff</mFgColor>
 				<mBgColor>#222222</mBgColor>
 				<mSoundFile></mSoundFile>
@@ -2233,19 +2223,18 @@ deleteLine()</script>
 					<string>radios '</string>
 				</regexCodeList>
 				<regexCodePropertyList>
-					<int>0</int>
+					<integer>0</integer>
 				</regexCodePropertyList>
 			</Trigger>
-			<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isRunAllTriggers="no">
+			<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 				<name>Grats</name>
 				<script>demonnic.chat:append("OOC")
 deleteLine()</script>
-				<packageName/>
-				<filter>no</filter>
 				<triggerType>0</triggerType>
 				<conditonLineDelta>0</conditonLineDelta>
 				<mStayOpen>0</mStayOpen>
-				<mCommand></mCommand>
+				<mCommand />
+				<packageName />
 				<mFgColor>#ffffff</mFgColor>
 				<mBgColor>#222222</mBgColor>
 				<mSoundFile></mSoundFile>
@@ -2255,19 +2244,18 @@ deleteLine()</script>
 					<string>^\a?.+\s+grats\s+'.*'$</string>
 				</regexCodeList>
 				<regexCodePropertyList>
-					<int>1</int>
+					<integer>1</integer>
 				</regexCodePropertyList>
 			</Trigger>
-			<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isRunAllTriggers="no">
+			<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 				<name>Ask/Answer/Newbie</name>
 				<script>demonnic.chat:append("OOC")
 deleteLine()</script>
-				<packageName/>
-				<filter>no</filter>
 				<triggerType>0</triggerType>
 				<conditonLineDelta>0</conditonLineDelta>
 				<mStayOpen>0</mStayOpen>
-				<mCommand></mCommand>
+				<mCommand />
+				<packageName />
 				<mFgColor>#ffffff</mFgColor>
 				<mBgColor>#222222</mBgColor>
 				<mSoundFile></mSoundFile>
@@ -2279,20 +2267,19 @@ deleteLine()</script>
 					<string>[Newbie]: '</string>
 				</regexCodeList>
 				<regexCodePropertyList>
-					<int>1</int>
-					<int>1</int>
-					<int>0</int>
+					<integer>1</integer>
+					<integer>1</integer>
+					<integer>0</integer>
 				</regexCodePropertyList>
 			</Trigger>
-			<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isRunAllTriggers="no">
+			<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 				<name>Bloodbath/Quest</name>
 				<script>demonnic.chat:append("OOC")</script>
-				<packageName/>
-				<filter>no</filter>
 				<triggerType>0</triggerType>
 				<conditonLineDelta>0</conditonLineDelta>
 				<mStayOpen>0</mStayOpen>
-				<mCommand></mCommand>
+				<mCommand />
+				<packageName />
 				<mFgColor>#ffffff</mFgColor>
 				<mBgColor>#222222</mBgColor>
 				<mSoundFile></mSoundFile>
@@ -2303,8 +2290,8 @@ deleteLine()</script>
 					<string>quests '</string>
 				</regexCodeList>
 				<regexCodePropertyList>
-					<int>0</int>
-					<int>0</int>
+					<integer>0</integer>
+					<integer>0</integer>
 				</regexCodePropertyList>
 			</Trigger>
 		</TriggerGroup>
