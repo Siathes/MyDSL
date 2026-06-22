@@ -488,15 +488,22 @@ function MyDSL.parseScoreLine(line)
     end
   end
 
-  -- HITROLL B: 14  P: 19   DAMROLL B: 14  P: 21
-  local hB, hP = line:match("HITROLL%s+B:%s*([%+%-]?%d+)%s+P:%s*([%+%-]?%d+)")
+  -- HitRoll: B:21  P:31   (actual format — old code used HITROLL B: P: which never matched)
+  local hB, hP = line:match("HitRoll:%s*B:([%+%-]?%d+)%s+P:([%+%-]?%d+)")
   if hB then scoreBlock.hitrollBase = tonumber(hB); scoreBlock.hitroll = tonumber(hP) end
-  local dB, dP = line:match("DAMROLL%s+B:%s*([%+%-]?%d+)%s+P:%s*([%+%-]?%d+)")
+  local dB, dP = line:match("DamRoll:%s*B:([%+%-]?%d+)%s+P:([%+%-]?%d+)")
   if dB then scoreBlock.damrollBase = tonumber(dB); scoreBlock.damroll = tonumber(dP) end
 
-  -- Armor: Pierce: -100  Bash: -80  Slash: -90  Magic: -70
+  -- Items: 128   (max 196    )   — on same line as HitRoll (STR line)
+  local items_cur, items_max = line:match("Items:%s*(%d+)%s+%(max%s+(%d+)%s*%)")
+  if items_cur then
+    scoreBlock.items     = tonumber(items_cur)
+    scoreBlock.max_items = tonumber(items_max)
+  end
+
+  -- Armor: P:-160 B:-160 S:-160 M:-80   (actual abbrevs — old code used Pierce:/Bash:/Slash:/Magic:)
   local ap, ab, as_, am =
-    line:match("Pierce:%s*([%+%-]?%d+)%s+Bash:%s*([%+%-]?%d+)%s+Slash:%s*([%+%-]?%d+)%s+Magic:%s*([%+%-]?%d+)")
+    line:match("Armor:%s*P:([%+%-]?%d+)%s+B:([%+%-]?%d+)%s+S:([%+%-]?%d+)%s+M:([%+%-]?%d+)")
   if ap then
     scoreBlock.armorPierce = tonumber(ap)
     scoreBlock.armorBash   = tonumber(ab)
@@ -512,36 +519,48 @@ function MyDSL.parseScoreLine(line)
   local mv, mmv = line:match("Move:%s*(%d+)%s+of%s+(%d+)")
   if mv then scoreBlock.move = tonumber(mv); scoreBlock.max_move = tonumber(mmv) end
 
-  -- Gold / Silver on same line
-  local g, s = line:match("Gold:%s*(%d+)%s+Silver:%s*(%d+)")
+  -- GOLD : 222  Silver: 187   (actual caps/spacing — old code used Gold: which never matched)
+  local g, s = line:match("GOLD%s*:%s*(%d+)%s+Silver:%s*(%d+)")
   if g then scoreBlock.gold = tonumber(g); scoreBlock.silver = tonumber(s) end
 
-  -- Bank / Quest points
-  local bk, qp = line:match("Bank:%s*(%d+)%s+Qpoints:%s*(%d+)")
+  -- BANK : 60  QPoints: 1164   (old code: Bank:/Qpoints: — both wrong)
+  local bk, qp = line:match("BANK%s*:%s*(%d+)%s+QPoints:%s*(%d+)")
   if bk then scoreBlock.bank = tonumber(bk); scoreBlock.qpoints = tonumber(qp) end
 
-  v = line:match("Practices:%s*(%d+)");   if v then scoreBlock.practices = tonumber(v) end
-  v = line:match("Trains:%s*(%d+)");      if v then scoreBlock.trains    = tonumber(v) end
+  v = line:match("PRACT:%s*(%d+)");       if v then scoreBlock.practices = tonumber(v) end
+  v = line:match("TRAIN:%s*(%d+)");       if v then scoreBlock.trains    = tonumber(v) end
   v = line:match("XP%s*:%s*(%d+)");       if v then scoreBlock.xp       = tonumber(v) end
   v = line:match("TNL:%s*(%d+)");         if v then scoreBlock.tnl      = tonumber(v) end
-  v = line:match("Alignment:%s*(.+)$");   if v then scoreBlock.align    = trim(v) end
+  -- Align: stops at double-space so "Prestige hours: 460" on the same line is excluded
+  v = line:match("Align:%s*(.-)%s%s");    if v then scoreBlock.align    = trim(v) end
   v = line:match("Wimpy:%s*(%d+)");       if v then scoreBlock.wimpy    = tonumber(v) end
-  v = line:match("Position:%s*(.+)$");    if v then scoreBlock.position = trim(v) end
+  -- Pos'n: single-word value (Standing/Sleeping/etc.) followed by flag columns
+  v = line:match("Pos'n:%s*(%S+)");       if v then scoreBlock.position = trim(v) end
   v = line:match("Stance:%s*(.+)$");      if v then scoreBlock.stance   = trim(v) end
   v = line:match("Speaking:%s*(%S+)");    if v then scoreBlock.language = v end
   v = line:match("Religion:%s*(.+)$");    if v then scoreBlock.religion = trim(v) end
   v = line:match("PROFESSION:%s*(.+)$");  if v then scoreBlock.profession = trim(v) end
 
-  -- Craft: Blacksmithing 45%
-  local craft, pct = line:match("Craft:%s*(.-)%s+(%d+)%%")
-  if craft then
+  -- Craftskill: 241  Craft Rank: Apprentice Hunter
+  -- Old code looked for "Craft: name pct%" which is completely wrong format.
+  -- Key is the craft type (last word of rank), value is 1-1000 skillpoints.
+  local cs, cr = line:match("Craftskill:%s*(%d+)%s+Craft Rank:%s*(.+)$")
+  if cs then
     scoreBlock.crafts = scoreBlock.crafts or {}
-    scoreBlock.crafts[trim(craft):lower()] = tonumber(pct)
+    local type_word = trim(cr):match("%S+$")
+    if type_word then
+      scoreBlock.crafts[type_word:lower()] = tonumber(cs)
+    end
   end
 
-  -- PKill record: PKills: 5  PKilled: 2
-  local pk, pkd = line:match("PKills:%s*(%d+)%s+PKilled:%s*(%d+)")
-  if pk then scoreBlock.pkills = tonumber(pk); scoreBlock.pkilled = tonumber(pkd) end
+  -- PKill: [ Win: 0  Giants: 0  BB Wins: 0 ]   (old code: PKills:/PKilled: — wrong format)
+  local pk_win, pk_giants, pk_bb =
+    line:match("PKill:.*Win:%s*(%d+).*Giants:%s*(%d+).*BB Wins:%s*(%d+)")
+  if pk_win then
+    scoreBlock.pkills        = tonumber(pk_win)
+    scoreBlock.pkills_giants = tonumber(pk_giants)
+    scoreBlock.pkills_bb     = tonumber(pk_bb)
+  end
 end
 
 function MyDSL.endScore()
@@ -581,15 +600,17 @@ function MyDSL.beginFlags()
 end
 
 function MyDSL.parseFlagsLine(line)
-  -- Flags appear as space-separated words; collect whichever are present
-  for word in line:gmatch("%S+") do
-    local canon = FLAG_SET[word:lower()]
-    if canon then flagsBlock[canon] = true end
+  -- Detect "(X)" = ON and "( )" = OFF. Pattern handles both "Flag(X)" and "Flag (X)".
+  -- Old code only checked word presence, never read the X/space state.
+  for name, state in line:gmatch("(%w+)%s*%(([X ])%)") do
+    local canon = FLAG_SET[name:lower()]
+    if canon then flagsBlock[canon] = (state == "X") end
   end
 end
 
 function MyDSL.endFlags()
-  -- Any known flag not seen during the block is explicitly OFF
+  -- parseFlagsLine writes true/false per flag. nil means the line was never seen
+  -- (treat as OFF). "flag == true" collapses nil→false, false→false, true→true.
   local fields = {}
   for _, canon in ipairs(KNOWN_FLAGS) do
     fields[canon] = flagsBlock[canon] == true
@@ -607,9 +628,12 @@ end
 --   each moon line       → MyDSL.parseLunarLine(line)
 --   blank line / end     → MyDSL.endLunar()
 --
--- Example lines:
---   Red moon (Serin):  Full, high sanction. Mana bonus 20%, saves -8, casting +20. Regen 6%, 2 cycles, 8 hours remain.
---     Phase change from 'Full' to 'Waning three-quarters' in 2 cycles (8 hours), at 2:32pm Friday.
+-- Actual 2-line-per-moon format (confirmed from in-game capture):
+--   The red moon is full and not visible.
+--      [Mana +15%]  [Saves -3]  [Casting +3]  [Regen   0%]  [Cycles remaining 45 (22 Hours)]
+--   The white moon is crescent waning and not visible.
+--      [Mana +5%]   [Saves -1]  [Casting +1]  [Regen   0%]  [Cycles remaining 12 (6 Hours)]
+-- Old code expected a completely different single-line format — full rewrite.
 
 local lunarBlock = {}
 local MOON_COLORS = { red = true, white = true, black = true }
@@ -619,26 +643,28 @@ function MyDSL.beginLunar()
 end
 
 function MyDSL.parseLunarLine(line)
-  local color = line:lower():match("^(%a+) moon")
+  -- Description line: "The red moon is full and not visible."
+  local color, rest = line:match("^The (%a+) moon is (.+)%.$")
   if color and MOON_COLORS[color] then
+    local phase, vis = rest:match("^(.+) and (.+)$")
     local moon = lunarBlock[color]
-    moon.moon_name        = line:match("%((.-)%)")
-    moon.phase            = trim(line:match(":%s+([^,]+),") or "")
-    moon.visibility       = trim(line:match(",[^%.]-%.%s+") or "")
-    moon.mana_bonus       = tonumber(line:match("Mana bonus (%d+)%%"))
-    moon.saves_modifier   = tonumber(line:match("saves ([%+%-]?%d+)"))
-    moon.casting_modifier = tonumber(line:match("casting ([%+%-]?%d+)"))
-    moon.regen_pct        = tonumber(line:match("Regen (%d+)%%"))
-    moon.cycles_remaining = tonumber(line:match("(%d+) cycles?[,.]"))
-    moon.hours_remaining  = tonumber(line:match("(%d+) hours? remain"))
-    moon.no_bonuses       = line:find("No bonuses") ~= nil
+    moon.phase      = trim(phase or rest)
+    moon.visibility = trim(vis or "")
     lunarBlock._last = color
-  elseif line:find("Phase change") and lunarBlock._last then
+    return
+  end
+
+  -- Bonus line (indented, bracket-delimited), attributed to the preceding moon:
+  -- "   [Mana +15%]  [Saves -3]  [Casting +3]  [Regen   0%]  [Cycles remaining 45 (22 Hours)]"
+  if lunarBlock._last and line:find("%[Mana") then
     local moon = lunarBlock[lunarBlock._last]
-    moon.next_phase        = line:match("to '([^']+)'")
-    moon.next_phase_cycles = tonumber(line:match("in (%d+) cycles?"))
-    moon.next_phase_hours  = tonumber(line:match("%((%d+) hours?%)"))
-    moon.next_phase_at     = trim(line:match("at (.-)%.?$") or "")
+    moon.mana_bonus       = tonumber(line:match("%[Mana ([%+%-]?%d+)%%%]"))
+    moon.saves_modifier   = tonumber(line:match("%[Saves ([%+%-]?%d+)%]"))
+    moon.casting_modifier = tonumber(line:match("%[Casting ([%+%-]?%d+)%]"))
+    moon.regen_pct        = tonumber(line:match("%[Regen%s+([%+%-]?%d+)%%%]"))
+    local cycles, hours   = line:match("%[Cycles remaining (%d+) %((%d+) Hours?%)%]")
+    moon.cycles_remaining = tonumber(cycles)
+    moon.hours_remaining  = tonumber(hours)
   end
 end
 
@@ -655,18 +681,22 @@ end
 ------------------------------------------------------------------------
 -- 9d  TIME
 ------------------------------------------------------------------------
--- Single-line.  Trigger matches "It is %d+ o'clock" and calls this.
--- Example: "It is 4 o'clock am, on the Day of Deception, the 10th of January."
+-- Single-line.  Trigger matches "It is \d" and calls this.
+-- Two confirmed real formats (both must match):
+--   "It is 9:30 am, Day of the Great Gods, 26th the Month of the Great Evil."
+--   "It is 10:00 o'clock am, Day of the Great Gods, 26th the Month of the Great Evil."
+-- Old code only handled a single wrong variant ("on the Day of", no HH:MM).
+-- New pattern: [^,]- lazily skips " o'clock" when present, absorbs nothing otherwise.
 
 function MyDSL.parseTimeLine(line)
-  local hour, ampm, dayName, dayNum, month =
-    line:match("It is (%d+) o'clock (%a+), on the Day of ([^,]+), the (%d+)[^ ]+ of ([^%.]+)")
+  local hour, ampm, day_name, day_num, month =
+    line:match("It is (%d+):%d+[^,]-(%a+), Day of ([^,]+), (%d+)%a+ the Month of ([^%.]+)")
   if hour then
     update("time", {
       hour     = tonumber(hour),
       ampm     = ampm,
-      day_name = trim(dayName),
-      day_num  = tonumber(dayNum),
+      day_name = trim(day_name),
+      day_num  = tonumber(day_num),
       month    = trim(month),
     })
   end
@@ -693,20 +723,23 @@ end
 --   "[level class]" line   → MyDSL.parseWhoLine(line)
 --   end of who block       → MyDSL.endWho()
 --
--- Example: "[51 War] WANTED AFK  Althainia   [Crimson]  Bob  the warrior"
--- Note: kingdom parsing assumes single-word kingdoms (Althainia, etc.).
--- If DSL uses multi-word kingdoms, tune the column logic to your output.
+-- Format: "[level race class] (org) name title"
+-- Bracket contains THREE tokens: level, race, class.
+-- Races include hyphens (W-Elf, M-Dwf, D-Elf, H-Ogre) so %a+ was wrong.
+-- Old code: "%[(%d+)%s+(%a+)%]" — only captured level + one word (was treating race as class).
+-- New code: captures all three tokens from the bracket.
 
 local whoBlock = {}
 
 function MyDSL.beginWho() whoBlock = {} end
 
 function MyDSL.parseWhoLine(line)
-  local level, class = line:match("%[(%d+)%s+(%a+)%]")
+  local level, race, class = line:match("%[%s*(%d+)%s+([%w%-]+)%s+(%w+)%]")
   if not level then return end
 
   local entry = {
     level  = tonumber(level),
+    race   = trim(race),
     class  = trim(class),
     wanted = line:find("WANTED") ~= nil,
     afk    = line:find("%sAFK%s") ~= nil,
@@ -900,8 +933,10 @@ end
 ------------------------------------------------------------------------
 -- 9m  AFFECTS  (text fallback, used only when GMCP has not yet arrived)
 ------------------------------------------------------------------------
--- Example: "armor          affects armor class by  -20, for  6 cycles."
---          "You are not affected by any spells."
+-- Confirmed format (from in-game capture):
+--   "Spell: detect hidden     : modifies none by 0 for 32 cycles, (16 hours)"
+--   "Spell: detect invis      : modifies none by 0 for 32 cycles, (16 hours)"
+-- Old code matched "name affects loc by mod, for N cycles." — completely wrong format.
 
 local affectsTextBlock = {}
 
@@ -912,8 +947,9 @@ function MyDSL.parseAffectsTextLine(line)
     affectsTextBlock = {}
     return
   end
-  local name, loc, mod, cycles =
-    line:match("^%s*(.-)%s+affects%s+(.-)%s+by%s+([%+%-]?%d+),%s+for%s+(%d+)%s+cycles?%.")
+  -- "Spell: <name>  : modifies <loc> by <mod> for <cycles> cycles, (<hours> hours)"
+  local name, loc, mod, cycles, hours =
+    line:match("^Spell:%s*(.-)%s*:%s*modifies%s+(%S+)%s+by%s+([%+%-]?%d+)%s+for%s+(%d+)%s+cycles?,%s+%((%d+)%s+hours?%)")
   if name and trim(name) ~= "" then
     local key = trim(name):lower()
     affectsTextBlock[key] = {
@@ -921,6 +957,7 @@ function MyDSL.parseAffectsTextLine(line)
       location = trim(loc),
       modifier = tonumber(mod),
       duration = tonumber(cycles),
+      hours    = tonumber(hours),
       source   = "text",
     }
   end
