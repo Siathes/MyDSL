@@ -164,3 +164,4 @@ No code changes — design and validation session.
 - Contract_LiveView.md — full rewrite, baseline superseded entirely
 - SESSION_START.md, TODO.md — LiveView moved from "next" to "done"
 2026-06-21 fix: DataLayer text parsers — HitRoll/DamRoll/Armor/Align/Pos'n/GOLD/BANK/PRACT/TRAIN/Craft/PKill patterns corrected; Items field added; Flags X/space detection fixed; Lunar rewritten for 2-line format; Time handles both HH:MM and HH:MM o'clock; Who captures race+class; Affects text uses Spell:/modifies format
+2026-06-24 fix: DataBridge gaps 1-4 and 6 — DB.time and DB.affects sections added; score text fields (align/race/class/religion/profession/crafts/xp/practices/trains/bank/qpoints/hitroll/damroll/armor/items/posn) merged into DB.score without overwriting GMCP fields; DB.room.area replaced with DB.room.sector; listeners added for score.updated, time.updated, affects.updated
