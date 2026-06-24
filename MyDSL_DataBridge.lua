@@ -37,6 +37,8 @@ function MyDSL.DB.sync()
     move    = char.move,    maxmove    = char.max_move,
     name    = login.name,   level      = login.level,
   }
+
+  -- GMCP-backed stat fields — built first so text merges below don't overwrite them
   MyDSL.DB.score = {
     str        = char.str,          int        = char.int,
     wis        = char.wis,          dex        = char.dex,
@@ -48,11 +50,64 @@ function MyDSL.DB.sync()
     flying     = char.is_flying,    riding     = char.is_riding,
     fighting   = char.is_fighting,
   }
-  MyDSL.DB.room = { name = room.name, exits = room.exits, area = room.area }
+
+  -- Gap 6: score text fields (text parser only — not available from GMCP).
+  -- Field names verified against MyDSL_DataLayer.lua parseScoreLine().
+  -- DataLayer key 'position' → DB key 'posn' (per LiveView contract).
+  -- DataLayer key 'class'    → DB key 'class_' (avoids Lua reserved word).
+  local sc = MyDSL.State.score or {}
+  MyDSL.DB.score.align       = sc.align
+  MyDSL.DB.score.race        = sc.race
+  MyDSL.DB.score.class_      = sc.class
+  MyDSL.DB.score.religion    = sc.religion
+  MyDSL.DB.score.profession  = sc.profession
+  MyDSL.DB.score.crafts      = sc.crafts
+  MyDSL.DB.score.xp          = sc.xp
+  MyDSL.DB.score.practices   = sc.practices
+  MyDSL.DB.score.trains      = sc.trains
+  MyDSL.DB.score.bank        = sc.bank
+  MyDSL.DB.score.qpoints     = sc.qpoints
+  MyDSL.DB.score.hitroll     = sc.hitroll
+  MyDSL.DB.score.hitrollBase = sc.hitrollBase
+  MyDSL.DB.score.damroll     = sc.damroll
+  MyDSL.DB.score.damrollBase = sc.damrollBase
+  MyDSL.DB.score.armorPierce = sc.armorPierce
+  MyDSL.DB.score.armorBash   = sc.armorBash
+  MyDSL.DB.score.armorSlash  = sc.armorSlash
+  MyDSL.DB.score.armorMagic  = sc.armorMagic
+  MyDSL.DB.score.items       = sc.items
+  MyDSL.DB.score.max_items   = sc.max_items
+  MyDSL.DB.score.posn        = sc.position
+
+  -- Gap 1 confirmed NOT a bug: DataLayer maps gmcp.room_data.room → State.room.name.
+  -- Gap 2 fixed: 'area' never existed in DataLayer — replaced with 'sector'.
+  MyDSL.DB.room = { name = room.name, exits = room.exits, sector = room.sector }
+
   MyDSL.DB.tick = { remaining = tick.remaining, average = tick.average or 40, percent = tick.percent }
   MyDSL.DB.timers          = MyDSL.DB.timers or {}
   MyDSL.DB.timers.tick     = MyDSL.DB.tick
   MyDSL.DB.xp              = { tnl = char.tnl }
+
+  -- Gap 3: DB.time — populated by DataLayer.parseTimeLine() from the `time` command.
+  -- gmcp.tick.time is a clock string only (confirmed "8:00am" format, no day/night label).
+  -- is_day is derived from hour + ampm; NOT from gmcp.tick.time.
+  local t  = MyDSL.State.time or {}
+  local h  = tonumber(t.hour) or 0
+  local ap = t.ampm or ""
+  MyDSL.DB.time = {
+    hour     = t.hour,
+    ampm     = ap,
+    clock    = (t.hour and ap ~= "") and (t.hour .. ":00 " .. ap) or "",
+    day_name = t.day_name,
+    day_num  = t.day_num,
+    month    = t.month,
+    is_day   = (ap == "am" and h >= 6) or (ap == "pm" and h < 6),
+  }
+
+  -- Gap 4: DB.affects — active affects keyed by lowercase spell name.
+  -- DataLayer builds this table from gmcp.affect_data / add_affect / remove_affect.
+  -- Consumers iterate: for name, entry in pairs(MyDSL.DB.affects) do
+  MyDSL.DB.affects = (MyDSL.State.affects and MyDSL.State.affects.active) or {}
 end
 
 
@@ -64,13 +119,16 @@ local function onAny()
   pcall(MyDSL.DB.sync)
 end
 
-MyDSL.DB._handlers.char     = registerAnonymousEventHandler("MyDSL.char.updated",  onAny)
-MyDSL.DB._handlers.room     = registerAnonymousEventHandler("MyDSL.room.updated",  onAny)
-MyDSL.DB._handlers.login    = registerAnonymousEventHandler("MyDSL.login.updated", onAny)
-MyDSL.DB._handlers.tick     = registerAnonymousEventHandler("MyDSL.tick.updated",  onAny)
-MyDSL.DB._handlers.gchar    = registerAnonymousEventHandler("gmcp.char_data",      onAny)
-MyDSL.DB._handlers.groom    = registerAnonymousEventHandler("gmcp.room_data",      onAny)
-MyDSL.DB._handlers.gtick    = registerAnonymousEventHandler("gmcp.tick",           onAny)
+MyDSL.DB._handlers.char     = registerAnonymousEventHandler("MyDSL.char.updated",    onAny)
+MyDSL.DB._handlers.room     = registerAnonymousEventHandler("MyDSL.room.updated",    onAny)
+MyDSL.DB._handlers.login    = registerAnonymousEventHandler("MyDSL.login.updated",   onAny)
+MyDSL.DB._handlers.tick     = registerAnonymousEventHandler("MyDSL.tick.updated",    onAny)
+MyDSL.DB._handlers.score    = registerAnonymousEventHandler("MyDSL.score.updated",   onAny)
+MyDSL.DB._handlers.time     = registerAnonymousEventHandler("MyDSL.time.updated",    onAny)
+MyDSL.DB._handlers.affects  = registerAnonymousEventHandler("MyDSL.affects.updated", onAny)
+MyDSL.DB._handlers.gchar    = registerAnonymousEventHandler("gmcp.char_data",        onAny)
+MyDSL.DB._handlers.groom    = registerAnonymousEventHandler("gmcp.room_data",        onAny)
+MyDSL.DB._handlers.gtick    = registerAnonymousEventHandler("gmcp.tick",             onAny)
 
 
 ------------------------------------------------------------------------
