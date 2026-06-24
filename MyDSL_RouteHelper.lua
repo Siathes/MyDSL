@@ -1,35 +1,18 @@
 -- =============================================================================
 -- MyDSL_RouteHelper.lua  --  Layer 3: Text routing to windows
 -- =============================================================================
--- Provides MyDSL.Route.to(name, line) and shorthand helpers.
+-- Provides MyDSL.Route.to(windowName, line) and shorthand helpers.
 -- Called by triggers to route captured text lines to the correct window.
 -- Creates a MiniConsole inside the UserWindow on first use if not present.
 --
--- Route name map (DSL1 names → DSL2 window names):
---   "History"       → MyDSL_History
---   "Combat"        → MyDSL_Combat
---   "Scan"          → MyDSL_Scan
---   "Group"         → MyDSL_Group
---   "PlayersNearYou"→ MyDSL_PlayersNear
---   "Target"        → MyDSL_Target
---   "RightHere"     → MyDSL_RightHere
+-- The routeMap (DSL1→DSL2 name compat) was removed per the June 2026 addendum:
+-- all DSL2 triggers are written fresh, so backward-compat aliases add no value.
+-- Use shorthand helpers (Route.history, Route.combat, etc.) or direct window
+-- names ("MyDSL_History") with Route.to().
 -- =============================================================================
 
 MyDSL = MyDSL or {}
 MyDSL.Route = MyDSL.Route or {}
-
--- Map DSL1 route destination names to DSL2 window registry names.
--- This lets old trigger code like MyDSL.Route.to("History") still work.
-local routeMap = {
-  History        = "MyDSL_History",
-  Combat         = "MyDSL_Combat",
-  Scan           = "MyDSL_Scan",
-  Group          = "MyDSL_Group",
-  PlayersNearYou = "MyDSL_PlayersNear",
-  PlayersNear    = "MyDSL_PlayersNear",
-  Target         = "MyDSL_Target",
-  RightHere      = "MyDSL_RightHere",
-}
 
 -- getOrCreateConsole(windowName)
 -- Returns the MiniConsole inside a window, creating it if needed.
@@ -69,46 +52,52 @@ local function getOrCreateConsole(windowName)
   return con
 end
 
--- MyDSL.Route.to(name, line)
--- Routes a text line to the named window.
--- name: DSL1 route name (e.g. "History") or DSL2 window name (e.g. "MyDSL_History")
--- line: optional text to write. If nil, uses getCurrentLine() (the current trigger line).
-
-function MyDSL.Route.to(name, line)
-  local winName = routeMap[name] or name
-  local con = getOrCreateConsole(winName)
+-- MyDSL.Route.to(windowName, line)
+-- Routes text to the named window (direct DSL2 name, e.g. "MyDSL_History").
+-- Two modes:
+--   line provided → decho mode: caller controls color/format via decho tags.
+--   line nil      → appendBuffer mode: copies the current trigger line with all
+--                   original ANSI game colors intact. This is the observer pattern —
+--                   "move text, don't rewrite it."
+function MyDSL.Route.to(windowName, line)
+  local con = getOrCreateConsole(windowName)
   if not con then return end
 
-  local text = line or (getCurrentLine and getCurrentLine()) or ""
-  if text ~= "" then
-    con:decho(text .. "\n")
+  if line then
+    con:decho(line .. "\n")
+  else
+    selectCurrentLine()
+    copy()
+    con:appendBuffer()
   end
 end
 
--- Shorthand helpers matching DSL1 API
-
-function MyDSL.Route.history(line)
-  MyDSL.Route.to("History", line)
+-- MyDSL.Route.clear(windowName)
+-- Clears all text from a window's MiniConsole.
+-- Call before writing fresh scan/group/players-near content.
+function MyDSL.Route.clear(windowName)
+  local entry = MyDSL.Windows and MyDSL.Windows.registry
+                and MyDSL.Windows.registry[windowName]
+  if entry and entry.console then
+    entry.console:clear()
+  end
 end
 
-function MyDSL.Route.combat(line)
-  MyDSL.Route.to("Combat", line)
+-- MyDSL.Route.getConsole(windowName)
+-- Returns the raw MiniConsole object for direct echo/cecho/getLineCount access.
+function MyDSL.Route.getConsole(windowName)
+  return getOrCreateConsole(windowName)
 end
 
-function MyDSL.Route.scan(line)
-  MyDSL.Route.to("Scan", line)
-end
+-- Shorthand helpers — use these in triggers instead of hardcoding window names.
+-- Each one is a thin wrapper around Route.to() with the direct DSL2 window name.
 
-function MyDSL.Route.group(line)
-  MyDSL.Route.to("Group", line)
-end
-
-function MyDSL.Route.players(line)
-  MyDSL.Route.to("PlayersNearYou", line)
-end
-
-function MyDSL.Route.righthere(line)
-  MyDSL.Route.to("RightHere", line)
-end
+function MyDSL.Route.history(line)   MyDSL.Route.to("MyDSL_History",     line) end
+function MyDSL.Route.combat(line)    MyDSL.Route.to("MyDSL_Combat",      line) end
+function MyDSL.Route.scan(line)      MyDSL.Route.to("MyDSL_Scan",        line) end
+function MyDSL.Route.group(line)     MyDSL.Route.to("MyDSL_Group",       line) end
+function MyDSL.Route.players(line)   MyDSL.Route.to("MyDSL_PlayersNear", line) end
+function MyDSL.Route.righthere(line) MyDSL.Route.to("MyDSL_RightHere",   line) end
+function MyDSL.Route.bloodbath(line) MyDSL.Route.to("MyDSL_Bloodbath",   line) end
 
 debugc("[MyDSL] RouteHelper loaded.")
