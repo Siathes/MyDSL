@@ -494,8 +494,9 @@ MyDSL.Windows._handlers.toggle = registerAnonymousEventHandler(
 -- SECTION 10: CONSTRUCTOR PATCH + LAYOUT SAVE
 ------------------------------------------------------------------------
 -- Patch Geyser.UserWindow.new so every UserWindow created by any module
--- automatically gets restoreLayout=true and autoDock=true, even if the
--- caller doesn't set them explicitly. This mirrors DSL1's proven approach.
+-- automatically gets autoDock=true, even if the caller doesn't set it.
+-- restoreLayout is intentionally NOT injected here — Mudlet's Geyser docs
+-- warn that restoreLayout conflicts with explicit x/y/w/h at creation time.
 
 local function patchUserWindowConstructor()
   if MyDSL.Windows._constructorPatched then return end
@@ -503,8 +504,10 @@ local function patchUserWindowConstructor()
   local origNew = Geyser.UserWindow.new
   Geyser.UserWindow.new = function(self, cons, ...)
     cons = cons or {}
-    if cons.restoreLayout == nil then cons.restoreLayout = true end
+    -- autoDock=true is already Mudlet's default but harmless to set explicitly
     if cons.autoDock == nil then cons.autoDock = true end
+    -- restoreLayout REMOVED — conflicts with x/y/w/h specified at creation
+    -- per Mudlet Geyser docs and PR thread warning
     return origNew(self, cons, ...)
   end
   MyDSL.Windows._constructorPatched = true
@@ -531,13 +534,18 @@ tempAlias("^mydsl save layout$", "MyDSL.Windows.saveLayout()")
 -- patchUserWindowConstructor() runs first — before any window is created —
 -- so the patch is in place for ALL modules' UserWindow constructors.
 -- loadState() runs second so the registry has correct visibility booleans.
--- ensureAll() creates all windows (all get restoreLayout=true via patch).
--- Two delayed timers call loadWindowLayout() to restore positions after
--- Mudlet has finished its own startup sequence.
+-- ensureAll() creates all windows at LayoutEngine default positions.
+-- saveWindowLayout() immediately after establishes a baseline so Mudlet
+-- has something to restore even before the user manually arranges windows.
+-- Two delayed timers call loadWindowLayout() to restore saved positions
+-- after Mudlet has finished its own startup sequence.
 
 patchUserWindowConstructor()
 MyDSL.Windows.loadState()
 MyDSL.Windows.ensureAll()
+applyBorders()
+saveWindowLayout()   -- baseline: windows at LayoutEngine default positions
+saveProfile()        -- flush to disk immediately
 
 tempTimer(1.0, function()
   if loadWindowLayout then loadWindowLayout() end
