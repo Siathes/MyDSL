@@ -48,8 +48,8 @@ folded into BLOCKING below.
 - [x] Gap 2/3: handler deregistration + timer loop generation counter (reload safety)
 
 ### Naming/rename cleanup (3 files, must happen together)
-- [ ] MyDSL_RoomPicture → MyDSL_Location in: WindowRegistry, LayoutEngine, LocationView (Gap 3)
-- [ ] Remove "MyDSL_RoomPicture" legacy key check from LocationView's getWindowEntry()
+- [x] MyDSL_RoomPicture → MyDSL_Location in: WindowRegistry, LayoutEngine, LocationView (Gap 3)
+- [x] Remove "MyDSL_RoomPicture" legacy key check from LocationView's getWindowEntry()
 
 ---
 
