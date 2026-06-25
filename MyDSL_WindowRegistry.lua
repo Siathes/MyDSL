@@ -261,11 +261,12 @@ function MyDSL.Windows.ensure(windowName)
     -- name must match the registry key exactly — Mudlet uses it to identify
     -- the window internally.
     winObj = Geyser.UserWindow:new({
-      name   = windowName,
-      x      = px,
-      y      = py,
-      width  = pw,
-      height = ph,
+      name          = windowName,
+      x             = px,
+      y             = py,
+      width         = pw,
+      height        = ph,
+      restoreLayout = true,
     })
 
   elseif entry.type == "Container" then
