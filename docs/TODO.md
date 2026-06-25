@@ -82,6 +82,9 @@ folded into BLOCKING below.
 
 ## ThemeEngine / LayoutEngine / WindowRegistry — Smaller Gaps (low priority)
 
+- [x] WindowRegistry Gap 5: applyBorders() added — called at ensureAll() and on sysWindowResizeEvent
+- [x] WindowRegistry: loadWindowLayout on login (window reset fix) — onLogin() with charLayoutVersions
+- [x] WindowRegistry: mydsl save layout alias — saveLayout() + _saveAliasInstalled guard
 - [ ] ThemeEngine Gap 2: no key validation on setOverride()
 - [ ] LayoutEngine Gap 3: save() has no error handling
 - [ ] WindowRegistry Gap 7: saveState() has no error handling
