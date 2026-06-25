@@ -36,8 +36,8 @@ folded into BLOCKING below.
 - [ ] Gap 3 (DB.time): now has a concrete consumer (LiveView's time row) — priority raised
 
 ### ChatWrapper (Contract_ChatWrapper.md)
-- [ ] Gap 2: 5.0s forced rebuild wipes any chat from first 5 seconds of session — needs guard
-- [ ] Gap 5: window key lookup tries wrong registry key — verify against corrected WindowRegistry
+- [x] Gap 2: 5.0s forced rebuild wipes any chat from first 5 seconds of session — needs guard
+- [x] Gap 5: window key lookup tries wrong registry key — verify against corrected WindowRegistry
 
 ### RouteHelper (Contract_RouteHelper.md + Addendum)
 - [x] Gap 1: uses decho() instead of appendBuffer() — strips ALL game colors from routed text. Critical fix.
