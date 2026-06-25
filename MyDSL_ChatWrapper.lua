@@ -170,14 +170,12 @@ local function haveWindowCore()
 end
 
 local function getWindowEntry()
-  if not (MyDSL and MyDSL.Windows) then return nil end
-
-  -- WindowCore v4C stores UserWindow records in registry.
-  local reg = MyDSL.Windows.registry or MyDSL.Windows.windows or {}
-  return reg[C.config.windowId]
-      or reg[C.config.windowName]
-      or reg.Chat
-      or reg["Chat"]
+  -- WindowRegistry canonical key is "MyDSL_Chat" (C.config.windowName).
+  -- Old code tried 4 keys starting with reg["Chat"] (via windowId) which is
+  -- always nil — registry never uses the short name. Two keys max now.
+  local reg = MyDSL.Windows and MyDSL.Windows.registry
+  if not reg then return nil end
+  return reg[C.config.windowName] or reg["MyDSL_Chat"]
 end
 
 local function getWindowObject()
@@ -219,10 +217,10 @@ function C.ensureWindow()
     return Geyser.UserWindow:new({
       name = C.config.windowName,
       titleText = C.config.title,
-      x = "65%",
+      x = "78%",
       y = "0%",
-      width = "35%",
-      height = "35%",
+      width = "22%",
+      height = "46%",
     })
   end)
 
@@ -373,12 +371,17 @@ function C.startupSync()
     end)
   end
 
-  -- One final create after the layout has almost certainly restored. This is
-  -- the automatic equivalent of "mydsl chat rebuild", but only during startup.
+  -- Final check after layout has almost certainly restored.
+  -- Only force-rebuild if something is genuinely broken; otherwise revive()
+  -- (gentle resize/reposition — no content wipe). Old code always rebuilt,
+  -- wiping any chat text that arrived in the first 5 seconds of the session.
   tempTimer(5.0, function()
-    if MyDSL and MyDSL.Chat then
+    if not MyDSL or not MyDSL.Chat then return end
+    if not C.emco or not (demonnic and demonnic.chat) or not C.state.windowReady then
       C.createInWindow()
-      C.state.lastAction = "startup-final-create"
+      C.state.lastAction = "startup-final-guard-create"
+    else
+      C.revive("startup-5s-check")
     end
   end)
 end
