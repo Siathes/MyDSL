@@ -1,7 +1,7 @@
 -- =============================================================================
 -- MyDSL_WindowRegistry.lua  --  Layer 2, File 3 of 3: Window Registry
 -- =============================================================================
--- This file creates and tracks all 18 UI windows.
+-- This file creates and tracks all 20 UI windows.
 -- It is the bridge between the abstract layout/theme data (Files 1 and 2)
 -- and the live Geyser window objects that Mudlet actually draws.
 --
@@ -109,7 +109,7 @@ end
 --   visible — whether the window is currently shown (true) or hidden (false)
 --   created — whether ensure() has already run for this window
 --
--- We pre-populate all 18 entries here with placeholder values.
+-- We pre-populate all 20 entries here with placeholder values.
 -- No windows are actually created at this point — that happens lazily
 -- when ensure() is called (either by ensureAll() or by Layer 3 on demand).
 --
@@ -126,7 +126,7 @@ MyDSL.Windows.registry = MyDSL.Windows.registry or {
   MyDSL_Chat             = { obj=nil, type="UserWindow", visible=true,  created=false },
   MyDSL_Affects          = { obj=nil, type="UserWindow", visible=true,  created=false },
   MyDSL_Portrait         = { obj=nil, type="UserWindow", visible=true,  created=false },
-  MyDSL_RoomPicture      = { obj=nil, type="UserWindow", visible=true,  created=false },
+  MyDSL_Location         = { obj=nil, type="UserWindow", visible=true,  created=false },
   MyDSL_Live             = { obj=nil, type="UserWindow", visible=true,  created=false },
   MyDSL_Tick             = { obj=nil, type="UserWindow", visible=true,  created=false },
   MyDSL_Combat           = { obj=nil, type="UserWindow", visible=true,  created=false },
@@ -137,7 +137,7 @@ MyDSL.Windows.registry = MyDSL.Windows.registry or {
   MyDSL_RightHere        = { obj=nil, type="UserWindow", visible=true,  created=false },
   MyDSL_PlayersNear      = { obj=nil, type="UserWindow", visible=true,  created=false },
   MyDSL_CreatureReference= { obj=nil, type="UserWindow", visible=false, created=false },
-  MyDSL_Mapper           = { obj=nil, type="UserWindow", visible=false, created=false },  -- hidden by default; shows on demand
+
   MyDSL_Inventory        = { obj=nil, type="UserWindow", visible=false, created=false },  -- hidden by default; toggled by inv command
   MyDSL_Equipment        = { obj=nil, type="UserWindow", visible=false, created=false },  -- hidden by default; toggled by eq command
 
@@ -291,7 +291,7 @@ function MyDSL.Windows.ensure(windowName)
 end
 
 -- ensureAll()
--- Creates all 18 windows in registry order.
+-- Creates all 20 windows in registry order.
 -- Called once at startup after loadState() so every window exists before
 -- Layer 3 tries to write content into any of them.
 
@@ -464,7 +464,7 @@ MyDSL.Windows._handlers.toggle = registerAnonymousEventHandler(
 ------------------------------------------------------------------------
 -- loadState() runs first so the registry has correct visibility booleans
 -- before any window is created.
--- ensureAll() runs second to create all 18 windows with the right state.
+-- ensureAll() runs second to create all 20 windows with the right state.
 
 MyDSL.Windows.loadState()
 MyDSL.Windows.ensureAll()
@@ -473,4 +473,4 @@ MyDSL.Windows.ensureAll()
 ------------------------------------------------------------------------
 -- LOAD CONFIRMATION
 ------------------------------------------------------------------------
-debugc("[MyDSL] WindowRegistry loaded. " .. tostring(table.getn and table.getn(MyDSL.Windows.registry) or 18) .. " windows registered.")
+debugc("[MyDSL] WindowRegistry loaded. " .. tostring(table.getn and table.getn(MyDSL.Windows.registry) or 20) .. " windows registered.")

@@ -301,8 +301,6 @@ function M.roomData()
     { MyDSL and MyDSL.DB and MyDSL.DB.currentRoom, "MyDSL.DB.currentRoom" },
     { MyDSL and MyDSL.State and MyDSL.State.room, "MyDSL.State.room" },
     { MyDSL and MyDSL.State and MyDSL.State.roomdesc, "MyDSL.State.roomdesc" },
-    { MyCore and MyCore.state and MyCore.state.gmcp and MyCore.state.gmcp.room_data, "MyCore.gmcp.room_data" },
-    { MyCore and MyCore.state and MyCore.state.gmcp and MyCore.state.gmcp.Room and MyCore.state.gmcp.Room.Info, "MyCore.gmcp.Room.Info" },
     { gmcp and gmcp.room_data, "gmcp.room_data" },
     { gmcp and gmcp.Room and gmcp.Room.Info, "gmcp.Room.Info" },
   }
@@ -394,7 +392,7 @@ end
 local function getWindowEntry()
   if not (MyDSL and MyDSL.Windows and MyDSL.Windows.registry) then return nil end
   local reg = MyDSL.Windows.registry
-  return reg["MyDSL_RoomPicture"] or reg[M.windowName] or reg["Location"]
+  return reg[M.windowName] or reg["Location"]
 end
 
 local function getWindowObject()
