@@ -70,7 +70,7 @@ folded into BLOCKING below.
 ## DESIGN — Not Yet Started
 
 - [ ] LiveView full redesign (see NEXT above)
-- [ ] MyDSL_PromptView module — design is confirmed in SESSION_START, needs formal contract
+- [x] MyDSL_PromptView module — design confirmed, contract written, implemented
 - [ ] Layer 3 Phase B: Combat window (BattleCondenser port from PNP)
 - [ ] Layer 3 Phase B: Scan/RightHere mob targeting windows
 - [ ] Layer 3 Phase B: Group window with clickable party members
