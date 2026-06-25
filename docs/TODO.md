@@ -44,8 +44,8 @@ folded into BLOCKING below.
 - [x] Remove routeMap entirely per addendum decision — shorthand helpers become primary API
 
 ### TickSource (Contract_TickSource.md)
-- [ ] Gap 1: warnTime configured but never fires — 5-second audio/echo alert doesn't work (visual DOES work via TickView)
-- [ ] Gap 2/3: handler deregistration + timer loop generation counter (reload safety)
+- [x] Gap 1: warnTime configured but never fires — 5-second audio/echo alert doesn't work (visual DOES work via TickView)
+- [x] Gap 2/3: handler deregistration + timer loop generation counter (reload safety)
 
 ### Naming/rename cleanup (3 files, must happen together)
 - [ ] MyDSL_RoomPicture → MyDSL_Location in: WindowRegistry, LayoutEngine, LocationView (Gap 3)
