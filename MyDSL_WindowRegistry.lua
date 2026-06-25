@@ -97,6 +97,25 @@ local function applyTheme(windowName, winObj)
   return
 end
 
+-- applyBorders()
+-- Reserves screen space for the three panel columns so Mudlet's main
+-- console text does not overlap the side panels.
+-- Percentages match the confirmed layout (Contract_WindowRegistry.md Gap 5):
+--   23% left  — Location window + native Map/Scan/Combat dock
+--   22% right  — Chat / History / Group / Affects column
+--   21% bottom — full bottom strip (PlayersNear … RightHere)
+-- Called at startup (ensureAll), on every resize (sysWindowResizeEvent),
+-- and after loadWindowLayout() in onLogin() since a layout restore can
+-- shift border state.
+
+local function applyBorders()
+  local sw, sh = getMainWindowSize()
+  setBorderLeft(math.floor(sw * 0.23))
+  setBorderRight(math.floor(sw * 0.22))
+  setBorderBottom(math.floor(sh * 0.21))
+  setBorderTop(0)
+end
+
 
 ------------------------------------------------------------------------
 -- SECTION 4: WINDOW REGISTRY
@@ -301,6 +320,17 @@ function MyDSL.Windows.ensureAll()
     MyDSL.Windows.ensure(name)
   end
   debugc("[MyDSL] WindowRegistry: all windows ready.")
+
+  -- Set console borders now that all windows exist.
+  applyBorders()
+
+  -- Re-apply borders whenever the Mudlet window is resized.
+  -- Kill any previous handler first so reloads don't stack duplicates.
+  if MyDSL.Windows._resizeHandler then
+    pcall(killAnonymousEventHandler, MyDSL.Windows._resizeHandler)
+  end
+  MyDSL.Windows._resizeHandler = registerAnonymousEventHandler(
+    "sysWindowResizeEvent", function() applyBorders() end)
 end
 
 
@@ -460,11 +490,65 @@ MyDSL.Windows._handlers.toggle = registerAnonymousEventHandler(
 
 
 ------------------------------------------------------------------------
--- SECTION 10: STARTUP SEQUENCE
+-- SECTION 10: CHARACTER LAYOUT BINDING
+------------------------------------------------------------------------
+-- loadWindowLayout(v) / saveWindowLayout(v) use a version number to keep
+-- each character's window positions separate inside Mudlet's own storage.
+-- Mudlet's layout restore must run AFTER all windows are created
+-- (ensureAll already ran at startup, so onLogin() is always safe).
+
+-- Maps character names to Mudlet layout version numbers.
+local charLayoutVersions = { Kien = 1, Olyndros = 2, Tibbins = 3 }
+
+-- onLogin(charName)
+-- Restores the saved Mudlet window layout for this character, then
+-- re-applies borders because loadWindowLayout() can shift border state.
+
+function MyDSL.Windows.onLogin(charName)
+  local version = charLayoutVersions[charName] or 0
+  loadWindowLayout(version)
+  applyBorders()
+end
+
+-- saveLayout()
+-- Saves the current Mudlet window layout for the logged-in character.
+-- Run once after manually arranging all windows: mydsl save layout
+
+function MyDSL.Windows.saveLayout()
+  local charName = MyDSL.Char and MyDSL.Char()
+  local version = charLayoutVersions[charName] or 0
+  saveWindowLayout(version)
+  cecho("\n<green>[MyDSL] Layout saved for "
+    .. tostring(charName) .. " (v" .. tostring(version) .. ")\n")
+end
+
+-- Login handler: DataLayer raises MyDSL.login.updated after gmcp.login_data
+-- fires. The second argument is MyDSL.State.login — a table with .name field.
+if MyDSL.Windows._loginHandler then
+  pcall(killAnonymousEventHandler, MyDSL.Windows._loginHandler)
+end
+MyDSL.Windows._loginHandler = registerAnonymousEventHandler(
+  "MyDSL.login.updated", function(_, loginData)
+    local name = loginData and loginData.name
+    if not name and MyDSL.Char then name = MyDSL.Char() end
+    if name then MyDSL.Windows.onLogin(name) end
+  end)
+
+-- Save alias — installed once; tempAlias survives reloads via aliasesInstalled guard.
+if not MyDSL.Windows._saveAliasInstalled then
+  tempAlias("^mydsl save layout$", "MyDSL.Windows.saveLayout()")
+  MyDSL.Windows._saveAliasInstalled = true
+end
+
+
+------------------------------------------------------------------------
+-- SECTION 11: STARTUP SEQUENCE
 ------------------------------------------------------------------------
 -- loadState() runs first so the registry has correct visibility booleans
 -- before any window is created.
--- ensureAll() runs second to create all 20 windows with the right state.
+-- ensureAll() runs second to create all 20 windows, apply borders, and
+-- register the resize handler.
+-- onLogin() runs later when MyDSL.login.updated fires at character login.
 
 MyDSL.Windows.loadState()
 MyDSL.Windows.ensureAll()
