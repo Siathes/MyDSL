@@ -146,14 +146,25 @@ function T.updateTimer()
     end
   end
 
+  local rem = math.floor(T.state.remaining or 0)
+  local warn = tonumber(T.config.warnTime) or 5
+  if T.state.running and rem == warn and T.state.lastWarnSecond ~= rem then
+    T.state.lastWarnSecond = rem
+    safeRaise("MyDSL.Tick.Warning", rem)
+  end
+
   T.publish("timer")
   safeRaise("MyDSL.Timers.Pulse")
+  safeRaise("MyDSL.Timers.Updated")
 end
 
 function T.loop()
   if T.looping then return end
   T.looping = true
+  T.generation = (T.generation or 0) + 1
+  local myGen = T.generation
   local function step()
+    if T.generation ~= myGen then return end
     T.looping = false
     T.updateTimer()
     tempTimer(tonumber(T.config.increment) or 0.25, function() T.loop() end)
@@ -214,6 +225,16 @@ function T.status()
      "; lastMeasured=" .. tostring(d.lastMeasured))
 end
 
+function T.deregisterHandlers()
+  if T.handlers then
+    for _, id in ipairs(T.handlers) do
+      pcall(killAnonymousEventHandler, id)
+    end
+  end
+  T.handlers = {}
+  T.handlersInstalled = false
+end
+
 function T.installHandlers()
   if T.handlersInstalled then return end
   T.handlersInstalled = true
@@ -238,6 +259,7 @@ function T.installAliases()
 end
 
 function T.boot()
+  T.deregisterHandlers()
   ensureDB()
   T.installAliases()
   T.installHandlers()
