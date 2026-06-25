@@ -491,68 +491,63 @@ MyDSL.Windows._handlers.toggle = registerAnonymousEventHandler(
 
 
 ------------------------------------------------------------------------
--- SECTION 10: CHARACTER LAYOUT BINDING
+-- SECTION 10: CONSTRUCTOR PATCH + LAYOUT SAVE
 ------------------------------------------------------------------------
--- loadWindowLayout(v) / saveWindowLayout(v) use a version number to keep
--- each character's window positions separate inside Mudlet's own storage.
--- Mudlet's layout restore must run AFTER all windows are created
--- (ensureAll already ran at startup, so onLogin() is always safe).
+-- Patch Geyser.UserWindow.new so every UserWindow created by any module
+-- automatically gets restoreLayout=true and autoDock=true, even if the
+-- caller doesn't set them explicitly. This mirrors DSL1's proven approach.
 
--- Maps character names to Mudlet layout version numbers.
-local charLayoutVersions = { Kien = 1, Olyndros = 2, Tibbins = 3 }
-
--- onLogin(charName)
--- Restores the saved Mudlet window layout for this character, then
--- re-applies borders because loadWindowLayout() can shift border state.
-
-function MyDSL.Windows.onLogin(charName)
-  local version = charLayoutVersions[charName] or 0
-  loadWindowLayout(version)
-  applyBorders()
+local function patchUserWindowConstructor()
+  if MyDSL.Windows._constructorPatched then return end
+  if not (Geyser and Geyser.UserWindow) then return end
+  local origNew = Geyser.UserWindow.new
+  Geyser.UserWindow.new = function(self, cons, ...)
+    cons = cons or {}
+    if cons.restoreLayout == nil then cons.restoreLayout = true end
+    if cons.autoDock == nil then cons.autoDock = true end
+    return origNew(self, cons, ...)
+  end
+  MyDSL.Windows._constructorPatched = true
 end
 
 -- saveLayout()
--- Saves the current Mudlet window layout for the logged-in character.
--- Run once after manually arranging all windows: mydsl save layout
+-- Saves the current Mudlet window layout for all windows.
+-- Run after manually arranging windows: mydsl save layout
 
 function MyDSL.Windows.saveLayout()
-  local charName = MyDSL.Char and MyDSL.Char()
-  local version = charLayoutVersions[charName] or 0
-  saveWindowLayout(version)
-  cecho("\n<green>[MyDSL] Layout saved for "
-    .. tostring(charName) .. " (v" .. tostring(version) .. ")\n")
+  if saveWindowLayout then
+    saveWindowLayout()
+    if saveProfile then saveProfile() end
+    cecho("\n<green>[MyDSL] Layout saved.\n")
+  end
 end
 
--- Login handler: DataLayer raises MyDSL.login.updated after gmcp.login_data
--- fires. The second argument is MyDSL.State.login — a table with .name field.
-if MyDSL.Windows._loginHandler then
-  pcall(killAnonymousEventHandler, MyDSL.Windows._loginHandler)
-end
-MyDSL.Windows._loginHandler = registerAnonymousEventHandler(
-  "MyDSL.login.updated", function(_, loginData)
-    local name = loginData and loginData.name
-    if not name and MyDSL.Char then name = MyDSL.Char() end
-    if name then MyDSL.Windows.onLogin(name) end
-  end)
-
--- Save alias — installed once; tempAlias survives reloads via aliasesInstalled guard.
-if not MyDSL.Windows._saveAliasInstalled then
-  tempAlias("^mydsl save layout$", "MyDSL.Windows.saveLayout()")
-  MyDSL.Windows._saveAliasInstalled = true
-end
+tempAlias("^mydsl save layout$", "MyDSL.Windows.saveLayout()")
 
 
 ------------------------------------------------------------------------
 -- SECTION 11: STARTUP SEQUENCE
 ------------------------------------------------------------------------
--- loadState() runs first so the registry has correct visibility booleans
--- before any window is created.
--- ensureAll() runs second to create all 20 windows, apply borders, and
--- register the resize handler.
--- onLogin() runs later when MyDSL.login.updated fires at character login.
+-- patchUserWindowConstructor() runs first — before any window is created —
+-- so the patch is in place for ALL modules' UserWindow constructors.
+-- loadState() runs second so the registry has correct visibility booleans.
+-- ensureAll() creates all windows (all get restoreLayout=true via patch).
+-- Two delayed timers call loadWindowLayout() to restore positions after
+-- Mudlet has finished its own startup sequence.
 
+patchUserWindowConstructor()
 MyDSL.Windows.loadState()
 MyDSL.Windows.ensureAll()
+
+tempTimer(1.0, function()
+  if loadWindowLayout then loadWindowLayout() end
+  applyBorders()
+end)
+
+tempTimer(3.0, function()
+  if loadWindowLayout then loadWindowLayout() end
+  applyBorders()
+end)
 
 
 ------------------------------------------------------------------------
