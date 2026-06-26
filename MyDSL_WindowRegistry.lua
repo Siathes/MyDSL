@@ -225,54 +225,28 @@ function MyDSL.Windows.ensure(windowName)
     return entry.obj
   end
 
-  -- Get pixel position for the constructor.
-  local px, py, pw, ph = pixelsFromLayout(windowName)
-
   -- ---- CREATE THE WINDOW ----
-  --
-  -- Geyser.UserWindow:new() and Adjustable.Container:new() use Lua's
-  -- class/method system. Here is how that works:
-  --
-  -- In Lua there are no built-in classes. Instead, tables act as classes
-  -- and objects. When you write:
-  --   Geyser.UserWindow:new({ name="MyDSL_Chat", ... })
-  --
-  -- The colon ':' is syntactic sugar for:
-  --   Geyser.UserWindow.new(Geyser.UserWindow, { name="MyDSL_Chat", ... })
-  --
-  -- 'new' is just a regular function stored inside the Geyser.UserWindow
-  -- table. The colon passes the table itself as the first argument (called
-  -- 'self' inside the function). The 'new' function uses 'self' as a
-  -- prototype/blueprint to create and return a new instance table.
-  --
-  -- The result — what new() returns — is a fresh table (the window object)
-  -- that has all the same methods as the prototype, applied to its own data.
-  -- When you later write:
-  --   winObj:resize(pw, ph)
-  -- Lua expands that to:
-  --   winObj.resize(winObj, pw, ph)
-  -- so 'resize' knows which specific window to act on.
 
   local winObj = nil
 
   if entry.type == "UserWindow" then
-    -- Geyser.UserWindow creates a detachable panel window.
-    -- The constructor table sets the initial position and size in pixels.
-    -- name must match the registry key exactly — Mudlet uses it to identify
-    -- the window internally.
+    -- Simple default position — loadWindowLayout() restores the real position.
+    -- Matching DSL1's LayoutCore approach: don't fight Mudlet's layout system
+    -- with explicit pixel values at creation time.
+    -- restoreLayout=true is injected by patchUserWindowConstructor().
     winObj = Geyser.UserWindow:new({
-      name          = windowName,
-      x             = px,
-      y             = py,
-      width         = pw,
-      height        = ph,
-      restoreLayout = true,
+      name   = windowName,
+      x      = "5%",
+      y      = "5%",
+      width  = "35%",
+      height = "30%",
     })
 
   elseif entry.type == "Container" then
     -- Adjustable.Container creates a resizable panel anchored inside
     -- the main Mudlet console. Unlike UserWindow, it cannot be detached.
     -- In Mudlet 4.20+ this is built into the core — no extra package needed.
+    local px, py, pw, ph = pixelsFromLayout(windowName)
     winObj = Adjustable.Container:new({
       name   = windowName,
       x      = px,
@@ -290,11 +264,6 @@ function MyDSL.Windows.ensure(windowName)
 
   -- Apply background color, border, and other visual theme values.
   applyTheme(windowName, winObj)
-
-  -- Let LayoutEngine take authoritative control of the final position.
-  -- The constructor set an initial position above, but applyToWindow()
-  -- recalculates from the saved percentage and snaps back if off-screen.
-  MyDSL.Layout.applyToWindow(windowName, winObj)
 
   -- Record the live object and mark as created.
   entry.obj     = winObj
@@ -324,14 +293,6 @@ function MyDSL.Windows.ensureAll()
 
   -- Set console borders now that all windows exist.
   applyBorders()
-
-  -- Re-apply borders whenever the Mudlet window is resized.
-  -- Kill any previous handler first so reloads don't stack duplicates.
-  if MyDSL.Windows._resizeHandler then
-    pcall(killAnonymousEventHandler, MyDSL.Windows._resizeHandler)
-  end
-  MyDSL.Windows._resizeHandler = registerAnonymousEventHandler(
-    "sysWindowResizeEvent", function() applyBorders() end)
 end
 
 
@@ -494,9 +455,9 @@ MyDSL.Windows._handlers.toggle = registerAnonymousEventHandler(
 -- SECTION 10: CONSTRUCTOR PATCH + LAYOUT SAVE
 ------------------------------------------------------------------------
 -- Patch Geyser.UserWindow.new so every UserWindow created by any module
--- automatically gets autoDock=true, even if the caller doesn't set it.
--- restoreLayout is intentionally NOT injected here — Mudlet's Geyser docs
--- warn that restoreLayout conflicts with explicit x/y/w/h at creation time.
+-- automatically gets restoreLayout=true and autoDock=true. Safe because
+-- ensure() no longer passes conflicting x/y/w/h pixel values — it uses
+-- simple "5%"/"35%" defaults and lets loadWindowLayout() set real positions.
 
 local function patchUserWindowConstructor()
   if MyDSL.Windows._constructorPatched then return end
@@ -504,10 +465,8 @@ local function patchUserWindowConstructor()
   local origNew = Geyser.UserWindow.new
   Geyser.UserWindow.new = function(self, cons, ...)
     cons = cons or {}
-    -- autoDock=true is already Mudlet's default but harmless to set explicitly
+    if cons.restoreLayout == nil then cons.restoreLayout = true end
     if cons.autoDock == nil then cons.autoDock = true end
-    -- restoreLayout REMOVED — conflicts with x/y/w/h specified at creation
-    -- per Mudlet Geyser docs and PR thread warning
     return origNew(self, cons, ...)
   end
   MyDSL.Windows._constructorPatched = true
@@ -534,18 +493,14 @@ tempAlias("^mydsl save layout$", "MyDSL.Windows.saveLayout()")
 -- patchUserWindowConstructor() runs first — before any window is created —
 -- so the patch is in place for ALL modules' UserWindow constructors.
 -- loadState() runs second so the registry has correct visibility booleans.
--- ensureAll() creates all windows at LayoutEngine default positions.
--- saveWindowLayout() immediately after establishes a baseline so Mudlet
--- has something to restore even before the user manually arranges windows.
--- Two delayed timers call loadWindowLayout() to restore saved positions
--- after Mudlet has finished its own startup sequence.
+-- ensureAll() creates all windows at a simple default position; applyBorders()
+-- reserves console space. Two delayed timers call loadWindowLayout() to
+-- restore the user's saved positions after Mudlet finishes its startup.
 
 patchUserWindowConstructor()
 MyDSL.Windows.loadState()
 MyDSL.Windows.ensureAll()
 applyBorders()
-saveWindowLayout()   -- baseline: windows at LayoutEngine default positions
-saveProfile()        -- flush to disk immediately
 
 tempTimer(1.0, function()
   if loadWindowLayout then loadWindowLayout() end
