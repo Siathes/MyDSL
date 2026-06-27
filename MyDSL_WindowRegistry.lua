@@ -116,26 +116,6 @@ local function applyTheme(windowName, winObj)
   return
 end
 
--- applyBorders()
--- Reserves screen space for the three panel columns so Mudlet's main
--- console text does not overlap the side panels.
--- Percentages match the confirmed layout (Contract_WindowRegistry.md Gap 5):
---   23% left  — Location window + native Map/Scan/Combat dock
---   22% right  — Chat / History / Group / Affects column
---   21% bottom — full bottom strip (PlayersNear … RightHere)
--- Called at startup (ensureAll), on every resize (sysWindowResizeEvent),
--- and after loadWindowLayout() in onLogin() since a layout restore can
--- shift border state.
-
-local function applyBorders()
-  local sw, sh = getMainWindowSize()
-  setBorderLeft(math.floor(sw * 0.23))
-  setBorderRight(math.floor(sw * 0.22))
-  setBorderBottom(math.floor(sh * 0.21))
-  setBorderTop(0)
-end
-
-
 ------------------------------------------------------------------------
 -- SECTION 4: WINDOW REGISTRY
 ------------------------------------------------------------------------
@@ -309,9 +289,6 @@ function MyDSL.Windows.ensureAll()
     MyDSL.Windows.ensure(name)
   end
   debugc("[MyDSL] WindowRegistry: all windows ready.")
-
-  -- Set console borders now that all windows exist.
-  applyBorders()
 end
 
 
@@ -471,12 +448,12 @@ MyDSL.Windows._handlers.toggle = registerAnonymousEventHandler(
 
 
 ------------------------------------------------------------------------
--- SECTION 10: CONSTRUCTOR PATCH + LAYOUT SAVE
+-- SECTION 10: CONSTRUCTOR PATCH
 ------------------------------------------------------------------------
 -- Patch Geyser.UserWindow.new so every UserWindow created by any module
--- automatically gets restoreLayout=true and autoDock=true. Safe because
--- ensure() no longer passes conflicting x/y/w/h pixel values — it uses
--- simple "5%"/"35%" defaults and lets loadWindowLayout() set real positions.
+-- automatically gets restoreLayout=true and autoDock=true.
+-- restoreLayout=true tells Mudlet to persist each window's position natively.
+-- autoDock=true allows docking to Mudlet's panel system.
 
 local function patchUserWindowConstructor()
   if MyDSL.Windows._constructorPatched then return end
@@ -491,45 +468,20 @@ local function patchUserWindowConstructor()
   MyDSL.Windows._constructorPatched = true
 end
 
--- saveLayout()
--- Saves the current Mudlet window layout for all windows.
--- Run after manually arranging windows: mydsl save layout
-
-function MyDSL.Windows.saveLayout()
-  if saveWindowLayout then
-    saveWindowLayout()
-    if saveProfile then saveProfile() end
-    cecho("\n<green>[MyDSL] Layout saved.\n")
-  end
-end
-
-tempAlias("^mydsl save layout$", "MyDSL.Windows.saveLayout()")
-
 
 ------------------------------------------------------------------------
 -- SECTION 11: STARTUP SEQUENCE
 ------------------------------------------------------------------------
--- patchUserWindowConstructor() runs first — before any window is created —
--- so the patch is in place for ALL modules' UserWindow constructors.
--- loadState() runs second so the registry has correct visibility booleans.
--- ensureAll() creates all windows at a simple default position; applyBorders()
--- reserves console space. Two delayed timers call loadWindowLayout() to
--- restore the user's saved positions after Mudlet finishes its startup.
+-- patchUserWindowConstructor() injects restoreLayout=true and autoDock=true
+-- into every UserWindow so Mudlet automatically remembers each window's
+-- position and allows docking. ensureAll() creates windows at correct
+-- LayoutEngine percentage positions for first-run placement.
+-- Mudlet handles console space adjustment and position persistence natively.
+-- No border management, no saveWindowLayout/loadWindowLayout needed.
 
 patchUserWindowConstructor()
 MyDSL.Windows.loadState()
 MyDSL.Windows.ensureAll()
-applyBorders()
-
-tempTimer(1.0, function()
-  if loadWindowLayout then loadWindowLayout() end
-  applyBorders()
-end)
-
-tempTimer(3.0, function()
-  if loadWindowLayout then loadWindowLayout() end
-  applyBorders()
-end)
 
 
 ------------------------------------------------------------------------
