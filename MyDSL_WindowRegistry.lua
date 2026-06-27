@@ -83,6 +83,25 @@ local function pixelsFromLayout(windowName)
          math.floor(pos.h * sh)
 end
 
+-- percentsFromLayout(windowName)
+-- Reads the fractional position from LayoutEngine and converts to Geyser
+-- percentage strings ("78%"). Used for UserWindow construction — percentage
+-- strings are the correct Geyser constraint format and do not conflict with
+-- restoreLayout=true (unlike post-construction applyToWindow() calls).
+
+local function percentsFromLayout(windowName)
+  local pos = MyDSL.Layout.get(windowName)
+  if not pos then
+    debugc("[MyDSL] WindowRegistry: no layout for "
+      .. tostring(windowName) .. " — using fallback position.")
+    return "5%", "5%", "35%", "30%"
+  end
+  local function pct(v)
+    return tostring(math.floor((v or 0) * 100)) .. "%"
+  end
+  return pct(pos.x), pct(pos.y), pct(pos.w), pct(pos.h)
+end
+
 -- applyTheme(windowName, winObj)
 -- Placeholder — visual theming is deferred to Layer 3.
 -- Geyser.UserWindow and Adjustable.Container do not expose setStyleSheet.
@@ -230,16 +249,16 @@ function MyDSL.Windows.ensure(windowName)
   local winObj = nil
 
   if entry.type == "UserWindow" then
-    -- Simple default position — loadWindowLayout() restores the real position.
-    -- Matching DSL1's LayoutCore approach: don't fight Mudlet's layout system
-    -- with explicit pixel values at creation time.
-    -- restoreLayout=true is injected by patchUserWindowConstructor().
+    -- Use LayoutEngine percentage positions as the initial placement.
+    -- On a dock reset Mudlet returns windows here, not to a random corner.
+    -- restoreLayout=true and autoDock=true injected by constructor patch.
+    local px, py, pw, ph = percentsFromLayout(windowName)
     winObj = Geyser.UserWindow:new({
       name   = windowName,
-      x      = "5%",
-      y      = "5%",
-      width  = "35%",
-      height = "30%",
+      x      = px,
+      y      = py,
+      width  = pw,
+      height = ph,
     })
 
   elseif entry.type == "Container" then
