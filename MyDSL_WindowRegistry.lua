@@ -283,32 +283,12 @@ end
 -- Called once at startup after loadState() so every window exists before
 -- Layer 3 tries to write content into any of them.
 
-local function scheduleAutoSave()
-  if MyDSL.Windows._autoSaveTimer then
-    killTimer(MyDSL.Windows._autoSaveTimer)
-  end
-  MyDSL.Windows._autoSaveTimer = tempTimer(2.0, function()
-    if saveWindowLayout then saveWindowLayout() end
-    if saveProfile then saveProfile() end
-    MyDSL.Windows._autoSaveTimer = nil
-  end)
-end
-
 function MyDSL.Windows.ensureAll()
   debugc("[MyDSL] WindowRegistry: creating all windows...")
   for name, _ in pairs(MyDSL.Windows.registry) do
     MyDSL.Windows.ensure(name)
   end
   debugc("[MyDSL] WindowRegistry: all windows ready.")
-
-  -- Auto-save layout 2s after any dock/resize settles.
-  -- Debounced so rapid events collapse into one save.
-  -- saveWindowLayout() does not fire resize events — no cascade risk.
-  if MyDSL.Windows._resizeHandler then
-    pcall(killAnonymousEventHandler, MyDSL.Windows._resizeHandler)
-  end
-  MyDSL.Windows._resizeHandler = registerAnonymousEventHandler(
-    "sysWindowResizeEvent", scheduleAutoSave)
 end
 
 
@@ -502,22 +482,16 @@ end
 -- SECTION 11: STARTUP SEQUENCE
 ------------------------------------------------------------------------
 -- patchUserWindowConstructor() injects restoreLayout=true + autoDock=true.
--- ensureAll() creates windows at LayoutEngine percentage positions and
--- registers the debounced auto-save handler on sysWindowResizeEvent.
--- saveWindowLayout() immediately after records the initial positions as a
--- baseline — so if Mudlet internally calls loadWindowLayout() during the
--- first dock operation, it restores to correct positions not empty state.
--- Two startup timers load the layout after Mudlet's own sequence settles.
+-- ensureAll() creates all windows at their LayoutEngine percentage positions.
+-- loadWindowLayout() fires after 1s to let Mudlet finish its own startup
+-- before restoring saved positions. No save at startup — that would
+-- overwrite the user's saved layout with fresh defaults.
+-- To persist a layout: run "mydsl layout save".
 
 patchUserWindowConstructor()
 MyDSL.Windows.loadState()
 MyDSL.Windows.ensureAll()
-if saveWindowLayout then saveWindowLayout() end
-
 tempTimer(1.0, function()
-  if loadWindowLayout then loadWindowLayout() end
-end)
-tempTimer(3.0, function()
   if loadWindowLayout then loadWindowLayout() end
 end)
 
