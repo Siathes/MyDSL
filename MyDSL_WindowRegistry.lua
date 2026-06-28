@@ -283,12 +283,32 @@ end
 -- Called once at startup after loadState() so every window exists before
 -- Layer 3 tries to write content into any of them.
 
+local function scheduleAutoSave()
+  if MyDSL.Windows._autoSaveTimer then
+    killTimer(MyDSL.Windows._autoSaveTimer)
+  end
+  MyDSL.Windows._autoSaveTimer = tempTimer(2.0, function()
+    if saveWindowLayout then saveWindowLayout() end
+    if saveProfile then saveProfile() end
+    MyDSL.Windows._autoSaveTimer = nil
+  end)
+end
+
 function MyDSL.Windows.ensureAll()
   debugc("[MyDSL] WindowRegistry: creating all windows...")
   for name, _ in pairs(MyDSL.Windows.registry) do
     MyDSL.Windows.ensure(name)
   end
   debugc("[MyDSL] WindowRegistry: all windows ready.")
+
+  -- Auto-save layout 2s after any dock/resize settles.
+  -- Debounced so rapid events collapse into one save.
+  -- saveWindowLayout() does not fire resize events — no cascade risk.
+  if MyDSL.Windows._resizeHandler then
+    pcall(killAnonymousEventHandler, MyDSL.Windows._resizeHandler)
+  end
+  MyDSL.Windows._resizeHandler = registerAnonymousEventHandler(
+    "sysWindowResizeEvent", scheduleAutoSave)
 end
 
 
@@ -468,20 +488,38 @@ local function patchUserWindowConstructor()
   MyDSL.Windows._constructorPatched = true
 end
 
+if not MyDSL.Windows._saveAliasInstalled then
+  tempAlias("^mydsl layout save$", function()
+    if saveWindowLayout then saveWindowLayout() end
+    if saveProfile then saveProfile() end
+    cecho("\n<green>[MyDSL] Layout saved.\n")
+  end)
+  MyDSL.Windows._saveAliasInstalled = true
+end
+
 
 ------------------------------------------------------------------------
 -- SECTION 11: STARTUP SEQUENCE
 ------------------------------------------------------------------------
--- patchUserWindowConstructor() injects restoreLayout=true and autoDock=true
--- into every UserWindow so Mudlet automatically remembers each window's
--- position and allows docking. ensureAll() creates windows at correct
--- LayoutEngine percentage positions for first-run placement.
--- Mudlet handles console space adjustment and position persistence natively.
--- No border management, no saveWindowLayout/loadWindowLayout needed.
+-- patchUserWindowConstructor() injects restoreLayout=true + autoDock=true.
+-- ensureAll() creates windows at LayoutEngine percentage positions and
+-- registers the debounced auto-save handler on sysWindowResizeEvent.
+-- saveWindowLayout() immediately after records the initial positions as a
+-- baseline — so if Mudlet internally calls loadWindowLayout() during the
+-- first dock operation, it restores to correct positions not empty state.
+-- Two startup timers load the layout after Mudlet's own sequence settles.
 
 patchUserWindowConstructor()
 MyDSL.Windows.loadState()
 MyDSL.Windows.ensureAll()
+if saveWindowLayout then saveWindowLayout() end
+
+tempTimer(1.0, function()
+  if loadWindowLayout then loadWindowLayout() end
+end)
+tempTimer(3.0, function()
+  if loadWindowLayout then loadWindowLayout() end
+end)
 
 
 ------------------------------------------------------------------------
