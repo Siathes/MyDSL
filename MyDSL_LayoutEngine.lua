@@ -441,38 +441,10 @@ end
 ------------------------------------------------------------------------
 -- SECTION 8: EVENT HANDLER — sysWindowResizeEvent
 ------------------------------------------------------------------------
--- sysWindowResizeEvent fires every time the player resizes the Mudlet window.
--- We use this to reflow all windows back to their percentage-based positions.
---
--- registerAnonymousEventHandler() registers a Lua function to run when a
--- named event fires. It returns a numeric ID that we can use later to
--- cancel (deregister) the handler.
---
--- Why deregister on reload?
--- When you re-save a script, Mudlet re-runs the file from top to bottom.
--- If we don't deregister the old handler first, we end up with two handlers
--- both responding to sysWindowResizeEvent — and after a third reload, three,
--- and so on. Keeping the ID in _handlers and killing it before re-registering
--- keeps exactly one handler active at all times.
-
--- Kill the old handler if it exists (we're reloading).
-if MyDSL.Layout._handlers.resize then
-  killAnonymousEventHandler(MyDSL.Layout._handlers.resize)
-  MyDSL.Layout._handlers.resize = nil
-end
-
--- Register the new handler and store its ID.
-MyDSL.Layout._handlers.resize = registerAnonymousEventHandler(
-  "sysWindowResizeEvent",
-  function()
-    -- MyDSL.Windows may not exist yet if WindowRegistry hasn't loaded.
-    -- The 'and ... or {}' pattern gives an empty table in that case,
-    -- so reflowAll() runs safely with nothing to iterate over.
-    MyDSL.Layout.reflowAll(
-      MyDSL.Windows and MyDSL.Windows.registry or {}
-    )
-  end
-)
+-- No automatic reflow on resize. Calling reflowAll() on sysWindowResizeEvent
+-- snapped all windows back to LayoutEngine defaults on every dock operation
+-- (docking a UserWindow fires sysWindowResizeEvent), fighting the user.
+-- reflowAll() and applyToWindow() are kept as functions for explicit use.
 
 
 ------------------------------------------------------------------------
