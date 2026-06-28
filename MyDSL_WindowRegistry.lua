@@ -504,21 +504,15 @@ end
 -- SECTION 11: STARTUP SEQUENCE
 ------------------------------------------------------------------------
 -- patchUserWindowConstructor() injects restoreLayout=true + autoDock=true.
--- ensureAll() creates all windows at their LayoutEngine percentage positions.
--- loadWindowLayout() fires after 1s to let Mudlet finish its own startup
--- before restoring saved positions. No save at startup — that would
--- overwrite the user's saved layout with fresh defaults.
+-- ensureAll() creates all windows. loadWindowLayout() is called immediately
+-- after — all windows exist at this point so there is no race condition.
+-- No timers: timers fight the user by snapping windows back mid-session.
 -- To persist a layout: run "mydsl layout save".
 
 patchUserWindowConstructor()
 MyDSL.Windows.loadState()
 MyDSL.Windows.ensureAll()
-tempTimer(1.0, function()
-  if loadWindowLayout then loadWindowLayout() end
-end)
-tempTimer(3.0, function()
-  if loadWindowLayout then loadWindowLayout() end
-end)
+if loadWindowLayout then loadWindowLayout() end
 
 
 ------------------------------------------------------------------------
