@@ -468,11 +468,33 @@ local function patchUserWindowConstructor()
   MyDSL.Windows._constructorPatched = true
 end
 
+function MyDSL.Windows.saveLayout()
+  -- Step 1: capture current positions from live Geyser objects
+  local sw, sh = getMainWindowSize()
+  if sw and sh and sw > 0 and sh > 0 then
+    for name, entry in pairs(MyDSL.Windows.registry) do
+      if entry.obj then
+        local ok, x, y, w, h = pcall(function()
+          return entry.obj:get_x(), entry.obj:get_y(),
+                 entry.obj:get_width(), entry.obj:get_height()
+        end)
+        if ok and x then
+          MyDSL.Layout.set(name, x/sw, y/sh, w/sw, h/sh)
+        end
+      end
+    end
+    -- Step 2: save LayoutEngine positions to disk
+    if MyDSL.Layout.save then MyDSL.Layout.save() end
+  end
+  -- Step 3: save Qt dock state
+  if saveWindowLayout then saveWindowLayout() end
+  if saveProfile then saveProfile() end
+  cecho("\n<green>[MyDSL] Layout saved.\n")
+end
+
 if not MyDSL.Windows._saveAliasInstalled then
   tempAlias("^mydsl layout save$", function()
-    if saveWindowLayout then saveWindowLayout() end
-    if saveProfile then saveProfile() end
-    cecho("\n<green>[MyDSL] Layout saved.\n")
+    MyDSL.Windows.saveLayout()
   end)
   MyDSL.Windows._saveAliasInstalled = true
 end
@@ -492,6 +514,9 @@ patchUserWindowConstructor()
 MyDSL.Windows.loadState()
 MyDSL.Windows.ensureAll()
 tempTimer(1.0, function()
+  if loadWindowLayout then loadWindowLayout() end
+end)
+tempTimer(3.0, function()
   if loadWindowLayout then loadWindowLayout() end
 end)
 
