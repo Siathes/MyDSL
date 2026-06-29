@@ -447,16 +447,18 @@ MyDSL.load()
 -- parseScoreLine(). The catch-all is killed by endScore() so it is only
 -- active during the score block.
 --
--- The score block is bracketed by two "^---" separator lines:
+-- The score block has three "^---" separator lines:
 --   Line 1: "Score for Kien -= Zandreya =- ..."  → beginScore()
 --   Line 2: "---..."                              → first separator, skip
---   Lines 3-N: stat/flag body                    → parseScoreLine()
---   Line N+1: "---..."                            → second separator → endScore()
+--   Lines 3-N: main stat body                    → parseScoreLine()
+--   Line N+1: "---..."                            → middle separator, skip
+--   Lines N+2-M: PROFESSION / Reclass section    → parseScoreLine()
+--   Line M+1: "---..."                            → endScore() (only after _saw_profession)
 
 local scoreBlock = nil
 
 function MyDSL.beginScore(charName)
-  scoreBlock = { name = trim(charName), lines = {}, _saw_sep = false }
+  scoreBlock = { name = trim(charName), lines = {}, _saw_sep = false, _saw_profession = false }
   -- Install a catch-all trigger to pipe subsequent lines to parseScoreLine.
   -- Killed by endScore() so it is never active outside a score block.
   if MyDSL._triggers.scoreParse then
@@ -470,16 +472,18 @@ end
 
 function MyDSL.parseScoreLine(line)
   if not scoreBlock then return end
-  -- "^---" separator lines bracket the block.
-  -- The first one (right after the header) opens the body — skip it.
-  -- The second one (after PROFESSION:) closes the block — commit.
+  -- Three "^---" separator lines in the block:
+  -- First (after header): skip. Middle (before PROFESSION section): skip.
+  -- Final (after PROFESSION section): commit — but only once _saw_profession is true.
   if line:match("^%-%-%-") then
     if not scoreBlock._saw_sep then
-      scoreBlock._saw_sep = true
+      scoreBlock._saw_sep = true   -- first separator, skip
+      return
+    elseif scoreBlock._saw_profession then
+      MyDSL.endScore()             -- final separator, after PROFESSION — commit
       return
     else
-      MyDSL.endScore()
-      return
+      return                       -- middle separator, before PROFESSION — skip
     end
   end
   scoreBlock.lines[#scoreBlock.lines + 1] = line
@@ -579,10 +583,11 @@ function MyDSL.parseScoreLine(line)
   v = line:match("Wimpy:%s*(%d+)");       if v then scoreBlock.wimpy    = tonumber(v) end
   -- Pos'n: single-word value (Standing/Sleeping/etc.) followed by flag columns
   v = line:match("Pos'n:%s*(%S+)");       if v then scoreBlock.position = trim(v) end
-  v = line:match("Stance:%s*(.+)$");      if v then scoreBlock.stance   = trim(v) end
-  v = line:match("Speaking:%s*(%S+)");    if v then scoreBlock.language = v end
-  v = line:match("Religion:%s*(.+)$");    if v then scoreBlock.religion = trim(v) end
-  v = line:match("PROFESSION:%s*(.+)$");  if v then scoreBlock.profession = trim(v) end
+  v = line:match("Stance:%s*(%S+)");       if v then scoreBlock.stance      = v end
+  v = line:match("Speaking:%s*(%S+)");    if v then scoreBlock.language   = v end
+  v = line:match("Religion:%s*(.+)$");    if v then scoreBlock.religion   = trim(v) end
+  v = line:match("PROFESSION:%s*(.+)$")
+  if v then scoreBlock.profession = trim(v); scoreBlock._saw_profession = true end
 
   -- Craftskill: 241  Craft Rank: Apprentice Hunter
   -- Old code looked for "Craft: name pct%" which is completely wrong format.
@@ -615,7 +620,7 @@ function MyDSL.endScore()
   if not scoreBlock then return end
   local fields = { raw = scoreBlock.lines }
   for k, v in pairs(scoreBlock) do
-    if k ~= "lines" and k ~= "_saw_sep" then fields[k] = v end
+    if k ~= "lines" and k ~= "_saw_sep" and k ~= "_saw_profession" then fields[k] = v end
   end
   update("score", fields)
   scoreBlock = nil
