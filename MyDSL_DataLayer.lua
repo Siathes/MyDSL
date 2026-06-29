@@ -62,6 +62,9 @@ MyDSL.listeners = MyDSL.listeners or {}
 -- can kill them cleanly when the script reloads.
 MyDSL._handlers = MyDSL._handlers or {}
 
+-- Trigger IDs from tempRegexTrigger, kept so we can kill them on reload.
+MyDSL._triggers = MyDSL._triggers or {}
+
 
 ------------------------------------------------------------------------
 -- SECTION 4: CURRENT CHARACTER NAME
@@ -158,6 +161,10 @@ local function deregisterHandlers()
   MyDSL._handlers = {}
 end
 deregisterHandlers()
+
+-- Kill any tempRegexTrigger triggers left from a previous script load.
+for _, id in pairs(MyDSL._triggers) do pcall(killTrigger, id) end
+MyDSL._triggers = {}
 
 -- ---- gmcp.char_data ------------------------------------------------
 -- FIX: The old code tried to read a name field from char_data.
@@ -434,19 +441,47 @@ MyDSL.load()
 ------------------------------------------------------------------------
 -- 9a  SCORE
 ------------------------------------------------------------------------
--- Trigger wiring (write these in Mudlet separately):
---   "^Score for (%S+)"         → MyDSL.beginScore(matches[2])
---   any line while in block    → MyDSL.parseScoreLine(line)
---   blank line / known end     → MyDSL.endScore()
+-- Trigger wiring is done in code at the bottom of this file.
+-- beginScore() is called by a permanent tempRegexTrigger on "^Score for ".
+-- It installs a catch-all line trigger that feeds every subsequent line to
+-- parseScoreLine(). The catch-all is killed by endScore() so it is only
+-- active during the score block.
+--
+-- The score block is bracketed by two "^---" separator lines:
+--   Line 1: "Score for Kien -= Zandreya =- ..."  → beginScore()
+--   Line 2: "---..."                              → first separator, skip
+--   Lines 3-N: stat/flag body                    → parseScoreLine()
+--   Line N+1: "---..."                            → second separator → endScore()
 
 local scoreBlock = nil
 
 function MyDSL.beginScore(charName)
-  scoreBlock = { name = trim(charName), lines = {} }
+  scoreBlock = { name = trim(charName), lines = {}, _saw_sep = false }
+  -- Install a catch-all trigger to pipe subsequent lines to parseScoreLine.
+  -- Killed by endScore() so it is never active outside a score block.
+  if MyDSL._triggers.scoreParse then
+    pcall(killTrigger, MyDSL._triggers.scoreParse)
+  end
+  MyDSL._triggers.scoreParse = tempRegexTrigger(
+    ".*",
+    [[if MyDSL and MyDSL.parseScoreLine then MyDSL.parseScoreLine(line) end]]
+  )
 end
 
 function MyDSL.parseScoreLine(line)
   if not scoreBlock then return end
+  -- "^---" separator lines bracket the block.
+  -- The first one (right after the header) opens the body — skip it.
+  -- The second one (after PROFESSION:) closes the block — commit.
+  if line:match("^%-%-%-") then
+    if not scoreBlock._saw_sep then
+      scoreBlock._saw_sep = true
+      return
+    else
+      MyDSL.endScore()
+      return
+    end
+  end
   scoreBlock.lines[#scoreBlock.lines + 1] = line
 
   local v  -- reused temp
@@ -572,10 +607,15 @@ function MyDSL.parseScoreLine(line)
 end
 
 function MyDSL.endScore()
+  -- Kill the catch-all line trigger before doing anything else.
+  if MyDSL._triggers.scoreParse then
+    pcall(killTrigger, MyDSL._triggers.scoreParse)
+    MyDSL._triggers.scoreParse = nil
+  end
   if not scoreBlock then return end
   local fields = { raw = scoreBlock.lines }
   for k, v in pairs(scoreBlock) do
-    if k ~= "lines" then fields[k] = v end
+    if k ~= "lines" and k ~= "_saw_sep" then fields[k] = v end
   end
   update("score", fields)
   scoreBlock = nil
@@ -995,6 +1035,20 @@ function MyDSL.parseImproveLine(line)
     update("improve", { skill = trim(skill), percent = tonumber(pct) })
   end
 end
+
+
+------------------------------------------------------------------------
+-- SECTION 10: TRIGGER REGISTRATION
+------------------------------------------------------------------------
+-- Score header: "Score for Kien -= Zandreya =- (Companion) *Observer*"
+-- Pattern matches only the first 10 chars so the full decorated header line
+-- fires beginScore(). charName is captured as the first word after "Score for ".
+-- beginScore() then installs the catch-all trigger for the body lines.
+
+MyDSL._triggers.scoreBegin = tempRegexTrigger(
+  "^Score for ",
+  [[if MyDSL and MyDSL.beginScore then MyDSL.beginScore(line:match("^Score for (%S+)")) end]]
+)
 
 
 ------------------------------------------------------------------------
