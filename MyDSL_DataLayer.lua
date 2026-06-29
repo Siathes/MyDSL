@@ -455,9 +455,9 @@ function MyDSL.parseScoreLine(line)
   local lv, race, played =
     line:match("LEVEL:%s*(%d+)%s+Race%s*:%s*(.-)%s+Played:%s*(%d+)")
   if lv then
-    scoreBlock.level       = tonumber(lv)
-    scoreBlock.race        = trim(race)
-    scoreBlock.playedHours = tonumber(played)
+    scoreBlock.level        = tonumber(lv)
+    scoreBlock.race         = trim(race)
+    scoreBlock.played_hours = tonumber(played)
     return
   end
 
@@ -472,43 +472,51 @@ function MyDSL.parseScoreLine(line)
   -- SEX: Male  Reclass@: 200
   local sx, rc = line:match("SEX%s*:%s*(%S+)%s+Reclass@:%s*(%S*)")
   if sx then
-    scoreBlock.sex       = sx
-    scoreBlock.reclassAt = rc ~= "" and rc or nil
+    scoreBlock.sex        = sx
+    scoreBlock.reclass_at = rc ~= "" and rc or nil
     return
   end
 
-  -- Stats: STR: 062(062)  INT: 060(060) ...
-  scoreBlock.stats = scoreBlock.stats or {}
+  -- Stats: STR  : 051(050)  INT  : 064(064)  etc. — stored flat on scoreBlock
   for _, stat in ipairs({ "STR", "INT", "WIS", "DEX", "CON" }) do
     local cur, base = line:match(stat .. "%s*:%s*(%d+)%((%d+)%)")
     if cur then
       local k = stat:lower()
-      scoreBlock.stats[k]           = tonumber(cur)
-      scoreBlock.stats[k .. "Base"] = tonumber(base)
+      scoreBlock[k]            = tonumber(cur)
+      scoreBlock[k .. "_base"] = tonumber(base)
     end
   end
 
-  -- HitRoll: B:21  P:31   (actual format — old code used HITROLL B: P: which never matched)
+  -- HitRoll: B:21  P:31   (on STR line)
   local hB, hP = line:match("HitRoll:%s*B:([%+%-]?%d+)%s+P:([%+%-]?%d+)")
-  if hB then scoreBlock.hitrollBase = tonumber(hB); scoreBlock.hitroll = tonumber(hP) end
-  local dB, dP = line:match("DamRoll:%s*B:([%+%-]?%d+)%s+P:([%+%-]?%d+)")
-  if dB then scoreBlock.damrollBase = tonumber(dB); scoreBlock.damroll = tonumber(dP) end
+  if hB then scoreBlock.hit_roll_base = tonumber(hB); scoreBlock.hit_roll = tonumber(hP) end
 
-  -- Items: 128   (max 196    )   — on same line as HitRoll (STR line)
+  -- DamRoll: B:37  P:47   (on INT line)
+  local dB, dP = line:match("DamRoll:%s*B:([%+%-]?%d+)%s+P:([%+%-]?%d+)")
+  if dB then scoreBlock.dam_roll_base = tonumber(dB); scoreBlock.dam_roll = tonumber(dP) end
+
+  -- Items: 133   (max 196  )   (on STR line)
   local items_cur, items_max = line:match("Items:%s*(%d+)%s+%(max%s+(%d+)%s*%)")
   if items_cur then
     scoreBlock.items     = tonumber(items_cur)
     scoreBlock.max_items = tonumber(items_max)
   end
 
-  -- Armor: P:-160 B:-160 S:-160 M:-80   (actual abbrevs — old code used Pierce:/Bash:/Slash:/Magic:)
+  -- Weight: 592   (max 603   )   (on INT line — was missing entirely)
+  local wt, mwt = line:match("Weight:%s*(%d+)%s+%(max%s+(%d+)%s*%)")
+  if wt then
+    scoreBlock.weight     = tonumber(wt)
+    scoreBlock.max_weight = tonumber(mwt)
+  end
+
+  -- Armor: P:-160 B:-160 S:-160 M:-80   (on WIS line)
   local ap, ab, as_, am =
     line:match("Armor:%s*P:([%+%-]?%d+)%s+B:([%+%-]?%d+)%s+S:([%+%-]?%d+)%s+M:([%+%-]?%d+)")
   if ap then
-    scoreBlock.armorPierce = tonumber(ap)
-    scoreBlock.armorBash   = tonumber(ab)
-    scoreBlock.armorSlash  = tonumber(as_)
-    scoreBlock.armorMagic  = tonumber(am)
+    scoreBlock.armor_pierce = tonumber(ap)
+    scoreBlock.armor_bash   = tonumber(ab)
+    scoreBlock.armor_slash  = tonumber(as_)
+    scoreBlock.armor_magic  = tonumber(am)
   end
 
   -- Hitpoints / Mana / Move
