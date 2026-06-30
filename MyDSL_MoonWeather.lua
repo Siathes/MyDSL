@@ -18,10 +18,11 @@
       Section 3 — day/night indicator + clock + date row
   - PNG images via setStyleSheet background-image; Unicode ● fallback.
 
-  Aliases:  mydsl moon toggle/on/off/font <n>
+  Aliases:  mydsl moon toggle/on/off/font <n>/gag/ungag
   Events:   MyDSL.lunar.updated, .weather.updated, .tick.updated,
-            .login.updated  (all from DataLayer via raiseEvent)
+            .time.updated, .login.updated  (all from DataLayer via raiseEvent)
   Gag triggers: moon description lines, bonus stat lines → deleteLine()
+                (default OFF — enable with mydsl moon gag)
 =====================================================================]]--
 
 MyDSL = MyDSL or {}
@@ -36,6 +37,7 @@ if MW.config.shown    == nil then MW.config.shown    = true                end
 if MW.config.font     == nil then MW.config.font     = "DejaVu Sans Mono"  end
 if MW.config.fontSize == nil then MW.config.fontSize = 9                   end
 if MW.config.opacity  == nil then MW.config.opacity  = 210                 end
+if MW.config.gagLunar == nil then MW.config.gagLunar = false               end
 
 -- Storage tables for cleanup on reload. We store the numeric IDs returned
 -- by registerAnonymousEventHandler, tempRegexTrigger, and tempAlias so we
@@ -239,7 +241,8 @@ local function applyMoonSlot(label, color, phase, isBlackHidden)
   -- Black moon hidden from non-evil characters: permanent game mechanic.
   if isBlackHidden then
     label:setStyleSheet("background-color: rgba(0,0,0,0); background-image: none;")
-    label:echo('<center><span style="color:#333333; font-size:36pt; line-height:100%;">&#x25CF;</span></center>')
+    label:echo('<center><span style="color:#222222; font-size:18pt; line-height:120%;">&#x25CF;</span><br>' ..
+               '<span style="color:#333333; font-size:6pt;">not visible</span></center>')
     return
   end
 
@@ -480,6 +483,7 @@ end
 function MW.onLunarUpdate()   MW.render() end
 function MW.onWeatherUpdate() MW.render() end
 function MW.onTickUpdate()    MW.render() end
+function MW.onTimeUpdate()    MW.render() end
 function MW.onLoginUpdate()   MW.render() end
 
 
@@ -511,11 +515,13 @@ end
 -- Called only once — on first init(). Subsequent reloads skip this because
 -- Geyser window objects survive Lua script reloads in Mudlet's process.
 --
--- Layout (percentages relative to the container):
---   leftImg:   x=0%   y=0%   w=22%  h=55%   (side moon, small)
---   centerImg: x=22%  y=0%   w=56%  h=55%   (focal moon, wider)
---   rightImg:  x=78%  y=0%   w=22%  h=55%   (side moon, small)
---   text:      x=0%   y=55%  w=100% h=45%   (Sections 2+3)
+-- Child labels use pixel sizes derived from container:get_width/height()
+-- because percentage sizing is unreliable inside Adjustable.Container.
+-- Layout proportions:
+--   leftImg:   x=0         y=0      w=sideW   h=imgH   (side moon, small)
+--   centerImg: x=sideW     y=0      w=centerW h=imgH   (focal moon, wider)
+--   rightImg:  x=sideW+cW  y=0      w=sideW   h=imgH   (side moon, small)
+--   text:      x=0         y=imgH   w=cw      h=textH  (Sections 2+3)
 
 local function _buildUI()
   -- Get the fractional default position from LayoutEngine.
@@ -560,34 +566,43 @@ local function _buildUI()
   pcall(function() container:setAutoSave(true) end)
   pcall(function() container:setAutoLoad(true) end)
 
+  -- Compute pixel dimensions for child labels.
+  -- Percentage positioning is unreliable inside Adjustable.Container, so we
+  -- measure the container after creation and position children in pixels.
+  local cw = container:get_width()
+  local ch = container:get_height()
+  -- Side slots are 20% of container width each; center gets the remainder.
+  local sideW   = math.floor(cw * 0.20)
+  local centerW = cw - (sideW * 2)
+  local imgH    = math.floor(ch * 0.55)
+  local textH   = ch - imgH
+
   -- Three image labels — top 55% of the container, side-by-side.
-  -- Child labels positioned as percentages of the parent container's size.
   MW.ui.leftImg = Geyser.Label:new({
     name   = "MW_leftImg",
-    x      = "0%",  y = "0%",
-    width  = "22%", height = "55%",
+    x      = 0, y = 0,
+    width  = sideW, height = imgH,
   }, container)
 
-  -- Center slot is wider (~1.5x) than the side slots to visually emphasise
-  -- the character's focal moon. 22% + 56% + 22% = 100%.
+  -- Center slot is wider (~3x) than the side slots to emphasise the focal moon.
   MW.ui.centerImg = Geyser.Label:new({
     name   = "MW_centerImg",
-    x      = "22%", y = "0%",
-    width  = "56%", height = "55%",
+    x      = sideW, y = 0,
+    width  = centerW, height = imgH,
   }, container)
 
   MW.ui.rightImg = Geyser.Label:new({
     name   = "MW_rightImg",
-    x      = "78%", y = "0%",
-    width  = "22%", height = "55%",
+    x      = sideW + centerW, y = 0,
+    width  = sideW, height = imgH,
   }, container)
 
   -- Text label — bottom 45%, full width.
   -- This label holds Sections 2 and 3 as HTML via echo().
   MW.ui.text = Geyser.Label:new({
     name   = "MW_text",
-    x      = "0%",  y = "55%",
-    width  = "100%", height = "45%",
+    x      = 0, y = imgH,
+    width  = cw, height = textH,
   }, container)
 
   -- Apply dark background and font styling to the text label.
@@ -608,6 +623,7 @@ local function _registerHandlers()
     "MyDSL.lunar.updated",
     "MyDSL.weather.updated",
     "MyDSL.tick.updated",
+    "MyDSL.time.updated",
     "MyDSL.login.updated",
   }
   for _, ev in ipairs(events) do
@@ -638,6 +654,8 @@ end
 -- uses Mudlet's PCRE engine.
 
 local function _registerTriggers()
+  if not MW.config.gagLunar then return end
+
   -- Gag moon description lines: "The red moon is full and not visible."
   local id1 = tempRegexTrigger("^The (red|white|black) moon is",
     function() deleteLine() end)
@@ -648,6 +666,22 @@ local function _registerTriggers()
   local id2 = tempRegexTrigger([[^\s+\[Mana]],
     function() deleteLine() end)
   if id2 then MW._triggers[#MW._triggers + 1] = id2 end
+end
+
+
+------------------------------------------------------------------------
+-- PUBLIC: setGag(enabled)
+------------------------------------------------------------------------
+-- Toggles suppression of `lunar` command output in the main console.
+-- Default is OFF (gagLunar=false) — output remains visible.
+-- Call MW.setGag(true) or alias "mydsl moon gag" to suppress output.
+
+function MW.setGag(enabled)
+  for _, id in ipairs(MW._triggers) do pcall(killTrigger, id) end
+  MW._triggers = {}
+  MW.config.gagLunar = enabled
+  if enabled then _registerTriggers() end
+  debugc("[MoonWeather] gag " .. (enabled and "ON" or "OFF"))
 end
 
 
@@ -675,6 +709,10 @@ local function _registerAliases()
     MyDSL.MoonWeather._applyTextStyle()
     MyDSL.MoonWeather.render()
   ]])
+
+  -- Gag control — suppress or restore `lunar` output in the main console.
+  reg([[^mydsl moon gag$]],   [[MyDSL.MoonWeather.setGag(true)]])
+  reg([[^mydsl moon ungag$]], [[MyDSL.MoonWeather.setGag(false)]])
 end
 
 
