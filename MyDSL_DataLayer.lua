@@ -1073,6 +1073,51 @@ MyDSL._triggers.scoreBegin = tempRegexTrigger(
 
 
 ------------------------------------------------------------------------
+-- Lunar block trigger
+------------------------------------------------------------------------
+-- Mirrors the score trigger pattern exactly.
+--
+-- A permanent trigger fires on the first moon line ("The red moon is ...").
+-- It calls beginLunar() once to reset state, immediately parses that first
+-- line, then installs a catch-all trigger (".*") that feeds every subsequent
+-- line to parseLunarLine(). The catch-all kills itself when it detects a
+-- blank line, which marks the end of the lunar block, then calls endLunar()
+-- to commit the parsed data.
+--
+-- Guard: if the catch-all is already running (because this session has a
+-- second or third moon line in the block), the permanent trigger returns
+-- without calling beginLunar() again. The catch-all handles the line.
+
+MyDSL._triggers.lunarBegin = tempRegexTrigger(
+  "^The (red|white|black) moon is",
+  function()
+    if not (MyDSL and MyDSL.beginLunar) then return end
+    -- If the catch-all is already active this line is handled there — skip.
+    if MyDSL._triggers.lunarParse then return end
+    -- Start a fresh block and parse the triggering line immediately.
+    MyDSL.beginLunar()
+    MyDSL.parseLunarLine(getCurrentLine())
+    -- Install catch-all for all remaining lines in the block.
+    MyDSL._triggers.lunarParse = tempRegexTrigger(".*", function()
+      if not MyDSL then return end
+      local ln = getCurrentLine()
+      if ln:match("^%s*$") then
+        -- Blank line = end of lunar block. Commit data and remove catch-all.
+        killTrigger(MyDSL._triggers.lunarParse)
+        MyDSL._triggers.lunarParse = nil
+        if MyDSL.endLunar then MyDSL.endLunar() end
+      else
+        if MyDSL.parseLunarLine then MyDSL.parseLunarLine(ln) end
+      end
+    end)
+  end
+)
+
+-- TODO: wire parseWeatherLine() once weather line patterns are confirmed
+-- in DSL_CommandRef.md. Do not guess patterns.
+
+
+------------------------------------------------------------------------
 -- READY
 ------------------------------------------------------------------------
 debugc("[MyDSL] DataLayer v1.0 loaded. Character: "
