@@ -701,23 +701,47 @@ The contract lists event names without `.updated` suffix (e.g. `"MyDSL.lunar"`).
 
 These are what `_registerHandlers()` subscribes to.
 
-### `MyDSL.State.time` field names (confirmed)
+### Data source: `MyDSL.DB.time` (corrected — 2026-06-30 second pass)
 
-`parseTimeLine()` in DataLayer stores:
+`buildTimeRow()` reads from `MyDSL.DB.time`, **not** `MyDSL.State.time` directly.
+DataBridge populates `MyDSL.DB.time` from `MyDSL.State.time` via `DB.sync()`,
+which is triggered on every `"MyDSL.time.updated"` event. DataBridge loads
+before MoonWeather so `DB.time` is always up-to-date when `render()` runs.
 
+`MyDSL.State.time` fields (set by `parseTimeLine()` in DataLayer):
 ```lua
 {
-  hour     = tonumber,   -- integer hour (e.g. 9)
-  ampm     = string,     -- "am" or "pm"
-  day_name = string,     -- e.g. "the Great Gods"
-  day_num  = tonumber,   -- integer day-of-month (e.g. 26)
-  month    = string,     -- e.g. "the Great Evil"
+  hour     = integer,  -- e.g. 9
+  ampm     = string,   -- "am" or "pm"
+  day_name = string,   -- e.g. "the Great Gods"
+  day_num  = integer,  -- e.g. 26
+  month    = string,   -- e.g. "the Great Evil"
 }
 ```
 
-The contract referenced `MyDSL.State.time.date` — **this field does not exist.**
-Date is constructed by `buildTimeRow()` from `day_num` + `month`:
-`string.format("%d%s the Month of %s", day_num, ordinal(day_num), month)`
+`MyDSL.DB.time` fields (set by DataBridge.sync() from State.time above):
+```lua
+{
+  hour     = integer,  -- same as State.time.hour
+  ampm     = string,   -- same as State.time.ampm
+  clock    = string,   -- pre-formatted "9:00 am" (or "" if no data)
+  day_name = string,   -- same as State.time.day_name
+  day_num  = integer,  -- same as State.time.day_num
+  month    = string,   -- same as State.time.month
+  is_day   = boolean,  -- pre-computed by DataBridge: (ampm=="am" and hour>=6) or (ampm=="pm" and hour<6)
+}
+```
+
+Fields that do NOT exist (contrary to earlier notes or task prompts):
+- `h24`, `date`, `day`, `dayName`, `ordinal`, `monthName` — none of these exist.
+
+`buildTimeRow()` constructs the display from:
+- `db.is_day` → ☀ (#ffdd44) or ✦ (#8888cc)
+- `"Day of " .. db.day_name` → "Day of the Great Gods"
+- `db.clock` → "9:00 am"
+- `ordinal(db.day_num) .. " the Month of " .. db.month` → "26th the Month of the Great Evil"
+
+Display order: indicator → day → clock → date
 
 ### `MyDSL.State.tick.time` (corrected)
 
@@ -726,11 +750,10 @@ a **GMCP clock string** of the form `"8:00am"` — not a period descriptor like
 `"Night Time"`, `"Day Time"`, `"Dawn"`, or `"Dusk"`. Those period strings
 appear in the game prompt (line 2) but are not captured by any current parser.
 
-`buildTimeRow()` derives day/night from `timeData.ampm` (`"am"` = daytime).
-This approximation is correct for most of the game clock. Dawn/Dusk
-transitions are not distinguishable from this field alone.
+`buildTimeRow()` uses `db.is_day` (pre-computed by DataBridge from `hour` + `ampm`)
+rather than reading tick.time at all.
 
-### Root cause of "-- -- --" time row (fixed 2026-06-30)
+### Root cause of "-- -- --" time row (fixed 2026-06-30, first pass)
 
 `parseTimeLine()` was defined in DataLayer but had no `tempRegexTrigger` wired
 to it in Section 10. The trigger comment existed; the trigger code did not.
@@ -750,3 +773,10 @@ MyDSL._triggers.timeLine = tempRegexTrigger(
 Pattern `"^It is "` matches both confirmed time-line formats:
 - `"It is 9:30 am, Day of ..."`
 - `"It is 10:00 o'clock am, ..."`
+
+### Second pass fix (2026-06-30)
+
+`buildTimeRow()` was reading from `MyDSL.State.time` and reconstructing clock
+from `hour` + `ampm` manually. Switched to `MyDSL.DB.time` which provides
+`clock` pre-formatted and `is_day` pre-computed. Display order corrected to
+day → clock → date (was clock → day → date).

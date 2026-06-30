@@ -314,28 +314,25 @@ end
 -- INTERNAL: buildTimeRow()
 ------------------------------------------------------------------------
 -- Builds the HTML for Section 3: the single time row at the bottom.
--- Layout: [day/night icon]  Clock · Day of Name · Date
+-- Layout: [day/night icon]  Day of Name · Clock · Date
+-- Example: ☀ Day of the Great Gods · 9:00 am · 26th the Month of the Great Evil
 --
--- Data sources:
---   All fields from MyDSL.State.time (populated by parseTimeLine()):
---     .hour (int), .ampm ("am"/"pm"), .day_name, .day_num, .month
---
--- NOTE: MyDSL.State.tick.time is a GMCP clock string ("8:00am"), NOT a
--- period descriptor like "Night Time". Period strings are not stored in
--- any state field. Day/night indicator is derived from ampm instead.
+-- Data source: MyDSL.DB.time (populated by DataBridge.sync() from State.time).
+-- Fields: .clock ("9:00 am"), .day_name ("the Great Gods"), .day_num (int),
+--         .month ("the Great Evil"), .is_day (bool, pre-computed by DataBridge).
 
 local function buildTimeRow()
-  local timeData = (MyDSL.State and MyDSL.State.time) or nil
+  local db = (MyDSL.DB and MyDSL.DB.time) or {}
 
-  -- Temporary debug logging — remove after Steven confirms correct field values.
+  -- Temporary debug logging — remove after Steven confirms time row correct.
   debugc("[MoonWeather] buildTimeRow called")
-  local t = MyDSL.State and MyDSL.State.time
-  debugc("[MoonWeather] State.time = " .. tostring(t))
-  if t then
-    for k, v in pairs(t) do
-      debugc("[MoonWeather]   " .. tostring(k) .. " = " .. tostring(v))
+  debugc("[MoonWeather] DB.time = " .. tostring(MyDSL.DB and MyDSL.DB.time))
+  if MyDSL.DB and MyDSL.DB.time then
+    for k, v in pairs(MyDSL.DB.time) do
+      debugc("[MoonWeather]   DB.time." .. tostring(k) .. " = " .. tostring(v))
     end
   end
+  debugc("[MoonWeather] State.time = " .. tostring(MyDSL.State and MyDSL.State.time))
   local tk = MyDSL.State and MyDSL.State.tick
   debugc("[MoonWeather] State.tick = " .. tostring(tk))
   if tk then
@@ -344,10 +341,7 @@ local function buildTimeRow()
     end
   end
 
-  -- Day/night indicator: derived from ampm since the period descriptor
-  -- ("Night Time", "Day Time") is not tracked in state. "am" ≈ daytime.
-  local ampm  = timeData and timeData.ampm
-  local isDay = ampm and (ampm:lower() == "am")
+  local isDay = db.is_day
 
   local indicator
   if isDay then
@@ -356,37 +350,29 @@ local function buildTimeRow()
     indicator = span("#8888cc", "&#x2736;")   -- ✦ STAR/SPARKLE symbol
   end
 
-  -- Clock text color: warm for am, cool for pm.
   local clockColor = isDay and "#ffdd88" or "#8888cc"
-
   local sep = span("#444444", " &middot; ")
 
-  -- Clock: DataLayer stores hour as integer and ampm as "am"/"pm".
-  -- Minutes are discarded by parseTimeLine(); DSL time is on-the-hour.
-  local clockText = "--"
-  if timeData and timeData.hour and timeData.ampm then
-    clockText = string.format("%d:00 %s", timeData.hour, timeData.ampm)
+  -- Day: DataBridge stores day_name without prefix ("the Great Gods").
+  local dayText = "--"
+  if db.day_name and trim(db.day_name) ~= "" then
+    dayText = "Day of " .. db.day_name
   end
 
-  -- Day name: DataLayer stores "the Great Gods" (after "Day of "), so we
-  -- prepend "Day of " to reconstruct "Day of the Great Gods".
-  local dayText = "--"
-  if timeData and timeData.day_name and trim(timeData.day_name) ~= "" then
-    dayText = "Day of " .. timeData.day_name
-  end
+  -- Clock: DataBridge pre-formats as "9:00 am" in db.clock.
+  local clockText = (db.clock and db.clock ~= "") and db.clock or "--"
 
   -- Date: "26th the Month of the Great Evil"
-  -- month field from DataLayer is "the Great Evil" (with "the" already included).
+  -- db.month is "the Great Evil" (already includes "the").
   local dateText = "--"
-  if timeData and timeData.day_num and timeData.month and trim(timeData.month) ~= "" then
-    dateText = string.format("%d%s the Month of %s",
-      timeData.day_num, ordinal(timeData.day_num), timeData.month)
+  if db.day_num and db.month and trim(db.month) ~= "" then
+    dateText = ordinal(db.day_num) .. " the Month of " .. db.month
   end
 
   return indicator .. "  " ..
-    span(clockColor, clockText) ..
-    sep ..
     span("#aaaaaa", dayText) ..
+    sep ..
+    span(clockColor, clockText) ..
     sep ..
     span("#999999", dateText)
 end
