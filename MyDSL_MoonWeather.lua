@@ -327,11 +327,20 @@ end
 local function buildTimeRow()
   local timeData = (MyDSL.State and MyDSL.State.time) or nil
 
-  -- Temporary: log actual state so mismatches can be confirmed in-game.
-  debugc("[MoonWeather] time state: " .. tostring(MyDSL.State and MyDSL.State.time))
-  if MyDSL.State and MyDSL.State.time then
-    for k, v in pairs(MyDSL.State.time) do
-      debugc("  " .. tostring(k) .. " = " .. tostring(v))
+  -- Temporary debug logging — remove after Steven confirms correct field values.
+  debugc("[MoonWeather] buildTimeRow called")
+  local t = MyDSL.State and MyDSL.State.time
+  debugc("[MoonWeather] State.time = " .. tostring(t))
+  if t then
+    for k, v in pairs(t) do
+      debugc("[MoonWeather]   " .. tostring(k) .. " = " .. tostring(v))
+    end
+  end
+  local tk = MyDSL.State and MyDSL.State.tick
+  debugc("[MoonWeather] State.tick = " .. tostring(tk))
+  if tk then
+    for k, v in pairs(tk) do
+      debugc("[MoonWeather]   tick." .. tostring(k) .. " = " .. tostring(v))
     end
   end
 

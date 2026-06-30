@@ -1113,6 +1113,23 @@ MyDSL._triggers.lunarBegin = tempRegexTrigger(
   end
 )
 
+------------------------------------------------------------------------
+-- Time line trigger
+------------------------------------------------------------------------
+-- Fires on every game-time output line:
+--   "It is 9:30 am, Day of the Great Gods, 26th the Month of the Great Evil."
+--   "It is 10:00 o'clock am, ..."
+-- Pattern "^It is " is a safe literal prefix — both variants start with it.
+
+MyDSL._triggers.timeLine = tempRegexTrigger(
+  "^It is ",
+  function()
+    if MyDSL and MyDSL.parseTimeLine then
+      MyDSL.parseTimeLine(getCurrentLine())
+    end
+  end
+)
+
 -- TODO: wire parseWeatherLine() once weather line patterns are confirmed
 -- in DSL_CommandRef.md. Do not guess patterns.
 
