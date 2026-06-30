@@ -692,32 +692,48 @@ local lunarBlock = {}
 local MOON_COLORS = { red = true, white = true, black = true }
 
 function MyDSL.beginLunar()
-  lunarBlock = { red = {}, white = {}, black = {}, _last = nil }
+  -- Reset the in-progress block. Each moon sub-table pre-initialised with
+  -- has_bonuses=false so the field always exists even when no bonus block arrives.
+  lunarBlock = {
+    red   = { has_bonuses = false },
+    white = { has_bonuses = false },
+    black = { has_bonuses = false },
+    _last = nil,
+  }
 end
 
 function MyDSL.parseLunarLine(line)
-  -- Description line: "The red moon is full and not visible."
-  local color, rest = line:match("^The (%a+) moon is (.+)%.$")
+  -- Type 1 — Moon description line:
+  --   "The red moon is empty and not visible."
+  --   "The white moon is waxing three-quarters and in high sanction."
+  -- Three-capture pattern splits color, phase, and raw position in one step.
+  -- The optional %.? accepts lines with or without a trailing period.
+  local color, phase, position = line:match("^The (%a+) moon is (.+) and (.-)%.?$")
   if color and MOON_COLORS[color] then
-    local phase, vis = rest:match("^(.+) and (.+)$")
+    -- Strip "in " prefix so "in high sanction" → "high sanction".
+    position = (position or ""):gsub("^in ", "")
     local moon = lunarBlock[color]
-    moon.phase      = trim(phase or rest)
-    moon.visibility = trim(vis or "")
+    moon.phase       = trim(phase or "")
+    moon.position    = trim(position)
+    moon.has_bonuses = false  -- remains false unless a bonus line follows
     lunarBlock._last = color
     return
   end
 
-  -- Bonus line (indented, bracket-delimited), attributed to the preceding moon:
-  -- "   [Mana +15%]  [Saves -3]  [Casting +3]  [Regen   0%]  [Cycles remaining 45 (22 Hours)]"
+  -- Type 2 — Bonus stat line (only for focal moon with high Astrology):
+  --   "   [Mana   0%]  [Saves  0]  [Casting  0]  [Regen   0%]  [Cycles remaining 38 (19 1/2 Hours)]"
+  -- %s+ handles multiple spaces between label and value (game output is ragged).
   if lunarBlock._last and line:find("%[Mana") then
     local moon = lunarBlock[lunarBlock._last]
-    moon.mana_bonus       = tonumber(line:match("%[Mana ([%+%-]?%d+)%%%]"))
-    moon.saves_modifier   = tonumber(line:match("%[Saves ([%+%-]?%d+)%]"))
-    moon.casting_modifier = tonumber(line:match("%[Casting ([%+%-]?%d+)%]"))
+    moon.mana_bonus       = tonumber(line:match("%[Mana%s+([%+%-]?%d+)%%%]"))
+    moon.saves_modifier   = tonumber(line:match("%[Saves%s+([%+%-]?%d+)%]"))
+    moon.casting_modifier = tonumber(line:match("%[Casting%s+([%+%-]?%d+)%]"))
     moon.regen_pct        = tonumber(line:match("%[Regen%s+([%+%-]?%d+)%%%]"))
-    local cycles, hours   = line:match("%[Cycles remaining (%d+) %((%d+) Hours?%)%]")
-    moon.cycles_remaining = tonumber(cycles)
-    moon.hours_remaining  = tonumber(hours)
+    moon.cycles_remaining = tonumber(line:match("%[Cycles remaining (%d+)"))
+    -- Capture integer hours from "(19 1/2 Hours)" or "(22 Hours)".
+    -- [^%)]* eats the fractional part so the capture is always just the integer.
+    moon.hours_remaining  = tonumber(line:match("%((%d+)[^%)]*%)"))
+    moon.has_bonuses      = true
   end
 end
 
