@@ -317,22 +317,29 @@ end
 -- Layout: [day/night icon]  Clock · Day of Name · Date
 --
 -- Data sources:
---   Day/night indicator: MyDSL.State.tick.time ("Day Time", "Night Time", etc.)
---   Clock:               MyDSL.State.time.hour + .ampm
---   Day name:            MyDSL.State.time.day_name
---   Date:                MyDSL.State.time.day_num + .month
+--   All fields from MyDSL.State.time (populated by parseTimeLine()):
+--     .hour (int), .ampm ("am"/"pm"), .day_name, .day_num, .month
+--
+-- NOTE: MyDSL.State.tick.time is a GMCP clock string ("8:00am"), NOT a
+-- period descriptor like "Night Time". Period strings are not stored in
+-- any state field. Day/night indicator is derived from ampm instead.
 
 local function buildTimeRow()
-  local tod      = (MyDSL.State and MyDSL.State.tick and MyDSL.State.tick.time) or nil
   local timeData = (MyDSL.State and MyDSL.State.time) or nil
 
-  -- Determine day vs night for the indicator icon and text color.
-  -- Dawn and Dusk count as day-side for indicator purposes.
-  local isDay = tod and (tod:find("Day") or tod:find("Dawn") or tod:find("Dusk"))
+  -- Temporary: log actual state so mismatches can be confirmed in-game.
+  debugc("[MoonWeather] time state: " .. tostring(MyDSL.State and MyDSL.State.time))
+  if MyDSL.State and MyDSL.State.time then
+    for k, v in pairs(MyDSL.State.time) do
+      debugc("  " .. tostring(k) .. " = " .. tostring(v))
+    end
+  end
 
-  -- Day/night indicator — Unicode icon since images cannot go inside echo() HTML.
-  -- PNGs (sun_small.png, night_sky.png) exist in moon_phases/ but Geyser labels
-  -- can only show them via background-image CSS, not inline in HTML text.
+  -- Day/night indicator: derived from ampm since the period descriptor
+  -- ("Night Time", "Day Time") is not tracked in state. "am" ≈ daytime.
+  local ampm  = timeData and timeData.ampm
+  local isDay = ampm and (ampm:lower() == "am")
+
   local indicator
   if isDay then
     indicator = span("#ffdd44", "&#x2600;")   -- ☀ SUN symbol
@@ -340,20 +347,13 @@ local function buildTimeRow()
     indicator = span("#8888cc", "&#x2736;")   -- ✦ STAR/SPARKLE symbol
   end
 
-  -- Time-of-day text color (matches the time-of-day state name).
-  local todColor = "#cccccc"
-  if tod then
-    if     tod:find("Night") then todColor = "#8888cc"
-    elseif tod:find("Dawn")  then todColor = "#dd8844"
-    elseif tod:find("Dusk")  then todColor = "#dd8844"
-    elseif tod:find("Day")   then todColor = "#ffdd88"
-    end
-  end
+  -- Clock text color: warm for am, cool for pm.
+  local clockColor = isDay and "#ffdd88" or "#8888cc"
 
   local sep = span("#444444", " &middot; ")
 
-  -- Clock: "10:00 am" — DataLayer stores just the hour integer (minutes discarded
-  -- by the capture pattern); DSL game time is conventionally shown on the hour.
+  -- Clock: DataLayer stores hour as integer and ampm as "am"/"pm".
+  -- Minutes are discarded by parseTimeLine(); DSL time is on-the-hour.
   local clockText = "--"
   if timeData and timeData.hour and timeData.ampm then
     clockText = string.format("%d:00 %s", timeData.hour, timeData.ampm)
@@ -375,7 +375,7 @@ local function buildTimeRow()
   end
 
   return indicator .. "  " ..
-    span(todColor, clockText) ..
+    span(clockColor, clockText) ..
     sep ..
     span("#aaaaaa", dayText) ..
     sep ..
