@@ -9,14 +9,12 @@
   Design principles:
   - Adjustable.Container with lockStyle="padding": invisible handles,
     user can drag/resize, position auto-saves and auto-loads.
-  - Three image labels for moon slots (top 55%):
-      left slot    — non-focal side moon (small)
-      center slot  — focal moon (wider, aligned to player)
-      right slot   — other non-focal side moon (small)
-  - One text label for Sections 2+3 (bottom 45%):
-      Section 2 — phase/position/bonus text below focal moon only
-      Section 3 — day/night indicator + clock + date row
-  - PNG images via setStyleSheet background-image; Unicode ● fallback.
+  - ONE Geyser.Label at 100%×100% inside the container.
+  - All content rendered via label:echo(html) as an HTML table:
+      Row 1 (50%) — three moon circles (Unicode fallback or img tag)
+      Row 2 (25%) — focal moon phase/position/bonus text (colspan=3)
+      Row 3 (25%) — day/night indicator + clock + date (colspan=3)
+  - PNG images via <img> tag; Unicode ● colored circle fallback.
 
   Aliases:  mydsl moon toggle/on/off/font <n>/gag/ungag
   Events:   MyDSL.lunar.updated, .weather.updated, .tick.updated,
@@ -223,50 +221,32 @@ end
 
 
 ------------------------------------------------------------------------
--- INTERNAL: applyMoonSlot(label, color, phase, isBlackHidden)
+-- INTERNAL: moonSlotHtml(color, phase, isBlackHidden, isFocal)
 ------------------------------------------------------------------------
--- Updates one image label to display the moon phase.
---
--- isBlackHidden: true for the black moon slot when the character is not
--- evil. The black moon is permanently invisible to neutral/good characters
--- (game lore). We show a very dark dim circle instead of a fallback.
---
--- When a valid PNG exists the label uses CSS background-image.
--- When no PNG is found or the phase is unknown, we echo a large Unicode
--- filled circle (&#x25CF; = ●) in the moon's canonical color.
+-- Returns an HTML string for one moon slot cell.
+-- isFocal=true → larger circle (42pt) for the center slot.
+-- isBlackHidden=true → permanent "not visible" dim display for the black
+--   moon when the character is not evil (game mechanic, not a data gap).
+-- PNG img tag used when the image file exists; Unicode ● fallback otherwise.
 
-local function applyMoonSlot(label, color, phase, isBlackHidden)
-  if not label then return end
-
-  -- Black moon hidden from non-evil characters: permanent game mechanic.
+local function moonSlotHtml(color, phase, isBlackHidden, isFocal)
   if isBlackHidden then
-    label:setStyleSheet("background-color: rgba(0,0,0,0); background-image: none;")
-    label:echo('<center><span style="color:#222222; font-size:18pt; line-height:120%;">&#x25CF;</span><br>' ..
-               '<span style="color:#333333; font-size:6pt;">not visible</span></center>')
-    return
+    return '<span style="font-size:20pt; color:#1a1a1a;">&#x25CF;</span>' ..
+           '<br><span style="font-size:6pt; color:#333333;">not visible</span>'
   end
 
-  local path = MW.phaseImage(color, phase)
+  local path = phase and MW.phaseImage(color, phase)
   if path and fileExists(path) then
-    -- PNG found — display via CSS background-image on the label.
-    label:setStyleSheet(string.format(
-      "background-color: rgba(0,0,0,0);" ..
-      "background-image: url('%s');" ..
-      "background-repeat: no-repeat;" ..
-      "background-position: center;" ..
-      "background-size: contain;",
-      path
-    ))
-    label:echo("")  -- clear any previous fallback text
-  else
-    -- No image — show a colored Unicode circle in this moon's color.
-    local c = moonFallback[color] or "#888888"
-    label:setStyleSheet("background-color: rgba(0,0,0,0); background-image: none;")
-    label:echo(string.format(
-      '<center><span style="color:%s; font-size:36pt; line-height:100%%;">&#x25CF;</span></center>',
-      c
-    ))
+    local sz = isFocal and "40" or "28"
+    return string.format(
+      '<img src="file:///%s" width="%s" height="%s" style="vertical-align:middle;"/>',
+      path, sz, sz)
   end
+
+  -- Unicode fallback — size difference (42pt vs 28pt) creates the focal emphasis.
+  local c  = moonFallback[color] or "#888888"
+  local pt = isFocal and "42pt" or "28pt"
+  return string.format('<span style="font-size:%s; color:%s;">&#x25CF;</span>', pt, c)
 end
 
 
@@ -406,52 +386,54 @@ end
 ------------------------------------------------------------------------
 -- PUBLIC: render()
 ------------------------------------------------------------------------
--- Rebuilds all visual content and pushes it to the widget labels.
--- Safe to call at any time — reads current State and re-renders from scratch.
--- All four event handlers and init() call this.
+-- Builds one HTML table and calls MW.ui.label:echo(html).
+-- Safe to call at any time — reads full current State on every call.
+-- Three-row table: (1) moon circles, (2) focal text, (3) time row.
 
 function MW.render()
-  if not MW.ui.container then return end  -- UI not built yet
+  if not MW.ui.label then return end
 
   local focal  = MW.focalMoon()
   local order  = slotOrder[focal]
   local lunar  = MyDSL.State and MyDSL.State.lunar
   local isEvil = (focal == "black")
 
-  -- Section 1: Update the three moon image slots.
+  local lColor = order.left
+  local rColor = order.right
+  local lHide  = (lColor == "black") and not isEvil
+  local rHide  = (rColor == "black") and not isEvil
 
-  -- Left slot — non-focal side moon.
-  if MW.ui.leftImg then
-    local lColor = order.left
-    local lMoon  = lunar and lunar[lColor]
-    local lPhase = lMoon and lMoon.phase
-    -- Black moon is hidden (permanent) for neutral/good characters.
-    local lHide  = (lColor == "black") and not isEvil
-    applyMoonSlot(MW.ui.leftImg, lColor, lPhase, lHide)
-  end
+  local lMoon = lunar and lunar[lColor]
+  local cMoon = lunar and lunar[focal]
+  local rMoon = lunar and lunar[rColor]
 
-  -- Center slot — focal moon (receives Section 2 text underneath).
-  if MW.ui.centerImg then
-    local cMoon  = lunar and lunar[focal]
-    local cPhase = cMoon and cMoon.phase
-    applyMoonSlot(MW.ui.centerImg, focal, cPhase, false)
-  end
+  local leftHtml   = moonSlotHtml(lColor, lMoon and lMoon.phase, lHide,  false)
+  local centerHtml = moonSlotHtml(focal,  cMoon and cMoon.phase, false,  true)
+  local rightHtml  = moonSlotHtml(rColor, rMoon and rMoon.phase, rHide,  false)
 
-  -- Right slot — other non-focal side moon.
-  if MW.ui.rightImg then
-    local rColor = order.right
-    local rMoon  = lunar and lunar[rColor]
-    local rPhase = rMoon and rMoon.phase
-    local rHide  = (rColor == "black") and not isEvil
-    applyMoonSlot(MW.ui.rightImg, rColor, rPhase, rHide)
-  end
+  local focalText = buildFocalText(focal, lunar)
+  local timeRow   = buildTimeRow()
 
-  -- Sections 2+3: Assemble combined HTML for the text label.
-  if MW.ui.text then
-    local focalText = buildFocalText(focal, lunar)
-    local timeRow   = buildTimeRow()
-    MW.ui.text:echo(focalText .. "<br>" .. timeRow)
-  end
+  local html = string.format(
+    '<table width="100%%" height="100%%" cellpadding="0" cellspacing="2"' ..
+    ' style="table-layout:fixed;">' ..
+    '<tr style="height:50%%;">' ..
+      '<td width="22%%" style="text-align:center; vertical-align:middle;">%s</td>' ..
+      '<td width="56%%" style="text-align:center; vertical-align:middle;">%s</td>' ..
+      '<td width="22%%" style="text-align:center; vertical-align:middle;">%s</td>' ..
+    '</tr>' ..
+    '<tr style="height:25%%;">' ..
+      '<td colspan="3" style="text-align:center; vertical-align:top;' ..
+      ' font-size:8pt; color:#cccccc;">%s</td>' ..
+    '</tr>' ..
+    '<tr style="height:25%%;">' ..
+      '<td colspan="3" style="text-align:center; vertical-align:middle;' ..
+      ' font-size:8pt; color:#888888;">%s</td>' ..
+    '</tr>' ..
+    '</table>',
+    leftHtml, centerHtml, rightHtml, focalText, timeRow)
+
+  MW.ui.label:echo(html)
 end
 
 
@@ -495,8 +477,8 @@ function MW.onLoginUpdate()   MW.render() end
 -- config.fontSize without re-running the full init().
 
 function MW._applyTextStyle()
-  if not MW.ui.text then return end
-  MW.ui.text:setStyleSheet(string.format([[
+  if not MW.ui.label then return end
+  MW.ui.label:setStyleSheet(string.format([[
     background-color: rgba(5, 8, 20, %d);
     border: none;
     border-radius: 4px;
@@ -511,31 +493,20 @@ end
 ------------------------------------------------------------------------
 -- INTERNAL: _buildUI()
 ------------------------------------------------------------------------
--- Creates the Adjustable.Container and the four Geyser.Label children.
+-- Creates the Adjustable.Container and ONE Geyser.Label child (100%×100%).
 -- Called only once — on first init(). Subsequent reloads skip this because
 -- Geyser window objects survive Lua script reloads in Mudlet's process.
---
--- Child labels use pixel sizes derived from container:get_width/height()
--- because percentage sizing is unreliable inside Adjustable.Container.
--- Layout proportions:
---   leftImg:   x=0         y=0      w=sideW   h=imgH   (side moon, small)
---   centerImg: x=sideW     y=0      w=centerW h=imgH   (focal moon, wider)
---   rightImg:  x=sideW+cW  y=0      w=sideW   h=imgH   (side moon, small)
---   text:      x=0         y=imgH   w=cw      h=textH  (Sections 2+3)
+-- All content is rendered as an HTML table via label:echo(html) in render().
 
 local function _buildUI()
-  -- Get the fractional default position from LayoutEngine.
-  -- LayoutEngine stores fractions (0.0–1.0); Geyser accepts "N%" strings.
   local layoutDef = MyDSL.Layout and MyDSL.Layout.get("MyDSL_MoonWeather")
   local defX = layoutDef and (math.floor(layoutDef.x * 100) .. "%") or "66%"
   local defY = layoutDef and (math.floor(layoutDef.y * 100) .. "%") or "0%"
   local defW = layoutDef and (math.floor(layoutDef.w * 100) .. "%") or "34%"
   local defH = layoutDef and (math.floor(layoutDef.h * 100) .. "%") or "10%"
 
-  -- Create the Adjustable.Container. lockStyle="padding" makes the resize
-  -- handles invisible — clean HUD look with no visible border or edge line.
   -- pcall guards against a name collision if WindowRegistry already created
-  -- a container with this name; in that case we fall back to the registry.
+  -- this container; fall back to fetching it from the registry.
   local ok, container = pcall(function()
     return Adjustable.Container:new({
       name      = "MyDSL_MoonWeather",
@@ -548,8 +519,6 @@ local function _buildUI()
   end)
 
   if not ok or not container then
-    -- Creation failed (likely duplicate name — WindowRegistry got there first).
-    -- Try to grab the existing container from the registry instead.
     debugc("[MoonWeather] Container:new() failed: " .. tostring(container) ..
            " — trying WindowRegistry fallback")
     container = MyDSL.Windows and MyDSL.Windows.get("MyDSL_MoonWeather")
@@ -561,51 +530,16 @@ local function _buildUI()
 
   MW.ui.container = container
 
-  -- AutoSave writes position to disk when the user moves the widget.
-  -- AutoLoad restores saved position from AdjustableContainer/<name>.lua at startup.
   pcall(function() container:setAutoSave(true) end)
   pcall(function() container:setAutoLoad(true) end)
 
-  -- Compute pixel dimensions for child labels.
-  -- Percentage positioning is unreliable inside Adjustable.Container, so we
-  -- measure the container after creation and position children in pixels.
-  local cw = container:get_width()
-  local ch = container:get_height()
-  -- Side slots are 20% of container width each; center gets the remainder.
-  local sideW   = math.floor(cw * 0.20)
-  local centerW = cw - (sideW * 2)
-  local imgH    = math.floor(ch * 0.55)
-  local textH   = ch - imgH
-
-  -- Three image labels — top 55% of the container, side-by-side.
-  MW.ui.leftImg = Geyser.Label:new({
-    name   = "MW_leftImg",
-    x      = 0, y = 0,
-    width  = sideW, height = imgH,
+  -- Single label — all content is HTML echo(). No pixel math needed.
+  MW.ui.label = Geyser.Label:new({
+    name   = "MW_mainLabel",
+    x      = "0%", y = "0%",
+    width  = "100%", height = "100%",
   }, container)
 
-  -- Center slot is wider (~3x) than the side slots to emphasise the focal moon.
-  MW.ui.centerImg = Geyser.Label:new({
-    name   = "MW_centerImg",
-    x      = sideW, y = 0,
-    width  = centerW, height = imgH,
-  }, container)
-
-  MW.ui.rightImg = Geyser.Label:new({
-    name   = "MW_rightImg",
-    x      = sideW + centerW, y = 0,
-    width  = sideW, height = imgH,
-  }, container)
-
-  -- Text label — bottom 45%, full width.
-  -- This label holds Sections 2 and 3 as HTML via echo().
-  MW.ui.text = Geyser.Label:new({
-    name   = "MW_text",
-    x      = 0, y = imgH,
-    width  = cw, height = textH,
-  }, container)
-
-  -- Apply dark background and font styling to the text label.
   MW._applyTextStyle()
 end
 
@@ -725,13 +659,13 @@ end
 --
 -- Required order (from Contract_MoonWeather.md):
 --   1. Kill previous _handlers, _triggers, _aliases
---   2. Create Adjustable.Container (first call only)
---   3. Create four child Geyser.Labels (first call only)
---   4. Apply text label stylesheet
---   5. Register event handlers → store IDs in _handlers
---   6. Register gag triggers   → store IDs in _triggers
---   7. Register aliases        → store IDs in _aliases
---   8. Call render()
+--   2. Create Adjustable.Container + single Geyser.Label (first call only)
+--   3. Apply label stylesheet
+--   4. Register event handlers → store IDs in _handlers
+--   5. Register gag triggers   → store IDs in _triggers
+--   6. Register aliases        → store IDs in _aliases
+--   7. Call render() immediately + deferred 0.5s render in case Geyser
+--      hasn't finished layout before the first paint
 
 function MW.init()
   -- Step 1: Kill everything from the previous load to prevent duplicate listeners.
@@ -742,29 +676,30 @@ function MW.init()
   for _, id in ipairs(MW._aliases) do pcall(killAlias, id) end
   MW._aliases = {}
 
-  -- Steps 2–3: Build the container and child labels only on first init.
-  -- MW.ui.container will be nil on the very first load of this script.
+  -- Step 2: Build the container and label only on first init.
+  -- Both container and label survive Lua script reloads as Geyser objects.
   if not MW.ui.container then
     _buildUI()
   end
 
   -- Guard: if _buildUI() failed, bail out gracefully.
-  if not MW.ui.container then
-    debugc("[MoonWeather] init() aborted — container unavailable.")
+  if not MW.ui.container or not MW.ui.label then
+    debugc("[MoonWeather] init() aborted — container or label unavailable.")
     return
   end
 
-  -- Step 4: Re-apply text stylesheet (covers the case where config changed
-  -- between reloads, e.g. via the font alias on the previous session).
+  -- Step 3: Re-apply label stylesheet (picks up any config changes between reloads).
   MW._applyTextStyle()
 
-  -- Steps 5–7: Register fresh handlers, triggers, and aliases.
+  -- Steps 4–6: Register fresh handlers, triggers, and aliases.
   _registerHandlers()
   _registerTriggers()
   _registerAliases()
 
-  -- Step 8: Render with current state. Shows "?" placeholders until `lunar` is run.
+  -- Step 7: Render now (placeholder state if no data yet), and again after
+  -- 0.5s to catch the case where Geyser finishes layout after init() returns.
   MW.render()
+  tempTimer(0.5, function() if MW.ui.label then MW.render() end end)
 
   -- Apply visibility from config (hide immediately if saved as hidden).
   if not MW.config.shown then
