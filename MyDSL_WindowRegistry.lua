@@ -161,7 +161,7 @@ MyDSL.Windows.registry = MyDSL.Windows.registry or {
 
   -- ---- Adjustable.Container windows (anchored inside the main Mudlet console) --
 
-  MyDSL_MoonWeather      = { obj=nil, type="Container",  visible=true,  created=false },
+  MyDSL_MoonWeather      = { obj=nil, type="Container",  visible=true,  created=false, lockStyle="padding" },
   MyDSL_AsciiMap         = { obj=nil, type="Container",  visible=false, created=false },
   MyDSL_Banner           = { obj=nil, type="Container",  visible=false, created=false },  -- hidden until content arrives
   MyDSL_Bloodbath        = { obj=nil, type="Container",  visible=false, created=false },  -- hidden until content arrives
@@ -247,11 +247,12 @@ function MyDSL.Windows.ensure(windowName)
     -- In Mudlet 4.20+ this is built into the core — no extra package needed.
     local px, py, pw, ph = pixelsFromLayout(windowName)
     winObj = Adjustable.Container:new({
-      name   = windowName,
-      x      = px,
-      y      = py,
-      width  = pw,
-      height = ph,
+      name      = windowName,
+      x         = px,
+      y         = py,
+      width     = pw,
+      height    = ph,
+      lockStyle = entry.lockStyle,  -- nil = Mudlet default; "padding" = invisible resize handles
     })
   end
 
