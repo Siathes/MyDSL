@@ -256,7 +256,7 @@ not in the repository. Only CHANGELOG.md and SYNC.md are tracked in docs/.
 
 ---
 
-## ✅ MoonWeather — CONFIRMED WORKING (2026-06-30)
+## ✅ MoonWeather — CONFIRMED WORKING (2026-06-30), ENHANCED 2026-07-01
 
 Confirmed working in-game by Steven (screenshot 2026-06-30). All features verified:
 - Three moon circles with correct focal/side sizing (red focal = larger center slot)
@@ -264,11 +264,20 @@ Confirmed working in-game by Steven (screenshot 2026-06-30). All features verifi
 - Time row showing correct date with ordinal ("25th the Month of Nature") and neutral ✦
 - Widget moveable and resizable via Adjustable.Container
 
+**2026-07-01 enhancements (pending in-game validation):**
+- Living DSL clock: MW.clockStr() interpolates DSL time forward in real-time between
+  GMCP ticks using rate 60/82.5 DSL-min/real-sec; snaps to :00/:30 half-hour steps
+- Compact stacked layout: three rows (indicator+period, clock, date) instead of one
+  horizontal row; day_name truncation fixed; month strips "the " prefix
+- Circle sizes reduced: focal 32pt (was 42pt), sides 18pt (was 28pt)
+- Period label from prompt parser: "☀ Day Time", "✦ Night Time", "☀ Dawn"
+- Day/night debug lines added to buildTimeRow() — remove after Steven confirms day_name
+
 **Resolution history of blockers:**
 - Root cause of "-- -- --": `parseTimeLine()` trigger missing from Section 10 → fixed
 - Ordinal "th" instead of "25th": `ordinal()` returns suffix only; call site now prepends `db.day_num`
 - `is_day` derivation from am/pm was wrong (Algoron day/night ≠ 12h clock) → removed; fixed neutral ✦
-- `is_day` field removed from `MyDSL.DB.time` in DataBridge
+- Horizontal time row truncating day_name → replaced with stacked 3-line layout (2026-07-01)
 
 **Remaining minor gap — weather handler unused:**
 MoonWeather subscribes to `"MyDSL.weather.updated"` but has no weather display row.
@@ -334,4 +343,8 @@ These items are not blocking Phase B but should be addressed before the next win
    (now driven by prompt parser — should switch correctly as you move through day/night cycle).
    Secondary: confirm ☀ after "The sun rises in the east." and ✦ after "The night has begun."
 
-7. **LiveView event subscriptions** — low priority. Works via timer. Fix when convenient.
+7. **Steven: validate living clock and stacked layout** — confirm the clock counts forward
+   between ticks (not just jumps on tick events). Confirm day_name line shows "Day of the Sun"
+   not "--". After confirming, remove the two `debugc("[MW] day_name...")` lines in buildTimeRow().
+
+8. **LiveView event subscriptions** — low priority. Works via timer. Fix when convenient.

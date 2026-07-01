@@ -294,21 +294,21 @@ end
 
 local function moonSlotHtml(color, phase, isBlackHidden, isFocal)
   if isBlackHidden then
-    return '<span style="font-size:20pt; color:#1a1a1a;">&#x25CF;</span>' ..
-           '<br><span style="font-size:6pt; color:#333333;">not visible</span>'
+    return '<span style="font-size:14pt; color:#1a1a1a;">&#x25CF;</span>' ..
+           '<br><span style="font-size:5pt; color:#333333;">not visible</span>'
   end
 
   local path = phase and MW.phaseImage(color, phase)
   if path and fileExists(path) then
-    local sz = isFocal and "40" or "28"
+    local sz = isFocal and "32" or "20"
     return string.format(
       '<img src="file:///%s" width="%s" height="%s" style="vertical-align:middle;"/>',
       path, sz, sz)
   end
 
-  -- Unicode fallback — size difference (42pt vs 28pt) creates the focal emphasis.
+  -- Unicode fallback — size difference (32pt vs 18pt) creates the focal emphasis.
   local c  = moonFallback[color] or "#888888"
-  local pt = isFocal and "42pt" or "28pt"
+  local pt = isFocal and "32pt" or "18pt"
   return string.format('<span style="font-size:%s; color:%s;">&#x25CF;</span>', pt, c)
 end
 
@@ -376,49 +376,67 @@ end
 ------------------------------------------------------------------------
 -- INTERNAL: buildTimeRow()
 ------------------------------------------------------------------------
--- Builds the HTML for Section 3: the single time row at the bottom.
--- Layout: [icon]  Day of Name · Clock · Date
--- Example: ☀ Day of Freedom · 3:00 pm · 25th the Month of Nature
+-- Builds the HTML for Section 3: three stacked lines of time information.
 --
--- Data source: MyDSL.DB.time (populated by DataBridge.sync() from State.time).
--- Fields: .clock ("9:00 am"), .day_name ("Freedom"), .day_num (int), .month ("Nature"),
---         .is_night (bool — set by sunrise/sunset triggers in DataLayer).
--- Default is_night=false → ☀ shown until "The sun slowly disappears in the west."
+-- Line 1: ☀/✦ + period label  ("☀ Day Time", "✦ Night Time", "☀ Dawn")
+--   Source: State.time.period (prompt parser, fires every server event).
+--   Fallback: derive from db.is_night when period not yet known.
+--   Colors: Night=#8888cc, Dawn/Dusk=#dd8844, Day=#ffdd88
+--
+-- Line 2: live clock ("3:00 am")
+--   Source: MW.clockStr() — real-time interpolation anchored to gmcp.tick.time.
+--
+-- Line 3: date ("27th · Day of the Sun · Futility")
+--   Source: db.day_num, State.time.day_name (or db.day_name), db.month.
+--   month: "the Great Evil" stripped to "Great Evil" (removes "the " prefix).
 
 local function buildTimeRow()
   local db = (MyDSL.DB and MyDSL.DB.time) or {}
 
-  local indicator
-  if db.is_night then
-    indicator = span("#8888cc", "&#x2736;")   -- ✦ night
+  -- Debug: confirm which field carries day_name — remove after first in-game verify.
+  debugc("[MW] day_name raw: " .. tostring(MyDSL.State.time and MyDSL.State.time.day_name))
+  debugc("[MW] db.day_name: " .. tostring(db and db.day_name))
+
+  -- Line 1: indicator + period string
+  local period = MyDSL.State.time and MyDSL.State.time.period
+  local indicator, periodStr, periodColor
+  if period == "Night Time" then
+    indicator = "&#x2736;"; periodColor = "#8888cc"
+  elseif period == "Dusk" then
+    indicator = "&#x2736;"; periodColor = "#dd8844"
+  elseif period == "Dawn" then
+    indicator = "&#x2600;"; periodColor = "#dd8844"
+  elseif period then
+    indicator = "&#x2600;"; periodColor = "#ffdd88"
   else
-    indicator = span("#ffdd44", "&#x2600;")   -- ☀ day (default until sunset fires)
+    -- No period known yet — fall back to is_night flag
+    indicator   = db.is_night and "&#x2736;" or "&#x2600;"
+    periodColor = db.is_night and "#8888cc"  or "#ffdd88"
   end
-  local sep = span("#444444", " &middot; ")
+  periodStr   = period or (db.is_night and "Night" or "Day")
+  local line1 = span(periodColor, indicator .. " " .. periodStr)
 
-  -- Day: DataBridge stores day_name without prefix ("the Great Gods").
-  local dayText = "--"
-  if db.day_name and trim(db.day_name) ~= "" then
-    dayText = "Day of " .. db.day_name
+  -- Line 2: live clock
+  local clockStr = MW.clockStr()
+  local line2 = span("#cccccc", clockStr ~= "--:--" and clockStr or "--")
+
+  -- Line 3: "27th · Day of the Sun · Futility"
+  local line3
+  local dayName = (MyDSL.State.time and MyDSL.State.time.day_name) or db.day_name
+  if db.day_num and dayName and db.month then
+    local dayStr     = "Day of " .. trim(dayName)
+    local monthShort = tostring(db.month)
+                         :gsub("^[Tt]he%s+[Mm]onth%s+[Oo]f%s+", "")
+                         :gsub("^[Tt]he%s+", "")
+    line3 = span("#888888",
+      db.day_num .. ordinal(db.day_num) ..
+      " &middot; " .. dayStr ..
+      " &middot; " .. monthShort)
+  else
+    line3 = span("#888888", "--")
   end
 
-  -- Clock: live DSL clock from MW.clockStr(), anchored to gmcp.tick.time.
-  local clockStr  = MW.clockStr()
-  local clockText = (clockStr ~= "--:--") and clockStr or "--"
-
-  -- Date: "26th the Month of the Great Evil"
-  -- db.month is "the Great Evil" (already includes "the").
-  local dateText = "--"
-  if db.day_num and db.month and trim(db.month) ~= "" then
-    dateText = db.day_num .. ordinal(db.day_num) .. " the Month of " .. db.month
-  end
-
-  return indicator .. "  " ..
-    span("#aaaaaa", dayText) ..
-    sep ..
-    span("#cccccc", clockText) ..
-    sep ..
-    span("#999999", dateText)
+  return line1 .. "<br>" .. line2 .. "<br>" .. line3
 end
 
 
@@ -454,18 +472,18 @@ function MW.render()
   local timeRow   = buildTimeRow()
 
   local html = string.format(
-    '<table width="100%%" height="100%%" cellpadding="0" cellspacing="2"' ..
+    '<table width="100%%" height="100%%" cellpadding="0" cellspacing="0"' ..
     ' style="table-layout:fixed;">' ..
     '<tr style="height:50%%;">' ..
       '<td width="22%%" style="text-align:center; vertical-align:middle;">%s</td>' ..
       '<td width="56%%" style="text-align:center; vertical-align:middle;">%s</td>' ..
       '<td width="22%%" style="text-align:center; vertical-align:middle;">%s</td>' ..
     '</tr>' ..
-    '<tr style="height:25%%;">' ..
+    '<tr style="height:20%%;">' ..
       '<td colspan="3" style="text-align:center; vertical-align:top;' ..
-      ' font-size:8pt; color:#cccccc;">%s</td>' ..
+      ' font-size:7pt; color:#cccccc;">%s</td>' ..
     '</tr>' ..
-    '<tr style="height:25%%;">' ..
+    '<tr style="height:30%%;">' ..
       '<td colspan="3" style="text-align:center; vertical-align:middle;' ..
       ' font-size:8pt; color:#888888;">%s</td>' ..
     '</tr>' ..
