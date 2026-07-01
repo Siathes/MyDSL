@@ -42,7 +42,7 @@ MyDSL.State.tick    = MyDSL.State.tick    or { last_updated = 0 }  -- GMCP: game
 MyDSL.State.score   = MyDSL.State.score   or { last_updated = 0 }  -- text: full score block
 MyDSL.State.lunar   = MyDSL.State.lunar   or { last_updated = 0 }  -- text: moon phases and bonuses
 MyDSL.State.time    = MyDSL.State.time    or { last_updated = 0 }  -- text: game time/day/month
-if MyDSL.State.time.is_night == nil then MyDSL.State.time.is_night = false end
+-- is_night stays nil until a sunrise/sunset trigger fires; DataBridge uses GMCP clock as fallback
 MyDSL.State.weather = MyDSL.State.weather or { last_updated = 0 }  -- text: weather description
 MyDSL.State.who     = MyDSL.State.who     or { last_updated = 0 }  -- text: online player list
 MyDSL.State.group   = MyDSL.State.group   or { last_updated = 0 }  -- text: party members
@@ -1149,8 +1149,9 @@ MyDSL._triggers.timeLine = tempRegexTrigger(
 -- Sunrise / Sunset triggers
 ------------------------------------------------------------------------
 -- Confirmed exact text from live session (Steven, 2026-06-30):
---   "The sun rises in the east."    — at ~6:30am game time
---   "The sun slowly disappears in the west."  — at ~6:30pm game time
+--   "The sun rises in the east."  — at ~6:30am game time
+--   "The night has begun."        — night transition (plain text, triggerable)
+-- Note: "* * * * * Night folds the land in shadow * * * * *" is a cecho line — NOT triggerable.
 -- Sets State.time.is_night and re-emits "time" so DataBridge + MoonWeather update.
 
 MyDSL._triggers.sunrise = tempRegexTrigger(
@@ -1164,7 +1165,7 @@ MyDSL._triggers.sunrise = tempRegexTrigger(
 )
 
 MyDSL._triggers.sunset = tempRegexTrigger(
-  "^The sun slowly disappears in the west%.$",
+  "^The night has begun%.$",
   function()
     if MyDSL and MyDSL.State and MyDSL.State.time then
       MyDSL.State.time.is_night = true

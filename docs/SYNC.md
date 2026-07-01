@@ -23,7 +23,7 @@ file guards with the same pattern so they are all safe to load in any order afte
 | `MyDSL.DB.score` | DataBridge | Stats (GMCP) + text fields (score parser) merged |
 | `MyDSL.DB.room` | DataBridge | Room name, exits, sector |
 | `MyDSL.DB.tick` | DataBridge | Tick timing from State.tick; also written by TickSource |
-| `MyDSL.DB.time` | DataBridge | clock, day_name, day_num, month, hour, ampm — translated from State.time (is_day removed) |
+| `MyDSL.DB.time` | DataBridge | clock, day_name, day_num, month, hour, ampm, is_night — translated from State.time |
 | `MyDSL.DB.affects` | DataBridge | State.affects.active pass-through |
 | `MyDSL.DB.timers` | DataBridge + TickSource | Both write here; tick alias |
 | `MyDSL.DB.xp` | DataBridge | TNL shorthand |
@@ -137,12 +137,12 @@ when game sends a time-command response line. Calls `MyDSL.parseTimeLine(getCurr
   day_name = t.day_name,
   day_num  = t.day_num,
   month    = t.month,
-  is_day   = (ap == "am" and h >= 6) or (ap == "pm" and h < 6),
+  is_night = is_night_val,  -- nil→gmcp fallback; false=sunrise fired; true="The night has begun."
 }
 ```
 
 **MoonWeather.buildTimeRow()** reads from `MyDSL.DB.time` (correct).
-Fields used: `db.clock`, `db.day_name`, `db.day_num`, `db.month`, `db.is_day`.
+Fields used: `db.clock`, `db.day_name`, `db.day_num`, `db.month`, `db.is_night`.
 
 **Data is only available after the player manually types `time` in game.** Before that,
 `MyDSL.State.time` is `{ last_updated = 0 }` and `DB.time` has nil fields everywhere.
@@ -299,12 +299,14 @@ These items are not blocking Phase B but should be addressed before the next win
 3. ~~**Weather trigger**~~ — ✅ Wired (this session). Broad pattern `"^[A-Z][^%.]+%.$"`
    with weather keyword guard in `parseWeatherLine()`. MoonWeather subscription
    (`"MyDSL.weather.updated"`) now receives events. Weather display row deferred to Phase B+.
-4. ~~**Day/night indicator**~~ — ✅ Wired (this session). `State.time.is_night` added;
-   sunrise/sunset triggers confirmed from live session (Steven 2026-06-30):
+4. ~~**Day/night indicator**~~ — ✅ Wired and corrected. `State.time.is_night` added;
+   confirmed exact plain-text trigger lines (Steven 2026-06-30):
    - `"The sun rises in the east."` → `is_night = false` (☀)
-   - `"The sun slowly disappears in the west."` → `is_night = true` (✦)
-   `DB.time.is_night` propagated by DataBridge. `buildTimeRow()` shows ☀/✦ from this.
-   Default `is_night = false` → ☀ until sunset fires (conservative/safe default).
+   - `"The night has begun."` → `is_night = true` (✦)
+   Note: `"* * * * * Night folds the land in shadow * * * * *"` is a cecho line — NOT triggerable.
+   `State.time.is_night` starts as `nil` (no trigger fired yet). `DB.time.is_night` uses
+   GMCP clock approximation as fallback before first trigger fires (7pm-11pm or 12am-5am = night).
+   After sunrise or "The night has begun." fires, trigger value locks in.
 5. **LiveView dead event subscriptions** — 7 of 8 subscriptions never fire (TitleCase
    events that nothing raises). LiveView works via 0.25s `"MyDSL.Timers.Updated"` tick.
    Low priority — functional as-is.
@@ -328,8 +330,8 @@ These items are not blocking Phase B but should be addressed before the next win
 5. ~~**Wire weather trigger**~~ — ✅ Done (this session). No display row yet — deferred.
 
 6. **Steven: validate sunrise/sunset in-game** — confirm ☀ shows after "The sun rises
-   in the east." and ✦ shows after "The sun slowly disappears in the west."
-   (These trigger patterns were confirmed from live session log, not directly from
-   a Mudlet trigger test. Verify the exact text still matches.)
+   in the east." and ✦ shows after "The night has begun."
+   (Sunrise confirmed from live log. "The night has begun." confirmed as correct plain-text
+   night trigger 2026-06-30 — old pattern "The sun slowly disappears in the west." was wrong.)
 
 7. **LiveView event subscriptions** — low priority. Works via timer. Fix when convenient.

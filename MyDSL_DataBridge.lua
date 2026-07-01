@@ -89,11 +89,25 @@ function MyDSL.DB.sync()
   MyDSL.DB.xp              = { tnl = char.tnl }
 
   -- DB.time — populated by DataLayer.parseTimeLine() from the `time` command.
-  -- is_night: set by sunrise/sunset triggers in DataLayer (confirmed exact text 2026-06-30).
-  --   false = daytime (default — assume day until told otherwise)
-  --   true  = night (set on "The sun slowly disappears in the west.")
+  -- is_night priority: State.time.is_night is nil until a trigger fires (nil=unseen,
+  --   false=sunrise fired, true="The night has begun." fired). While nil, fall back
+  --   to GMCP clock approximation: night = 7pm-11pm or 12am-5am (Algoron approximate).
   local t  = MyDSL.State.time or {}
   local ap = t.ampm or ""
+
+  local tickTime    = (gmcp and gmcp.tick and gmcp.tick.time) or ""
+  local th, tap     = tickTime:match("(%d+):?%d*([ap]m)")
+  th                = tonumber(th) or 12
+  local gmcpIsNight = (tap == "pm" and th >= 7) or (tap == "am" and th < 6)
+
+  local stateNight = MyDSL.State.time and MyDSL.State.time.is_night
+  local is_night_val
+  if stateNight == nil then
+    is_night_val = gmcpIsNight
+  else
+    is_night_val = (stateNight == true)
+  end
+
   MyDSL.DB.time = {
     hour     = t.hour,
     ampm     = ap,
@@ -101,7 +115,7 @@ function MyDSL.DB.sync()
     day_name = t.day_name,
     day_num  = t.day_num,
     month    = t.month,
-    is_night = t.is_night == true,
+    is_night = is_night_val,
   }
 
   -- Gap 4: DB.affects — active affects keyed by lowercase spell name.
