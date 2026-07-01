@@ -188,3 +188,5 @@ No code changes — design and validation session.
 2026-06-30 fix: time row event/field names in MoonWeather — MyDSL.State.tick.time is clock string not period; isDay now derived from ampm; debugc logging added to buildTimeRow()
 2026-06-30 fix: wire parseTimeLine() trigger in DataLayer Section 10 — root cause of time row "-- -- --"; tempRegexTrigger("^It is ") now calls parseTimeLine(getCurrentLine()); expanded buildTimeRow() debug logging to include State.tick block
 2026-06-30 fix: correct time row field names, event name, data source — buildTimeRow() now reads MyDSL.DB.time (not State.time); uses db.clock/db.is_day/db.day_name/db.month; display order corrected to day→clock→date; debug logging updated to dump DB.time; Contract_MoonWeather.md Implementation Notes corrected
+2026-06-30 fix: remove debug logging from buildTimeRow() — 16 debugc() lines removed; function is clean
+2026-06-30 docs: add all contract and session docs to git tracking — 19 previously untracked docs/*.md files now versioned

@@ -324,23 +324,6 @@ end
 local function buildTimeRow()
   local db = (MyDSL.DB and MyDSL.DB.time) or {}
 
-  -- Temporary debug logging — remove after Steven confirms time row correct.
-  debugc("[MoonWeather] buildTimeRow called")
-  debugc("[MoonWeather] DB.time = " .. tostring(MyDSL.DB and MyDSL.DB.time))
-  if MyDSL.DB and MyDSL.DB.time then
-    for k, v in pairs(MyDSL.DB.time) do
-      debugc("[MoonWeather]   DB.time." .. tostring(k) .. " = " .. tostring(v))
-    end
-  end
-  debugc("[MoonWeather] State.time = " .. tostring(MyDSL.State and MyDSL.State.time))
-  local tk = MyDSL.State and MyDSL.State.tick
-  debugc("[MoonWeather] State.tick = " .. tostring(tk))
-  if tk then
-    for k, v in pairs(tk) do
-      debugc("[MoonWeather]   tick." .. tostring(k) .. " = " .. tostring(v))
-    end
-  end
-
   local isDay = db.is_day
 
   local indicator
