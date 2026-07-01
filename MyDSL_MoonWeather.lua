@@ -47,6 +47,16 @@ MW._aliases  = MW._aliases  or {}
 -- UI object references (Geyser objects persist across script reloads).
 MW.ui = MW.ui or {}
 
+-- Live DSL clock state — persists across reloads so the clock continues smoothly.
+-- Seeded from gmcp.tick.time on every tick event and on init().
+-- is_night stays nil until a sunrise/sunset trigger fires; DataBridge uses GMCP clock as fallback
+MW._clock = MW._clock or {
+  anchor_h24   = nil,   -- 0-23 hour at last GMCP tick anchor
+  anchor_min   = nil,   -- 0 or 30 at last anchor
+  anchor_real  = nil,   -- os.time() at last anchor
+  timer_id     = nil,   -- 1-second update timer ID
+}
+
 
 ------------------------------------------------------------------------
 -- CONSTANTS
@@ -174,6 +184,59 @@ end
 -- Wraps text in an HTML color span for echo() output.
 local function span(color, text)
   return string.format('<span style="color:%s;">%s</span>', color, tostring(text))
+end
+
+
+------------------------------------------------------------------------
+-- LIVE CLOCK
+------------------------------------------------------------------------
+-- DSL time rate: 1 real second ≈ 0.7273 DSL minutes (60/82.5).
+-- gmcp.tick.time advances one DSL half-hour every ~41 real seconds.
+-- MW.clockAnchor() sets the reference point; MW.clockStr() interpolates forward.
+
+function MW.clockAnchor(tickStr)
+  if not tickStr then return end
+  local h, m, ap = tickStr:match("(%d+):(%d+)([ap]m)")
+  h = tonumber(h); m = tonumber(m)
+  if not h then return end
+  local h24 = h % 12 + (ap == "pm" and 12 or 0)
+  MW._clock.anchor_h24  = h24
+  MW._clock.anchor_min  = m
+  MW._clock.anchor_real = os.time()
+end
+
+function MW.clockStr()
+  if not MW._clock.anchor_real then return "--:--" end
+  local elapsed        = os.time() - MW._clock.anchor_real
+  local dsl_min_elapsed = elapsed * (60 / 82.5)
+  local total_min      = MW._clock.anchor_h24 * 60 +
+                         MW._clock.anchor_min  +
+                         dsl_min_elapsed
+  total_min = total_min % (24 * 60)
+  local h24    = math.floor(total_min / 60) % 24
+  local min    = math.floor(total_min % 60)
+  local ap     = h24 >= 12 and "pm" or "am"
+  local h12    = h24 % 12
+  if h12 == 0 then h12 = 12 end
+  -- Snap to nearest :00 or :30 (DSL only shows half-hour steps)
+  local dispMin = min < 30 and "00" or "30"
+  return string.format("%d:%s %s", h12, dispMin, ap)
+end
+
+function MW.startClockTimer()
+  MW.stopClockTimer()
+  local function loop()
+    if MW.ui and MW.ui.label then MW.render() end
+    MW._clock.timer_id = tempTimer(1, loop)
+  end
+  MW._clock.timer_id = tempTimer(1, loop)
+end
+
+function MW.stopClockTimer()
+  if MW._clock and MW._clock.timer_id then
+    killTimer(MW._clock.timer_id)
+    MW._clock.timer_id = nil
+  end
 end
 
 
@@ -339,8 +402,9 @@ local function buildTimeRow()
     dayText = "Day of " .. db.day_name
   end
 
-  -- Clock: DataBridge pre-formats as "9:00 am" in db.clock.
-  local clockText = (db.clock and db.clock ~= "") and db.clock or "--"
+  -- Clock: live DSL clock from MW.clockStr(), anchored to gmcp.tick.time.
+  local clockStr  = MW.clockStr()
+  local clockText = (clockStr ~= "--:--") and clockStr or "--"
 
   -- Date: "26th the Month of the Great Evil"
   -- db.month is "the Great Evil" (already includes "the").
@@ -528,22 +592,25 @@ end
 -- IDs stored in MW._handlers for clean deregistration on reload.
 
 local function _registerHandlers()
-  local events = {
-    "MyDSL.lunar.updated",
-    "MyDSL.weather.updated",
-    "MyDSL.tick.updated",
-    "MyDSL.time.updated",
-    "MyDSL.login.updated",
-  }
-  for _, ev in ipairs(events) do
-    local ok, id = pcall(registerAnonymousEventHandler, ev,
-      function() MW.render() end)
+  local function reg(ev, fn)
+    local ok, id = pcall(registerAnonymousEventHandler, ev, fn)
     if ok and id then
       MW._handlers[#MW._handlers + 1] = id
     else
       debugc("[MoonWeather] failed to register handler for " .. ev)
     end
   end
+
+  reg("MyDSL.lunar.updated",   function() MW.render() end)
+  reg("MyDSL.weather.updated", function() MW.render() end)
+  -- Tick handler also re-anchors the live clock from gmcp.tick.time.
+  reg("MyDSL.tick.updated",    function()
+    local tickStr = gmcp and gmcp.tick and gmcp.tick.time
+    if tickStr then MW.clockAnchor(tickStr) end
+    MW.render()
+  end)
+  reg("MyDSL.time.updated",    function() MW.render() end)
+  reg("MyDSL.login.updated",   function() MW.render() end)
 end
 
 
@@ -644,6 +711,7 @@ end
 
 function MW.init()
   -- Step 1: Kill everything from the previous load to prevent duplicate listeners.
+  MW.stopClockTimer()
   for _, id in ipairs(MW._handlers) do pcall(killAnonymousEventHandler, id) end
   MW._handlers = {}
   for _, id in ipairs(MW._triggers) do pcall(killTrigger, id) end
@@ -675,6 +743,12 @@ function MW.init()
   -- 0.5s to catch the case where Geyser finishes layout after init() returns.
   MW.render()
   tempTimer(0.5, function() if MW.ui.label then MW.render() end end)
+
+  -- Seed live clock from current GMCP tick time (if already available)
+  -- then start the 1-second render loop so the clock counts forward in real-time.
+  local tickStr = gmcp and gmcp.tick and gmcp.tick.time
+  if tickStr then MW.clockAnchor(tickStr) end
+  MW.startClockTimer()
 
   -- Apply visibility from config (hide immediately if saved as hidden).
   if not MW.config.shown then
