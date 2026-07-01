@@ -304,19 +304,16 @@ All other hours correct. DSL probably doesn't tick at exactly midnight/noon. Low
 
 ## Recommended Next Actions
 
-*Ordered smallest-to-largest. First two are prerequisites for all MoonWeather validation.*
+*Updated 2026-06-30 after housekeeping session. Items 1–3 complete.*
 
-1. **Steven: type `time` in game, check Mudlet debug console** for the
-   `[MoonWeather] DB.time.*` output. Confirm time row shows real data or report what
-   debug output appears. This is the only way to close the time row bug.
+1. ~~**Steven: type `time` in game**~~ — debug logging removed; Steven still needs to
+   confirm in-game that the time row shows real data after typing `time`. No code
+   action needed — this is a validation step only.
 
-2. **Remove debug logging from `buildTimeRow()`** once Steven confirms it works.
-   Four `debugc()` blocks at MoonWeather lines 328–342. Commit as:
-   `fix: remove debug logging from buildTimeRow() — time row confirmed working`
+2. ~~**Remove debug logging from `buildTimeRow()`**~~ — ✅ Done (commit `d758806`).
 
-3. **Update `Contract_DataBridge.md`** — the contract is stale. All six gaps listed
-   as "Missing" have been fixed in the actual code since June 24. The contract should
-   be rewritten to reflect the current state. This is a docs task, no code change.
+3. ~~**Update `Contract_DataBridge.md`**~~ — ✅ Done (commit `6398094`). All six
+   stale gaps resolved; Gap 7 (no DB.equip, blocked by DataLayer) added.
 
 4. **Decide on weather row in MoonWeather** — either:
    - Add a 4th row to the HTML table showing `MyDSL.State.weather.description`, AND
