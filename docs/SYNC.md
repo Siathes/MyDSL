@@ -23,7 +23,7 @@ file guards with the same pattern so they are all safe to load in any order afte
 | `MyDSL.DB.score` | DataBridge | Stats (GMCP) + text fields (score parser) merged |
 | `MyDSL.DB.room` | DataBridge | Room name, exits, sector |
 | `MyDSL.DB.tick` | DataBridge | Tick timing from State.tick; also written by TickSource |
-| `MyDSL.DB.time` | DataBridge | Clock, day_name, day_num, month, is_day — translated from State.time |
+| `MyDSL.DB.time` | DataBridge | clock, day_name, day_num, month, hour, ampm — translated from State.time (is_day removed) |
 | `MyDSL.DB.affects` | DataBridge | State.affects.active pass-through |
 | `MyDSL.DB.timers` | DataBridge + TickSource | Both write here; tick alias |
 | `MyDSL.DB.xp` | DataBridge | TNL shorthand |
@@ -255,73 +255,71 @@ not in the repository. Only CHANGELOG.md and SYNC.md are tracked in docs/.
 
 ---
 
-## MoonWeather Blockers
+## ✅ MoonWeather — CONFIRMED WORKING (2026-06-30)
 
-**No actual code blockers remain in the current commit.** The known issues are:
+Confirmed working in-game by Steven (screenshot 2026-06-30). All features verified:
+- Three moon circles with correct focal/side sizing (red focal = larger center slot)
+- Phase text and bonus line populating from `lunar` command
+- Time row showing correct date with ordinal ("25th the Month of Nature") and neutral ✦
+- Widget moveable and resizable via Adjustable.Container
 
-### Not a bug — expected behavior
-The time row shows `"-- -- --"` until the player types `time` in game. This is
-correct. The `"^It is "` trigger fires, `parseTimeLine()` runs, State.time fills,
-DataBridge sync() runs, DB.time fills, MoonWeather render() fires. If this sequence
-doesn't produce output after typing `time`, see the debug section below.
+**Resolution history of blockers:**
+- Root cause of "-- -- --": `parseTimeLine()` trigger missing from Section 10 → fixed
+- Ordinal "th" instead of "25th": `ordinal()` returns suffix only; call site now prepends `db.day_num`
+- `is_day` derivation from am/pm was wrong (Algoron day/night ≠ 12h clock) → removed; fixed neutral ✦
+- `is_day` field removed from `MyDSL.DB.time` in DataBridge
 
-### ✅ Debug logging removed
-`buildTimeRow()` debug logging removed (commit `d758806`). Function is clean.
+**Remaining minor gap — weather handler unused:**
+MoonWeather subscribes to `"MyDSL.weather.updated"` but has no weather display row.
+The weather trigger in DataLayer has only a TODO comment — no actual trigger wired.
+Deferred to Phase B+ (see Open Items below).
 
-### ✅ Ordinal number fixed (2026-06-30)
-`ordinal()` returns only the suffix ("th", "st", etc.) — not the full string.
-Call site in `buildTimeRow()` now prepends `db.day_num`:
-`db.day_num .. ordinal(db.day_num) .. " the Month of " .. db.month`
-Produces "25th the Month of Nature" instead of "th the Month of Nature".
+---
 
-### ✅ Day/night indicator fixed (2026-06-30)
-`buildTimeRow()` was reading `db.is_day` (DataBridge pre-computed boolean) which
-had potential stale-data timing issues. Now derives `isDay` directly from
-`db.hour` and `db.ampm` at render time — same formula as DataBridge, but applied
-locally so no event-ordering dependency exists.
+## Phase B Progress
 
-**Steven still needs to type `time` in game** to confirm the time row shows
-correct day/night indicator and full date (e.g. "☀ Day of Freedom · 3:00 pm · 25th the Month of Nature").
+| Module | Status |
+|---|---|
+| MoonWeather | ✅ Complete — confirmed working in-game 2026-06-30 |
+| Combat window | Not started |
+| Scan/RightHere | Not started |
+| Group window | Not started |
+| Target window | Not started |
 
-### Known minor gap — weather handler unused
-MoonWeather subscribes to `"MyDSL.weather.updated"` but the widget has no weather
-display row. Additionally, no weather trigger is wired in DataLayer (only a TODO comment).
-The subscription is harmless but pointless.
+---
 
-### ✅ is_day removed (2026-06-30, third pass)
-Algoron's day/night cycle does NOT follow the 12-hour game clock. `am`/`pm`
-cannot be used to derive day/night. `is_day` removed from `MyDSL.DB.time` in
-DataBridge. `buildTimeRow()` now shows a fixed neutral ✦ in `#888888` for all
-times. Day/night indicator deferred until a reliable source is available
-(prompt period string or room description capture).
+## Open Items Before Next Module
+
+These items are not blocking Phase B but should be addressed before the next window is built:
+
+1. **Score parser: stance field** — pattern `(.+)` captures trailing text. Fix: `%S+`.
+2. **Score parser: profession field** — `endScore()` fires before the PROFESSION line.
+   Fix: three-separator logic (gate endScore on seeing PROFESSION, not just 2nd `---`).
+3. **Weather trigger** — DataLayer has a TODO comment but no `tempRegexTrigger` for
+   weather lines. MoonWeather subscribes to `"MyDSL.weather.updated"` but the event
+   never fires. Either wire the trigger (and add a display row) or remove the subscription.
+4. **LiveView dead event subscriptions** — 7 of 8 subscriptions never fire (TitleCase
+   events that nothing raises). LiveView works via 0.25s `"MyDSL.Timers.Updated"` tick.
+   Low priority — functional as-is.
+5. **Moon phase PNG images** — art assets not yet created. Widget shows Unicode colored
+   circle fallback (●) for all moon slots. Needs 24 PNGs (8 phases × 3 moons).
 
 ---
 
 ## Recommended Next Actions
 
-*Updated 2026-06-30 after third pass fixes.*
+*Updated 2026-06-30 — MoonWeather confirmed complete.*
 
-1. **Steven: type `time` in game** — validate time row shows correct output:
-   `✦ Day of Freedom · 3:00 pm · 25th the Month of Nature`
-   (ordinal fix confirmed in code; neutral ✦ now always shown — awaiting in-game confirm).
+1. ~~**Validate time row in game**~~ — ✅ Done. Steven confirmed working 2026-06-30.
 
 2. ~~**Remove debug logging from `buildTimeRow()`**~~ — ✅ Done (commit `d758806`).
 
-3. ~~**Update `Contract_DataBridge.md`**~~ — ✅ Done (commit `6398094`). All six
-   stale gaps resolved; Gap 7 (no DB.equip, blocked by DataLayer) added.
+3. ~~**Update `Contract_DataBridge.md`**~~ — ✅ Done (commit `6398094`).
 
-4. **Decide on weather row in MoonWeather** — either:
-   - Add a 4th row to the HTML table showing `MyDSL.State.weather.description`, AND
-     wire the weather trigger in DataLayer Section 10 (pattern TBD, see DSL_CommandRef.md)
-   - OR remove the `"MyDSL.weather.updated"` subscription from `_registerHandlers()`
-     since it currently triggers a pointless re-render with no weather data consumed.
+4. **Fix score parser issues** (stance + profession) — see Open Items above.
+   Low-effort fix, can batch into one commit.
 
-5. **Fix two known score parser issues** (from SESSION_START.md):
-   - `stance` pattern: `%S+` not `(.+)` — captures trailing text
-   - `profession` field: endScore fires before PROFESSION line (three-separator logic fix)
+5. **Decide on weather** — wire trigger + add display row, OR remove the dead
+   `"MyDSL.weather.updated"` subscription from MoonWeather.
 
-6. **LiveView event subscriptions** — 7 of 8 subscriptions are dead (no matching raise).
-   LiveView renders only on `"MyDSL.Timers.Updated"` from TickSource. This works at
-   0.25s intervals. Decide whether to wire DataBridge to also re-raise as TitleCase
-   events, or to change LiveView to subscribe to lowercase DataLayer events instead.
-   Low urgency — LiveView works, just via the wrong mechanism.
+6. **LiveView event subscriptions** — low priority. Works via timer. Fix when convenient.
