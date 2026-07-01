@@ -265,27 +265,23 @@ correct. The `"^It is "` trigger fires, `parseTimeLine()` runs, State.time fills
 DataBridge sync() runs, DB.time fills, MoonWeather render() fires. If this sequence
 doesn't produce output after typing `time`, see the debug section below.
 
-### Debug logging still in place
-`buildTimeRow()` at lines 328–342 dumps `MyDSL.DB.time.*` and `MyDSL.State.tick.*`
-to the Mudlet debug console on every render. **Steven should type `time` in game
-and check the Mudlet debug console for `[MoonWeather] DB.time.*` entries.**
+### ✅ Debug logging removed
+`buildTimeRow()` debug logging removed (commit `d758806`). Function is clean.
 
-Expected output after typing `time`:
-```
-[MoonWeather] buildTimeRow called
-[MoonWeather] DB.time = table: 0x...
-[MoonWeather]   DB.time.clock = 9:00 am
-[MoonWeather]   DB.time.day_name = the Great Gods
-[MoonWeather]   DB.time.day_num = 26
-[MoonWeather]   DB.time.month = the Great Evil
-[MoonWeather]   DB.time.is_day = true
-```
+### ✅ Ordinal number fixed (2026-06-30)
+`ordinal()` returns only the suffix ("th", "st", etc.) — not the full string.
+Call site in `buildTimeRow()` now prepends `db.day_num`:
+`db.day_num .. ordinal(db.day_num) .. " the Month of " .. db.month`
+Produces "25th the Month of Nature" instead of "th the Month of Nature".
 
-If DB.time shows a table but all fields are nil, DataBridge.sync() is running before
-State.time is populated — check DataLayer trigger is actually firing (type `time` and
-look for the game's response line appearing in the console).
+### ✅ Day/night indicator fixed (2026-06-30)
+`buildTimeRow()` was reading `db.is_day` (DataBridge pre-computed boolean) which
+had potential stale-data timing issues. Now derives `isDay` directly from
+`db.hour` and `db.ampm` at render time — same formula as DataBridge, but applied
+locally so no event-ordering dependency exists.
 
-If DB.time shows nil (not a table), DataBridge is not loaded or init order is broken.
+**Steven still needs to type `time` in game** to confirm the time row shows
+correct day/night indicator and full date (e.g. "☀ Day of Freedom · 3:00 pm · 25th the Month of Nature").
 
 ### Known minor gap — weather handler unused
 MoonWeather subscribes to `"MyDSL.weather.updated"` but the widget has no weather
@@ -306,9 +302,9 @@ All other hours correct. DSL probably doesn't tick at exactly midnight/noon. Low
 
 *Updated 2026-06-30 after housekeeping session. Items 1–3 complete.*
 
-1. ~~**Steven: type `time` in game**~~ — debug logging removed; Steven still needs to
-   confirm in-game that the time row shows real data after typing `time`. No code
-   action needed — this is a validation step only.
+1. **Steven: type `time` in game** — validate time row shows correct output:
+   `☀ Day of Freedom · 3:00 pm · 25th the Month of Nature`
+   (ordinal number bug fixed; is_day indicator fixed — awaiting in-game confirm).
 
 2. ~~**Remove debug logging from `buildTimeRow()`**~~ — ✅ Done (commit `d758806`).
 

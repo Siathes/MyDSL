@@ -324,7 +324,9 @@ end
 local function buildTimeRow()
   local db = (MyDSL.DB and MyDSL.DB.time) or {}
 
-  local isDay = db.is_day
+  local h     = tonumber(db.hour) or 0
+  local ap    = db.ampm or ""
+  local isDay = (ap == "am" and h >= 6) or (ap == "pm" and h < 6)
 
   local indicator
   if isDay then
@@ -349,7 +351,7 @@ local function buildTimeRow()
   -- db.month is "the Great Evil" (already includes "the").
   local dateText = "--"
   if db.day_num and db.month and trim(db.month) ~= "" then
-    dateText = ordinal(db.day_num) .. " the Month of " .. db.month
+    dateText = db.day_num .. ordinal(db.day_num) .. " the Month of " .. db.month
   end
 
   return indicator .. "  " ..
