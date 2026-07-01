@@ -315,17 +315,22 @@ end
 ------------------------------------------------------------------------
 -- Builds the HTML for Section 3: the single time row at the bottom.
 -- Layout: [icon]  Day of Name · Clock · Date
--- Example: ✦ Day of Freedom · 3:00 pm · 25th the Month of Nature
+-- Example: ☀ Day of Freedom · 3:00 pm · 25th the Month of Nature
 --
 -- Data source: MyDSL.DB.time (populated by DataBridge.sync() from State.time).
--- Fields: .clock ("9:00 am"), .day_name ("Freedom"), .day_num (int), .month ("Nature").
--- Note: day/night indicator is neutral ✦ — Algoron's day/night cycle is not
--- derivable from the 12h game clock. Deferred until a reliable source exists.
+-- Fields: .clock ("9:00 am"), .day_name ("Freedom"), .day_num (int), .month ("Nature"),
+--         .is_night (bool — set by sunrise/sunset triggers in DataLayer).
+-- Default is_night=false → ☀ shown until "The sun slowly disappears in the west."
 
 local function buildTimeRow()
   local db = (MyDSL.DB and MyDSL.DB.time) or {}
 
-  local indicator = span("#888888", "&#x2736;")   -- ✦ neutral, day/night unknown
+  local indicator
+  if db.is_night then
+    indicator = span("#8888cc", "&#x2736;")   -- ✦ night
+  else
+    indicator = span("#ffdd44", "&#x2600;")   -- ☀ day (default until sunset fires)
+  end
   local sep = span("#444444", " &middot; ")
 
   -- Day: DataBridge stores day_name without prefix ("the Great Gods").

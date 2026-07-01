@@ -42,6 +42,7 @@ MyDSL.State.tick    = MyDSL.State.tick    or { last_updated = 0 }  -- GMCP: game
 MyDSL.State.score   = MyDSL.State.score   or { last_updated = 0 }  -- text: full score block
 MyDSL.State.lunar   = MyDSL.State.lunar   or { last_updated = 0 }  -- text: moon phases and bonuses
 MyDSL.State.time    = MyDSL.State.time    or { last_updated = 0 }  -- text: game time/day/month
+if MyDSL.State.time.is_night == nil then MyDSL.State.time.is_night = false end
 MyDSL.State.weather = MyDSL.State.weather or { last_updated = 0 }  -- text: weather description
 MyDSL.State.who     = MyDSL.State.who     or { last_updated = 0 }  -- text: online player list
 MyDSL.State.group   = MyDSL.State.group   or { last_updated = 0 }  -- text: party members
@@ -777,11 +778,25 @@ end
 -- Single-line.  Trigger matches a weather description line.
 -- Example: "A light snow falls quietly from the sky."
 
+-- Weather keyword guard: the trigger pattern is broad (any capitalised sentence)
+-- so we filter here. Require at least one atmospheric/weather-indicative word.
+-- Expand this list as more weather line formats are confirmed in CommandRef.
+local _weatherWords = {
+  "cloud", "breeze", "wind", "rain", "snow", "storm", "fog", "sky",
+  "sun", "wave", "shore", "ocean", "drizzle", "mist", "hail",
+  "thunder", "lightning", "overcast", "chilly", "sleet",
+}
+
 function MyDSL.parseWeatherLine(line)
   local desc = trim(line)
-  if desc ~= "" then
-    update("weather", { description = desc })
+  if desc == "" then return end
+  local lc = desc:lower()
+  local found = false
+  for _, w in ipairs(_weatherWords) do
+    if lc:find(w, 1, true) then found = true; break end
   end
+  if not found then return end
+  update("weather", { description = desc })
 end
 
 ------------------------------------------------------------------------
@@ -1130,8 +1145,50 @@ MyDSL._triggers.timeLine = tempRegexTrigger(
   end
 )
 
--- TODO: wire parseWeatherLine() once weather line patterns are confirmed
--- in DSL_CommandRef.md. Do not guess patterns.
+------------------------------------------------------------------------
+-- Sunrise / Sunset triggers
+------------------------------------------------------------------------
+-- Confirmed exact text from live session (Steven, 2026-06-30):
+--   "The sun rises in the east."    — at ~6:30am game time
+--   "The sun slowly disappears in the west."  — at ~6:30pm game time
+-- Sets State.time.is_night and re-emits "time" so DataBridge + MoonWeather update.
+
+MyDSL._triggers.sunrise = tempRegexTrigger(
+  "^The sun rises in the east%.$",
+  function()
+    if MyDSL and MyDSL.State and MyDSL.State.time then
+      MyDSL.State.time.is_night = false
+      MyDSL.emit("time")
+    end
+  end
+)
+
+MyDSL._triggers.sunset = tempRegexTrigger(
+  "^The sun slowly disappears in the west%.$",
+  function()
+    if MyDSL and MyDSL.State and MyDSL.State.time then
+      MyDSL.State.time.is_night = true
+      MyDSL.emit("time")
+    end
+  end
+)
+
+------------------------------------------------------------------------
+-- Weather trigger
+------------------------------------------------------------------------
+-- Broad pattern: any line starting with a capital letter and ending with
+-- a period. Fires on room descriptions too — parseWeatherLine() filters
+-- internally using a weather keyword list.
+
+MyDSL._triggers.weather = tempRegexTrigger(
+  "^[A-Z][^%.]+%.$",
+  function()
+    local ln = getCurrentLine()
+    if MyDSL and MyDSL.parseWeatherLine then
+      MyDSL.parseWeatherLine(ln)
+    end
+  end
+)
 
 
 ------------------------------------------------------------------------

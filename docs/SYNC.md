@@ -292,23 +292,30 @@ Deferred to Phase B+ (see Open Items below).
 
 These items are not blocking Phase B but should be addressed before the next window is built:
 
-1. **Score parser: stance field** — pattern `(.+)` captures trailing text. Fix: `%S+`.
-2. **Score parser: profession field** — `endScore()` fires before the PROFESSION line.
-   Fix: three-separator logic (gate endScore on seeing PROFESSION, not just 2nd `---`).
-3. **Weather trigger** — DataLayer has a TODO comment but no `tempRegexTrigger` for
-   weather lines. MoonWeather subscribes to `"MyDSL.weather.updated"` but the event
-   never fires. Either wire the trigger (and add a display row) or remove the subscription.
-4. **LiveView dead event subscriptions** — 7 of 8 subscriptions never fire (TitleCase
+1. ~~**Score parser: stance field**~~ — ✅ Already fixed (commit `468ee77`, Jun-29).
+   `%S+` has been in place since Phase A completion. SESSION_START.md was stale.
+2. ~~**Score parser: profession field**~~ — ✅ Already fixed (commit `468ee77`, Jun-29).
+   Three-separator logic with `_saw_profession` flag already in DataLayer.
+3. ~~**Weather trigger**~~ — ✅ Wired (this session). Broad pattern `"^[A-Z][^%.]+%.$"`
+   with weather keyword guard in `parseWeatherLine()`. MoonWeather subscription
+   (`"MyDSL.weather.updated"`) now receives events. Weather display row deferred to Phase B+.
+4. ~~**Day/night indicator**~~ — ✅ Wired (this session). `State.time.is_night` added;
+   sunrise/sunset triggers confirmed from live session (Steven 2026-06-30):
+   - `"The sun rises in the east."` → `is_night = false` (☀)
+   - `"The sun slowly disappears in the west."` → `is_night = true` (✦)
+   `DB.time.is_night` propagated by DataBridge. `buildTimeRow()` shows ☀/✦ from this.
+   Default `is_night = false` → ☀ until sunset fires (conservative/safe default).
+5. **LiveView dead event subscriptions** — 7 of 8 subscriptions never fire (TitleCase
    events that nothing raises). LiveView works via 0.25s `"MyDSL.Timers.Updated"` tick.
    Low priority — functional as-is.
-5. **Moon phase PNG images** — art assets not yet created. Widget shows Unicode colored
+6. **Moon phase PNG images** — art assets not yet created. Widget shows Unicode colored
    circle fallback (●) for all moon slots. Needs 24 PNGs (8 phases × 3 moons).
 
 ---
 
 ## Recommended Next Actions
 
-*Updated 2026-06-30 — MoonWeather confirmed complete.*
+*Updated 2026-06-30 — score fixes confirmed done; sunrise/sunset/weather wired.*
 
 1. ~~**Validate time row in game**~~ — ✅ Done. Steven confirmed working 2026-06-30.
 
@@ -316,10 +323,13 @@ These items are not blocking Phase B but should be addressed before the next win
 
 3. ~~**Update `Contract_DataBridge.md`**~~ — ✅ Done (commit `6398094`).
 
-4. **Fix score parser issues** (stance + profession) — see Open Items above.
-   Low-effort fix, can batch into one commit.
+4. ~~**Fix score parser issues**~~ — ✅ Already done (Jun-29). No action needed.
 
-5. **Decide on weather** — wire trigger + add display row, OR remove the dead
-   `"MyDSL.weather.updated"` subscription from MoonWeather.
+5. ~~**Wire weather trigger**~~ — ✅ Done (this session). No display row yet — deferred.
 
-6. **LiveView event subscriptions** — low priority. Works via timer. Fix when convenient.
+6. **Steven: validate sunrise/sunset in-game** — confirm ☀ shows after "The sun rises
+   in the east." and ✦ shows after "The sun slowly disappears in the west."
+   (These trigger patterns were confirmed from live session log, not directly from
+   a Mudlet trigger test. Verify the exact text still matches.)
+
+7. **LiveView event subscriptions** — low priority. Works via timer. Fix when convenient.

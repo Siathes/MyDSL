@@ -88,10 +88,10 @@ function MyDSL.DB.sync()
   MyDSL.DB.timers.tick     = MyDSL.DB.tick
   MyDSL.DB.xp              = { tnl = char.tnl }
 
-  -- Gap 3: DB.time — populated by DataLayer.parseTimeLine() from the `time` command.
-  -- gmcp.tick.time is a clock string only ("8:00am" format, no day/night label).
-  -- is_day removed: Algoron's day/night cycle does NOT map to am/pm on the 12h clock.
-  -- Deferred until a reliable source (prompt period string, room description) is captured.
+  -- DB.time — populated by DataLayer.parseTimeLine() from the `time` command.
+  -- is_night: set by sunrise/sunset triggers in DataLayer (confirmed exact text 2026-06-30).
+  --   false = daytime (default — assume day until told otherwise)
+  --   true  = night (set on "The sun slowly disappears in the west.")
   local t  = MyDSL.State.time or {}
   local ap = t.ampm or ""
   MyDSL.DB.time = {
@@ -101,6 +101,7 @@ function MyDSL.DB.sync()
     day_name = t.day_name,
     day_num  = t.day_num,
     month    = t.month,
+    is_night = t.is_night == true,
   }
 
   -- Gap 4: DB.affects — active affects keyed by lowercase spell name.
