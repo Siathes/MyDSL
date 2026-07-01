@@ -89,9 +89,10 @@ function MyDSL.DB.sync()
   MyDSL.DB.xp              = { tnl = char.tnl }
 
   -- DB.time — populated by DataLayer.parseTimeLine() from the `time` command.
-  -- is_night priority: State.time.is_night is nil until a trigger fires (nil=unseen,
-  --   false=sunrise fired, true="The night has begun." fired). While nil, fall back
-  --   to GMCP clock approximation: night = 7pm-11pm or 12am-5am (Algoron approximate).
+  -- is_night priority (highest to lowest):
+  --   1. State.time.period (from prompt, every server event) — "Night Time"→true, else false
+  --   2. State.time.is_night (from sunrise / "The night has begun." triggers)
+  --   3. GMCP clock approximation: 7pm-11pm or 12am-5am = night
   local t  = MyDSL.State.time or {}
   local ap = t.ampm or ""
 
@@ -100,12 +101,15 @@ function MyDSL.DB.sync()
   th                = tonumber(th) or 12
   local gmcpIsNight = (tap == "pm" and th >= 7) or (tap == "am" and th < 6)
 
+  local period     = MyDSL.State.time and MyDSL.State.time.period
   local stateNight = MyDSL.State.time and MyDSL.State.time.is_night
   local is_night_val
-  if stateNight == nil then
-    is_night_val = gmcpIsNight
-  else
+  if period ~= nil then
+    is_night_val = (period == "Night Time")
+  elseif stateNight ~= nil then
     is_night_val = (stateNight == true)
+  else
+    is_night_val = gmcpIsNight
   end
 
   MyDSL.DB.time = {

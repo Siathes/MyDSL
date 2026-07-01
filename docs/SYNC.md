@@ -137,7 +137,8 @@ when game sends a time-command response line. Calls `MyDSL.parseTimeLine(getCurr
   day_name = t.day_name,
   day_num  = t.day_num,
   month    = t.month,
-  is_night = is_night_val,  -- nil→gmcp fallback; false=sunrise fired; true="The night has begun."
+  is_night = is_night_val,
+  -- is_night priority: period (from prompt, every event) > is_night trigger > GMCP clock
 }
 ```
 
@@ -299,14 +300,14 @@ These items are not blocking Phase B but should be addressed before the next win
 3. ~~**Weather trigger**~~ — ✅ Wired (this session). Broad pattern `"^[A-Z][^%.]+%.$"`
    with weather keyword guard in `parseWeatherLine()`. MoonWeather subscription
    (`"MyDSL.weather.updated"`) now receives events. Weather display row deferred to Phase B+.
-4. ~~**Day/night indicator**~~ — ✅ Wired and corrected. `State.time.is_night` added;
-   confirmed exact plain-text trigger lines (Steven 2026-06-30):
+4. ~~**Day/night indicator**~~ — ✅ Fully wired via prompt parser (2026-07-01).
+   `State.time.period` set on every prompt from `parsePromptLine()` — most reliable source.
+   Period strings confirmed: `"Night Time"`, `"Dawn"`, `"Day Time"`.
+   `DB.time.is_night` priority: period (prompt) → sunrise/sunset triggers → GMCP clock.
+   Secondary triggers still wired:
    - `"The sun rises in the east."` → `is_night = false` (☀)
    - `"The night has begun."` → `is_night = true` (✦)
    Note: `"* * * * * Night folds the land in shadow * * * * *"` is a cecho line — NOT triggerable.
-   `State.time.is_night` starts as `nil` (no trigger fired yet). `DB.time.is_night` uses
-   GMCP clock approximation as fallback before first trigger fires (7pm-11pm or 12am-5am = night).
-   After sunrise or "The night has begun." fires, trigger value locks in.
 5. **LiveView dead event subscriptions** — 7 of 8 subscriptions never fire (TitleCase
    events that nothing raises). LiveView works via 0.25s `"MyDSL.Timers.Updated"` tick.
    Low priority — functional as-is.
@@ -329,9 +330,8 @@ These items are not blocking Phase B but should be addressed before the next win
 
 5. ~~**Wire weather trigger**~~ — ✅ Done (this session). No display row yet — deferred.
 
-6. **Steven: validate sunrise/sunset in-game** — confirm ☀ shows after "The sun rises
-   in the east." and ✦ shows after "The night has begun."
-   (Sunrise confirmed from live log. "The night has begun." confirmed as correct plain-text
-   night trigger 2026-06-30 — old pattern "The sun slowly disappears in the west." was wrong.)
+6. **Steven: validate day/night indicator in-game** — confirm ☀/✦ changes on every prompt
+   (now driven by prompt parser — should switch correctly as you move through day/night cycle).
+   Secondary: confirm ☀ after "The sun rises in the east." and ✦ after "The night has begun."
 
 7. **LiveView event subscriptions** — low priority. Works via timer. Fix when convenient.

@@ -42,7 +42,7 @@ MyDSL.State.tick    = MyDSL.State.tick    or { last_updated = 0 }  -- GMCP: game
 MyDSL.State.score   = MyDSL.State.score   or { last_updated = 0 }  -- text: full score block
 MyDSL.State.lunar   = MyDSL.State.lunar   or { last_updated = 0 }  -- text: moon phases and bonuses
 MyDSL.State.time    = MyDSL.State.time    or { last_updated = 0 }  -- text: game time/day/month
--- is_night stays nil until a sunrise/sunset trigger fires; DataBridge uses GMCP clock as fallback
+-- is_night updated by prompt parser (every server event) and sunrise/sunset triggers (secondary)
 MyDSL.State.weather = MyDSL.State.weather or { last_updated = 0 }  -- text: weather description
 MyDSL.State.who     = MyDSL.State.who     or { last_updated = 0 }  -- text: online player list
 MyDSL.State.group   = MyDSL.State.group   or { last_updated = 0 }  -- text: party members
@@ -773,6 +773,26 @@ function MyDSL.parseTimeLine(line)
 end
 
 ------------------------------------------------------------------------
+-- 9d2  PROMPT LINE (day/night period)
+------------------------------------------------------------------------
+-- Fires on prompt line 2 (fires every server event — most reliable day/night source):
+--   "==-Night Time - 5:00am :: [room] :: [exits]-=="
+--   "==-Day Time - 10:30am :: ..."
+--   "==-Dawn - 6:00am :: ..."
+-- Period confirmed from live session (Steven, 2026-06-30): Night Time, Dawn, Day Time.
+
+function MyDSL.parsePromptLine(line)
+  local period = line:match("^==%-(%a[%a%s]+) %- %d+:%d+%a+ :: ")
+  if not period then return end
+  period = trim(period)
+  if period == "" then return end
+  MyDSL.State.time.period   = period
+  MyDSL.State.time.is_night = (period == "Night Time")
+  MyDSL.State.time.last_updated = now()
+  MyDSL.emit("time")
+end
+
+------------------------------------------------------------------------
 -- 9e  WEATHER
 ------------------------------------------------------------------------
 -- Single-line.  Trigger matches a weather description line.
@@ -1141,6 +1161,22 @@ MyDSL._triggers.timeLine = tempRegexTrigger(
   function()
     if MyDSL and MyDSL.parseTimeLine then
       MyDSL.parseTimeLine(getCurrentLine())
+    end
+  end
+)
+
+------------------------------------------------------------------------
+-- Prompt line trigger (day/night period)
+------------------------------------------------------------------------
+-- Fires on every prompt line 2 — far more frequent than sunrise/sunset triggers.
+-- PCRE: "^==-[A-Z]" matches "==-Night...", "==-Day...", "==-Dawn..." etc.
+-- Also matches "==-Kien" (name echo) but parsePromptLine() drops it (no " - HH:MM :: ").
+
+MyDSL._triggers.promptLine = tempRegexTrigger(
+  "^==-[A-Z]",
+  function()
+    if MyDSL and MyDSL.parsePromptLine then
+      MyDSL.parsePromptLine(getCurrentLine())
     end
   end
 )
