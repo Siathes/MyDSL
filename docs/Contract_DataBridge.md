@@ -1,6 +1,7 @@
 # Module Contract: MyDSL_DataBridge.lua
 **Layer 3 — State-to-DB Translation**
-*Written from actual code + confirmed GMCP structure. File: MyDSL_DataBridge.lua (81 lines)*
+*Written from actual code + confirmed GMCP structure. File: MyDSL_DataBridge.lua (140 lines)*
+*Updated 2026-06-30 — Gaps 2, 3, 4, 6 fixed. Contract rewritten to match current code.*
 
 ---
 
@@ -21,11 +22,13 @@ job is `sync()` — keeping `MyDSL.DB.*` current whenever upstream data changes.
 MyDSL.DB           -- translation output namespace
 MyDSL.DB._handlers -- event handler IDs for clean reload
 MyDSL.DB.live      -- vitals and identity
-MyDSL.DB.score     -- character stats and flags
-MyDSL.DB.room      -- current room
+MyDSL.DB.score     -- character stats (GMCP) + text fields (score parser)
+MyDSL.DB.room      -- current room (name, exits, sector)
 MyDSL.DB.tick      -- tick timing data
 MyDSL.DB.timers    -- alias: DB.timers.tick = DB.tick
 MyDSL.DB.xp        -- experience shorthand
+MyDSL.DB.time      -- game clock, day, month — from parseTimeLine()
+MyDSL.DB.affects   -- active affects — pass-through from State.affects.active
 ```
 
 ---
@@ -47,80 +50,129 @@ MyDSL.DB.sync()
 ### DB.live
 ```lua
 MyDSL.DB.live = {
-  hp      = MyDSL.State.char.hp,
-  maxhp   = MyDSL.State.char.max_hp,
-  mana    = MyDSL.State.char.mana,
-  maxmana = MyDSL.State.char.max_mana,
-  move    = MyDSL.State.char.move,
-  maxmove = MyDSL.State.char.max_move,
-  name    = MyDSL.State.login.name,
-  level   = MyDSL.State.login.level,
+  hp      = char.hp,      maxhp      = char.max_hp,
+  mana    = char.mana,    maxmana    = char.max_mana,
+  move    = char.move,    maxmove    = char.max_move,
+  name    = login.name,   level      = login.level,
 }
 ```
 
-### DB.score
+### DB.score — GMCP-backed fields (built first)
 ```lua
 MyDSL.DB.score = {
-  str      = MyDSL.State.char.str,
-  int      = MyDSL.State.char.int,
-  wis      = MyDSL.State.char.wis,
-  dex      = MyDSL.State.char.dex,
-  con      = MyDSL.State.char.con,
-  gold     = MyDSL.State.char.gold,
-  silver   = MyDSL.State.char.silver,
-  weight   = MyDSL.State.char.carry_weight,
-  maxWeight= MyDSL.State.char.can_carry_weight,
-  tnl      = MyDSL.State.char.tnl,
-  wimpy    = MyDSL.State.char.wimpy,
-  stance   = MyDSL.State.char.stance,
-  language = MyDSL.State.char.language,
-  flying   = MyDSL.State.char.is_flying,
-  riding   = MyDSL.State.char.is_riding,
-  fighting = MyDSL.State.char.is_fighting,
+  str        = char.str,          int        = char.int,
+  wis        = char.wis,          dex        = char.dex,
+  con        = char.con,
+  gold       = char.gold,         silver     = char.silver,
+  weight     = char.carry_weight, maxWeight  = char.can_carry_weight,
+  tnl        = char.tnl,          wimpy      = char.wimpy,
+  stance     = char.stance,       language   = char.language,
+  flying     = char.is_flying,    riding     = char.is_riding,
+  fighting   = char.is_fighting,
 }
+```
+
+### DB.score — text fields merged in (from score parser, not GMCP)
+```lua
+-- DataLayer key 'position' → DB key 'posn' (per LiveView contract)
+-- DataLayer key 'class'    → DB key 'class_' (avoids Lua reserved word)
+MyDSL.DB.score.align       = sc.align
+MyDSL.DB.score.race        = sc.race
+MyDSL.DB.score.class_      = sc.class
+MyDSL.DB.score.religion    = sc.religion
+MyDSL.DB.score.profession  = sc.profession
+MyDSL.DB.score.crafts      = sc.crafts        -- table keyed by craft name
+MyDSL.DB.score.xp          = sc.xp
+MyDSL.DB.score.practices   = sc.practices
+MyDSL.DB.score.trains      = sc.trains
+MyDSL.DB.score.bank        = sc.bank
+MyDSL.DB.score.qpoints     = sc.qpoints
+MyDSL.DB.score.hitroll     = sc.hitroll
+MyDSL.DB.score.hitrollBase = sc.hitrollBase
+MyDSL.DB.score.damroll     = sc.damroll
+MyDSL.DB.score.damrollBase = sc.damrollBase
+MyDSL.DB.score.armorPierce = sc.armorPierce
+MyDSL.DB.score.armorBash   = sc.armorBash
+MyDSL.DB.score.armorSlash  = sc.armorSlash
+MyDSL.DB.score.armorMagic  = sc.armorMagic
+MyDSL.DB.score.items       = sc.items
+MyDSL.DB.score.max_items   = sc.max_items
+MyDSL.DB.score.posn        = sc.position
 ```
 
 ### DB.room
 ```lua
-MyDSL.DB.room = {
-  name  = MyDSL.State.room.name,   -- ⚠️ see Gap 1
-  exits = MyDSL.State.room.exits,
-  area  = MyDSL.State.room.area,   -- ⚠️ see Gap 2
-}
+MyDSL.DB.room = { name = room.name, exits = room.exits, sector = room.sector }
+-- room.name confirmed correct: DataLayer maps gmcp.room_data.room → State.room.name
+-- sector replaces the old 'area' field (area never existed in DataLayer)
 ```
 
 ### DB.tick
 ```lua
 MyDSL.DB.tick = {
-  remaining = MyDSL.State.tick.remaining,
-  average   = MyDSL.State.tick.average or 40,
-  percent   = MyDSL.State.tick.percent,
+  remaining = tick.remaining,
+  average   = tick.average or 40,
+  percent   = tick.percent,
 }
 MyDSL.DB.timers.tick = MyDSL.DB.tick   -- alias
 ```
 
 ### DB.xp
 ```lua
-MyDSL.DB.xp = { tnl = MyDSL.State.char.tnl }
+MyDSL.DB.xp = { tnl = char.tnl }
+```
+
+### DB.time
+```lua
+-- Populated from MyDSL.State.time (filled by parseTimeLine() when player types 'time').
+-- gmcp.tick.time = "8:00am" clock string only — no day/date. is_day derived here.
+local t  = MyDSL.State.time or {}
+local h  = tonumber(t.hour) or 0
+local ap = t.ampm or ""
+MyDSL.DB.time = {
+  hour     = t.hour,       -- integer hour from game (12h clock)
+  ampm     = ap,           -- "am" or "pm"
+  clock    = (t.hour and ap ~= "") and (t.hour .. ":00 " .. ap) or "",
+  day_name = t.day_name,   -- e.g. "the Great Gods"
+  day_num  = t.day_num,    -- integer day of month
+  month    = t.month,      -- e.g. "the Great Evil"
+  is_day   = (ap == "am" and h >= 6) or (ap == "pm" and h < 6),
+}
+-- ⚠️ is_day is wrong for h=12 in both am/pm (midnight shows day; noon shows night)
+-- All other hours correct. Low priority — game clocks rarely sit at exact 12.
+```
+
+### DB.affects
+```lua
+-- Pass-through of State.affects.active — table keyed by lowercase spell name.
+-- DataLayer builds this from gmcp.affect_data / add_affect / remove_affect events.
+-- Consumers: for name, entry in pairs(MyDSL.DB.affects) do
+MyDSL.DB.affects = (MyDSL.State.affects and MyDSL.State.affects.active) or {}
 ```
 
 ---
 
 ## Event Listeners
 
-DataBridge listens to both MyDSL events AND raw GMCP events and calls `sync()` on any:
+DataBridge listens to DataLayer events AND raw GMCP events; all call `sync()`:
 
 ```lua
-"MyDSL.char.updated"   -- from DataLayer event bus
-"MyDSL.room.updated"   -- from DataLayer event bus
-"MyDSL.login.updated"  -- from DataLayer event bus
-"MyDSL.tick.updated"   -- from DataLayer event bus
-"gmcp.char_data"       -- raw GMCP (redundant if DataLayer fires events)
-"gmcp.room_data"       -- raw GMCP (redundant)
-"gmcp.tick"            -- raw GMCP (redundant)
+-- DataLayer events (lowercase convention: "MyDSL.section.updated")
+"MyDSL.char.updated"     -- GMCP char_data packet processed
+"MyDSL.room.updated"     -- GMCP room_data packet processed
+"MyDSL.login.updated"    -- GMCP login_data packet processed
+"MyDSL.tick.updated"     -- GMCP tick packet processed
+"MyDSL.score.updated"    -- endScore() completed
+"MyDSL.time.updated"     -- parseTimeLine() fired (player typed 'time')
+"MyDSL.affects.updated"  -- affect_data / add_affect / remove_affect processed
+
+-- Raw GMCP events (redundant safety net — DataLayer fires on all of these too)
+"gmcp.char_data"
+"gmcp.room_data"
+"gmcp.tick"
 ```
 
-⚠️ See Gap 5 — dual listeners cause double-syncing.
+⚠️ See Gap 5 — dual listeners cause double-syncing on every GMCP packet.
 
 ---
 
@@ -139,121 +191,53 @@ DataBridge listens to both MyDSL events AND raw GMCP events and calls `sync()` o
 - Does not send game commands
 - Does not own or store data (reads State, writes DB, holds nothing of its own)
 - Does not handle login character-switching
-- Does not map time, affects, or score text fields (see Gaps 3, 4, 6)
+- Does not map equipment (no DB.equip — DataLayer has no equip parser yet)
 
 ---
 
 ## Gaps and Issues Found in Code
 
-### Gap 1 — Room name field mismatch ❌ CONFIRMED BUG
-DataBridge reads `MyDSL.State.room.name`.
+### Gap 1 — Room name field ✅ CONFIRMED CORRECT
+DataBridge reads `MyDSL.State.room.name`. Confirmed: DataLayer maps
+`gmcp.room_data.room` → `State.room.name` in its GMCP handler. The comment
+in DataBridge.lua at line 82 confirms: "Gap 1 confirmed NOT a bug."
+`DB.room.name` is correct.
 
-Confirmed GMCP: `gmcp.room_data.room = "In the Main Gathering Room..."` — the field
-is `room`, not `name`. Whether DataLayer correctly maps `gmcp.room_data.room` →
-`MyDSL.State.room.name` needs verification. If DataLayer stores it as `room.room`
-instead, every display module gets nil for room name.
+### Gap 2 — Room area field ✅ FIXED (2026-06-24)
+Was: `area = MyDSL.State.room.area` (always nil — field never existed).
+Now: `sector = room.sector` — matches DataLayer's actual field name.
 
-**Action:** Verify DataLayer's room_data GMCP handler. Confirm the field name
-stored in `MyDSL.State.room` and align DataBridge accordingly.
+### Gap 3 — DB.time section ✅ FIXED (2026-06-24)
+Was: DB.time did not exist.
+Now: DB.time fully populated in sync() — see field mappings above.
 
-### Gap 2 — Room area field wrong ⚠️
-DataBridge maps `area = MyDSL.State.room.area`. DataLayer's room section has
-`sector` (e.g., `"inside"`) not `area`. The `area` key is always nil.
+### Gap 4 — DB.affects section ✅ FIXED (2026-06-24)
+Was: DB.affects did not exist.
+Now: `DB.affects = State.affects.active or {}` — pass-through of the active
+affects table keyed by lowercase spell name.
 
-**Fix:** Change to `sector = MyDSL.State.room.sector` in DB.room.
-Or add both: `sector` for the terrain type, `area` reserved for future area name.
+### Gap 5 — Redundant dual event listeners ⚠️ (kept by design)
+DataBridge listens to both `"MyDSL.char.updated"` (DataLayer event) AND
+`"gmcp.char_data"` (raw GMCP). Same for room and tick. This causes `sync()`
+to run twice per GMCP packet — once from DataLayer's event, once from the
+raw GMCP listener.
 
-### Gap 3 — No DB.time section ❌
-DataBridge never maps `MyDSL.State.time` to `MyDSL.DB.time`. Any display module
-reading from `MyDSL.DB.time` for clock, day name, or month gets nil.
+Not harmful. Kept as a safety net in case a display module loads before
+DataLayer has processed a packet. Revisit after all modules are stable.
 
-**Fix:** Add to sync():
-```lua
-local t = MyDSL.State.time or {}
-MyDSL.DB.time = {
-  hour     = t.hour,
-  ampm     = t.ampm,
-  clock    = t.clock or (t.hour and t.ampm and (t.hour..":00 "..t.ampm) or ""),
-  day_name = t.day_name,
-  day_num  = t.day_num,
-  month    = t.month,
-  -- Derived:
-  is_day   = t.ampm and t.hour and
-             ((t.ampm == "am" and t.hour >= 6) or
-              (t.ampm == "pm" and t.hour < 6)),
-}
--- gmcp.tick.time = "8:00am" — a clock string only, no day/night label
--- Day/night is derived here from parsed hour + ampm
-```
+### Gap 6 — Score text fields in DB.score ✅ FIXED (2026-06-24)
+Was: Only GMCP-backed fields in DB.score. `align`, `race`, `class_`,
+`religion`, `profession`, `crafts`, `xp`, `practices`, `trains`, `bank`,
+`qpoints`, and all armor/hitroll/damroll fields were missing.
+Now: All score text fields merged into DB.score after the GMCP fields.
+`"MyDSL.score.updated"` listener added.
 
-Note: `gmcp.tick.time` confirmed as clock string only (e.g., `"8:00am"`).
-Day/Night label must be derived — it is NOT available from GMCP.
+### Gap 7 — No DB.equip section ❌ (new — not yet addressed)
+DataLayer has no equipment parser (`beginEquip / parseEquipLine / endEquip`).
+Therefore no `MyDSL.State.equip` exists, and DataBridge has nothing to
+translate. Equipment window cannot be built until DataLayer is extended.
 
-### Gap 4 — No DB.affects section ❌
-DataBridge never maps `MyDSL.State.affects` to `MyDSL.DB.affects`. AffectsView
-and any display reading `MyDSL.DB.affects` gets nil.
-
-**Confirmed GMCP affect structure:**
-```lua
--- Individual affect fields (abbreviated keys):
-{
-  n  = "armor",         -- spell name
-  d  = 23,             -- duration in cycles
-  lc = "armor class",  -- location (lowercase)
-  m  = -20,            -- modifier value
-  t  = 0,              -- type integer
-}
--- affect_data.affects is an ARRAY, not keyed by name
-```
-
-**Fix:** Add to sync():
-```lua
-MyDSL.DB.affects = MyDSL.State.affects and MyDSL.State.affects.active or {}
--- Display modules read: for name, entry in pairs(MyDSL.DB.affects) do
-```
-
-### Gap 5 — Redundant dual event listeners ⚠️
-DataBridge listens to both `MyDSL.char.updated` (from DataLayer) AND `gmcp.char_data`
-(raw GMCP). If DataLayer fires `MyDSL.char.updated` every time GMCP fires, `sync()`
-runs twice per GMCP packet. Not harmful but wasteful.
-
-**Options:**
-- A: Remove the raw GMCP listeners — rely on DataLayer events only. Cleaner.
-- B: Keep both as a safety net — in case DataLayer hasn't loaded yet. Current behavior.
-
-**Recommendation:** Keep Option B during development. Revisit after all modules stable.
-
-### Gap 6 — Missing score text fields in DB.score ⚠️
-The score text parser populates `MyDSL.State.score` with: `align`, `race`, `class`,
-`religion`, `profession`, `crafts`, `hp/mana/move`, `xp`, `practices`, `trains`,
-`bank`, `qpoints`. None of these are mapped into `MyDSL.DB.score`.
-
-Display modules that need alignment, race, class, or religion currently have no
-source in `MyDSL.DB.*`.
-
-**Fix:** Add score text fields to sync():
-```lua
-local sc = MyDSL.State.score or {}
--- Merge into DB.score (don't overwrite GMCP-backed fields):
-MyDSL.DB.score.align     = sc.align     -- ⚠️ score parser currently broken
-MyDSL.DB.score.race      = sc.race
-MyDSL.DB.score.class_    = sc.class
-MyDSL.DB.score.religion  = sc.religion
-MyDSL.DB.score.profession= sc.profession
-MyDSL.DB.score.crafts    = sc.crafts
-MyDSL.DB.score.xp        = sc.xp
-MyDSL.DB.score.practices = sc.practices
-MyDSL.DB.score.trains    = sc.trains
-MyDSL.DB.score.bank      = sc.bank
-MyDSL.DB.score.qpoints   = sc.qpoints
--- Note: align only available after `score` is run and parser is fixed
--- Persists until next score run (correct behavior per design decision)
-```
-
-Also needs event handler for `MyDSL.score.updated`:
-```lua
-MyDSL.DB._handlers.score = registerAnonymousEventHandler("MyDSL.score.updated", onAny)
-```
+**Action:** Add equipment parser to DataLayer first, then add DB.equip here.
 
 ---
 
@@ -265,14 +249,14 @@ MyDSL.DB._handlers.score = registerAnonymousEventHandler("MyDSL.score.updated", 
 | No window creation | ✅ |
 | Duplicate handler prevention on reload | ✅ |
 | sync() wrapped in pcall | ✅ |
-| DB.live — GMCP vitals fields | ✅ Correct |
-| DB.score — GMCP char fields | ✅ Correct |
-| DB.tick — tick timing fields | ✅ Correct |
-| Room name field (room vs name) | ⚠️ Needs DataLayer verification — Gap 1 |
-| Room area field (area vs sector) | ❌ Wrong field — Gap 2 |
-| DB.time section | ❌ Missing entirely — Gap 3 |
-| DB.affects section | ❌ Missing entirely — Gap 4 |
-| Redundant dual listeners | ⚠️ Harmless, noted — Gap 5 |
-| Score text fields in DB.score | ❌ Missing — Gap 6 |
-| Event listener for score.updated | ❌ Missing — Gap 6 |
-EOF
+| DB.live — GMCP vitals fields | ✅ |
+| DB.score — GMCP char fields | ✅ |
+| DB.score — score text fields (align/race/class_/etc.) | ✅ Fixed Gap 6 |
+| DB.tick — tick timing fields | ✅ |
+| DB.room.name — correct field mapping | ✅ Confirmed Gap 1 |
+| DB.room.sector (replaces area) | ✅ Fixed Gap 2 |
+| DB.time section | ✅ Fixed Gap 3 |
+| DB.affects section | ✅ Fixed Gap 4 |
+| Event listeners: char/room/login/tick/score/time/affects | ✅ All present |
+| Redundant raw GMCP listeners | ⚠️ Harmless, kept by design — Gap 5 |
+| DB.equip section | ❌ Missing — Gap 7 (blocked by DataLayer) |

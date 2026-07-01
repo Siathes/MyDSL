@@ -190,3 +190,4 @@ No code changes — design and validation session.
 2026-06-30 fix: correct time row field names, event name, data source — buildTimeRow() now reads MyDSL.DB.time (not State.time); uses db.clock/db.is_day/db.day_name/db.month; display order corrected to day→clock→date; debug logging updated to dump DB.time; Contract_MoonWeather.md Implementation Notes corrected
 2026-06-30 fix: remove debug logging from buildTimeRow() — 16 debugc() lines removed; function is clean
 2026-06-30 docs: add all contract and session docs to git tracking — 19 previously untracked docs/*.md files now versioned
+2026-06-30 docs: update Contract_DataBridge to reflect current state — Gaps 2/3/4/6 marked fixed; field mappings rewritten to show DB.time, DB.affects, full DB.score text fields, correct DB.room.sector; Gap 1 confirmed not a bug; Gap 7 (no DB.equip) added; contract status table updated
