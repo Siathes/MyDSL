@@ -314,28 +314,18 @@ end
 -- INTERNAL: buildTimeRow()
 ------------------------------------------------------------------------
 -- Builds the HTML for Section 3: the single time row at the bottom.
--- Layout: [day/night icon]  Day of Name · Clock · Date
--- Example: ☀ Day of the Great Gods · 9:00 am · 26th the Month of the Great Evil
+-- Layout: [icon]  Day of Name · Clock · Date
+-- Example: ✦ Day of Freedom · 3:00 pm · 25th the Month of Nature
 --
 -- Data source: MyDSL.DB.time (populated by DataBridge.sync() from State.time).
--- Fields: .clock ("9:00 am"), .day_name ("the Great Gods"), .day_num (int),
---         .month ("the Great Evil"), .is_day (bool, pre-computed by DataBridge).
+-- Fields: .clock ("9:00 am"), .day_name ("Freedom"), .day_num (int), .month ("Nature").
+-- Note: day/night indicator is neutral ✦ — Algoron's day/night cycle is not
+-- derivable from the 12h game clock. Deferred until a reliable source exists.
 
 local function buildTimeRow()
   local db = (MyDSL.DB and MyDSL.DB.time) or {}
 
-  local h     = tonumber(db.hour) or 0
-  local ap    = db.ampm or ""
-  local isDay = (ap == "am" and h >= 6) or (ap == "pm" and h < 6)
-
-  local indicator
-  if isDay then
-    indicator = span("#ffdd44", "&#x2600;")   -- ☀ SUN symbol
-  else
-    indicator = span("#8888cc", "&#x2736;")   -- ✦ STAR/SPARKLE symbol
-  end
-
-  local clockColor = isDay and "#ffdd88" or "#8888cc"
+  local indicator = span("#888888", "&#x2736;")   -- ✦ neutral, day/night unknown
   local sep = span("#444444", " &middot; ")
 
   -- Day: DataBridge stores day_name without prefix ("the Great Gods").
@@ -357,7 +347,7 @@ local function buildTimeRow()
   return indicator .. "  " ..
     span("#aaaaaa", dayText) ..
     sep ..
-    span(clockColor, clockText) ..
+    span("#cccccc", clockText) ..
     sep ..
     span("#999999", dateText)
 end

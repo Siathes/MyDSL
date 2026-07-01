@@ -780,3 +780,33 @@ Pattern `"^It is "` matches both confirmed time-line formats:
 from `hour` + `ampm` manually. Switched to `MyDSL.DB.time` which provides
 `clock` pre-formatted and `is_day` pre-computed. Display order corrected to
 day → clock → date (was clock → day → date).
+
+### Third pass fix (2026-06-30) — ordinal and is_day
+
+**Ordinal number confirmed:** `parseTimeLine()` uses pattern `(%d+)%a+` —
+captures the day number as digits only ("25"), discards the ordinal suffix
+("th") without capturing it, and stores `day_num = tonumber(day_num)` (integer).
+`buildTimeRow()` constructs the full ordinal string:
+`db.day_num .. ordinal(db.day_num) .. " the Month of " .. db.month`
+→ `"25th the Month of Nature"` ✓
+
+**parseTimeLine() handles both confirmed game formats:**
+- `"It is 3:00 o'clock pm, Day of Freedom, 25th the Month of Nature."` ✓
+- `"It is 10:30 am, Day of the Great Gods, 19th the Month of Nature."` ✓
+The lazy `[^,]-` in the pattern absorbs " o'clock " when present and nothing
+when absent, making both formats match with the same single pattern.
+
+**is_day removed — deferred:** Algoron's day/night cycle is independent of
+the 12-hour game clock. The `am`/`pm` field from the `time` command does NOT
+indicate whether it is currently day or night on Algoron. Deriving `is_day`
+from `hour + ampm` produced incorrect results (e.g. "3:00 pm" could be night).
+
+`is_day` has been removed from `MyDSL.DB.time` in DataBridge. `buildTimeRow()`
+now shows a fixed neutral ✦ indicator in `#888888` (grey) for all times.
+
+A future enhancement can populate `is_day` from a reliable source such as:
+- The game prompt period string ("Night Time", "Day Time", "Dawn") — captured
+  from prompt line 2 if/when a prompt parser is added.
+- Room description keywords that indicate time of day (Phase B+).
+
+`DB.time.is_day` field: **removed**. Do not reference it in display modules.

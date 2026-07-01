@@ -288,23 +288,22 @@ MoonWeather subscribes to `"MyDSL.weather.updated"` but the widget has no weathe
 display row. Additionally, no weather trigger is wired in DataLayer (only a TODO comment).
 The subscription is harmless but pointless.
 
-### Known edge case — is_day wrong at 12am/12pm
-`DataBridge.sync()` computes `is_day` as:
-`(ap == "am" and h >= 6) or (ap == "pm" and h < 6)`
-- `12am` (midnight): h=12, ap="am" → 12 >= 6 = true → **is_day = true** (wrong)
-- `12pm` (noon): h=12, ap="pm" → 12 < 6 = false → **is_day = false** (wrong)
-
-All other hours correct. DSL probably doesn't tick at exactly midnight/noon. Low priority.
+### ✅ is_day removed (2026-06-30, third pass)
+Algoron's day/night cycle does NOT follow the 12-hour game clock. `am`/`pm`
+cannot be used to derive day/night. `is_day` removed from `MyDSL.DB.time` in
+DataBridge. `buildTimeRow()` now shows a fixed neutral ✦ in `#888888` for all
+times. Day/night indicator deferred until a reliable source is available
+(prompt period string or room description capture).
 
 ---
 
 ## Recommended Next Actions
 
-*Updated 2026-06-30 after housekeeping session. Items 1–3 complete.*
+*Updated 2026-06-30 after third pass fixes.*
 
 1. **Steven: type `time` in game** — validate time row shows correct output:
-   `☀ Day of Freedom · 3:00 pm · 25th the Month of Nature`
-   (ordinal number bug fixed; is_day indicator fixed — awaiting in-game confirm).
+   `✦ Day of Freedom · 3:00 pm · 25th the Month of Nature`
+   (ordinal fix confirmed in code; neutral ✦ now always shown — awaiting in-game confirm).
 
 2. ~~**Remove debug logging from `buildTimeRow()`**~~ — ✅ Done (commit `d758806`).
 
