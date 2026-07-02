@@ -555,7 +555,7 @@ function MW._applyTextStyle()
   MW.ui.label:setStyleSheet(string.format([[
     background-color: rgba(5, 8, 20, %d);
     border: none;
-    border-radius: 4px;
+    border-radius: 0px;
     padding: 3px 6px;
     font-family: "%s";
     font-size: %dpt;
@@ -605,6 +605,16 @@ local function _buildUI()
   MW.ui.container = container
 
   pcall(function() container:setTitle(" ") end)   -- minimize title bar chrome
+  -- Attempt to strip the container's own border/background. Adjustable.Container
+  -- may not expose setStyleSheet; the pcall silently eats any failure.
+  pcall(function()
+    container:setStyleSheet([[
+      background-color: rgba(0,0,0,0);
+      border: none;
+      padding: 0px;
+      margin: 0px;
+    ]])
+  end)
   pcall(function() container:setAutoSave(true) end)
   pcall(function() container:setAutoLoad(true) end)
 
