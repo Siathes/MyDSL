@@ -518,7 +518,7 @@ end
 
 function MW.onLunarUpdate()   MW.render() end
 function MW.onWeatherUpdate() MW.render() end
-function MW.onTickUpdate()    MW.setClockAnchor(); MW.render() end
+function MW.onTickUpdate()    MW.render() end
 function MW.onTimeUpdate()    MW.setClockAnchor(); MW.render() end
 function MW.onLoginUpdate()   MW.render() end
 
@@ -618,8 +618,9 @@ local function _registerHandlers()
 
   reg("MyDSL.lunar.updated",   function() MW.render() end)
   reg("MyDSL.weather.updated", function() MW.render() end)
-  -- Tick and time handlers re-anchor the clock via State.time (guaranteed to have data).
-  reg("MyDSL.tick.updated",    function() MW.setClockAnchor(); MW.render() end)
+  -- Time handler re-anchors the clock (State.time freshly parsed by `time` command).
+  -- Tick handler does NOT anchor — tick fires every ~41s and would reset the hour counter.
+  reg("MyDSL.tick.updated",    function() MW.render() end)
   reg("MyDSL.time.updated",    function() MW.setClockAnchor(); MW.render() end)
   reg("MyDSL.login.updated",   function() MW.render() end)
 end
