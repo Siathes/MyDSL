@@ -352,10 +352,9 @@ local function buildFocalText(focal, lunarData)
   local fileKey = phaseToFile[phaseKey]
   local bonus   = fileKey and phaseBonus[fileKey]
   if bonus then
-    -- Positive mana/casting = green (good). Negative saves = green (lower save = better).
-    local manaCol = bonus.mana    > 0 and "#44cc44" or (bonus.mana    < 0 and "#cc4444" or "#888888")
-    local savCol  = bonus.saves   < 0 and "#44cc44" or (bonus.saves   > 0 and "#cc4444" or "#888888")
-    local casCol  = bonus.casting > 0 and "#44cc44" or (bonus.casting < 0 and "#cc4444" or "#888888")
+    local manaCol = bonus.mana    ~= 0 and "#ffcc44" or "#888888"
+    local savCol  = bonus.saves   ~= 0 and "#ffcc44" or "#888888"
+    local casCol  = bonus.casting ~= 0 and "#ffcc44" or "#888888"
 
     html = html .. "<br>" ..
       span(manaCol, string.format("%+d%%M",  bonus.mana))    .. "  " ..
@@ -381,17 +380,13 @@ end
 ------------------------------------------------------------------------
 -- INTERNAL: buildTimeRow()
 ------------------------------------------------------------------------
--- Builds the HTML for Section 3: three stacked lines of time information.
+-- Builds the HTML for Section 3: two stacked lines of time information.
 --
--- Line 1: ☀/✦ + period label  ("☀ Day Time", "✦ Night Time", "☀ Dawn")
---   Source: State.time.period (prompt parser, fires every server event).
---   Fallback: derive from db.is_night when period not yet known.
---   Colors: Night=#8888cc, Dawn/Dusk=#dd8844, Day=#ffdd88
+-- Line 1: clock + indicator + period  ("1:34 am  ✦  Night", "3:00 am  ☀  Dawn")
+--   Clock: #cccccc.  Indicator + period: colored by period.
+--   Period label is abbreviated ("Night Time"→"Night", "Day Time"→"Day").
 --
--- Line 2: live clock ("3:00 am")
---   Source: MW.clockStr() — real-time interpolation anchored to gmcp.tick.time.
---
--- Line 3: date ("27th · Day of the Sun · Futility")
+-- Line 2: date ("27th · Day of the Sun · Futility")
 --   Source: db.day_num, State.time.day_name (or db.day_name), db.month.
 --   month: "the Great Evil" stripped to "Great Evil" (removes "the " prefix).
 
@@ -402,9 +397,9 @@ local function buildTimeRow()
   debugc("[MW] day_name raw: " .. tostring(MyDSL.State.time and MyDSL.State.time.day_name))
   debugc("[MW] db.day_name: " .. tostring(db and db.day_name))
 
-  -- Line 1: indicator + period string
+  -- Determine indicator, color, and short period label.
   local period = MyDSL.State.time and MyDSL.State.time.period
-  local indicator, periodStr, periodColor
+  local indicator, periodColor
   if period == "Night Time" then
     indicator = "&#x2736;"; periodColor = "#8888cc"
   elseif period == "Dusk" then
@@ -414,34 +409,42 @@ local function buildTimeRow()
   elseif period then
     indicator = "&#x2600;"; periodColor = "#ffdd88"
   else
-    -- No period known yet — fall back to is_night flag
     indicator   = db.is_night and "&#x2736;" or "&#x2600;"
     periodColor = db.is_night and "#8888cc"  or "#ffdd88"
   end
-  periodStr   = period or (db.is_night and "Night" or "Day")
-  local line1 = span(periodColor, indicator .. " " .. periodStr)
+  local periodLabel
+  if period == "Night Time" then
+    periodLabel = "Night"
+  elseif period == "Day Time" then
+    periodLabel = "Day"
+  elseif period then
+    periodLabel = period
+  else
+    periodLabel = db.is_night and "Night" or "Day"
+  end
 
-  -- Line 2: live clock
+  -- Line 1: "1:34 am  ✦  Night"
   local clockStr = MW.clockStr()
-  local line2 = span("#cccccc", clockStr ~= "--:--" and clockStr or "--")
+  local line1 = span("#cccccc", clockStr ~= "--:--" and clockStr or "--") ..
+                "  " .. span(periodColor, indicator .. "  " .. periodLabel)
 
-  -- Line 3: "27th · Day of the Sun · Futility"
-  local line3
+  -- Line 2: "27th · Day of the Sun · Futility"
+  local line2
   local dayName = (MyDSL.State.time and MyDSL.State.time.day_name) or db.day_name
   if db.day_num and dayName and db.month then
     local dayStr     = "Day of " .. trim(dayName)
     local monthShort = tostring(db.month)
                          :gsub("^[Tt]he%s+[Mm]onth%s+[Oo]f%s+", "")
                          :gsub("^[Tt]he%s+", "")
-    line3 = span("#888888",
+    line2 = span("#888888",
       db.day_num .. ordinal(db.day_num) ..
       " &middot; " .. dayStr ..
       " &middot; " .. monthShort)
   else
-    line3 = span("#888888", "--")
+    line2 = span("#888888", "--")
   end
 
-  return line1 .. "<br>" .. line2 .. "<br>" .. line3
+  return line1 .. "<br>" .. line2
 end
 
 
@@ -601,6 +604,7 @@ local function _buildUI()
 
   MW.ui.container = container
 
+  pcall(function() container:setTitle(" ") end)   -- minimize title bar chrome
   pcall(function() container:setAutoSave(true) end)
   pcall(function() container:setAutoLoad(true) end)
 
