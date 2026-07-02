@@ -174,7 +174,7 @@ The time row will show data once the player types `time`.
 | `MyDSL_LocationView.lua` | ✅ | ✅ `Contract_LocationView.md` | Layer 3. Working. |
 | `MyDSL_LiveView.lua` | ✅ | ✅ `Contract_LiveView.md` | Layer 3. Working (renders on 0.25s timer). 7 of 8 event subscriptions are dead. |
 | `MyDSL_PromptView.lua` | ✅ | ✅ `Contract_PromptView.md` | Layer 3. In autosave. |
-| `MyDSL_MoonWeather.lua` | ✅ | ✅ `Contract_MoonWeather.md` | Layer 3. In autosave. Unconfirmed working. |
+| `MyDSL_MoonWeather.lua` | ✅ | ✅ `Contract_MoonWeather.md` | Layer 3. ✅ Feature-complete 2026-07-02. Tagged v1.2-moonweather-final. |
 | `MyDSL_ChatTriggers.lua` | ❌ NOT in autosave | ❌ No contract | **Not loaded by Mudlet. Dead on disk.** |
 | `MyDSL_creaturelore.lua` | ❌ NOT in autosave | ❌ No contract | **Not loaded by Mudlet. Dead on disk.** |
 | `MyDSL_state.lua` | N/A (data file) | N/A | Saved state — loaded by DataLayer via table.load(), not as a script. |
@@ -290,11 +290,15 @@ Deferred to Phase B+ (see Open Items below).
 
 | Module | Status |
 |---|---|
-| MoonWeather | ✅ Complete — confirmed working in-game 2026-06-30 |
+| MoonWeather | ✅ Feature-complete — 2026-07-02 (tagged v1.2-moonweather-final) |
 | Combat window | Not started |
 | Scan/RightHere | Not started |
 | Group window | Not started |
 | Target window | Not started |
+
+**MoonWeather note:** Date field re-anchors automatically via the player's existing
+dawn/dusk triggers which fire `send('time')` — no calendar math needed. Clock anchors
+to `gmcp.tick.time` on every tick (zero drift). All visual tweaks complete.
 
 ---
 
@@ -327,24 +331,16 @@ These items are not blocking Phase B but should be addressed before the next win
 
 ## Recommended Next Actions
 
-*Updated 2026-06-30 — score fixes confirmed done; sunrise/sunset/weather wired.*
+*Updated 2026-07-02 — MoonWeather feature-complete, tagged v1.2-moonweather-final.*
 
 1. ~~**Validate time row in game**~~ — ✅ Done. Steven confirmed working 2026-06-30.
-
 2. ~~**Remove debug logging from `buildTimeRow()`**~~ — ✅ Done (commit `d758806`).
-
 3. ~~**Update `Contract_DataBridge.md`**~~ — ✅ Done (commit `6398094`).
-
 4. ~~**Fix score parser issues**~~ — ✅ Already done (Jun-29). No action needed.
+5. ~~**Wire weather trigger**~~ — ✅ Done. No display row yet — deferred to Phase B+.
+6. ~~**Validate day/night indicator, living clock, stacked layout**~~ — ✅ MoonWeather feature-complete.
 
-5. ~~**Wire weather trigger**~~ — ✅ Done (this session). No display row yet — deferred.
+7. **Begin Phase B next window** — Combat window (BattleCondenser port) or Scan/RightHere.
+   Read `Contract_MoonWeather.md` as a structural template; write Contract for the next window first.
 
-6. **Steven: validate day/night indicator in-game** — confirm ☀/✦ changes on every prompt
-   (now driven by prompt parser — should switch correctly as you move through day/night cycle).
-   Secondary: confirm ☀ after "The sun rises in the east." and ✦ after "The night has begun."
-
-7. **Steven: validate living clock and stacked layout** — confirm the clock counts forward
-   between ticks (not just jumps on tick events). Confirm day_name line shows "Day of the Sun"
-   not "--". After confirming, remove the two `debugc("[MW] day_name...")` lines in buildTimeRow().
-
-8. **LiveView event subscriptions** — low priority. Works via timer. Fix when convenient.
+8. **LiveView dead event subscriptions** — low priority. Works via 0.25s timer. Fix when convenient.

@@ -1,5 +1,5 @@
 # DSL Observer UI — Session Context
-*Last updated: June 29, 2026 — Phase A complete, tagged v1.0-phase-a-complete*
+*Last updated: July 2, 2026 — MoonWeather Phase B complete, tagged v1.2-moonweather-final*
 
 ---
 
@@ -127,6 +127,7 @@ at the bottom of `MyDSL_DataLayer.lua`:
 | 3 | PortraitView | `Contract_PortraitView.md` | ✅ Working |
 | 3 | LocationView | `Contract_LocationView.md` | ✅ Working |
 | 3 | LiveView | `Contract_LiveView.md` | ✅ Working (bars + room info) |
+| 3 | MoonWeather | `Contract_MoonWeather.md` | ✅ Feature-complete 2026-07-02 (v1.2-moonweather-final) |
 
 See `Contract_Addendum_2026-06-21.md` for changes that supersede parts of
 the LayoutEngine, WindowRegistry, RouteHelper, and PortraitView contracts.
@@ -196,17 +197,21 @@ Answers "why" questions         Smoke tests                   Uploads files to p
 
 ---
 
+## Phase B Status
+
+| Module | Status |
+|---|---|
+| MoonWeather | ✅ Feature-complete 2026-07-02 — living clock, day/night indicator, gold bonus text, border removed |
+| Combat window | Not started — next priority |
+| Scan/RightHere | Not started |
+| Group window | Not started |
+| Target window | Not started |
+
 ## Immediate Next Steps (in order)
 
-1. **Fix two known score issues** (minor, can batch with other fixes):
-   - stance pattern: `%S+` instead of `(.+)`
-   - profession: fire endScore() after PROFESSION section, not before
-2. **Layer 3 Phase B** — the remaining windows not yet built:
-   - Combat window (BattleCondenser port from PNP)
-   - Scan/RightHere windows (mob targeting)
-   - Group window (clickable party members)
-   - Target window (mob vs player differences)
-   - MoonWeather window
+1. ~~**Fix two known score issues**~~ — ✅ Both fixed (commit `468ee77`, Jun-29).
+2. **Begin next Phase B window** — Combat window (BattleCondenser port) or Scan/RightHere.
+   Write Contract doc first; use `Contract_MoonWeather.md` as structural template.
 3. **PromptView** — contract needed before implementation
 
 ---
