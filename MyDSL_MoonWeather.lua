@@ -280,10 +280,11 @@ end
 function MW.countdownStr()
   local cycles = MW.cyclesNow()
   if not cycles then return nil end
-  local tick_avg = MyDSL.DB and MyDSL.DB.tick and MyDSL.DB.tick.average
-  tick_avg = (tick_avg and tick_avg > 10) and tick_avg or 40
-  local mins = math.floor(cycles * tick_avg / 60)
-  return string.format("%dcy · %dm", math.floor(cycles), mins)
+  -- Each tick = 30 DSL game-minutes; display game-hours to match `lunar` output.
+  -- e.g. "72 (36 Hours)" in game → "71cy · 35h" after one tick elapses.
+  -- Hours display only steps at whole-cycle boundaries (~40 real seconds); acceptable.
+  local game_hours = math.floor(cycles * 30 / 60)
+  return string.format("%dcy · %dh", math.floor(cycles), game_hours)
 end
 
 
