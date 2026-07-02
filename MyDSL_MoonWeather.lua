@@ -679,7 +679,10 @@ local function _registerHandlers()
     end
   end
 
-  reg("MyDSL.lunar.updated",   function() MW.render() end)
+  reg("MyDSL.lunar.updated",   function()
+    MW.setLunarAnchor()   -- anchor cycles_remaining when lunar data arrives
+    MW.render()
+  end)
   reg("MyDSL.weather.updated", function() MW.render() end)
   -- Tick handler always re-anchors with the exact gmcp.tick.time string (zero drift).
   -- Time handler only anchors when no tick anchor exists yet (first login seed).
