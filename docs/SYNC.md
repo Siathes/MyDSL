@@ -290,7 +290,7 @@ Deferred to Phase B+ (see Open Items below).
 
 | Module | Status |
 |---|---|
-| MoonWeather | ✅ Feature-complete — 2026-07-02 (tagged v1.2-moonweather-final) |
+| MoonWeather | ✅ Complete — all alignments verified (neutral/red, good/white, evil/black) |
 | Combat window | Not started |
 | Scan/RightHere | Not started |
 | Group window | Not started |
@@ -299,6 +299,10 @@ Deferred to Phase B+ (see Open Items below).
 **MoonWeather note:** Date field re-anchors automatically via the player's existing
 dawn/dusk triggers which fire `send('time')` — no calendar math needed. Clock anchors
 to `gmcp.tick.time` on every tick (zero drift). All visual tweaks complete.
+
+**Deferred (low priority):** Lunar countdown shows 1 cycle behind game output due to
+event handler timing — the parse timestamp anchors correctly but one tick worth of
+elapsed time accumulates before the widget re-renders. Acceptable for now.
 
 ---
 
@@ -340,7 +344,7 @@ These items are not blocking Phase B but should be addressed before the next win
 5. ~~**Wire weather trigger**~~ — ✅ Done. No display row yet — deferred to Phase B+.
 6. ~~**Validate day/night indicator, living clock, stacked layout**~~ — ✅ MoonWeather feature-complete.
 
-7. **Begin Phase B next window** — Combat window (BattleCondenser port) or Scan/RightHere.
-   Read `Contract_MoonWeather.md` as a structural template; write Contract for the next window first.
+7. **Begin Phase B next window — Scan/RightHere.**
+   Write Contract doc first; use `Contract_MoonWeather.md` as structural template.
 
 8. **LiveView dead event subscriptions** — low priority. Works via 0.25s timer. Fix when convenient.
