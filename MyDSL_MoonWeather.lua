@@ -188,7 +188,9 @@ end
 ------------------------------------------------------------------------
 -- LIVE CLOCK
 ------------------------------------------------------------------------
--- DSL time rate: 1 real second ≈ 0.7273 DSL minutes (60/82.5).
+-- DSL time rate: each GMCP tick advances exactly 30 DSL minutes.
+-- Rate = 30 / tick_avg DSL-min per real-sec, where tick_avg is the
+-- smoothed real-time interval from TickSource (MyDSL.DB.tick.average).
 -- MW.setClockAnchor() reads State.time and sets the reference point.
 -- MW.clockStr() interpolates forward in real-time from the anchor.
 
@@ -209,8 +211,13 @@ end
 
 function MW.clockStr()
   if not MW._clock.anchor_real then return "--:--" end
-  local elapsed     = os.time() - MW._clock.anchor_real
-  local dsl_elapsed = elapsed * (60 / 82.5)
+  local elapsed  = os.time() - MW._clock.anchor_real
+  -- Each GMCP tick advances exactly 30 DSL minutes. Use the live smoothed
+  -- tick interval from TickSource to eliminate systematic drift.
+  -- Fallback to 40s before TickSource has accumulated enough data.
+  local tick_avg = MyDSL.DB and MyDSL.DB.tick and MyDSL.DB.tick.average
+  tick_avg = (tick_avg and tick_avg > 10) and tick_avg or 40
+  local dsl_elapsed = elapsed * (30 / tick_avg)
   local total_min   = (MW._clock.anchor_game_min + dsl_elapsed) % (24 * 60)
   local h24  = math.floor(total_min / 60)
   local min  = math.floor(total_min % 60)
