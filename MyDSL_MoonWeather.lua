@@ -252,10 +252,19 @@ function MW.stopClockTimer()
 end
 
 function MW.setLunarAnchor()
-  local focal = MW.focalMoon()
   local lunar = MyDSL.State and MyDSL.State.lunar
-  local moon  = lunar and lunar[focal]
-  if not (moon and moon.cycles_remaining) then return end
+  if not lunar then return end
+  -- Find whichever moon has the bonus block — that's the focal moon
+  -- regardless of alignment (only the aligned moon gets bonuses from `lunar`).
+  local moon = nil
+  for _, color in ipairs({"red", "white", "black"}) do
+    local m = lunar[color]
+    if m and m.has_bonuses and m.cycles_remaining then
+      moon = m
+      break
+    end
+  end
+  if not moon then return end
   MW._lunar.anchor_cycles = moon.cycles_remaining
   MW._lunar.anchor_real   = os.time()
 end
@@ -425,10 +434,6 @@ end
 
 local function buildTimeRow()
   local db = (MyDSL.DB and MyDSL.DB.time) or {}
-
-  -- Debug: confirm which field carries day_name — remove after first in-game verify.
-  debugc("[MW] day_name raw: " .. tostring(MyDSL.State.time and MyDSL.State.time.day_name))
-  debugc("[MW] db.day_name: " .. tostring(db and db.day_name))
 
   -- Determine indicator, color, and short period label.
   local period = MyDSL.State.time and MyDSL.State.time.period
