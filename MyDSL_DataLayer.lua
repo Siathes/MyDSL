@@ -759,11 +759,12 @@ end
 -- New pattern: [^,]- lazily skips " o'clock" when present, absorbs nothing otherwise.
 
 function MyDSL.parseTimeLine(line)
-  local hour, ampm, day_name, day_num, month =
-    line:match("It is (%d+):%d+[^,]-(%a+), Day of ([^,]+), (%d+)%a+ the Month of ([^%.]+)")
+  local hour, min, ampm, day_name, day_num, month =
+    line:match("It is (%d+):(%d+)[^,]-(%a+), Day of ([^,]+), (%d+)%a+ the Month of ([^%.]+)")
   if hour then
     update("time", {
       hour     = tonumber(hour),
+      minute   = tonumber(min) or 0,
       ampm     = ampm,
       day_name = trim(day_name),
       day_num  = tonumber(day_num),

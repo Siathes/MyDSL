@@ -197,10 +197,10 @@ end
 function MW.setClockAnchor(tickStr)
   local str = tickStr
   if not str then
-    -- Fallback: build a time string from State.time (no minutes, but better than nothing)
     local t = MyDSL.State and MyDSL.State.time
     if not (t and t.hour and t.ampm) then return end
-    str = string.format("%d:00%s", t.hour, t.ampm)
+    local min = t.minute or 0
+    str = string.format("%d:%02d%s", t.hour, min, t.ampm)
   end
   local h, m, ap = str:match("(%d+):(%d+)([ap]m)")
   h = tonumber(h); m = tonumber(m)
@@ -531,7 +531,12 @@ function MW.onTickUpdate()
   MW.setClockAnchor(tickStr)
   MW.render()
 end
-function MW.onTimeUpdate()    MW.setClockAnchor(); MW.render() end
+function MW.onTimeUpdate()
+  -- Only anchor from State.time when no tick anchor exists yet (first login, before first tick).
+  -- Once a tick has anchored the clock via gmcp.tick.time, the time command must not reset it.
+  if not MW._clock.anchor_real then MW.setClockAnchor(nil) end
+  MW.render()
+end
 function MW.onLoginUpdate()   MW.render() end
 
 
@@ -630,14 +635,17 @@ local function _registerHandlers()
 
   reg("MyDSL.lunar.updated",   function() MW.render() end)
   reg("MyDSL.weather.updated", function() MW.render() end)
-  -- Both time and tick handlers re-anchor the clock.
-  -- Tick provides the exact gmcp.tick.time string (no drift); time provides minute precision.
+  -- Tick handler always re-anchors with the exact gmcp.tick.time string (zero drift).
+  -- Time handler only anchors when no tick anchor exists yet (first login seed).
   reg("MyDSL.tick.updated",    function()
     local tickStr = gmcp and gmcp.tick and gmcp.tick.time
     MW.setClockAnchor(tickStr)   -- reanchor every tick with exact DSL time
     MW.render()
   end)
-  reg("MyDSL.time.updated",    function() MW.setClockAnchor(); MW.render() end)
+  reg("MyDSL.time.updated",    function()
+    if not MW._clock.anchor_real then MW.setClockAnchor(nil) end
+    MW.render()
+  end)
   reg("MyDSL.login.updated",   function() MW.render() end)
 end
 
