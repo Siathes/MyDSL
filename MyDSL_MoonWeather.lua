@@ -281,11 +281,10 @@ function MW.countdownStr()
   local cycles = MW.cyclesNow()
   if not cycles then return nil end
   local cyc_int = math.floor(cycles)
-  -- Each cycle = 30 DSL game-minutes = 0.5 game-hours.
-  -- Mirror the game's own display: "27 1/2 Hours" or "27 Hours".
-  local total_half_hours = math.floor(cycles + 0.5)  -- round to nearest half
-  local hours    = math.floor(total_half_hours / 2)
-  local has_half = (total_half_hours % 2) == 1
+  -- Derive hours from cyc_int (floored) so cycles and hours are consistent.
+  -- Each 2 cycles = 1 game-hour. Odd remainder = 1/2 hour.
+  local hours    = math.floor(cyc_int / 2)
+  local has_half = (cyc_int % 2) == 1
   local hour_str = has_half and (hours .. " 1/2h") or (hours .. "h")
   return string.format("%dcy · %s", cyc_int, hour_str)
 end
