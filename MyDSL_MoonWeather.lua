@@ -583,12 +583,13 @@ local function _buildUI()
   -- this container; fall back to fetching it from the registry.
   local ok, container = pcall(function()
     return Adjustable.Container:new({
-      name      = "MyDSL_MoonWeather",
-      x         = defX,
-      y         = defY,
-      width     = defW,
-      height    = defH,
-      lockStyle = "padding",
+      name          = "MyDSL_MoonWeather",
+      x             = defX,
+      y             = defY,
+      width         = defW,
+      height        = defH,
+      lockStyle     = "padding",
+      adjLabelstyle = "background-color: rgba(0,0,0,0); border: none; padding: 0px;",
     })
   end)
 
@@ -605,16 +606,6 @@ local function _buildUI()
   MW.ui.container = container
 
   pcall(function() container:setTitle(" ") end)   -- minimize title bar chrome
-  -- Attempt to strip the container's own border/background. Adjustable.Container
-  -- may not expose setStyleSheet; the pcall silently eats any failure.
-  pcall(function()
-    container:setStyleSheet([[
-      background-color: rgba(0,0,0,0);
-      border: none;
-      padding: 0px;
-      margin: 0px;
-    ]])
-  end)
   pcall(function() container:setAutoSave(true) end)
   pcall(function() container:setAutoLoad(true) end)
 
