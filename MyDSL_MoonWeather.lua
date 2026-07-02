@@ -55,6 +55,13 @@ MW._clock = MW._clock or {
   timer_id        = nil,   -- 1-second update timer ID
 }
 
+-- Live lunar phase countdown state — persists across reloads.
+-- Seeded from State.lunar on every lunar update and on init().
+MW._lunar = MW._lunar or {
+  anchor_cycles = nil,   -- cycles_remaining at last lunar parse
+  anchor_real   = nil,   -- os.time() at last lunar parse
+}
+
 
 ------------------------------------------------------------------------
 -- CONSTANTS
@@ -244,6 +251,32 @@ function MW.stopClockTimer()
   end
 end
 
+function MW.setLunarAnchor()
+  local focal = MW.focalMoon()
+  local lunar = MyDSL.State and MyDSL.State.lunar
+  local moon  = lunar and lunar[focal]
+  if not (moon and moon.cycles_remaining) then return end
+  MW._lunar.anchor_cycles = moon.cycles_remaining
+  MW._lunar.anchor_real   = os.time()
+end
+
+function MW.cyclesNow()
+  if not MW._lunar.anchor_real then return nil end
+  local tick_avg = MyDSL.DB and MyDSL.DB.tick and MyDSL.DB.tick.average
+  tick_avg = (tick_avg and tick_avg > 10) and tick_avg or 40
+  local elapsed_ticks = (os.time() - MW._lunar.anchor_real) / tick_avg
+  return math.max(0, MW._lunar.anchor_cycles - elapsed_ticks)
+end
+
+function MW.countdownStr()
+  local cycles = MW.cyclesNow()
+  if not cycles then return nil end
+  local tick_avg = MyDSL.DB and MyDSL.DB.tick and MyDSL.DB.tick.average
+  tick_avg = (tick_avg and tick_avg > 10) and tick_avg or 40
+  local mins = math.floor(cycles * tick_avg / 60)
+  return string.format("%dcy · %dm", math.floor(cycles), mins)
+end
+
 
 ------------------------------------------------------------------------
 -- PUBLIC: focalMoon()
@@ -361,15 +394,15 @@ local function buildFocalText(focal, lunarData)
       span(savCol,  string.format("%+dSv",   bonus.saves))   .. "  " ..
       span(casCol,  string.format("%+dCs",   bonus.casting))
 
-    -- Line 3: regen/cycles/hours — only present when bonus block was parsed.
-    -- These values require the actual `lunar` command output, not the wiki table.
+    -- Line 3: regen + live countdown — only present when bonus block was parsed.
+    -- Regen is gold when non-zero. Countdown ticks down live via the 1-second timer.
     if moon.has_bonuses and moon.regen_pct ~= nil then
-      html = html .. span("#888888", string.format(
-        "  Regen%+d%%  %dcy %dh",
-        moon.regen_pct        or 0,
-        moon.cycles_remaining or 0,
-        moon.hours_remaining  or 0
-      ))
+      local regenCol  = (moon.regen_pct ~= 0) and "#ffcc44" or "#888888"
+      local countdown = MW.countdownStr()
+      html = html .. span(regenCol, string.format("Regen%+d%%", moon.regen_pct or 0))
+      if countdown then
+        html = html .. span("#888888", "  " .. countdown)
+      end
     end
   end
 
@@ -527,7 +560,10 @@ end
 -- One handler per data section. All four just call render() because
 -- render() reads the full current State each time — no partial updates.
 
-function MW.onLunarUpdate()   MW.render() end
+function MW.onLunarUpdate()
+  MW.setLunarAnchor()
+  MW.render()
+end
 function MW.onWeatherUpdate() MW.render() end
 function MW.onTickUpdate()
   local tickStr = gmcp and gmcp.tick and gmcp.tick.time
@@ -789,6 +825,7 @@ function MW.init()
   -- then start the 1-second render loop so the clock counts forward in real-time.
   local tickStr = gmcp and gmcp.tick and gmcp.tick.time
   MW.setClockAnchor(tickStr)   -- prefer gmcp at startup; falls back to State.time
+  MW.setLunarAnchor()          -- seed countdown if lunar data already loaded
   MW.startClockTimer()
 
   -- Apply visibility from config (hide immediately if saved as hidden).
