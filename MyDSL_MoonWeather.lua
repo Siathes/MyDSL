@@ -266,7 +266,7 @@ function MW.setLunarAnchor()
   end
   if not moon then return end
   MW._lunar.anchor_cycles = moon.cycles_remaining
-  MW._lunar.anchor_real   = os.time()
+  MW._lunar.anchor_real   = (MyDSL.State.lunar and MyDSL.State.lunar.parsed_at) or os.time()
 end
 
 function MW.cyclesNow()

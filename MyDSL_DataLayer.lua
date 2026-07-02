@@ -740,9 +740,10 @@ end
 
 function MyDSL.endLunar()
   update("lunar", {
-    red   = lunarBlock.red   or {},
-    white = lunarBlock.white or {},
-    black = lunarBlock.black or {},
+    red       = lunarBlock.red   or {},
+    white     = lunarBlock.white or {},
+    black     = lunarBlock.black or {},
+    parsed_at = os.time(),   -- timestamp for MoonWeather countdown anchor
   })
   lunarBlock = {}
   MyDSL.save()
