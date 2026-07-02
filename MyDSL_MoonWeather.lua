@@ -194,18 +194,19 @@ end
 -- MW.setClockAnchor() reads State.time and sets the reference point.
 -- MW.clockStr() interpolates forward in real-time from the anchor.
 
-function MW.setClockAnchor()
-  local t = MyDSL.State and MyDSL.State.time
-  if not (t and t.hour and t.ampm) then return end
-  local h24 = (t.hour % 12) + (t.ampm == "pm" and 12 or 0)
-  local min = t.minute or 0   -- parseTimeLine does not store minutes; starts at 0
-  -- Try gmcp.tick.time for the minutes component when State.time has none
-  local tickStr = gmcp and gmcp.tick and gmcp.tick.time
-  if tickStr and min == 0 then
-    local m = tickStr:match("%d+:(%d+)[ap]m")
-    min = tonumber(m) or 0
+function MW.setClockAnchor(tickStr)
+  local str = tickStr
+  if not str then
+    -- Fallback: build a time string from State.time (no minutes, but better than nothing)
+    local t = MyDSL.State and MyDSL.State.time
+    if not (t and t.hour and t.ampm) then return end
+    str = string.format("%d:00%s", t.hour, t.ampm)
   end
-  MW._clock.anchor_game_min = h24 * 60 + min
+  local h, m, ap = str:match("(%d+):(%d+)([ap]m)")
+  h = tonumber(h); m = tonumber(m)
+  if not h then return end
+  local h24 = (h % 12) + (ap == "pm" and 12 or 0)
+  MW._clock.anchor_game_min = h24 * 60 + m
   MW._clock.anchor_real     = os.time()
 end
 
@@ -525,7 +526,11 @@ end
 
 function MW.onLunarUpdate()   MW.render() end
 function MW.onWeatherUpdate() MW.render() end
-function MW.onTickUpdate()    MW.render() end
+function MW.onTickUpdate()
+  local tickStr = gmcp and gmcp.tick and gmcp.tick.time
+  MW.setClockAnchor(tickStr)
+  MW.render()
+end
 function MW.onTimeUpdate()    MW.setClockAnchor(); MW.render() end
 function MW.onLoginUpdate()   MW.render() end
 
@@ -625,9 +630,13 @@ local function _registerHandlers()
 
   reg("MyDSL.lunar.updated",   function() MW.render() end)
   reg("MyDSL.weather.updated", function() MW.render() end)
-  -- Time handler re-anchors the clock (State.time freshly parsed by `time` command).
-  -- Tick handler does NOT anchor — tick fires every ~41s and would reset the hour counter.
-  reg("MyDSL.tick.updated",    function() MW.render() end)
+  -- Both time and tick handlers re-anchor the clock.
+  -- Tick provides the exact gmcp.tick.time string (no drift); time provides minute precision.
+  reg("MyDSL.tick.updated",    function()
+    local tickStr = gmcp and gmcp.tick and gmcp.tick.time
+    MW.setClockAnchor(tickStr)   -- reanchor every tick with exact DSL time
+    MW.render()
+  end)
   reg("MyDSL.time.updated",    function() MW.setClockAnchor(); MW.render() end)
   reg("MyDSL.login.updated",   function() MW.render() end)
 end
@@ -765,7 +774,8 @@ function MW.init()
 
   -- Seed live clock from State.time (if already available at startup)
   -- then start the 1-second render loop so the clock counts forward in real-time.
-  MW.setClockAnchor()
+  local tickStr = gmcp and gmcp.tick and gmcp.tick.time
+  MW.setClockAnchor(tickStr)   -- prefer gmcp at startup; falls back to State.time
   MW.startClockTimer()
 
   -- Apply visibility from config (hide immediately if saved as hidden).
