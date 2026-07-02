@@ -259,7 +259,7 @@ function MW.setLunarAnchor()
   local moon = nil
   for _, color in ipairs({"red", "white", "black"}) do
     local m = lunar[color]
-    if m and m.has_bonuses and m.cycles_remaining then
+    if m and m.cycles_remaining then
       moon = m
       break
     end
@@ -405,7 +405,7 @@ local function buildFocalText(focal, lunarData)
 
     -- Line 3: regen + live countdown — only present when bonus block was parsed.
     -- Regen is gold when non-zero. Countdown ticks down live via the 1-second timer.
-    if moon.has_bonuses and moon.regen_pct ~= nil then
+    if moon.cycles_remaining then
       local regenCol  = (moon.regen_pct ~= 0) and "#ffcc44" or "#888888"
       local countdown = MW.countdownStr()
       html = html .. span(regenCol, string.format("Regen%+d%%", moon.regen_pct or 0))
