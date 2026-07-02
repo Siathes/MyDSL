@@ -48,13 +48,11 @@ MW._aliases  = MW._aliases  or {}
 MW.ui = MW.ui or {}
 
 -- Live DSL clock state — persists across reloads so the clock continues smoothly.
--- Seeded from gmcp.tick.time on every tick event and on init().
--- is_night stays nil until a sunrise/sunset trigger fires; DataBridge uses GMCP clock as fallback
+-- Seeded from MyDSL.State.time (time command) on every time/tick event and on init().
 MW._clock = MW._clock or {
-  anchor_h24   = nil,   -- 0-23 hour at last GMCP tick anchor
-  anchor_min   = nil,   -- 0 or 30 at last anchor
-  anchor_real  = nil,   -- os.time() at last anchor
-  timer_id     = nil,   -- 1-second update timer ID
+  anchor_game_min = nil,   -- total DSL minutes 0-1439 at last anchor
+  anchor_real     = nil,   -- os.time() at last anchor
+  timer_id        = nil,   -- 1-second update timer ID
 }
 
 
@@ -191,36 +189,35 @@ end
 -- LIVE CLOCK
 ------------------------------------------------------------------------
 -- DSL time rate: 1 real second ≈ 0.7273 DSL minutes (60/82.5).
--- gmcp.tick.time advances one DSL half-hour every ~41 real seconds.
--- MW.clockAnchor() sets the reference point; MW.clockStr() interpolates forward.
+-- MW.setClockAnchor() reads State.time and sets the reference point.
+-- MW.clockStr() interpolates forward in real-time from the anchor.
 
-function MW.clockAnchor(tickStr)
-  if not tickStr then return end
-  local h, m, ap = tickStr:match("(%d+):(%d+)([ap]m)")
-  h = tonumber(h); m = tonumber(m)
-  if not h then return end
-  local h24 = h % 12 + (ap == "pm" and 12 or 0)
-  MW._clock.anchor_h24  = h24
-  MW._clock.anchor_min  = m
-  MW._clock.anchor_real = os.time()
+function MW.setClockAnchor()
+  local t = MyDSL.State and MyDSL.State.time
+  if not (t and t.hour and t.ampm) then return end
+  local h24 = (t.hour % 12) + (t.ampm == "pm" and 12 or 0)
+  local min = t.minute or 0   -- parseTimeLine does not store minutes; starts at 0
+  -- Try gmcp.tick.time for the minutes component when State.time has none
+  local tickStr = gmcp and gmcp.tick and gmcp.tick.time
+  if tickStr and min == 0 then
+    local m = tickStr:match("%d+:(%d+)[ap]m")
+    min = tonumber(m) or 0
+  end
+  MW._clock.anchor_game_min = h24 * 60 + min
+  MW._clock.anchor_real     = os.time()
 end
 
 function MW.clockStr()
   if not MW._clock.anchor_real then return "--:--" end
-  local elapsed        = os.time() - MW._clock.anchor_real
-  local dsl_min_elapsed = elapsed * (60 / 82.5)
-  local total_min      = MW._clock.anchor_h24 * 60 +
-                         MW._clock.anchor_min  +
-                         dsl_min_elapsed
-  total_min = total_min % (24 * 60)
-  local h24    = math.floor(total_min / 60) % 24
-  local min    = math.floor(total_min % 60)
-  local ap     = h24 >= 12 and "pm" or "am"
-  local h12    = h24 % 12
+  local elapsed     = os.time() - MW._clock.anchor_real
+  local dsl_elapsed = elapsed * (60 / 82.5)
+  local total_min   = (MW._clock.anchor_game_min + dsl_elapsed) % (24 * 60)
+  local h24  = math.floor(total_min / 60)
+  local min  = math.floor(total_min % 60)
+  local ap   = h24 >= 12 and "pm" or "am"
+  local h12  = h24 % 12
   if h12 == 0 then h12 = 12 end
-  -- Snap to nearest :00 or :30 (DSL only shows half-hour steps)
-  local dispMin = min < 30 and "00" or "30"
-  return string.format("%d:%s %s", h12, dispMin, ap)
+  return string.format("%d:%02d %s", h12, min, ap)
 end
 
 function MW.startClockTimer()
@@ -521,8 +518,8 @@ end
 
 function MW.onLunarUpdate()   MW.render() end
 function MW.onWeatherUpdate() MW.render() end
-function MW.onTickUpdate()    MW.render() end
-function MW.onTimeUpdate()    MW.render() end
+function MW.onTickUpdate()    MW.setClockAnchor(); MW.render() end
+function MW.onTimeUpdate()    MW.setClockAnchor(); MW.render() end
 function MW.onLoginUpdate()   MW.render() end
 
 
@@ -621,13 +618,9 @@ local function _registerHandlers()
 
   reg("MyDSL.lunar.updated",   function() MW.render() end)
   reg("MyDSL.weather.updated", function() MW.render() end)
-  -- Tick handler also re-anchors the live clock from gmcp.tick.time.
-  reg("MyDSL.tick.updated",    function()
-    local tickStr = gmcp and gmcp.tick and gmcp.tick.time
-    if tickStr then MW.clockAnchor(tickStr) end
-    MW.render()
-  end)
-  reg("MyDSL.time.updated",    function() MW.render() end)
+  -- Tick and time handlers re-anchor the clock via State.time (guaranteed to have data).
+  reg("MyDSL.tick.updated",    function() MW.setClockAnchor(); MW.render() end)
+  reg("MyDSL.time.updated",    function() MW.setClockAnchor(); MW.render() end)
   reg("MyDSL.login.updated",   function() MW.render() end)
 end
 
@@ -762,10 +755,9 @@ function MW.init()
   MW.render()
   tempTimer(0.5, function() if MW.ui.label then MW.render() end end)
 
-  -- Seed live clock from current GMCP tick time (if already available)
+  -- Seed live clock from State.time (if already available at startup)
   -- then start the 1-second render loop so the clock counts forward in real-time.
-  local tickStr = gmcp and gmcp.tick and gmcp.tick.time
-  if tickStr then MW.clockAnchor(tickStr) end
+  MW.setClockAnchor()
   MW.startClockTimer()
 
   -- Apply visibility from config (hide immediately if saved as hidden).
