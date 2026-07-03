@@ -45,44 +45,46 @@ end
 -- Nearby section uses rows in order (may list same creature multiple times).
 
 function SV.renderScan()
-  clearWindow(SCAN_MC)
+  local mc = SV._mc and SV._mc.scan
+  if not mc then return end
+  mc:clear()
   local scan = MyDSL.State and MyDSL.State.scan
   if not scan or not scan.rows then
-    cecho(SCAN_MC, "\n<grey>(no scan data yet)\n")
+    mc:cecho("\n<grey>(no scan data yet)\n")
     return
   end
   if #scan.rows == 0 then
-    cecho(SCAN_MC, "<#555555>[Empty scan]\n<reset>")
+    mc:cecho("<#555555>[Empty scan]\n<reset>")
     return
   end
 
   -- [Right Here] — aggregated entries from rightHere table
-  cecho(SCAN_MC, "<#888888>[Right Here]\n<reset>")
+  mc:cecho("<#888888>[Right Here]\n<reset>")
   local has_rh = scan.rightHere and next(scan.rightHere) ~= nil
   if not has_rh then
-    cecho(SCAN_MC, "<#444444>  (none)\n<reset>")
+    mc:cecho("<#444444>  (none)\n<reset>")
   else
     for _, entry in pairs(scan.rightHere) do
       local c      = entry.is_mob and "#cc4444" or "#88aaff"
       local suffix = entry.count > 1
         and string.format(" <#ffcc44>(×%d)<reset>", entry.count) or ""
-      cecho(SCAN_MC, string.format("<%s>  %s%s\n<reset>", c, entry.display, suffix))
+      mc:cecho(string.format("<%s>  %s%s\n<reset>", c, entry.display, suffix))
     end
   end
 
   -- [Nearby] — individual rows excluding right-here entries
-  cecho(SCAN_MC, "<#888888>[Nearby]\n<reset>")
+  mc:cecho("<#888888>[Nearby]\n<reset>")
   local has_nearby = false
   for _, row in ipairs(scan.rows) do
     if row.where ~= "right here" then
       has_nearby = true
       local c   = row.is_mob and "#886644" or "#6688cc"
       local dir = string.format(" <#444444>→<reset> <#888888>%s<reset>", row.where)
-      cecho(SCAN_MC, string.format("<%s>  %s<reset>%s\n", c, row.display, dir))
+      mc:cecho(string.format("<%s>  %s<reset>%s\n", c, row.display, dir))
     end
   end
   if not has_nearby then
-    cecho(SCAN_MC, "<#444444>  (none)\n<reset>")
+    mc:cecho("<#444444>  (none)\n<reset>")
   end
 end
 
@@ -93,16 +95,18 @@ end
 -- Each entry is a clickable cechoLink that calls MyDSL.Target.set().
 
 function SV.renderRightHere()
-  clearWindow(RH_MC)
+  local mc = SV._mc and SV._mc.rightHere
+  if not mc then return end
+  mc:clear()
   local scan = MyDSL.State and MyDSL.State.scan
   if not scan or not scan.rightHere then
-    cecho(RH_MC, "\n<grey>Right Here: (empty)\n")
+    mc:cecho("\n<grey>Right Here: (empty)\n")
     return
   end
-  cecho(RH_MC, "<#888888>Right Here:\n<reset>")
+  mc:cecho("<#888888>Right Here:\n<reset>")
 
   if not next(scan.rightHere) then
-    cecho(RH_MC, "<#444444>  (empty)\n<reset>")
+    mc:cecho("<#444444>  (empty)\n<reset>")
     return
   end
 
@@ -118,8 +122,8 @@ function SV.renderRightHere()
       'if MyDSL and MyDSL.Target then MyDSL.Target.set("%s", %s, "righthereclick") end',
       safe_name, tostring(entry.is_mob))
     local hint = "Click to target: " .. entry.display
-    cechoLink(RH_MC, text, cmd, hint, false)
-    cecho(RH_MC, "\n")
+    mc:cechoLink(text, cmd, hint, false)
+    mc:cecho("\n")
   end
 end
 

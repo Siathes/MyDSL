@@ -175,21 +175,23 @@ end
 ------------------------------------------------------------------------
 
 function TV.render()
-  clearWindow(TARGET_MC)
+  local mc = TV._mc and TV._mc.target
+  if not mc then return end
+  mc:clear()
   local t = MyDSL.State.target
 
   -- Line 1: [M]/[P] toggle cechoLink + target name
   local type_tag   = (t and t.is_mob) and "M" or "P"
   local type_color = (t and t.is_mob) and "#cc8844" or "#88aaff"
   local toggle_text = string.format("<%s>[%s]<reset>", type_color, type_tag)
-  cechoLink(TARGET_MC, toggle_text,
+  mc:cechoLink(toggle_text,
     "if MyDSL and MyDSL.Target then MyDSL.Target.toggle() end",
     "Toggle mob/player", false)
 
   if not t or not t.name then
-    cecho(TARGET_MC, " <#555555>(no target)<reset>\n")
+    mc:cecho(" <#555555>(no target)<reset>\n")
   else
-    cecho(TARGET_MC, string.format(" <#ffffff>%s<reset>\n", t.name))
+    mc:cecho(string.format(" <#ffffff>%s<reset>\n", t.name))
   end
 
   -- Lines 2-3: 6 action buttons, 3 per row
@@ -203,16 +205,16 @@ function TV.render()
         local btn_text = string.format("<%s>[%s]<reset>", act.color, act.label)
         local cmd = string.format(
           'if MyDSL and MyDSL.Target then MyDSL.Target.doAction("%s") end', key)
-        cechoLink(TARGET_MC, btn_text, cmd, act.tooltip, false)
-        if col < 3 then cecho(TARGET_MC, " ") end
+        mc:cechoLink(btn_text, cmd, act.tooltip, false)
+        if col < 3 then mc:cecho(" ") end
       end
     end
-    cecho(TARGET_MC, "\n")
+    mc:cecho("\n")
   end
 
   -- Line 4+: consider output (dim grey, cleared on target change)
   for _, line in ipairs(TV._consider_lines) do
-    cecho(TARGET_MC, string.format("<#888888>%s<reset>\n", line))
+    mc:cecho(string.format("<#888888>%s<reset>\n", line))
   end
 end
 
