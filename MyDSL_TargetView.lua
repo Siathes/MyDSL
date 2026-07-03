@@ -1,0 +1,325 @@
+-- =============================================================================
+-- MyDSL_TargetView.lua  --  Layer 3 Phase B: Target display and action buttons
+-- =============================================================================
+-- Displays the current combat target and 6 configurable action buttons.
+-- Target is set by clicking in RightHere (MyDSL.Target.set) or via alias.
+-- Buttons send commands only on explicit player click — never automatically.
+-- =============================================================================
+
+MyDSL        = MyDSL        or {}
+MyDSL.Target = MyDSL.Target or {}
+
+MyDSL.TargetView = MyDSL.TargetView or {}
+local TV = MyDSL.TargetView
+
+-- Safe-reload: kill old handlers, triggers, aliases on every load.
+for _, id in pairs(TV._handlers or {}) do pcall(killAnonymousEventHandler, id) end
+for _, id in pairs(TV._triggers or {}) do pcall(killTrigger, id) end
+for _, id in pairs(TV._aliases  or {}) do pcall(killAlias, id) end
+
+TV._handlers = {}
+TV._triggers = {}
+TV._aliases  = {}
+TV._mc       = TV._mc or {}   -- persists to avoid duplicate MiniConsole creation
+TV._consider_lines = {}       -- cleared on target change, appended by captureConsider
+
+-- Config with defaults; loadConfig() may override these from disk.
+TV.config = TV.config or {
+  mob_buttons    = { "murder", "glance", "consider", "creaturelore", "rescue", "flee" },
+  player_buttons = { "murder", "glance", "rescue", "look", "heal", "flee" },
+}
+
+-- Window / MiniConsole names.
+local TARGET_WIN = "MyDSL_Target"
+local TARGET_MC  = "MyDSL_Target_MC"
+
+-- Config persistence path.
+local CONFIG_FILE = getMudletHomeDir() .. "/MyDSL/targetview_config.lua"
+
+
+------------------------------------------------------------------------
+-- Action definitions
+------------------------------------------------------------------------
+-- cmd: function(target_state) → command string to send
+-- Label, color, and tooltip are used by render().
+
+TV.actions = {
+  murder = {
+    cmd     = function(t) return "murder " .. t.name end,
+    label   = "Murder",
+    color   = "#cc4444",
+    tooltip = "Attack target",
+  },
+  glance = {
+    cmd     = function(t) return "gl " .. t.name end,
+    label   = "Glance",
+    color   = "#88ccaa",
+    tooltip = "Quick look at target",
+  },
+  consider = {
+    cmd     = function(t) return "consider " .. t.name end,
+    label   = "Consider",
+    color   = "#88ccaa",
+    tooltip = "Check combat difficulty",
+  },
+  creaturelore = {
+    cmd     = function(t) return "creaturelore " .. t.name end,
+    label   = "Lore",
+    color   = "#88ccaa",
+    tooltip = "Get creature lore (opens reference window)",
+  },
+  rescue = {
+    cmd     = function(t) return "rescue " .. t.name end,
+    label   = "Rescue",
+    color   = "#aaaaff",
+    tooltip = "Rescue target from combat",
+  },
+  flee = {
+    cmd     = function(_) return "flee" end,
+    label   = "Flee",
+    color   = "#cc4444",
+    tooltip = "Attempt to flee combat",
+  },
+  look = {
+    cmd     = function(t) return "look " .. t.name end,
+    label   = "Look",
+    color   = "#88ccaa",
+    tooltip = "Full look at target",
+  },
+  heal = {
+    cmd     = function(t) return "cast 'heal' " .. t.name end,
+    label   = "Heal",
+    color   = "#aaaaff",
+    tooltip = "Cast heal on target",
+  },
+}
+
+
+------------------------------------------------------------------------
+-- Config persistence
+------------------------------------------------------------------------
+
+local function loadConfig()
+  local ok, data = pcall(table.load, CONFIG_FILE)
+  if ok and type(data) == "table" then
+    if type(data.mob_buttons) == "table" and #data.mob_buttons == 6 then
+      TV.config.mob_buttons = data.mob_buttons
+    end
+    if type(data.player_buttons) == "table" and #data.player_buttons == 6 then
+      TV.config.player_buttons = data.player_buttons
+    end
+  end
+end
+
+local function saveConfig()
+  pcall(table.save, CONFIG_FILE, TV.config)
+end
+
+
+------------------------------------------------------------------------
+-- Local article-detection (same rule as DataLayer isMobName)
+------------------------------------------------------------------------
+
+local function isMob(name)
+  return name:match("^[Aa]n? ") ~= nil or name:match("^[Tt]he ") ~= nil
+end
+
+
+------------------------------------------------------------------------
+-- Target state management
+------------------------------------------------------------------------
+
+function MyDSL.Target.set(name, is_mob, source)
+  MyDSL.State.target = {
+    name   = name,
+    key    = name:lower():gsub("^[Aa]n? ", ""):gsub("^[Tt]he ", ""),
+    is_mob = is_mob,
+    source = source or "manual",
+    set_at = os.time(),
+  }
+  TV._consider_lines = {}   -- clear stale consider output
+  raiseEvent("MyDSL.target.updated", MyDSL.State.target)
+  TV.render()
+end
+
+function MyDSL.Target.clear()
+  MyDSL.State.target = nil
+  TV._consider_lines = {}
+  raiseEvent("MyDSL.target.updated", nil)
+  TV.render()
+end
+
+function MyDSL.Target.toggle()
+  local t = MyDSL.State.target
+  if not t then return end
+  t.is_mob = not t.is_mob
+  TV.render()
+end
+
+function MyDSL.Target.doAction(action_key)
+  local t = MyDSL.State.target
+  if not t or not t.name then return end
+  local act = TV.actions[action_key]
+  if not act then return end
+  send(act.cmd(t), false)
+end
+
+function MyDSL.Target.captureConsider(line)
+  TV._consider_lines[#TV._consider_lines + 1] = line
+  TV.render()
+end
+
+
+------------------------------------------------------------------------
+-- render()  —  redraws the entire Target window
+------------------------------------------------------------------------
+
+function TV.render()
+  clearWindow(TARGET_MC)
+  local t = MyDSL.State.target
+
+  -- Line 1: [M]/[P] toggle cechoLink + target name
+  local type_tag   = (t and t.is_mob) and "M" or "P"
+  local type_color = (t and t.is_mob) and "#cc8844" or "#88aaff"
+  local toggle_text = string.format("<%s>[%s]<reset>", type_color, type_tag)
+  cechoLink(TARGET_MC, toggle_text,
+    "if MyDSL and MyDSL.Target then MyDSL.Target.toggle() end",
+    "Toggle mob/player", false)
+
+  if not t or not t.name then
+    cecho(TARGET_MC, " <#555555>(no target)<reset>\n")
+  else
+    cecho(TARGET_MC, string.format(" <#ffffff>%s<reset>\n", t.name))
+  end
+
+  -- Lines 2-3: 6 action buttons, 3 per row
+  local buttons = (t and t.is_mob) and TV.config.mob_buttons or TV.config.player_buttons
+  for row = 0, 1 do
+    for col = 1, 3 do
+      local idx = row * 3 + col
+      local key = buttons[idx]
+      local act = key and TV.actions[key]
+      if act then
+        local btn_text = string.format("<%s>[%s]<reset>", act.color, act.label)
+        local cmd = string.format(
+          'if MyDSL and MyDSL.Target then MyDSL.Target.doAction("%s") end', key)
+        cechoLink(TARGET_MC, btn_text, cmd, act.tooltip, false)
+        if col < 3 then cecho(TARGET_MC, " ") end
+      end
+    end
+    cecho(TARGET_MC, "\n")
+  end
+
+  -- Line 4+: consider output (dim grey, cleared on target change)
+  for _, line in ipairs(TV._consider_lines) do
+    cecho(TARGET_MC, string.format("<#888888>%s<reset>\n", line))
+  end
+end
+
+
+------------------------------------------------------------------------
+-- init()  —  safe to re-call on reload
+------------------------------------------------------------------------
+
+function TV.init()
+  -- Ensure Target UserWindow and its MiniConsole exist.
+  local targetWin = MyDSL.Windows.ensure(TARGET_WIN)
+  if not TV._mc.target then
+    TV._mc.target = Geyser.MiniConsole:new({
+      name      = TARGET_MC,
+      x = 0, y = 0, width = "100%", height = "100%",
+      wrapWidth = 300,
+      scrollBar = false,
+    }, targetWin)
+  end
+
+  -- Register target.updated handler (for external setters).
+  TV._handlers.targetUpdated = registerAnonymousEventHandler(
+    "MyDSL.target.updated",
+    function() TV.render() end
+  )
+
+  -- Consider capture triggers (not gagged — output stays in main console).
+  TV._triggers.considerLine1 = tempRegexTrigger(
+    "^You wonder if you could kill",
+    function()
+      if MyDSL and MyDSL.Target then
+        MyDSL.Target.captureConsider(getCurrentLine())
+      end
+    end
+  )
+  TV._triggers.considerLine2 = tempRegexTrigger(
+    "^%.%.%. ",
+    function()
+      if MyDSL and MyDSL.Target then
+        MyDSL.Target.captureConsider(getCurrentLine())
+      end
+    end
+  )
+
+  -- Aliases
+  TV._aliases.targetSet = tempAlias(
+    "^mydsl target clear$",
+    "if MyDSL and MyDSL.Target then MyDSL.Target.clear() end"
+  )
+  TV._aliases.targetClear = tempAlias(
+    "^mydsl target (.+)$",
+    [[
+      local name = matches[2]
+      if name ~= "clear" and MyDSL and MyDSL.Target then
+        local function isM(n)
+          return n:match("^[Aa]n? ") ~= nil or n:match("^[Tt]he ") ~= nil
+        end
+        MyDSL.Target.set(name, isM(name), "manual")
+      end
+    ]]
+  )
+  TV._aliases.targetMobset = tempAlias(
+    "^mydsl target mobset%s+(%S+)%s+(%S+)%s+(%S+)%s+(%S+)%s+(%S+)%s+(%S+)$",
+    [[
+      if MyDSL and MyDSL.TargetView then
+        MyDSL.TargetView.config.mob_buttons = {
+          matches[2], matches[3], matches[4], matches[5], matches[6], matches[7]
+        }
+        -- saveConfig is local; call via TV reference exposed on module table
+        MyDSL.TargetView._saveConfig()
+        echo("Mob buttons updated.\n")
+      end
+    ]]
+  )
+  TV._aliases.targetPlayerset = tempAlias(
+    "^mydsl target playerset%s+(%S+)%s+(%S+)%s+(%S+)%s+(%S+)%s+(%S+)%s+(%S+)$",
+    [[
+      if MyDSL and MyDSL.TargetView then
+        MyDSL.TargetView.config.player_buttons = {
+          matches[2], matches[3], matches[4], matches[5], matches[6], matches[7]
+        }
+        MyDSL.TargetView._saveConfig()
+        echo("Player buttons updated.\n")
+      end
+    ]]
+  )
+
+  -- Load config from disk (may override defaults).
+  loadConfig()
+
+  -- Initial render.
+  TV.render()
+
+  debugc("[MyDSL] TargetView loaded.")
+end
+
+-- Expose saveConfig so alias callbacks can call it.
+TV._saveConfig = saveConfig
+
+
+------------------------------------------------------------------------
+-- Boot
+------------------------------------------------------------------------
+
+-- Initialise State.target guard (DataLayer owns MyDSL.State but target
+-- is managed by this module, so we initialise it here if absent).
+MyDSL.State = MyDSL.State or {}
+MyDSL.State.target = MyDSL.State.target or nil
+
+TV.init()
