@@ -47,7 +47,11 @@ end
 function SV.renderScan()
   clearWindow(SCAN_MC)
   local scan = MyDSL.State and MyDSL.State.scan
-  if not scan or #scan.rows == 0 then
+  if not scan or not scan.rows then
+    cecho(SCAN_MC, "\n<grey>(no scan data yet)\n")
+    return
+  end
+  if #scan.rows == 0 then
     cecho(SCAN_MC, "<#555555>[Empty scan]\n<reset>")
     return
   end
@@ -91,9 +95,13 @@ end
 function SV.renderRightHere()
   clearWindow(RH_MC)
   local scan = MyDSL.State and MyDSL.State.scan
+  if not scan or not scan.rightHere then
+    cecho(RH_MC, "\n<grey>Right Here: (empty)\n")
+    return
+  end
   cecho(RH_MC, "<#888888>Right Here:\n<reset>")
 
-  if not scan or not next(scan.rightHere) then
+  if not next(scan.rightHere) then
     cecho(RH_MC, "<#444444>  (empty)\n<reset>")
     return
   end

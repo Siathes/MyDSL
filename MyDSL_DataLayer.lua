@@ -51,7 +51,9 @@ MyDSL.State.inv     = MyDSL.State.inv     or { last_updated = 0 }  -- text: carr
 MyDSL.State.map     = MyDSL.State.map     or { last_updated = 0 }  -- text: ASCII map lines
 MyDSL.State.improve = MyDSL.State.improve or { last_updated = 0 }  -- text: skill improve events
 MyDSL.State.flags        = MyDSL.State.flags        or { last_updated = 0 }  -- text: toggle flags from score
-MyDSL.State.scan         = MyDSL.State.scan         or { last_updated = 0 }  -- text: nearby entities from scan command
+MyDSL.State.scan         = MyDSL.State.scan         or {  -- text: nearby entities from scan command
+  mode=nil, direction=nil, rows={}, rightHere={}, byName={}, last_updated=0
+}
 MyDSL.State.creaturelore = MyDSL.State.creaturelore or { last_updated = 0 }  -- text: creature lore block
 
 -- Per-character persistent storage.  Keyed by character name so Kien,
