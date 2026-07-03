@@ -290,12 +290,14 @@ Deferred to Phase B+ (see Open Items below).
 
 | Module | Status |
 |---|---|
-| MoonWeather | ✅ Complete — all alignments verified (neutral/red, good/white, evil/black) |
-| Scan/RightHere | ✅ Complete — MyDSL_ScanView.lua; DataLayer parsers + triggers wired |
-| Target | ✅ Complete — MyDSL_TargetView.lua; Target.set/clear/toggle/doAction API |
-| CreatureReference | ✅ Complete — MyDSL_CreatureReference.lua; auto-shows on lore capture |
-| Combat window | Not started |
+| MoonWeather | ✅ Complete 2026-06-30 — all alignments verified (neutral/red, good/white, evil/black) |
+| ScanView | ✅ Complete 2026-07-02 — in-game confirmed; appendBuffer preserves game colors |
+| RightHereView | ✅ Complete 2026-07-02 — in-game confirmed; clickable names, ×N count aggregation |
+| TargetView | ✅ Complete 2026-07-02 — combat confirmed; murder/flee/rescue all firing correctly |
+| CreatureReference | ✅ Built 2026-07-02 — not yet combat-tested with actual creaturelore command |
 | Group window | Not started |
+| Combat window | Not started |
+| LiveView/Character panel redesign | Not started |
 
 **MoonWeather note:** Date field re-anchors automatically via the player's existing
 dawn/dusk triggers which fire `send('time')` — no calendar math needed. Clock anchors
@@ -307,25 +309,17 @@ elapsed time accumulates before the widget re-renders. Acceptable for now.
 
 ---
 
-## Open Items Before Next Module
+## Known Open Items (non-blocking)
 
-These items are not blocking Phase B but should be addressed before the next window is built:
-
-1. ~~**Score parser: stance field**~~ — ✅ Already fixed (commit `468ee77`, Jun-29).
-   `%S+` has been in place since Phase A completion. SESSION_START.md was stale.
-2. ~~**Score parser: profession field**~~ — ✅ Already fixed (commit `468ee77`, Jun-29).
-   Three-separator logic with `_saw_profession` flag already in DataLayer.
-3. ~~**Weather trigger**~~ — ✅ Wired (this session). Broad pattern `"^[A-Z][^%.]+%.$"`
-   with weather keyword guard in `parseWeatherLine()`. MoonWeather subscription
-   (`"MyDSL.weather.updated"`) now receives events. Weather display row deferred to Phase B+.
-4. ~~**Day/night indicator**~~ — ✅ Fully wired via prompt parser (2026-07-01).
-   `State.time.period` set on every prompt from `parsePromptLine()` — most reliable source.
-   Period strings confirmed: `"Night Time"`, `"Dawn"`, `"Day Time"`.
-   `DB.time.is_night` priority: period (prompt) → sunrise/sunset triggers → GMCP clock.
-   Secondary triggers still wired:
-   - `"The sun rises in the east."` → `is_night = false` (☀)
-   - `"The night has begun."` → `is_night = true` (✦)
-   Note: `"* * * * * Night folds the land in shadow * * * * *"` is a cecho line — NOT triggerable.
+1. **Target buttons blue underline** — `mc:dechoLink()` default styling adds blue underline
+   to all 6 action buttons and the [M]/[P] toggle. Functional but visually noisy.
+   Deferred to Phase C visual polish.
+2. **CreatureReference untested** — built and wired, but not yet exercised with an actual
+   `creaturelore` command in combat. Test opportunistically next session.
+3. **Consider output capture unconfirmed** — `TV._triggers.considerLine1/2` triggers wired;
+   not yet confirmed that the "You wonder if you could kill..." lines appear in Target window.
+4. **Named NPC mob detection** — `"Cekysil, a shopkeeper"` detected as player (no `a/an/the`
+   article prefix). Accepted behavior — commandArg() handles the comma correctly.
 5. **LiveView dead event subscriptions** — 7 of 8 subscriptions never fire (TitleCase
    events that nothing raises). LiveView works via 0.25s `"MyDSL.Timers.Updated"` tick.
    Low priority — functional as-is.
@@ -336,7 +330,7 @@ These items are not blocking Phase B but should be addressed before the next win
 
 ## Recommended Next Actions
 
-*Updated 2026-07-02 — Scan/RightHere/Target/CreatureReference complete.*
+*Updated 2026-07-03 — Scan/RightHere/Target combat-confirmed. Tagged v1.4.*
 
 1. ~~**Validate time row in game**~~ — ✅ Done. Steven confirmed working 2026-06-30.
 2. ~~**Remove debug logging from `buildTimeRow()`**~~ — ✅ Done (commit `d758806`).
@@ -344,9 +338,9 @@ These items are not blocking Phase B but should be addressed before the next win
 4. ~~**Fix score parser issues**~~ — ✅ Already done (Jun-29). No action needed.
 5. ~~**Wire weather trigger**~~ — ✅ Done. No display row yet — deferred to Phase B+.
 6. ~~**Validate day/night indicator, living clock, stacked layout**~~ — ✅ MoonWeather feature-complete.
-7. ~~**Scan/RightHere**~~ — ✅ Done (2026-07-02). Needs in-game smoke test.
-8. ~~**Target**~~ — ✅ Done (2026-07-02). Needs in-game smoke test.
-9. ~~**CreatureReference**~~ — ✅ Done (2026-07-02). Needs in-game smoke test.
+7. ~~**Scan/RightHere in-game smoke test**~~ — ✅ Confirmed 2026-07-02. Game-colored scan text, clickable RightHere names.
+8. ~~**Target in-game smoke test**~~ — ✅ Confirmed 2026-07-02. Combat working end-to-end.
+9. ~~**CreatureReference built**~~ — ✅ Built 2026-07-02. In-game test still pending.
 
 10. **Begin Phase B next window — Group window.**
     Write Contract_Group.md first; use Contract_ScanView.md as structural template.
@@ -358,4 +352,7 @@ These items are not blocking Phase B but should be addressed before the next win
     18. MyDSL_CreatureReference
     Steven must add these dofile() wrappers in Mudlet's Script editor.
 
-12. **LiveView dead event subscriptions** — low priority. Works via 0.25s timer. Fix when convenient.
+12. **Test CreatureReference** — type `creaturelore <mob>` in combat and confirm the
+    reference window auto-populates. Opportunistic — do when next in combat.
+
+13. **LiveView dead event subscriptions** — low priority. Works via 0.25s timer. Fix when convenient.
