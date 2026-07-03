@@ -340,7 +340,7 @@ function TV.init()
     end
   )
   TV._triggers.considerLine2 = tempRegexTrigger(
-    "^%.%.%. ",
+    "^\\.\\.\\. ",
     function()
       if MyDSL and MyDSL.Target then
         MyDSL.Target.captureConsider(getCurrentLine())

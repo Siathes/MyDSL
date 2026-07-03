@@ -1398,7 +1398,7 @@ MyDSL._triggers.promptLine = tempRegexTrigger(
 -- Sets State.time.is_night and re-emits "time" so DataBridge + MoonWeather update.
 
 MyDSL._triggers.sunrise = tempRegexTrigger(
-  "^The sun rises in the east%.$",
+  "^The sun rises in the east\\.$",
   function()
     if MyDSL and MyDSL.State and MyDSL.State.time then
       MyDSL.State.time.is_night = false
@@ -1408,7 +1408,7 @@ MyDSL._triggers.sunrise = tempRegexTrigger(
 )
 
 MyDSL._triggers.sunset = tempRegexTrigger(
-  "^The night has begun%.$",
+  "^The night has begun\\.$",
   function()
     if MyDSL and MyDSL.State and MyDSL.State.time then
       MyDSL.State.time.is_night = true
@@ -1425,7 +1425,7 @@ MyDSL._triggers.sunset = tempRegexTrigger(
 -- internally using a weather keyword list.
 
 MyDSL._triggers.weather = tempRegexTrigger(
-  "^[A-Z][^%.]+%.$",
+  "^[A-Z][^.]+\\.$",
   function()
     local ln = getCurrentLine()
     if MyDSL and MyDSL.parseWeatherLine then
@@ -1450,7 +1450,7 @@ MyDSL._triggers.scanAround = tempRegexTrigger(
 )
 
 MyDSL._triggers.scanDir = tempRegexTrigger(
-  "^You peer intently (%a+)%.$",
+  "^You peer intently ([a-zA-Z]+)\\.$",
   function()
     if not (MyDSL and MyDSL.beginScan) then return end
     local dir = getCurrentLine():match("^You peer intently (%a+)%.$")
@@ -1480,7 +1480,7 @@ MyDSL._triggers.groupStart = tempRegexTrigger(
 -- beginCreatureLore().
 
 MyDSL._triggers.loreStart = tempRegexTrigger(
-  "^Creature:%s",
+  "^Creature:\\s",
   function()
     if MyDSL and MyDSL.beginCreatureLore then
       MyDSL.beginCreatureLore(getCurrentLine())

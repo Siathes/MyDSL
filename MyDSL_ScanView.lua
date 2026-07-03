@@ -95,7 +95,7 @@ function SV.setGag(enabled)
       function() deleteLine() end
     )
     SV._triggers.gagDir = tempRegexTrigger(
-      "^You peer intently %a+%.$",
+      "^You peer intently [a-zA-Z]+\\.$",
       function() deleteLine() end
     )
   end
