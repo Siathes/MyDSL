@@ -183,8 +183,8 @@ function TV.render()
   -- Line 1: [M]/[P] toggle + name
   local type_tag   = (t and t.is_mob) and "M" or "P"
   local type_color = (t and t.is_mob) and "204,136,68" or "136,170,255"
-  mc:decho(string.format("<%s>[%s]<r>", type_color, type_tag))
-  mc:setLink("MyDSL.Target.toggle()", "Switch mob/player mode", false)
+  mc:dechoLink(string.format("<%s>[%s]<r>", type_color, type_tag),
+    "MyDSL.Target.toggle()", "Switch mob/player mode", false)
 
   if not t or not t.name then
     mc:decho(" <85,85,85>(no target)<r>\n")
@@ -192,7 +192,7 @@ function TV.render()
     mc:decho(string.format(" <255,255,255>%s<r>\n", t.name))
   end
 
-  -- Lines 2-3: 6 action buttons (decho+setLink — no underline styling)
+  -- Lines 2-3: 6 action buttons
   if t and t.name then
     local buttons = t.is_mob and TV.config.mob_buttons or TV.config.player_buttons
     for row = 0, 1 do
@@ -201,10 +201,11 @@ function TV.render()
         local key = buttons[idx]
         local act = key and TV.actions[key]
         if act then
-          mc:decho(string.format("<%s>[%s]<r>", act.color, act.label))
-          mc:setLink("MyDSL.Target.doAction('" .. key .. "')",
+          local btn_text = string.format("<%s>[%s]<r>", act.color, act.label)
+          if col < 3 then btn_text = btn_text .. " " end
+          mc:dechoLink(btn_text,
+            string.format("MyDSL.Target.doAction('%s')", key),
             act.tooltip .. ": " .. t.name, false)
-          if col < 3 then mc:decho(" ") end
         end
       end
       mc:decho("\n")
