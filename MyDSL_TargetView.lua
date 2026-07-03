@@ -180,13 +180,11 @@ function TV.render()
   mc:clear()
   local t = MyDSL.State.target
 
-  -- Line 1: [M]/[P] toggle (dechoLink, useCurrentFormat=true hides underline) + name
+  -- Line 1: [M]/[P] toggle + name
   local type_tag   = (t and t.is_mob) and "M" or "P"
   local type_color = (t and t.is_mob) and "204,136,68" or "136,170,255"
-  local toggle_text = string.format("<%s>[%s]<r>", type_color, type_tag)
-  mc:dechoLink(toggle_text,
-    "if MyDSL and MyDSL.Target then MyDSL.Target.toggle() end",
-    "Toggle mob/player", true)
+  mc:decho(string.format("<%s>[%s]<r>", type_color, type_tag))
+  mc:setLink("MyDSL.Target.toggle()", "Switch mob/player mode", false)
 
   if not t or not t.name then
     mc:decho(" <85,85,85>(no target)<r>\n")
@@ -194,7 +192,7 @@ function TV.render()
     mc:decho(string.format(" <255,255,255>%s<r>\n", t.name))
   end
 
-  -- Lines 2-3: 6 action buttons via dechoPopup (sends game command on click)
+  -- Lines 2-3: 6 action buttons (decho+setLink — no underline styling)
   if t and t.name then
     local buttons = t.is_mob and TV.config.mob_buttons or TV.config.player_buttons
     for row = 0, 1 do
@@ -203,9 +201,9 @@ function TV.render()
         local key = buttons[idx]
         local act = key and TV.actions[key]
         if act then
-          local label = string.format("<%s>[%s]<r>", act.color, act.label)
-          local cmd   = act.cmd(t)
-          dechoPopup(TARGET_MC, label, {cmd}, {act.tooltip .. ": " .. t.name}, false)
+          mc:decho(string.format("<%s>[%s]<r>", act.color, act.label))
+          mc:setLink("MyDSL.Target.doAction('" .. key .. "')",
+            act.tooltip .. ": " .. t.name, false)
           if col < 3 then mc:decho(" ") end
         end
       end
