@@ -295,7 +295,7 @@ Deferred to Phase B+ (see Open Items below).
 | RightHereView | ✅ Complete 2026-07-02 — in-game confirmed; clickable names, ×N count aggregation |
 | TargetView | ✅ Complete 2026-07-02 — combat confirmed; murder/flee/rescue all firing correctly |
 | CreatureReference | ✅ Built 2026-07-02 — not yet combat-tested with actual creaturelore command |
-| Group window | Not started |
+| Group window | ✅ Built 2026-07-03 — MyDSL_GroupView.lua; DataLayer triggers wired; needs in-game smoke test |
 | Combat window | Not started |
 | LiveView/Character panel redesign | Not started |
 
@@ -342,17 +342,19 @@ elapsed time accumulates before the widget re-renders. Acceptable for now.
 8. ~~**Target in-game smoke test**~~ — ✅ Confirmed 2026-07-02. Combat working end-to-end.
 9. ~~**CreatureReference built**~~ — ✅ Built 2026-07-02. In-game test still pending.
 
-10. **Begin Phase B next window — Group window.**
-    Write Contract_Group.md first; use Contract_ScanView.md as structural template.
-    Depends on DataLayer Section 9i (beginGroup/parseGroupLine/endGroup) which already exists.
+10. ~~**Begin Phase B next window — Group window.**~~ — ✅ Done 2026-07-03. Needs in-game smoke test.
 
-11. **Update autosave.xml / dofile load order** — add scripts 16-18 to the MyDSL_Full group:
+11. **Update autosave.xml / dofile load order** — add scripts 16-19 to the MyDSL_Full group:
     16. MyDSL_ScanView  (after MyDSL_MoonWeather)
     17. MyDSL_TargetView
     18. MyDSL_CreatureReference
+    19. MyDSL_GroupView
     Steven must add these dofile() wrappers in Mudlet's Script editor.
 
 12. **Test CreatureReference** — type `creaturelore <mob>` in combat and confirm the
     reference window auto-populates. Opportunistic — do when next in combat.
 
-13. **LiveView dead event subscriptions** — low priority. Works via 0.25s timer. Fix when convenient.
+13. **Test GroupView** — type `group` when in a group and confirm the Group window
+    populates with member names, class tags, and HP bars.
+
+14. **LiveView dead event subscriptions** — low priority. Works via 0.25s timer. Fix when convenient.
