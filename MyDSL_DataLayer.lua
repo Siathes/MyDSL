@@ -950,10 +950,32 @@ end
 ------------------------------------------------------------------------
 -- Example: "[51 War] Olyndros                  100% hp 100% mana 100% mv"
 --          "[30 Mob] A throughbred stallion    100% hp 100% mana 100% mv"
+-- beginGroup() is called by a permanent trigger on "^.+'s group:$".
+-- It installs a catch-all body trigger that feeds each line to
+-- parseGroupLine() and kills itself on blank line (calling endGroup()).
 
 local groupBlock = {}
 
-function MyDSL.beginGroup() groupBlock = {} end
+function MyDSL.beginGroup()
+  groupBlock = {}
+  -- Kill any leftover catch-all from a previous group block that never ended.
+  if MyDSL._triggers.groupBody then
+    pcall(killTrigger, MyDSL._triggers.groupBody)
+    MyDSL._triggers.groupBody = nil
+  end
+  MyDSL._triggers.groupBody = tempRegexTrigger(".*", function()
+    if not (MyDSL and MyDSL.State) then return end
+    local ln = getCurrentLine()
+    local t  = trim(ln)
+    -- Blank line signals end of group block.
+    if t == "" then MyDSL.endGroup(); return end
+    if MyDSL.parseGroupLine then MyDSL.parseGroupLine(ln) end
+    -- Body line gagging delegated here so GroupView doesn't need its own body trigger.
+    if MyDSL.GroupView and MyDSL.GroupView.config and MyDSL.GroupView.config.gagGroup then
+      deleteLine()
+    end
+  end)
+end
 
 function MyDSL.parseGroupLine(line)
   local level, class, name, hp, mana, mv =
@@ -971,6 +993,11 @@ function MyDSL.parseGroupLine(line)
 end
 
 function MyDSL.endGroup()
+  -- Kill the catch-all before updating State to avoid re-entry.
+  if MyDSL._triggers.groupBody then
+    pcall(killTrigger, MyDSL._triggers.groupBody)
+    MyDSL._triggers.groupBody = nil
+  end
   update("group", { members = groupBlock, count = #groupBlock })
   groupBlock = {}
 end
@@ -1428,6 +1455,20 @@ MyDSL._triggers.scanDir = tempRegexTrigger(
     if not (MyDSL and MyDSL.beginScan) then return end
     local dir = getCurrentLine():match("^You peer intently (%a+)%.$")
     MyDSL.beginScan("direction", dir)
+  end
+)
+
+------------------------------------------------------------------------
+-- Group trigger
+------------------------------------------------------------------------
+-- Fires on "Kien's group:" (any character name followed by "'s group:").
+-- Installs the body catch-all via beginGroup(); endGroup() kills it on
+-- blank line and commits to State.group.
+
+MyDSL._triggers.groupStart = tempRegexTrigger(
+  "^.+%'s group:$",
+  function()
+    if MyDSL and MyDSL.beginGroup then MyDSL.beginGroup() end
   end
 )
 
