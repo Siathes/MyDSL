@@ -1123,6 +1123,10 @@ function MyDSL.beginScan(mode, direction)
     byName       = {},
     last_updated = 0,
   }
+  -- Clear Scan window for the incoming lines.
+  if MyDSL.ScanView and MyDSL.ScanView.ui and MyDSL.ScanView.ui.scanConsole then
+    MyDSL.ScanView.ui.scanConsole:clear()
+  end
   -- Kill any leftover catch-all from a previous scan that never ended.
   if MyDSL._triggers.scanBody then
     pcall(killTrigger, MyDSL._triggers.scanBody)
@@ -1137,6 +1141,11 @@ function MyDSL.beginScan(mode, direction)
     if t:match("^.+%'s group:$") then MyDSL.endScan(); return end
     if t == "Looking around you see:" then return end  -- skip header if re-seen
     if MyDSL.parseScanLine then MyDSL.parseScanLine(ln) end
+    selectCurrentLine()
+    copy()
+    if MyDSL.ScanView and MyDSL.ScanView.ui and MyDSL.ScanView.ui.scanConsole then
+      MyDSL.ScanView.ui.scanConsole:appendBuffer()
+    end
   end)
 end
 

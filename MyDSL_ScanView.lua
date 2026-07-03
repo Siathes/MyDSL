@@ -20,6 +20,7 @@ for _, id in pairs(SV._triggers or {}) do pcall(killTrigger, id) end
 SV._handlers = {}
 SV._triggers = {}
 SV._mc       = SV._mc or {}   -- persists across reloads to avoid duplicate MiniConsole creation
+SV.ui        = SV.ui   or {}   -- public: ui.scanConsole used by DataLayer for appendBuffer
 SV.config    = SV.config or { gagScan = false }
 
 -- Window and MiniConsole name constants.
@@ -30,69 +31,10 @@ local RH_MC       = "MyDSL_RightHere_MC"
 
 
 ------------------------------------------------------------------------
--- Local helpers
-------------------------------------------------------------------------
-
-local function isMob(name)
-  return name:match("^[Aa]n? ") ~= nil or name:match("^[Tt]he ") ~= nil
-end
-
-
-------------------------------------------------------------------------
--- renderScan()  —  redraws the MyDSL_Scan window
-------------------------------------------------------------------------
--- Right Here section uses byName (aggregated, deduplicated with counts).
--- Nearby section uses rows in order (may list same creature multiple times).
-
-function SV.renderScan()
-  local mc = SV._mc and SV._mc.scan
-  if not mc then return end
-  mc:clear()
-  local scan = MyDSL.State and MyDSL.State.scan
-  if not scan or not scan.rows then
-    mc:decho("\n<128,128,128>(no scan data yet)\n")
-    return
-  end
-  if #scan.rows == 0 then
-    mc:decho("<85,85,85>[Empty scan]\n<r>")
-    return
-  end
-
-  -- [Right Here] — aggregated entries from rightHere table
-  mc:decho("<136,136,136>[Right Here]\n<r>")
-  local has_rh = scan.rightHere and next(scan.rightHere) ~= nil
-  if not has_rh then
-    mc:decho("<68,68,68>  (none)\n<r>")
-  else
-    for _, entry in pairs(scan.rightHere) do
-      local c      = entry.is_mob and "204,68,68" or "136,170,255"
-      local suffix = entry.count > 1
-        and string.format(" <255,204,68>(×%d)<r>", entry.count) or ""
-      mc:decho(string.format("<%s>  %s%s\n<r>", c, entry.display, suffix))
-    end
-  end
-
-  -- [Nearby] — individual rows excluding right-here entries
-  mc:decho("<136,136,136>[Nearby]\n<r>")
-  local has_nearby = false
-  for _, row in ipairs(scan.rows) do
-    if row.where ~= "right here" then
-      has_nearby = true
-      local c   = row.is_mob and "136,102,68" or "102,136,204"
-      local dir = string.format(" <68,68,68>→<r> <136,136,136>%s<r>", row.where)
-      mc:decho(string.format("<%s>  %s<r>%s\n", c, row.display, dir))
-    end
-  end
-  if not has_nearby then
-    mc:decho("<68,68,68>  (none)\n<r>")
-  end
-end
-
-
-------------------------------------------------------------------------
 -- renderRightHere()  —  redraws the MyDSL_RightHere window
 ------------------------------------------------------------------------
--- Each entry is a clickable cechoLink that calls MyDSL.Target.set().
+-- Scan window fills passively via DataLayer appendBuffer (game colors preserved).
+-- RightHere is rebuilt from State.scan.rightHere as clickable target links.
 
 function SV.renderRightHere()
   local mc = SV._mc and SV._mc.rightHere
@@ -122,18 +64,17 @@ function SV.renderRightHere()
       'if MyDSL and MyDSL.Target then MyDSL.Target.set("%s", %s, "righthereclick") end',
       safe_name, tostring(entry.is_mob))
     local hint = "Click to target: " .. entry.display
-    mc:cechoLink(text, cmd, hint, false)
+    mc:cechoLink(text, cmd, hint, true)
     mc:decho("\n")
   end
 end
 
 
 ------------------------------------------------------------------------
--- render()  —  redraws both windows
+-- render()  —  redraws RightHere (Scan fills via appendBuffer in DataLayer)
 ------------------------------------------------------------------------
 
 function SV.render()
-  SV.renderScan()
   SV.renderRightHere()
 end
 
@@ -168,9 +109,10 @@ end
 
 function SV.init()
   -- Ensure Scan UserWindow and its MiniConsole exist.
+  -- Stored in SV.ui.scanConsole so DataLayer can call appendBuffer on it.
   local scanWin = MyDSL.Windows.ensure(SCAN_WIN)
-  if not SV._mc.scan then
-    SV._mc.scan = Geyser.MiniConsole:new({
+  if not SV.ui.scanConsole then
+    SV.ui.scanConsole = Geyser.MiniConsole:new({
       name      = SCAN_MC,
       x = 0, y = 0, width = "100%", height = "100%",
       wrapWidth = 300,
@@ -189,7 +131,7 @@ function SV.init()
     }, rhWin)
   end
 
-  -- Register scan.updated event handler.
+  -- Register scan.updated event handler (rebuilds RightHere clickable list).
   SV._handlers.scanUpdated = registerAnonymousEventHandler(
     "MyDSL.scan.updated",
     function() SV.render() end
