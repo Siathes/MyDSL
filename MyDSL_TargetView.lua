@@ -47,49 +47,49 @@ TV.actions = {
   murder = {
     cmd     = function(t) return "murder " .. t.name end,
     label   = "Murder",
-    color   = "#cc4444",
+    color   = "204,68,68",
     tooltip = "Attack target",
   },
   glance = {
     cmd     = function(t) return "gl " .. t.name end,
     label   = "Glance",
-    color   = "#88ccaa",
+    color   = "136,204,170",
     tooltip = "Quick look at target",
   },
   consider = {
     cmd     = function(t) return "consider " .. t.name end,
     label   = "Consider",
-    color   = "#88ccaa",
+    color   = "136,204,170",
     tooltip = "Check combat difficulty",
   },
   creaturelore = {
     cmd     = function(t) return "creaturelore " .. t.name end,
     label   = "Lore",
-    color   = "#88ccaa",
+    color   = "136,204,170",
     tooltip = "Get creature lore (opens reference window)",
   },
   rescue = {
     cmd     = function(t) return "rescue " .. t.name end,
     label   = "Rescue",
-    color   = "#aaaaff",
+    color   = "170,170,255",
     tooltip = "Rescue target from combat",
   },
   flee = {
     cmd     = function(_) return "flee" end,
     label   = "Flee",
-    color   = "#cc4444",
+    color   = "204,68,68",
     tooltip = "Attempt to flee combat",
   },
   look = {
     cmd     = function(t) return "look " .. t.name end,
     label   = "Look",
-    color   = "#88ccaa",
+    color   = "136,204,170",
     tooltip = "Full look at target",
   },
   heal = {
     cmd     = function(t) return "cast 'heal' " .. t.name end,
     label   = "Heal",
-    color   = "#aaaaff",
+    color   = "170,170,255",
     tooltip = "Cast heal on target",
   },
 }
@@ -180,11 +180,11 @@ function TV.render()
   mc:clear()
   local t = MyDSL.State.target
 
-  -- Line 1: [M]/[P] toggle cechoLink + target name
+  -- Line 1: [M]/[P] toggle dechoLink + target name
   local type_tag   = (t and t.is_mob) and "M" or "P"
-  local type_color = (t and t.is_mob) and "#cc8844" or "#88aaff"
-  local toggle_text = string.format("<%s>[%s]<reset>", type_color, type_tag)
-  mc:cechoLink(toggle_text,
+  local type_color = (t and t.is_mob) and "204,136,68" or "136,170,255"
+  local toggle_text = string.format("<%s>[%s]<r>", type_color, type_tag)
+  mc:dechoLink(toggle_text,
     "if MyDSL and MyDSL.Target then MyDSL.Target.toggle() end",
     "Toggle mob/player", false)
 
@@ -202,10 +202,10 @@ function TV.render()
       local key = buttons[idx]
       local act = key and TV.actions[key]
       if act then
-        local btn_text = string.format("<%s>[%s]<reset>", act.color, act.label)
+        local btn_text = string.format("<%s>[%s]<r>", act.color, act.label)
         local cmd = string.format(
           'if MyDSL and MyDSL.Target then MyDSL.Target.doAction("%s") end', key)
-        mc:cechoLink(btn_text, cmd, act.tooltip, false)
+        mc:dechoLink(btn_text, cmd, act.tooltip, false)
         if col < 3 then mc:decho(" ") end
       end
     end
