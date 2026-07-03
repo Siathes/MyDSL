@@ -1466,7 +1466,7 @@ MyDSL._triggers.scanDir = tempRegexTrigger(
 -- blank line and commits to State.group.
 
 MyDSL._triggers.groupStart = tempRegexTrigger(
-  "^.+%'s group:$",
+  "^.+'s group:$",
   function()
     if MyDSL and MyDSL.beginGroup then MyDSL.beginGroup() end
   end

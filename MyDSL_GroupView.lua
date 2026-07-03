@@ -112,7 +112,7 @@ function GV.setGag(enabled)
   if enabled then
     -- Gag the group header line (e.g. "Kien's group:").
     GV._triggers.gagHeader = tempRegexTrigger(
-      "^.+%'s group:$",
+      "^.+'s group:$",
       function() deleteLine() end
     )
   end
