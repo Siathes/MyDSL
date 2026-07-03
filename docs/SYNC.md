@@ -291,10 +291,11 @@ Deferred to Phase B+ (see Open Items below).
 | Module | Status |
 |---|---|
 | MoonWeather | ✅ Complete — all alignments verified (neutral/red, good/white, evil/black) |
+| Scan/RightHere | ✅ Complete — MyDSL_ScanView.lua; DataLayer parsers + triggers wired |
+| Target | ✅ Complete — MyDSL_TargetView.lua; Target.set/clear/toggle/doAction API |
+| CreatureReference | ✅ Complete — MyDSL_CreatureReference.lua; auto-shows on lore capture |
 | Combat window | Not started |
-| Scan/RightHere | Not started |
 | Group window | Not started |
-| Target window | Not started |
 
 **MoonWeather note:** Date field re-anchors automatically via the player's existing
 dawn/dusk triggers which fire `send('time')` — no calendar math needed. Clock anchors
@@ -335,7 +336,7 @@ These items are not blocking Phase B but should be addressed before the next win
 
 ## Recommended Next Actions
 
-*Updated 2026-07-02 — MoonWeather feature-complete, tagged v1.2-moonweather-final.*
+*Updated 2026-07-02 — Scan/RightHere/Target/CreatureReference complete.*
 
 1. ~~**Validate time row in game**~~ — ✅ Done. Steven confirmed working 2026-06-30.
 2. ~~**Remove debug logging from `buildTimeRow()`**~~ — ✅ Done (commit `d758806`).
@@ -343,8 +344,18 @@ These items are not blocking Phase B but should be addressed before the next win
 4. ~~**Fix score parser issues**~~ — ✅ Already done (Jun-29). No action needed.
 5. ~~**Wire weather trigger**~~ — ✅ Done. No display row yet — deferred to Phase B+.
 6. ~~**Validate day/night indicator, living clock, stacked layout**~~ — ✅ MoonWeather feature-complete.
+7. ~~**Scan/RightHere**~~ — ✅ Done (2026-07-02). Needs in-game smoke test.
+8. ~~**Target**~~ — ✅ Done (2026-07-02). Needs in-game smoke test.
+9. ~~**CreatureReference**~~ — ✅ Done (2026-07-02). Needs in-game smoke test.
 
-7. **Begin Phase B next window — Scan/RightHere.**
-   Write Contract doc first; use `Contract_MoonWeather.md` as structural template.
+10. **Begin Phase B next window — Group window.**
+    Write Contract_Group.md first; use Contract_ScanView.md as structural template.
+    Depends on DataLayer Section 9i (beginGroup/parseGroupLine/endGroup) which already exists.
 
-8. **LiveView dead event subscriptions** — low priority. Works via 0.25s timer. Fix when convenient.
+11. **Update autosave.xml / dofile load order** — add scripts 16-18 to the MyDSL_Full group:
+    16. MyDSL_ScanView  (after MyDSL_MoonWeather)
+    17. MyDSL_TargetView
+    18. MyDSL_CreatureReference
+    Steven must add these dofile() wrappers in Mudlet's Script editor.
+
+12. **LiveView dead event subscriptions** — low priority. Works via 0.25s timer. Fix when convenient.
