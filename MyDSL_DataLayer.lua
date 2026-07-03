@@ -50,7 +50,9 @@ MyDSL.State.unread  = MyDSL.State.unread  or { last_updated = 0 }  -- text: unre
 MyDSL.State.inv     = MyDSL.State.inv     or { last_updated = 0 }  -- text: carried item list
 MyDSL.State.map     = MyDSL.State.map     or { last_updated = 0 }  -- text: ASCII map lines
 MyDSL.State.improve = MyDSL.State.improve or { last_updated = 0 }  -- text: skill improve events
-MyDSL.State.flags   = MyDSL.State.flags   or { last_updated = 0 }  -- text: toggle flags from score
+MyDSL.State.flags        = MyDSL.State.flags        or { last_updated = 0 }  -- text: toggle flags from score
+MyDSL.State.scan         = MyDSL.State.scan         or { last_updated = 0 }  -- text: nearby entities from scan command
+MyDSL.State.creaturelore = MyDSL.State.creaturelore or { last_updated = 0 }  -- text: creature lore block
 
 -- Per-character persistent storage.  Keyed by character name so Kien,
 -- Vrokt, Olyndros etc each have completely separate saved state.
@@ -1096,6 +1098,171 @@ end
 
 
 ------------------------------------------------------------------------
+-- 9o  SCAN
+------------------------------------------------------------------------
+-- Trigger wiring is in Section 10 below.
+-- beginScan() is called by permanent triggers on "^Looking around you see:$"
+-- and "^You peer intently (%a+)%.$". It resets State.scan and installs a
+-- catch-all that feeds body lines to parseScanLine(). endScan() is called
+-- by the catch-all on blank line, "Players near you:", or group header.
+
+-- Article-detection helper — mobs always start with a/an/the, players don't.
+local function isMobName(name)
+  return name:match("^[Aa]n? ") ~= nil or name:match("^[Tt]he ") ~= nil
+end
+
+function MyDSL.beginScan(mode, direction)
+  -- Fresh table replaces any stale scan state.
+  MyDSL.State.scan = {
+    mode         = mode,
+    direction    = direction,
+    rows         = {},
+    rightHere    = {},
+    byName       = {},
+    last_updated = 0,
+  }
+  -- Kill any leftover catch-all from a previous scan that never ended.
+  if MyDSL._triggers.scanBody then
+    pcall(killTrigger, MyDSL._triggers.scanBody)
+    MyDSL._triggers.scanBody = nil
+  end
+  MyDSL._triggers.scanBody = tempRegexTrigger(".*", function()
+    if not (MyDSL and MyDSL.State and MyDSL.State.scan) then return end
+    local ln = getCurrentLine()
+    local t  = trim(ln)
+    if t == "" then MyDSL.endScan(); return end
+    if t == "Players near you:" then MyDSL.endScan(); return end
+    if t:match("^.+%'s group:$") then MyDSL.endScan(); return end
+    if t == "Looking around you see:" then return end  -- skip header if re-seen
+    if MyDSL.parseScanLine then MyDSL.parseScanLine(ln) end
+  end)
+end
+
+function MyDSL.parseScanLine(line)
+  local scan = MyDSL.State.scan
+  if not scan then return end
+  local name, where
+  name = line:match("^(.+),%s+right here%.?$")
+  if name then where = "right here" end
+  if not name then
+    name, where = line:match("^(.+),%s+(nearby to .+)%.?$")
+  end
+  if not name then
+    name, where = line:match("^(.+),%s+(not far .+)%.?$")
+  end
+  if not name then return end
+  name         = trim(name)
+  local key    = name:lower():gsub("^[Aa]n? ", ""):gsub("^[Tt]he ", "")
+  local is_mob = isMobName(name)
+  local row = {
+    raw     = line,
+    name    = name,
+    display = name,
+    key     = key,
+    where   = where,
+    is_mob  = is_mob,
+    count   = 1,
+  }
+  table.insert(scan.rows, row)
+  if scan.byName[key] then
+    scan.byName[key].count = scan.byName[key].count + 1
+  else
+    scan.byName[key] = {
+      raw     = line,
+      name    = name,
+      display = name,
+      key     = key,
+      where   = where,
+      is_mob  = is_mob,
+      count   = 1,
+    }
+  end
+  if where == "right here" then
+    scan.rightHere[key] = scan.byName[key]
+  end
+  -- ScanView body-line gagging (header lines gagged by ScanView's own triggers).
+  if MyDSL.ScanView and MyDSL.ScanView.config and MyDSL.ScanView.config.gagScan then
+    deleteLine()
+  end
+end
+
+function MyDSL.endScan()
+  if MyDSL._triggers.scanBody then
+    pcall(killTrigger, MyDSL._triggers.scanBody)
+    MyDSL._triggers.scanBody = nil
+  end
+  MyDSL.State.scan.last_updated = os.time()
+  MyDSL.emit("scan")
+end
+
+------------------------------------------------------------------------
+-- 9p  CREATURELORE
+------------------------------------------------------------------------
+-- beginCreatureLore() fires on "^Creature:%s" and parses name+race from
+-- the first line. A catch-all feeds body lines to parseCreatureLoreLine().
+-- endCreatureLore() fires on blank line, commits to State, and optionally
+-- merges into MyDSL_creaturelore.lua DB if that module is loaded.
+
+function MyDSL.beginCreatureLore(line)
+  local name, race = line:match("^Creature:%s*(.-)%s+Race:%s*(.+)$")
+  name = trim(name or "")
+  race = trim(race or "")
+  local key = name:lower():gsub("^[Aa]n? ", ""):gsub("^[Tt]he ", "")
+  MyDSL.State.creaturelore = {
+    name         = name,
+    race         = race,
+    key          = key,
+    lines        = { line },
+    last_updated = 0,
+  }
+  -- Kill leftover catch-all if a previous lore block never ended.
+  if MyDSL._triggers.loreBody then
+    pcall(killTrigger, MyDSL._triggers.loreBody)
+    MyDSL._triggers.loreBody = nil
+  end
+  MyDSL._triggers.loreBody = tempRegexTrigger(".*", function()
+    if not (MyDSL and MyDSL.State and MyDSL.State.creaturelore) then return end
+    local ln = getCurrentLine()
+    local t  = trim(ln)
+    if t == "" then MyDSL.endCreatureLore(); return end
+    if MyDSL.parseCreatureLoreLine then MyDSL.parseCreatureLoreLine(ln) end
+  end)
+end
+
+function MyDSL.parseCreatureLoreLine(line)
+  local r = MyDSL.State.creaturelore
+  if not r then return end
+  table.insert(r.lines, line)
+  -- Alignment: "They appear to be a good soul."
+  local a = line:match("^.- appears to be (.+) soul%.")
+  if a then r.alignmentText = trim(a) end
+  -- Wealth: "Their wealth appears to be 5 gold and 10 silver."
+  local g, s = line:match("Their wealth appears to be%s+(%d+)%s+gold and%s+(%d+)%s+silver")
+  if g then r.gold = tonumber(g); r.silver = tonumber(s) end
+  -- Sex: "They appear to be Undetermined sex." — skip if alignment already matched.
+  -- The alignment line also matches "They appear to be ...", so guard with alignmentText.
+  local x = line:match("^They appear to be%s+(.+)%.")
+  if x and not r.alignmentText then r.sex = trim(x) end
+  -- HP: "The base health of this creature is 1000."
+  local h = line:match("^The base health of this creature is%s+(%d+)%.")
+  if h then r.hp = tonumber(h) end
+end
+
+function MyDSL.endCreatureLore()
+  if MyDSL._triggers.loreBody then
+    pcall(killTrigger, MyDSL._triggers.loreBody)
+    MyDSL._triggers.loreBody = nil
+  end
+  MyDSL.State.creaturelore.last_updated = os.time()
+  -- Merge into persistent DB if MyDSL_creaturelore.lua is loaded.
+  if MyDSL.CreatureLore and MyDSL.CreatureLore.merge then
+    MyDSL.CreatureLore.merge(MyDSL.State.creaturelore)
+  end
+  MyDSL.emit("creaturelore")
+end
+
+
+------------------------------------------------------------------------
 -- SECTION 10: TRIGGER REGISTRATION
 ------------------------------------------------------------------------
 -- Score header: "Score for Kien -= Zandreya =- (Companion) *Observer*"
@@ -1225,6 +1392,46 @@ MyDSL._triggers.weather = tempRegexTrigger(
     local ln = getCurrentLine()
     if MyDSL and MyDSL.parseWeatherLine then
       MyDSL.parseWeatherLine(ln)
+    end
+  end
+)
+
+
+------------------------------------------------------------------------
+-- Scan triggers
+------------------------------------------------------------------------
+-- Two permanent triggers: one for "scan" (all-directions), one for
+-- "scan <dir>" (directional). Both call beginScan() which resets
+-- State.scan and installs the body catch-all.
+
+MyDSL._triggers.scanAround = tempRegexTrigger(
+  "^Looking around you see:$",
+  function()
+    if MyDSL and MyDSL.beginScan then MyDSL.beginScan("around", nil) end
+  end
+)
+
+MyDSL._triggers.scanDir = tempRegexTrigger(
+  "^You peer intently (%a+)%.$",
+  function()
+    if not (MyDSL and MyDSL.beginScan) then return end
+    local dir = getCurrentLine():match("^You peer intently (%a+)%.$")
+    MyDSL.beginScan("direction", dir)
+  end
+)
+
+------------------------------------------------------------------------
+-- CreatureLore trigger
+------------------------------------------------------------------------
+-- Fires on "^Creature: <name>  Race: <race>" — the first line of any
+-- creaturelore block. Body lines handled by catch-all installed inside
+-- beginCreatureLore().
+
+MyDSL._triggers.loreStart = tempRegexTrigger(
+  "^Creature:%s",
+  function()
+    if MyDSL and MyDSL.beginCreatureLore then
+      MyDSL.beginCreatureLore(getCurrentLine())
     end
   end
 )
