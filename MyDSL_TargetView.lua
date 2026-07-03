@@ -53,19 +53,19 @@ TV.actions = {
   glance = {
     cmd     = function(t) return "gl " .. t.name end,
     label   = "Glance",
-    color   = "136,204,170",
+    color   = "204,204,204",
     tooltip = "Quick look at target",
   },
   consider = {
     cmd     = function(t) return "consider " .. t.name end,
     label   = "Consider",
-    color   = "136,204,170",
+    color   = "204,204,204",
     tooltip = "Check combat difficulty",
   },
   creaturelore = {
     cmd     = function(t) return "creaturelore " .. t.name end,
     label   = "Lore",
-    color   = "136,204,170",
+    color   = "204,204,204",
     tooltip = "Get creature lore (opens reference window)",
   },
   rescue = {
@@ -83,13 +83,13 @@ TV.actions = {
   look = {
     cmd     = function(t) return "look " .. t.name end,
     label   = "Look",
-    color   = "136,204,170",
+    color   = "204,204,204",
     tooltip = "Full look at target",
   },
   heal = {
     cmd     = function(t) return "cast 'heal' " .. t.name end,
     label   = "Heal",
-    color   = "170,170,255",
+    color   = "68,204,68",
     tooltip = "Cast heal on target",
   },
 }
@@ -180,13 +180,13 @@ function TV.render()
   mc:clear()
   local t = MyDSL.State.target
 
-  -- Line 1: [M]/[P] toggle dechoLink + target name
+  -- Line 1: [M]/[P] toggle (dechoLink, useCurrentFormat=true hides underline) + name
   local type_tag   = (t and t.is_mob) and "M" or "P"
   local type_color = (t and t.is_mob) and "204,136,68" or "136,170,255"
   local toggle_text = string.format("<%s>[%s]<r>", type_color, type_tag)
   mc:dechoLink(toggle_text,
     "if MyDSL and MyDSL.Target then MyDSL.Target.toggle() end",
-    "Toggle mob/player", false)
+    "Toggle mob/player", true)
 
   if not t or not t.name then
     mc:decho(" <85,85,85>(no target)<r>\n")
@@ -194,22 +194,23 @@ function TV.render()
     mc:decho(string.format(" <255,255,255>%s<r>\n", t.name))
   end
 
-  -- Lines 2-3: 6 action buttons, 3 per row
-  local buttons = (t and t.is_mob) and TV.config.mob_buttons or TV.config.player_buttons
-  for row = 0, 1 do
-    for col = 1, 3 do
-      local idx = row * 3 + col
-      local key = buttons[idx]
-      local act = key and TV.actions[key]
-      if act then
-        local btn_text = string.format("<%s>[%s]<r>", act.color, act.label)
-        local cmd = string.format(
-          'if MyDSL and MyDSL.Target then MyDSL.Target.doAction("%s") end', key)
-        mc:dechoLink(btn_text, cmd, act.tooltip, false)
-        if col < 3 then mc:decho(" ") end
+  -- Lines 2-3: 6 action buttons via dechoPopup (sends game command on click)
+  if t and t.name then
+    local buttons = t.is_mob and TV.config.mob_buttons or TV.config.player_buttons
+    for row = 0, 1 do
+      for col = 1, 3 do
+        local idx = row * 3 + col
+        local key = buttons[idx]
+        local act = key and TV.actions[key]
+        if act then
+          local label = string.format("<%s>[%s]<r>", act.color, act.label)
+          local cmd   = act.cmd(t)
+          dechoPopup(TARGET_MC, label, {cmd}, {act.tooltip .. ": " .. t.name}, false)
+          if col < 3 then mc:decho(" ") end
+        end
       end
+      mc:decho("\n")
     end
-    mc:decho("\n")
   end
 
   -- Line 4+: consider output (dim grey, cleared on target change)
@@ -231,9 +232,11 @@ function TV.init()
       name      = TARGET_MC,
       x = 0, y = 0, width = "100%", height = "100%",
       wrapWidth = 300,
+      fontSize  = 11,
       scrollBar = false,
     }, targetWin)
   end
+  if TV._mc.target then TV._mc.target:setFontSize(11) end
 
   -- Register target.updated handler (for external setters).
   TV._handlers.targetUpdated = registerAnonymousEventHandler(
