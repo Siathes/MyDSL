@@ -53,19 +53,18 @@ function SV.renderRightHere()
   end
 
   for _, entry in pairs(scan.rightHere) do
-    local c   = entry.is_mob and "#cc8844" or "#88aaff"
+    local c   = entry.is_mob and "204,136,68" or "136,170,255"
     local cnt = entry.count or 1
     local count_str = cnt > 1
-      and string.format(" <#ffcc44>×%d<reset>", cnt) or ""
-    local text = string.format("  <%s>%s%s<reset>", c, entry.display, count_str)
+      and string.format(" <255,204,68>×%d<r>", cnt) or ""
+    local text = string.format("  <%s>%s%s<r>\n", c, entry.display, count_str)
     -- Escape any embedded quotes in the creature name for the Lua callback string.
     local safe_name = entry.display:gsub('"', '\\"')
     local cmd  = string.format(
       'if MyDSL and MyDSL.Target then MyDSL.Target.set("%s", %s, "righthereclick") end',
       safe_name, tostring(entry.is_mob))
     local hint = "Click to target: " .. entry.display
-    mc:cechoLink(text, cmd, hint, true)
-    mc:decho("\n")
+    mc:dechoLink(text, cmd, hint, true)
   end
 end
 
