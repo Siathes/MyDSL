@@ -117,6 +117,66 @@ TV.actions = {
     color   = "68,204,68",
     tooltip = "Cast heal on target",
   },
+  cure_light = {
+    cmd     = function(t) return "cast 'cure light' " .. commandArg(t.name) end,
+    label   = "Cr.Light",
+    color   = "68,204,68",
+    tooltip = "Cure light wounds",
+  },
+  refresh = {
+    cmd     = function(t) return "cast refresh " .. commandArg(t.name) end,
+    label   = "Refresh",
+    color   = "68,204,68",
+    tooltip = "Restore movement points",
+  },
+  cure_serious = {
+    cmd     = function(t) return "cast 'cure serious' " .. commandArg(t.name) end,
+    label   = "Cr.Serious",
+    color   = "68,204,68",
+    tooltip = "Cure serious wounds",
+  },
+  cure_critical = {
+    cmd     = function(t) return "cast 'cure critical' " .. commandArg(t.name) end,
+    label   = "Cr.Critical",
+    color   = "68,204,68",
+    tooltip = "Cure critical wounds",
+  },
+  cure_blindness = {
+    cmd     = function(t) return "cast 'cure blindness' " .. commandArg(t.name) end,
+    label   = "Cr.Blind",
+    color   = "170,170,255",
+    tooltip = "Cure blindness",
+  },
+  cure_disease = {
+    cmd     = function(t) return "cast 'cure disease' " .. commandArg(t.name) end,
+    label   = "Cr.Disease",
+    color   = "170,170,255",
+    tooltip = "Cure disease",
+  },
+  cure_poison = {
+    cmd     = function(t) return "cast 'cure poison' " .. commandArg(t.name) end,
+    label   = "Cr.Poison",
+    color   = "170,170,255",
+    tooltip = "Cure poison",
+  },
+  cure_fatigue = {
+    cmd     = function(t) return "cast 'cure fatigue' " .. commandArg(t.name) end,
+    label   = "Cr.Fatigue",
+    color   = "170,170,255",
+    tooltip = "Cure fatigue",
+  },
+  cure_bugbite = {
+    cmd     = function(t) return "cast 'cure bugbite' " .. commandArg(t.name) end,
+    label   = "Cr.Bugbite",
+    color   = "170,170,255",
+    tooltip = "Cure bugbite toxin",
+  },
+  sanctuary = {
+    cmd     = function(t) return "cast sanctuary " .. commandArg(t.name) end,
+    label   = "Sanctuary",
+    color   = "255,215,65",
+    tooltip = "Halve damage taken",
+  },
 }
 
 
@@ -214,6 +274,8 @@ function TV.render()
   if not t or not t.name then
     mc:decho(" <85,85,85>(no target)<r>\n")
   else
+    mc:decho(" ")
+    mc:dechoLink("<170,68,68>[Clear]<r>", "MyDSL.Target.clear()", "Clear target", false)
     mc:decho(string.format(" <255,255,255>%s<r>\n", t.name))
   end
 

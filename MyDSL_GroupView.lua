@@ -24,6 +24,7 @@ GV._handlers = {}
 GV._triggers = {}
 GV._mc       = GV._mc or {}   -- persists across reloads to avoid duplicate MiniConsole creation
 GV.config    = GV.config or { gagGroup = false }
+GV.config.quickActions = GV.config.quickActions or {"heal", "rescue"}
 
 -- Window and MiniConsole name constants.
 local GROUP_WIN = "MyDSL_Group"
@@ -49,13 +50,16 @@ end
 ------------------------------------------------------------------------
 -- Called on "MyDSL.group.updated" event and once during init().
 -- Each group member gets one line:
---   [class]  name (max 20 chars)  HP%  [mana% if <100]  [mv% if <100]
+--   [class]  name (clickable, max 20 chars)  HP%  mana%  mv%  [quick buttons]
 --
--- Class tag color:  Mob → dim yellow (136,136,68);  other → blue (68,136,204)
--- Name color:       mob → warm tan (204,170,100);   player → near-white (204,204,204)
--- HP color:         green/yellow/orange/red by threshold (see hpColor above)
--- Mana color:       blue (68,136,204), shown only when < 100
--- MV color:         light green (136,204,136), shown only when < 100
+-- Class tag color:    Mob → dim yellow (136,136,68);  other → blue (68,136,204)
+-- Name color:         mob → warm tan (204,170,100);   player → near-white (204,204,204)
+-- Name is a dechoLink → calls GV.setTarget(idx) to populate the Target window.
+-- HP color:           green/yellow/orange/red by threshold (see hpColor above)
+-- Mana color:         blue (68,136,204), always shown
+-- MV color:           light green (136,204,136), always shown
+-- Quick buttons:      from GV.config.quickActions (default heal+rescue);
+--                     shown for all members regardless of mob/player status.
 
 function GV.render()
   local mc = GV._mc and GV._mc.group
@@ -68,28 +72,40 @@ function GV.render()
     return
   end
 
-  for _, m in ipairs(grp.members) do
+  for idx, m in ipairs(grp.members) do
     -- Class tag: Mob gets dim yellow, all other classes get blue.
     local tag_color = (m.class == "Mob") and "136,136,68" or "68,136,204"
     mc:decho(string.format("<%s>[%-3s]<r> ", tag_color, m.class))
 
-    -- Name: mobs get warm tan, players get near-white; truncated to 20 chars.
+    -- Name: clickable to set Target; mobs warm tan, players near-white; max 20 chars.
     local name_color = m.is_mob and "204,170,100" or "204,204,204"
     local display_name = m.name:sub(1, 20)
-    mc:decho(string.format("<%s>%-20s<r> ", name_color, display_name))
+    mc:dechoLink(
+      string.format("<%s>%-20s<r>", name_color, display_name),
+      string.format("MyDSL.GroupView.setTarget(%d)", idx),
+      "Click to target: " .. m.name,
+      false)
 
     -- HP percentage — always shown, colored by threshold.
     local hp_c = hpColor(m.hp_pct)
-    mc:decho(string.format("<%s>%3d%%hp<r>", hp_c, m.hp_pct))
+    mc:decho(string.format(" <%s>%3d%%hp<r>", hp_c, m.hp_pct))
 
-    -- Mana percentage — only shown when below 100 (to save horizontal space).
-    if m.mana_pct < 100 then
-      mc:decho(string.format(" <68,136,204>%3d%%mn<r>", m.mana_pct))
-    end
+    -- Mana and move percentages — always shown.
+    mc:decho(string.format(" <68,136,204>%3d%%mn<r>", m.mana_pct))
+    mc:decho(string.format(" <136,204,136>%3d%%mv<r>", m.mv_pct))
 
-    -- Move percentage — only shown when below 100.
-    if m.mv_pct < 100 then
-      mc:decho(string.format(" <136,204,136>%3d%%mv<r>", m.mv_pct))
+    -- Quick-action buttons — reuse TV.actions entries; no mob/player filtering
+    -- since every member of your own group listing is an ally.
+    for _, key in ipairs(GV.config.quickActions) do
+      local act = MyDSL.TargetView and MyDSL.TargetView.actions
+                  and MyDSL.TargetView.actions[key]
+      if act then
+        mc:dechoLink(
+          string.format(" <%s>[%s]<r>", act.color, act.label),
+          string.format("MyDSL.GroupView.quickAction(%d, '%s')", idx, key),
+          act.tooltip .. ": " .. m.name,
+          false)
+      end
     end
 
     mc:decho("\n")
@@ -116,6 +132,41 @@ function GV.setGag(enabled)
       function() deleteLine() end
     )
   end
+end
+
+
+------------------------------------------------------------------------
+-- setTarget(idx)  —  set the Target window to a group member by index
+------------------------------------------------------------------------
+-- Called by dechoLink click on the member name. Uses the ipairs index
+-- so it is safe even if the group list has gaps (which it shouldn't).
+
+function GV.setTarget(idx)
+  local g = MyDSL.State and MyDSL.State.group
+  local m = g and g.members and g.members[idx]
+  if not m then return end
+  if MyDSL.Target and MyDSL.Target.set then
+    MyDSL.Target.set(m.name, m.is_mob, "groupclick")
+  end
+end
+
+
+------------------------------------------------------------------------
+-- quickAction(idx, actionKey)  —  fire a TV.actions command on a member
+------------------------------------------------------------------------
+-- Called by the per-row quick-action button dechoLinks. Looks up the
+-- TV.actions entry by key and sends the command for the member's name,
+-- constructing a temporary target-like table {name=m.name} so the cmd
+-- function works the same way as in TargetView.doAction().
+
+function GV.quickAction(idx, actionKey)
+  local g = MyDSL.State and MyDSL.State.group
+  local m = g and g.members and g.members[idx]
+  if not m then return end
+  local act = MyDSL.TargetView and MyDSL.TargetView.actions
+              and MyDSL.TargetView.actions[actionKey]
+  if not act then return end
+  send(act.cmd({ name = m.name }), false)
 end
 
 
@@ -168,6 +219,11 @@ tempAlias("^mydsl group gag$",
   "if MyDSL and MyDSL.GroupView then MyDSL.GroupView.setGag(true) end")
 tempAlias("^mydsl group ungag$",
   "if MyDSL and MyDSL.GroupView then MyDSL.GroupView.setGag(false) end")
+tempAlias("^mydsl group quickset%s+(%S+)%s+(%S+)$",
+  [[if MyDSL and MyDSL.GroupView then
+    MyDSL.GroupView.config.quickActions = {matches[2], matches[3]}
+    echo("Group quick buttons: " .. matches[2] .. ", " .. matches[3] .. "\n")
+  end]])
 
 
 ------------------------------------------------------------------------
