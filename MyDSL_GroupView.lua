@@ -219,7 +219,7 @@ tempAlias("^mydsl group gag$",
   "if MyDSL and MyDSL.GroupView then MyDSL.GroupView.setGag(true) end")
 tempAlias("^mydsl group ungag$",
   "if MyDSL and MyDSL.GroupView then MyDSL.GroupView.setGag(false) end")
-tempAlias("^mydsl group quickset%s+(%S+)%s+(%S+)$",
+tempAlias("^mydsl group quickset\\s+(\\S+)\\s+(\\S+)$",
   [[if MyDSL and MyDSL.GroupView then
     MyDSL.GroupView.config.quickActions = {matches[2], matches[3]}
     echo("Group quick buttons: " .. matches[2] .. ", " .. matches[3] .. "\n")

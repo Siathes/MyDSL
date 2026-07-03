@@ -366,7 +366,7 @@ function TV.init()
     ]]
   )
   TV._aliases.targetMobset = tempAlias(
-    "^mydsl target mobset%s+(%S+)%s+(%S+)%s+(%S+)%s+(%S+)%s+(%S+)%s+(%S+)$",
+    "^mydsl target mobset\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)$",
     [[
       if MyDSL and MyDSL.TargetView then
         MyDSL.TargetView.config.mob_buttons = {
@@ -379,7 +379,7 @@ function TV.init()
     ]]
   )
   TV._aliases.targetPlayerset = tempAlias(
-    "^mydsl target playerset%s+(%S+)%s+(%S+)%s+(%S+)%s+(%S+)%s+(%S+)%s+(%S+)$",
+    "^mydsl target playerset\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)$",
     [[
       if MyDSL and MyDSL.TargetView then
         MyDSL.TargetView.config.player_buttons = {
