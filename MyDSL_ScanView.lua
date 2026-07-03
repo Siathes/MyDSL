@@ -50,41 +50,41 @@ function SV.renderScan()
   mc:clear()
   local scan = MyDSL.State and MyDSL.State.scan
   if not scan or not scan.rows then
-    mc:cecho("\n<grey>(no scan data yet)\n")
+    mc:decho("\n<128,128,128>(no scan data yet)\n")
     return
   end
   if #scan.rows == 0 then
-    mc:cecho("<#555555>[Empty scan]\n<reset>")
+    mc:decho("<85,85,85>[Empty scan]\n<r>")
     return
   end
 
   -- [Right Here] — aggregated entries from rightHere table
-  mc:cecho("<#888888>[Right Here]\n<reset>")
+  mc:decho("<136,136,136>[Right Here]\n<r>")
   local has_rh = scan.rightHere and next(scan.rightHere) ~= nil
   if not has_rh then
-    mc:cecho("<#444444>  (none)\n<reset>")
+    mc:decho("<68,68,68>  (none)\n<r>")
   else
     for _, entry in pairs(scan.rightHere) do
-      local c      = entry.is_mob and "#cc4444" or "#88aaff"
+      local c      = entry.is_mob and "204,68,68" or "136,170,255"
       local suffix = entry.count > 1
-        and string.format(" <#ffcc44>(×%d)<reset>", entry.count) or ""
-      mc:cecho(string.format("<%s>  %s%s\n<reset>", c, entry.display, suffix))
+        and string.format(" <255,204,68>(×%d)<r>", entry.count) or ""
+      mc:decho(string.format("<%s>  %s%s\n<r>", c, entry.display, suffix))
     end
   end
 
   -- [Nearby] — individual rows excluding right-here entries
-  mc:cecho("<#888888>[Nearby]\n<reset>")
+  mc:decho("<136,136,136>[Nearby]\n<r>")
   local has_nearby = false
   for _, row in ipairs(scan.rows) do
     if row.where ~= "right here" then
       has_nearby = true
-      local c   = row.is_mob and "#886644" or "#6688cc"
-      local dir = string.format(" <#444444>→<reset> <#888888>%s<reset>", row.where)
-      mc:cecho(string.format("<%s>  %s<reset>%s\n", c, row.display, dir))
+      local c   = row.is_mob and "136,102,68" or "102,136,204"
+      local dir = string.format(" <68,68,68>→<r> <136,136,136>%s<r>", row.where)
+      mc:decho(string.format("<%s>  %s<r>%s\n", c, row.display, dir))
     end
   end
   if not has_nearby then
-    mc:cecho("<#444444>  (none)\n<reset>")
+    mc:decho("<68,68,68>  (none)\n<r>")
   end
 end
 
@@ -100,13 +100,13 @@ function SV.renderRightHere()
   mc:clear()
   local scan = MyDSL.State and MyDSL.State.scan
   if not scan or not scan.rightHere then
-    mc:cecho("\n<grey>Right Here: (empty)\n")
+    mc:decho("\n<128,128,128>Right Here: (empty)\n")
     return
   end
-  mc:cecho("<#888888>Right Here:\n<reset>")
+  mc:decho("<136,136,136>Right Here:\n<r>")
 
   if not next(scan.rightHere) then
-    mc:cecho("<#444444>  (empty)\n<reset>")
+    mc:decho("<68,68,68>  (empty)\n<r>")
     return
   end
 
@@ -123,7 +123,7 @@ function SV.renderRightHere()
       safe_name, tostring(entry.is_mob))
     local hint = "Click to target: " .. entry.display
     mc:cechoLink(text, cmd, hint, false)
-    mc:cecho("\n")
+    mc:decho("\n")
   end
 end
 

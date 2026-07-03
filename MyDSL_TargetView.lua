@@ -189,9 +189,9 @@ function TV.render()
     "Toggle mob/player", false)
 
   if not t or not t.name then
-    mc:cecho(" <#555555>(no target)<reset>\n")
+    mc:decho(" <85,85,85>(no target)<r>\n")
   else
-    mc:cecho(string.format(" <#ffffff>%s<reset>\n", t.name))
+    mc:decho(string.format(" <255,255,255>%s<r>\n", t.name))
   end
 
   -- Lines 2-3: 6 action buttons, 3 per row
@@ -206,15 +206,15 @@ function TV.render()
         local cmd = string.format(
           'if MyDSL and MyDSL.Target then MyDSL.Target.doAction("%s") end', key)
         mc:cechoLink(btn_text, cmd, act.tooltip, false)
-        if col < 3 then mc:cecho(" ") end
+        if col < 3 then mc:decho(" ") end
       end
     end
-    mc:cecho("\n")
+    mc:decho("\n")
   end
 
   -- Line 4+: consider output (dim grey, cleared on target change)
   for _, line in ipairs(TV._consider_lines) do
-    mc:cecho(string.format("<#888888>%s<reset>\n", line))
+    mc:decho(string.format("<136,136,136>%s<r>\n", line))
   end
 end
 
