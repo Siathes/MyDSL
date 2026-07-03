@@ -38,6 +38,31 @@ local CONFIG_FILE = getMudletHomeDir() .. "/MyDSL/targetview_config.lua"
 
 
 ------------------------------------------------------------------------
+-- Name normalisation helpers
+------------------------------------------------------------------------
+
+local function normalizeName(s)
+  s = tostring(s or ""):lower()
+  s = s:gsub('[",.]', " ")
+  s = s:gsub("^a%s+", ""):gsub("^an%s+", ""):gsub("^the%s+", "")
+  s = s:gsub("%s+", " ")
+  return s:match("^%s*(.-)%s*$")
+end
+
+local function commandArg(name)
+  local s = normalizeName(name or "")
+  if s == "" then return "" end
+  -- Apostrophe in name → use last word after apostrophe as safe fallback.
+  if s:find("'", 1, true) then
+    return s:match("([^%s']+)$") or s
+  end
+  -- Multi-word → quote it; single word → bare.
+  if s:find("%s") then return "'" .. s .. "'" end
+  return s
+end
+
+
+------------------------------------------------------------------------
 -- Action definitions
 ------------------------------------------------------------------------
 -- cmd: function(target_state) → command string to send
@@ -45,31 +70,31 @@ local CONFIG_FILE = getMudletHomeDir() .. "/MyDSL/targetview_config.lua"
 
 TV.actions = {
   murder = {
-    cmd     = function(t) return "murder " .. t.name end,
+    cmd     = function(t) return "murder " .. commandArg(t.name) end,
     label   = "Murder",
     color   = "204,68,68",
     tooltip = "Attack target",
   },
   glance = {
-    cmd     = function(t) return "gl " .. t.name end,
+    cmd     = function(t) return "gl " .. commandArg(t.name) end,
     label   = "Glance",
     color   = "204,204,204",
     tooltip = "Quick look at target",
   },
   consider = {
-    cmd     = function(t) return "consider " .. t.name end,
+    cmd     = function(t) return "consider " .. commandArg(t.name) end,
     label   = "Consider",
     color   = "204,204,204",
     tooltip = "Check combat difficulty",
   },
   creaturelore = {
-    cmd     = function(t) return "creaturelore " .. t.name end,
+    cmd     = function(t) return "creaturelore " .. commandArg(t.name) end,
     label   = "Lore",
     color   = "204,204,204",
     tooltip = "Get creature lore (opens reference window)",
   },
   rescue = {
-    cmd     = function(t) return "rescue " .. t.name end,
+    cmd     = function(t) return "rescue " .. commandArg(t.name) end,
     label   = "Rescue",
     color   = "170,170,255",
     tooltip = "Rescue target from combat",
@@ -81,13 +106,13 @@ TV.actions = {
     tooltip = "Attempt to flee combat",
   },
   look = {
-    cmd     = function(t) return "look " .. t.name end,
+    cmd     = function(t) return "look " .. commandArg(t.name) end,
     label   = "Look",
     color   = "204,204,204",
     tooltip = "Full look at target",
   },
   heal = {
-    cmd     = function(t) return "cast 'heal' " .. t.name end,
+    cmd     = function(t) return "cast 'heal' " .. commandArg(t.name) end,
     label   = "Heal",
     color   = "68,204,68",
     tooltip = "Cast heal on target",
