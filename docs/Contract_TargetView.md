@@ -124,8 +124,13 @@ Updated by `MyDSL.Target.captureConsider(line)`.
 
 ## Action Definitions
 
-All `cmd` functions use `commandArg(t.name)` which strips articles (a/an/the),
-handles apostrophes (last-word fallback), and single-quotes multi-word names.
+All `cmd` functions use `commandArg(t.name)` which strips articles (a/an/the)
+then reduces to the **last word** of the result. Multi-word quoting was removed
+after extensive live testing confirmed DSL keyword matching only works on a single
+word regardless of quoting (`cast heal 'wild bear'` → "They aren't here.";
+`cast heal bear` → "Ok."). Keyword sets are per-mob and not every word in the
+display name is a valid keyword — `commandArg()` consistently picks the last word
+which is the most specific and is always a valid keyword.
 
 ```lua
 MyDSL.TargetView.actions = {

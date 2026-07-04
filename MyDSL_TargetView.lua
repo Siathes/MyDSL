@@ -52,13 +52,10 @@ end
 local function commandArg(name)
   local s = normalizeName(name or "")
   if s == "" then return "" end
-  -- Apostrophe in name → use last word after apostrophe as safe fallback.
-  if s:find("'", 1, true) then
-    return s:match("([^%s']+)$") or s
-  end
-  -- Multi-word → quote it; single word → bare.
-  if s:find("%s") then return "'" .. s .. "'" end
-  return s
+  -- DSL's target keyword matching only succeeds on a single word — confirmed
+  -- via extensive live testing (cast heal 'wild bear' → "They aren't here.";
+  -- cast heal bear → Ok.). Always reduce to the last word of the normalized name.
+  return s:match("(%S+)$") or s
 end
 
 
@@ -253,7 +250,6 @@ function MyDSL.Target.doAction(action_key)
   local act = TV.actions[action_key]
   if not act then return end
   local cmd = act.cmd(t)
-  debugc("[MyDSL] sending: " .. cmd)  -- REMOVE after Steven confirms commands are correct
   send(cmd, false)
 end
 

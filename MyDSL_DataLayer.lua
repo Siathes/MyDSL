@@ -1216,7 +1216,19 @@ function MyDSL.parseScanLine(line)
     }
   end
   if where == "right here" then
-    scan.rightHere[key] = scan.byName[key]
+    if scan.rightHere[key] then
+      scan.rightHere[key].count = scan.rightHere[key].count + 1
+    else
+      scan.rightHere[key] = {
+        raw     = line,
+        name    = name,
+        display = name,
+        key     = key,
+        where   = where,
+        is_mob  = is_mob,
+        count   = 1,
+      }
+    end
   end
   -- ScanView body-line gagging (header lines gagged by ScanView's own triggers).
   if MyDSL.ScanView and MyDSL.ScanView.config and MyDSL.ScanView.config.gagScan then

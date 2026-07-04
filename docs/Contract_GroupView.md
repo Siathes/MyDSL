@@ -46,7 +46,7 @@ Example output:
 | `HP%` | green `68,204,68` ≥76; yellow `204,204,68` ≥51; orange `204,136,68` ≥26; red `204,68,68` else | Always shown |
 | `mana%` | blue `68,136,204` | Always shown |
 | `mv%` | light green `136,204,136` | Always shown |
-| quick buttons | from `TV.actions` color field | Calls `GV.quickAction(idx, key)`; no mob/player filtering |
+| quick buttons | from `TV.actions` color field | Calls `GV.quickAction(idx, key)`; `rescue` hidden for Mob rows (see note below) |
 
 ---
 
@@ -55,8 +55,16 @@ Example output:
 Default: `GV.config.quickActions = {"heal", "rescue"}` — two buttons per row.
 
 Buttons are rendered from `MyDSL.TargetView.actions[key]` entries, using the
-same label/color/tooltip as the TargetView buttons. No mob/player filtering —
-every group member is an ally by definition.
+same label/color/tooltip as the TargetView buttons.
+
+**Exception — rescue is hidden for Mob rows:** DSL's `rescue` command only works
+player→player or pet→player, never player→mob. Confirmed live: `rescue bear`
+(Kien trying to rescue his own charmed pet) → "You yell out loudly for a rescue!"
+every time; `order bear rescue kien` → "A wild bear rescues you!" instantly.
+Helpfile confirms: "you rescue a friend, not the monster." The `rescue` button is
+suppressed for any group member where `m.is_mob == true`. All other quick-action
+buttons (heal, cure spells, sanctuary, etc.) remain unfiltered — they legitimately
+work on charmed pets.
 
 Click sends `act.cmd({name = m.name})` via `GV.quickAction(idx, key)`.
 

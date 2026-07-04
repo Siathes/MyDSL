@@ -94,17 +94,23 @@ function GV.render()
     mc:decho(string.format(" <68,136,204>%3d%%mn<r>", m.mana_pct))
     mc:decho(string.format(" <136,204,136>%3d%%mv<r>", m.mv_pct))
 
-    -- Quick-action buttons — reuse TV.actions entries; no mob/player filtering
-    -- since every member of your own group listing is an ally.
+    -- Quick-action buttons — reuse TV.actions entries.
+    -- Exception: rescue is skipped for Mob rows — DSL rescue only works player→player
+    -- or pet→player, never player→mob (confirmed live: "rescue bear" always fails;
+    -- "order bear rescue kien" succeeds).
     for _, key in ipairs(GV.config.quickActions) do
-      local act = MyDSL.TargetView and MyDSL.TargetView.actions
-                  and MyDSL.TargetView.actions[key]
-      if act then
-        mc:dechoLink(
-          string.format(" <%s>[%s]<r>", act.color, act.label),
-          string.format("MyDSL.GroupView.quickAction(%d, '%s')", idx, key),
-          act.tooltip .. ": " .. m.name,
-          false)
+      if key == "rescue" and m.is_mob then
+        -- skip: rescue cannot target mobs, even charmed pets
+      else
+        local act = MyDSL.TargetView and MyDSL.TargetView.actions
+                    and MyDSL.TargetView.actions[key]
+        if act then
+          mc:dechoLink(
+            string.format(" <%s>[%s]<r>", act.color, act.label),
+            string.format("MyDSL.GroupView.quickAction(%d, '%s')", idx, key),
+            act.tooltip .. ": " .. m.name,
+            false)
+        end
       end
     end
 
@@ -167,7 +173,6 @@ function GV.quickAction(idx, actionKey)
               and MyDSL.TargetView.actions[actionKey]
   if not act then return end
   local cmd = act.cmd({ name = m.name })
-  debugc("[MyDSL] sending: " .. cmd)  -- REMOVE after Steven confirms commands are correct
   send(cmd, false)
 end
 

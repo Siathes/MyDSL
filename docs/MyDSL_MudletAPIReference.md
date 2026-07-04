@@ -74,3 +74,51 @@ Before writing any `tempRegexTrigger`/`tempAlias` pattern, write it as if you're
 If a body script needs to parse the matched line further (e.g. extract the direction from
 "You peer intently northeast."), use `getCurrentLine():match(lua_pattern)` with proper Lua `%`
 escapes — that call goes through `string.match()` which is Lua, not PCRE.
+
+---
+
+## CONFIRMED: DSL keyword targeting rules
+
+**Source:** Extensive live testing 2026-07-04 across multiple mobs, rooms, and phrasings.
+
+### Single-word-only matching
+
+DSL target keyword matching succeeds on a **single word only**, quoted or not:
+
+| Command | Result |
+|---|---|
+| `cast heal bear` | Ok. |
+| `cast heal 'bear'` | Ok. |
+| `cast heal 'wild bear'` | They aren't here. |
+| `cast heal stallion` | Ok. |
+| `cast heal 'throughbred stallion'` | They aren't here. |
+| `cast heal fire` | Ok. (hits "a fire elemental") |
+| `cast heal 'fire elemental'` | They aren't here. |
+
+**Implication for code:** `commandArg()` always reduces to the last word of the
+normalized name. Multi-word quoting (`'wild bear'`) was removed — it never works.
+
+### Keyword sets are per-mob
+
+Not every word in a mob's display name is a valid keyword. The keyword set is
+defined per-mob by the game administrators, not derived mechanically from the name.
+
+Example: `"a tinker gnome janitor"` — `gnome` and `janitor` work; `tinker` does not.
+There is no way to predict which words are valid keywords without testing each one.
+
+### Ordinal disambiguation
+
+When multiple mobs share a keyword, ordinal syntax selects by room-order position:
+- `2.gnome` — selects the second gnome-keyworded mob in room order (top-to-bottom)
+- `.2gnome` — does **NOT** work (number must precede the dot)
+- Bare keyword with no ordinal → first mob in room order (confirmed via repeated
+  `heal gnome` / `creaturelore gnome` calls consistently hitting the first-listed mob)
+
+Room order = top-to-bottom order in scan/look output.
+
+### Candidate for future Combat window
+
+`State.scan.byName[key].count` already tracks how many of each mob type are visible.
+`State.scan.rightHere[key].count` tracks how many are in the current room.
+These counts, combined with ordinal syntax (`N.keyword`), are the inputs for a
+future Combat-window target-disambiguation feature. Not implemented yet.
