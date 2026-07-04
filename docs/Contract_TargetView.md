@@ -130,8 +130,10 @@ handles apostrophes (last-word fallback), and single-quotes multi-word names.
 ```lua
 MyDSL.TargetView.actions = {
   -- Combat
-  murder       = { cmd=…"murder <arg>",       label="Murder",     color="204,68,68",   tooltip="Attack target" },
-  flee         = { cmd=…"flee",                label="Flee",       color="204,68,68",   tooltip="Attempt to flee combat" },
+  murder       = { cmd=…"murder <arg>",            label="Murder",    color="204,68,68",   tooltip="Attack target" },
+  flee         = { cmd=…"flee",                     label="Flee",      color="204,68,68",   tooltip="Attempt to flee combat" },
+  order_attack = { cmd=…"order all murder <arg>",   label="Order All", color="204,68,68",   tooltip="Order all followers to attack target" },
+  --   ↑ opt-in only — not in default mob_buttons/player_buttons; add via mydsl target mobset/playerset
   -- Info
   glance       = { cmd=…"gl <arg>",            label="Glance",     color="204,204,204", tooltip="Quick look at target" },
   consider     = { cmd=…"consider <arg>",      label="Consider",   color="204,204,204", tooltip="Check combat difficulty" },

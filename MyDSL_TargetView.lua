@@ -105,6 +105,12 @@ TV.actions = {
     color   = "204,68,68",
     tooltip = "Attempt to flee combat",
   },
+  order_attack = {
+    cmd     = function(t) return "order all murder " .. commandArg(t.name) end,
+    label   = "Order All",
+    color   = "204,68,68",
+    tooltip = "Order all followers to attack target",
+  },
   look = {
     cmd     = function(t) return "look " .. commandArg(t.name) end,
     label   = "Look",
