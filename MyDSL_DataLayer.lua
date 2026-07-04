@@ -61,6 +61,7 @@ MyDSL.State.combat = MyDSL.State.combat or {
   history_max = 5,
   round_data  = {},    -- per-(attacker→target→noun) accumulators, cleared each round
   rage        = { damage = 0, vamp = 0 },
+  last_updated = 0,
 }
 
 -- Per-character persistent storage.  Keyed by character name so Kien,
@@ -1456,6 +1457,16 @@ function MyDSL.parseCombatDamageLine(attacker, noun, verb, target, punct)
     nd.score_total = nd.score_total + score
   end
 
+  -- Compound-noun proc flags (e.g. "life drain" → vampiric H, "shocking bite" → lightning L)
+  local NOUN_FLAG_MAP = { ["life drain"] = "H", ["shocking bite"] = "L" }
+  local impliedFlag = NOUN_FLAG_MAP[noun:lower()]
+  if impliedFlag and verb ~= "miss" then
+    nd.flags[impliedFlag] = (nd.flags[impliedFlag] or 0) + 1
+    if impliedFlag == "H" and aKey == "you" then
+      MyDSL.State.combat.rage.vamp = MyDSL.State.combat.rage.vamp + 2.5
+    end
+  end
+
   -- Round accumulation
   local rd    = MyDSL.State.combat.round_data
   local rdKey = aKey .. "→" .. tKey .. "→" .. noun
@@ -1842,7 +1853,10 @@ MyDSL._triggers.combatSense2 = tempRegexTrigger(
 -- ---- Condition trigger (excludes DEAD — handled by combatDead below)
 MyDSL._triggers.combatCondition = tempRegexTrigger(
   "(?:is in excellent condition|has a few scratches|has some small wounds|has some big nasty wounds|has quite a few wounds|looks pretty hurt|is in awful condition)",
-  function() if MyDSL and MyDSL.parseCombatConditionLine then MyDSL.parseCombatConditionLine(getCurrentLine()) end end)
+  function()
+    if MyDSL and MyDSL.parseCombatConditionLine then MyDSL.parseCombatConditionLine(getCurrentLine()) end
+    if MyDSL and MyDSL.CombatView and MyDSL.CombatView.config and MyDSL.CombatView.config.gag_combat then deleteLine() end
+  end)
 
 -- ---- Death trigger
 MyDSL._triggers.combatDead = tempRegexTrigger(
@@ -2022,6 +2036,7 @@ MyDSL._handlers.combatRoundFlush = registerAnonymousEventHandler(
       entry.derived_verb = MyDSL.derivedVerbForScore(entry.score)
     end
     -- Raise combat.updated — CombatView.render() rebuilds the round log
+    MyDSL.State.combat.last_updated = os.time()
     raiseEvent("MyDSL.combat.updated", rd)
     MyDSL.State.combat.round_data = {}
     -- Rage: check if HP is hidden this round

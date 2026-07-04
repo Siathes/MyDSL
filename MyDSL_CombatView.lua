@@ -21,15 +21,17 @@ CV._aliases  = {}
 CV._mc       = CV._mc or {}   -- persists across reloads
 
 -- Config table (all defaults match PNP's tested surface).
+-- Out-of-box: raw combat lines are gagged and echoed to the combat window only.
+-- Use "mydsl combat show <key>" to opt individual categories back in.
 CV.config = CV.config or {}
-if CV.config.show_damage_by_me  == nil then CV.config.show_damage_by_me  = true  end
-if CV.config.show_damage_to_me  == nil then CV.config.show_damage_to_me  = true  end
-if CV.config.show_miss          == nil then CV.config.show_miss          = true  end
-if CV.config.show_evade         == nil then CV.config.show_evade         = true  end
-if CV.config.show_flag          == nil then CV.config.show_flag          = true  end
-if CV.config.show_condition     == nil then CV.config.show_condition     = true  end
-if CV.config.echo_to_main       == nil then CV.config.echo_to_main       = false end
-if CV.config.gag_combat         == nil then CV.config.gag_combat         = false end
+if CV.config.show_damage_by_me  == nil then CV.config.show_damage_by_me  = false end
+if CV.config.show_damage_to_me  == nil then CV.config.show_damage_to_me  = false end
+if CV.config.show_miss          == nil then CV.config.show_miss          = false end
+if CV.config.show_evade         == nil then CV.config.show_evade         = false end
+if CV.config.show_flag          == nil then CV.config.show_flag          = false end
+if CV.config.show_condition     == nil then CV.config.show_condition     = false end
+if CV.config.echo_to_main       == nil then CV.config.echo_to_main       = true  end
+if CV.config.gag_combat         == nil then CV.config.gag_combat         = true  end
 
 -- Window / MiniConsole name constants.
 local COMBAT_WIN = "MyDSL_Combat"
