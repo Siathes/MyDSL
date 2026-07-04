@@ -246,7 +246,9 @@ function MyDSL.Target.doAction(action_key)
   if not t or not t.name then return end
   local act = TV.actions[action_key]
   if not act then return end
-  send(act.cmd(t), false)
+  local cmd = act.cmd(t)
+  debugc("[MyDSL] sending: " .. cmd)  -- REMOVE after Steven confirms commands are correct
+  send(cmd, false)
 end
 
 function MyDSL.Target.captureConsider(line)

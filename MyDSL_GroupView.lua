@@ -166,7 +166,9 @@ function GV.quickAction(idx, actionKey)
   local act = MyDSL.TargetView and MyDSL.TargetView.actions
               and MyDSL.TargetView.actions[actionKey]
   if not act then return end
-  send(act.cmd({ name = m.name }), false)
+  local cmd = act.cmd({ name = m.name })
+  debugc("[MyDSL] sending: " .. cmd)  -- REMOVE after Steven confirms commands are correct
+  send(cmd, false)
 end
 
 
