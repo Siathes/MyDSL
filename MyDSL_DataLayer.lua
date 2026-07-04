@@ -55,6 +55,13 @@ MyDSL.State.scan         = MyDSL.State.scan         or {  -- text: nearby entiti
   mode=nil, direction=nil, rows={}, rightHere={}, byName={}, last_updated=0
 }
 MyDSL.State.creaturelore = MyDSL.State.creaturelore or { last_updated = 0 }  -- text: creature lore block
+MyDSL.State.combat = MyDSL.State.combat or {
+  active      = {},    -- keyed by target-key; each entry: {target_display, target_condition, by_attacker, started_at}
+  history     = {},    -- array of snapshots (same shape), most recent first
+  history_max = 5,
+  round_data  = {},    -- per-(attacker→target→noun) accumulators, cleared each round
+  rage        = { damage = 0, vamp = 0 },
+}
 
 -- Per-character persistent storage.  Keyed by character name so Kien,
 -- Vrokt, Olyndros etc each have completely separate saved state.
@@ -183,6 +190,7 @@ MyDSL._handlers.char_data = registerAnonymousEventHandler(
     local d = gmcp.char_data
     update("char", {
       hp               = tonumber(d.hp),
+      hp_raw           = tostring(d.hp or ""),  -- rage mode: GMCP sends "???" → tonumber gives nil; hp_raw preserves it
       max_hp           = tonumber(d.max_hp),
       mana             = tonumber(d.mana),
       max_mana         = tonumber(d.max_mana),
@@ -1313,6 +1321,289 @@ end
 
 
 ------------------------------------------------------------------------
+-- 9q  COMBAT
+------------------------------------------------------------------------
+-- Always-active triggers (no begin/end block — DSL emits combat lines
+-- continuously with no header). Each trigger feeds a shared accumulator.
+-- Round boundary: MyDSL.time.updated (prompt reprints every combat round).
+
+-- ---- Severity ladder (PNP's exact tuned values) ---------------------
+local SEVERITY_LADDER = {
+  { score=0,   word="miss"          },
+  { score=2.5, word="scratch"       },
+  { score=6.5, word="graze"         },
+  { score=10.5,word="hit"           },
+  { score=14.5,word="injure"        },
+  { score=18.5,word="wound"         },
+  { score=22.5,word="maul"          },
+  { score=26.5,word="decimate"      },
+  { score=30.5,word="devastate"     },
+  { score=34.5,word="maim"          },
+  { score=38.5,word="MUTILATE"      },
+  { score=42.5,word="DISEMBOWEL"    },
+  { score=46.5,word="DISMEMBER"     },
+  { score=50.5,word="MASSACRE"      },
+  { score=54.5,word="MANGLE"        },
+  { score=58.5,word="DEMOLISH"      },
+  { score=68,  word="DEVASTATE"     },
+  { score=88,  word="OBLITERATE"    },
+  { score=113, word="ANNIHILATE"    },
+  { score=138, word="ERADICATE"     },
+  { score=163, word="GHASTLY"       },
+  { score=188, word="HORRID"        },
+  { score=213, word="DREADFUL"      },
+  { score=238, word="HIDEOUS"       },
+  { score=263, word="INDESCRIBABLE" },
+  { score=276, word="UNSPEAKABLE"   },
+}
+
+local SEVERITY_SCORE = {}
+for _, e in ipairs(SEVERITY_LADDER) do SEVERITY_SCORE[e.word] = e.score end
+
+function MyDSL.derivedVerbForScore(score)
+  local result = "miss"
+  for _, e in ipairs(SEVERITY_LADDER) do
+    if e.score <= score then result = e.word else break end
+  end
+  return result
+end
+
+-- ---- Condition ladder -----------------------------------------------
+local CONDITION_PATTERNS = {
+  { pat = " is in excellent condition",       label = "excellent"    },
+  { pat = " has a few scratches",             label = "few scratches" },
+  { pat = " has some small wounds",           label = "small wounds"  },
+  { pat = " has some big nasty wounds",       label = "big wounds"    },
+  { pat = " has quite a few wounds",          label = "quite a few"   },
+  { pat = " looks pretty hurt",               label = "pretty hurt"   },
+  { pat = " is in awful condition",           label = "awful"         },
+}
+
+-- ---- Scope + key helpers --------------------------------------------
+local function normalizeKey(name)
+  if not name then return "" end
+  local s = trim(name:lower())
+  s = s:gsub("^a%s+", ""):gsub("^an%s+", ""):gsub("^the%s+", "")
+  return trim(s)
+end
+
+local function isRelevant(aKey, tKey)
+  if aKey == "you" or tKey == "you" then return true end
+  local grp = MyDSL.State.group and MyDSL.State.group.members
+  if not grp then return false end
+  for _, m in ipairs(grp) do
+    local mk = normalizeKey(m.name)
+    if aKey == mk or tKey == mk then return true end
+  end
+  return false
+end
+
+local function ensureActive(tKey, tDisplay)
+  if not MyDSL.State.combat.active[tKey] then
+    MyDSL.State.combat.active[tKey] = {
+      target_display   = tDisplay or tKey,
+      target_condition = "unknown",
+      by_attacker      = {},
+      started_at       = os.time(),
+    }
+  end
+  return MyDSL.State.combat.active[tKey]
+end
+
+local function snapshotFight(tKey)
+  local entry = MyDSL.State.combat.active[tKey]
+  if not entry then return nil end
+  local hist = MyDSL.State.combat.history
+  table.insert(hist, 1, entry)
+  while #hist > MyDSL.State.combat.history_max do table.remove(hist) end
+  MyDSL.State.combat.active[tKey] = nil
+  return entry
+end
+
+-- ---- parseCombatDamageLine ------------------------------------------
+local FALSE_POSITIVE_GUARDS = {"You gain", "has big nasty", "Affects", "has some small", "Wimpy"}
+
+function MyDSL.parseCombatDamageLine(attacker, noun, verb, target, punct)
+  -- PNP's false-positive guard
+  local combined = (attacker or "") .. " " .. (noun or "")
+  for _, g in ipairs(FALSE_POSITIVE_GUARDS) do
+    if combined:find(g, 1, true) then return end
+  end
+
+  attacker = trim(attacker or "")
+  noun     = trim(noun     or "")
+  verb     = trim(verb     or "")
+  target   = trim(target   or "")
+  if noun == "" then noun = "strike" end
+
+  local aKey = (attacker == "You" or attacker:lower() == "you") and "you"
+               or normalizeKey(attacker)
+  local tKey = (target:lower() == "you") and "you" or normalizeKey(target)
+
+  if not isRelevant(aKey, tKey) then return end
+
+  local score = SEVERITY_SCORE[verb] or 0
+  local entry = ensureActive(tKey, target)
+  local ba    = entry.by_attacker
+  ba[aKey]       = ba[aKey]       or {}
+  ba[aKey][noun] = ba[aKey][noun] or { swings=0, hits=0, misses=0, score_total=0, flags={} }
+  local nd = ba[aKey][noun]
+  nd.swings = nd.swings + 1
+  if verb == "miss" then
+    nd.misses = nd.misses + 1
+  else
+    nd.hits        = nd.hits + 1
+    nd.score_total = nd.score_total + score
+  end
+
+  -- Round accumulation
+  local rd    = MyDSL.State.combat.round_data
+  local rdKey = aKey .. "→" .. tKey .. "→" .. noun
+  rd[rdKey] = rd[rdKey] or { attacker=aKey, target=tKey, noun=noun, score=0, swings=0, hits=0 }
+  rd[rdKey].score  = rd[rdKey].score + score
+  rd[rdKey].swings = rd[rdKey].swings + 1
+  if verb ~= "miss" then rd[rdKey].hits = rd[rdKey].hits + 1 end
+
+  -- Rage: accumulate damage taken by you
+  if tKey == "you" then
+    MyDSL.State.combat.rage.damage = MyDSL.State.combat.rage.damage + score
+  end
+end
+
+-- ---- parseCombatAvoidLine -------------------------------------------
+function MyDSL.parseCombatAvoidLine(line)
+  local evader, attacker
+
+  -- dodge / parry
+  evader, attacker = line:match("^(.+) dodges (.+)'s attack%.")
+  if not evader then evader, attacker = line:match("^(.+) parries (.+)'s attack%.") end
+  if not evader then evader, attacker = line:match("^(.+) blocks (.+)'s attack") end
+  -- perception sense + named attacker
+  if not evader then evader, attacker = line:match("^(.+) senses (.+)'s attack coming and avoids") end
+  -- perception sense, no attacker visible
+  if not evader then evader = line:match("^(.+) senses they'?re about to be hit") end
+
+  if not evader then return end
+  evader = trim(evader)
+  local eKey = normalizeKey(evader)
+  local aKey = attacker and normalizeKey(trim(attacker)) or "unknown"
+
+  if not isRelevant(eKey, aKey) then return end
+
+  local entry = ensureActive(eKey, evader)
+  entry.by_attacker[aKey] = entry.by_attacker[aKey] or {}
+  entry.by_attacker[aKey]["(evade)"] = entry.by_attacker[aKey]["(evade)"]
+    or { swings=0, hits=0, misses=0, score_total=0, flags={} }
+  entry.by_attacker[aKey]["(evade)"].swings = entry.by_attacker[aKey]["(evade)"].swings + 1
+
+  local rd    = MyDSL.State.combat.round_data
+  local rdKey = aKey .. "→" .. eKey .. "→(evade)"
+  rd[rdKey] = rd[rdKey] or { attacker=aKey, target=eKey, noun="(evade)", score=0, swings=0, hits=0 }
+  rd[rdKey].swings = rd[rdKey].swings + 1
+end
+
+-- ---- parseCombatConditionLine ---------------------------------------
+function MyDSL.parseCombatConditionLine(line)
+  local name, label
+  for _, c in ipairs(CONDITION_PATTERNS) do
+    local idx = line:find(c.pat, 1, true)
+    if idx and idx > 1 then
+      name  = trim(line:sub(1, idx - 1))
+      label = c.label
+      break
+    end
+  end
+  if not name or not label then return end
+
+  local tKey = normalizeKey(name)
+  local entry = MyDSL.State.combat.active[tKey]
+  if not entry then return end  -- not tracking this target, skip
+  entry.target_condition = label
+end
+
+-- ---- parseCombatDeathLine -------------------------------------------
+function MyDSL.parseCombatDeathLine(line)
+  -- "<mob> is DEAD!!"
+  local name = line:match("^(.+) is DEAD!!$")
+  if not name then return end
+  local tKey   = normalizeKey(trim(name))
+  local snap   = snapshotFight(tKey)
+  if snap then raiseEvent("MyDSL.combat.ended", snap) end
+end
+
+-- ---- parseCombatEndLine ---------------------------------------------
+function MyDSL.parseCombatEndLine(line)
+  -- Escape fail: no state change
+  if line:match("^You cannot escape from combat") then return end
+
+  -- You flee
+  if line:match("^You flee from combat!") then
+    -- Clear the first active entry where you are attacker
+    for tKey, entry in pairs(MyDSL.State.combat.active) do
+      if entry.by_attacker and entry.by_attacker["you"] then
+        local snap = snapshotFight(tKey)
+        if snap then raiseEvent("MyDSL.combat.ended", snap) end
+        return
+      end
+    end
+    return
+  end
+
+  -- Rescued out: "<name> rescues you!"
+  if line:match("rescues you!$") then
+    for tKey, _ in pairs(MyDSL.State.combat.active) do
+      local snap = snapshotFight(tKey)
+      if snap then raiseEvent("MyDSL.combat.ended", snap) end
+      return  -- clear only first (most recent) active fight
+    end
+    return
+  end
+
+  -- A mob or pet flees: "<name> has fled!"
+  local fled = line:match("^(.+) has fled!$")
+  if fled then
+    local tKey = normalizeKey(trim(fled))
+    local snap = snapshotFight(tKey)
+    if snap then raiseEvent("MyDSL.combat.ended", snap) end
+  end
+end
+
+-- ---- parseCombatProcLine --------------------------------------------
+-- flagCode: C=Frost F=Flaming L=Shocking H=Vampiric S=Stunning M=ManaDrain O=Holy U=Unholy P=Poison
+function MyDSL.parseCombatProcLine(flagCode, attackerKey, targetKey)
+  -- Rage vamp tracking: your own vampiric procs landing
+  if flagCode == "H" and attackerKey == "you" then
+    MyDSL.State.combat.rage.vamp = MyDSL.State.combat.rage.vamp + 2.5
+  end
+
+  -- Determine the active entry to annotate
+  local entry = targetKey and MyDSL.State.combat.active[targetKey]
+  if not entry then
+    -- Fallback: if exactly one active fight, use it
+    local count, lastKey, lastEntry = 0, nil, nil
+    for k, e in pairs(MyDSL.State.combat.active) do
+      count = count + 1; lastKey, lastEntry = k, e
+    end
+    if count ~= 1 then return end
+    entry, targetKey = lastEntry, lastKey
+  end
+  if not entry then return end
+
+  attackerKey = attackerKey or "you"
+  local ba = entry.by_attacker[attackerKey]
+  if not ba then return end
+
+  -- Add to the first non-evade noun found for this attacker
+  for noun, ndata in pairs(ba) do
+    if noun ~= "(evade)" then
+      ndata.flags[flagCode] = (ndata.flags[flagCode] or 0) + 1
+      return
+    end
+  end
+end
+
+
+------------------------------------------------------------------------
 -- SECTION 10: TRIGGER REGISTRATION
 ------------------------------------------------------------------------
 -- Score header: "Score for Kien -= Zandreya =- (Companion) *Observer*"
@@ -1500,6 +1791,250 @@ MyDSL._triggers.loreStart = tempRegexTrigger(
   end
 )
 
+
+------------------------------------------------------------------------
+-- Combat triggers (always-active — no begin/end block)
+------------------------------------------------------------------------
+
+-- ---- Unified damage trigger (PNP-derived PCRE, one trigger for all damage types)
+local DAMAGE_VERBS = "miss|scratch|graze|hit|injure|wound|maul|decimate|devastate|maim|MUTILATE|DISEMBOWEL|DISMEMBER|MASSACRE|MANGLE|DEMOLISH|DEVASTATE|OBLITERATE|ANNIHILATE|ERADICATE|GHASTLY|HORRID|DREADFUL|HIDEOUS|INDESCRIBABLE|UNSPEAKABLE"
+MyDSL._triggers.combatDamage = tempRegexTrigger(
+  "^(You|[\\w\\-\\s,']+?)(?:(?<=You)r|'s)?(?:\\s?((?<=Your )[\\w\\s]+?|(?<='s )[\\w\\s]+?|))(?: do[es]*| [\\>\\<\\=\\*]+|) ("
+    .. DAMAGE_VERBS .. ")[esES]*(?: things to| [\\>\\<\\=\\*]+|) ([\\w\\-\\s,']+)([\\.\\.!]+)$",
+  function()
+    if MyDSL and MyDSL.parseCombatDamageLine then
+      MyDSL.parseCombatDamageLine(matches[2], matches[3], matches[4], matches[5], matches[6])
+    end
+    if MyDSL and MyDSL.CombatView and MyDSL.CombatView.config
+       and MyDSL.CombatView.config.gag_combat then
+      deleteLine()
+    end
+  end
+)
+
+-- ---- Avoidance triggers
+MyDSL._triggers.combatDodge = tempRegexTrigger(
+  "^[\\w\\-\\s,']+ dodges [\\w\\-\\s,']+'s attack\\.",
+  function() if MyDSL and MyDSL.parseCombatAvoidLine then MyDSL.parseCombatAvoidLine(getCurrentLine()) end
+    if MyDSL and MyDSL.CombatView and MyDSL.CombatView.config and MyDSL.CombatView.config.gag_combat then deleteLine() end
+  end)
+MyDSL._triggers.combatParry = tempRegexTrigger(
+  "^[\\w\\-\\s,']+ parries [\\w\\-\\s,']+'s attack\\.",
+  function() if MyDSL and MyDSL.parseCombatAvoidLine then MyDSL.parseCombatAvoidLine(getCurrentLine()) end
+    if MyDSL and MyDSL.CombatView and MyDSL.CombatView.config and MyDSL.CombatView.config.gag_combat then deleteLine() end
+  end)
+MyDSL._triggers.combatBlock = tempRegexTrigger(
+  "^[\\w\\-\\s,']+ blocks [\\w\\-\\s,']+'s attack",
+  function() if MyDSL and MyDSL.parseCombatAvoidLine then MyDSL.parseCombatAvoidLine(getCurrentLine()) end
+    if MyDSL and MyDSL.CombatView and MyDSL.CombatView.config and MyDSL.CombatView.config.gag_combat then deleteLine() end
+  end)
+MyDSL._triggers.combatSense1 = tempRegexTrigger(
+  "^[\\w\\-\\s,']+ senses they.?re about to be hit and deflects the blow\\.",
+  function() if MyDSL and MyDSL.parseCombatAvoidLine then MyDSL.parseCombatAvoidLine(getCurrentLine()) end
+    if MyDSL and MyDSL.CombatView and MyDSL.CombatView.config and MyDSL.CombatView.config.gag_combat then deleteLine() end
+  end)
+MyDSL._triggers.combatSense2 = tempRegexTrigger(
+  "^[\\w\\-\\s,']+ senses [\\w\\-\\s,']+'s attack coming and avoids its blow\\.",
+  function() if MyDSL and MyDSL.parseCombatAvoidLine then MyDSL.parseCombatAvoidLine(getCurrentLine()) end
+    if MyDSL and MyDSL.CombatView and MyDSL.CombatView.config and MyDSL.CombatView.config.gag_combat then deleteLine() end
+  end)
+
+-- ---- Condition trigger (excludes DEAD — handled by combatDead below)
+MyDSL._triggers.combatCondition = tempRegexTrigger(
+  "(?:is in excellent condition|has a few scratches|has some small wounds|has some big nasty wounds|has quite a few wounds|looks pretty hurt|is in awful condition)",
+  function() if MyDSL and MyDSL.parseCombatConditionLine then MyDSL.parseCombatConditionLine(getCurrentLine()) end end)
+
+-- ---- Death trigger
+MyDSL._triggers.combatDead = tempRegexTrigger(
+  " is DEAD!!$",
+  function()
+    if MyDSL and MyDSL.parseCombatDeathLine then MyDSL.parseCombatDeathLine(getCurrentLine()) end
+    if MyDSL and MyDSL.CombatView and MyDSL.CombatView.config and MyDSL.CombatView.config.gag_combat then deleteLine() end
+  end)
+
+-- ---- Flee / rescue / escape-fail triggers
+MyDSL._triggers.combatFlee = tempRegexTrigger(
+  "^You flee from combat!$",
+  function() if MyDSL and MyDSL.parseCombatEndLine then MyDSL.parseCombatEndLine(getCurrentLine()) end
+    if MyDSL and MyDSL.CombatView and MyDSL.CombatView.config and MyDSL.CombatView.config.gag_combat then deleteLine() end
+  end)
+MyDSL._triggers.combatEscapeFail = tempRegexTrigger(
+  "^You cannot escape from combat!!!$",
+  function() if MyDSL and MyDSL.parseCombatEndLine then MyDSL.parseCombatEndLine(getCurrentLine()) end end)
+MyDSL._triggers.combatRescued = tempRegexTrigger(
+  "rescues you!$",
+  function() if MyDSL and MyDSL.parseCombatEndLine then MyDSL.parseCombatEndLine(getCurrentLine()) end end)
+MyDSL._triggers.combatTargetFled = tempRegexTrigger(
+  "^[\\w\\-\\s,']+ has fled!$",
+  function() if MyDSL and MyDSL.parseCombatEndLine then MyDSL.parseCombatEndLine(getCurrentLine()) end end)
+
+-- ---- Weapon-flag proc triggers
+-- C: Frost
+MyDSL._triggers.procFrostFreeze = tempRegexTrigger(
+  "^([\\w\\-\\s,']+) freezes ([\\w\\-\\s,']+)\\.$",
+  function()
+    if not (MyDSL and MyDSL.parseCombatProcLine) then return end
+    local aKey = normalizeKey(matches[2] == "You" and "you" or matches[2])
+    local tKey = normalizeKey(matches[3]:lower() == "you" and "you" or matches[3])
+    MyDSL.parseCombatProcLine("C", aKey, tKey)
+  end)
+MyDSL._triggers.procFrostTouch = tempRegexTrigger(
+  "^The cold touch of ([\\w\\-\\s,']+) surrounds you with ice",
+  function()
+    if not (MyDSL and MyDSL.parseCombatProcLine) then return end
+    MyDSL.parseCombatProcLine("C", normalizeKey(matches[2]), "you")
+  end)
+
+-- F: Flaming
+MyDSL._triggers.procFlameBurn = tempRegexTrigger(
+  "^([\\w\\-\\s,']+) is burned by ([\\w\\-\\s,']+)\\.$",
+  function()
+    if not (MyDSL and MyDSL.parseCombatProcLine) then return end
+    MyDSL.parseCombatProcLine("F", normalizeKey(matches[3]), normalizeKey(matches[2]))
+  end)
+MyDSL._triggers.procFlameSear = tempRegexTrigger(
+  "^([\\w\\-\\s,']+) sears your flesh",
+  function()
+    if not (MyDSL and MyDSL.parseCombatProcLine) then return end
+    MyDSL.parseCombatProcLine("F", normalizeKey(matches[2]), "you")
+  end)
+
+-- L: Shocking
+MyDSL._triggers.procShockLightning = tempRegexTrigger(
+  "^([\\w\\-\\s,']+) is struck by lightning from ([\\w\\-\\s,']+)\\.$",
+  function()
+    if not (MyDSL and MyDSL.parseCombatProcLine) then return end
+    MyDSL.parseCombatProcLine("L", normalizeKey(matches[3]), normalizeKey(matches[2]))
+  end)
+MyDSL._triggers.procShockShocked = tempRegexTrigger(
+  "^([\\w\\-\\s,']+) is shocked by a",
+  function()
+    if not (MyDSL and MyDSL.parseCombatProcLine) then return end
+    MyDSL.parseCombatProcLine("L", "unknown", normalizeKey(matches[2]))
+  end)
+
+-- H: Vampiric
+MyDSL._triggers.procVampDraw = tempRegexTrigger(
+  "^([\\w\\-\\s,']+) draws life from ([\\w\\-\\s,']+)\\.$",
+  function()
+    if not (MyDSL and MyDSL.parseCombatProcLine) then return end
+    local aKey = (matches[2] == "You" or matches[2]:lower() == "you") and "you" or normalizeKey(matches[2])
+    local tKey = matches[3]:lower() == "you" and "you" or normalizeKey(matches[3])
+    MyDSL.parseCombatProcLine("H", aKey, tKey)
+  end)
+MyDSL._triggers.procVampDrain = tempRegexTrigger(
+  "^You feel ([\\w\\-\\s,']+) drawing your life away",
+  function()
+    if not (MyDSL and MyDSL.parseCombatProcLine) then return end
+    MyDSL.parseCombatProcLine("H", normalizeKey(matches[2]), "you")
+  end)
+
+-- S: Stunning
+MyDSL._triggers.procStun = tempRegexTrigger(
+  "^([\\w\\-\\s,']+) is knocked to the ground by ([\\w\\-\\s,']+)\\.$",
+  function()
+    if not (MyDSL and MyDSL.parseCombatProcLine) then return end
+    MyDSL.parseCombatProcLine("S", normalizeKey(matches[3]), normalizeKey(matches[2]))
+  end)
+
+-- M: Mana drain
+MyDSL._triggers.procManaSelf = tempRegexTrigger(
+  "^You feel something drawing your energy away",
+  function()
+    if not (MyDSL and MyDSL.parseCombatProcLine) then return end
+    MyDSL.parseCombatProcLine("M", "unknown", "you")
+  end)
+MyDSL._triggers.procManaDraw = tempRegexTrigger(
+  "^([\\w\\-\\s,']+) draws energy from ([\\w\\-\\s,']+)\\.$",
+  function()
+    if not (MyDSL and MyDSL.parseCombatProcLine) then return end
+    local aKey = (matches[2] == "You" or matches[2]:lower() == "you") and "you" or normalizeKey(matches[2])
+    local tKey = matches[3]:lower() == "you" and "you" or normalizeKey(matches[3])
+    MyDSL.parseCombatProcLine("M", aKey, tKey)
+  end)
+
+-- O: Holy
+MyDSL._triggers.procHolyWrath = tempRegexTrigger(
+  "^You feel a surge of ([\\w\\-\\s,']+)'s holy wrath race through your body",
+  function()
+    if not (MyDSL and MyDSL.parseCombatProcLine) then return end
+    MyDSL.parseCombatProcLine("O", normalizeKey(matches[2]), "you")
+  end)
+MyDSL._triggers.procHolyFlash = tempRegexTrigger(
+  "^A flash of holy power erupts from ([\\w\\-\\s,']+) and hits ([\\w\\-\\s,']+)!$",
+  function()
+    if not (MyDSL and MyDSL.parseCombatProcLine) then return end
+    MyDSL.parseCombatProcLine("O", normalizeKey(matches[2]), normalizeKey(matches[3]))
+  end)
+
+-- U: Unholy
+MyDSL._triggers.procUnholy = tempRegexTrigger(
+  "^You feel a surge of ([\\w\\-\\s,']+)'s unholy wrath race through your body",
+  function()
+    if not (MyDSL and MyDSL.parseCombatProcLine) then return end
+    MyDSL.parseCombatProcLine("U", normalizeKey(matches[2]), "you")
+  end)
+
+-- Sharp: TODO — no confirmed trigger text observed in any log to date
+-- Vorpal: confirmed non-functional (produces no echo) — deliberately omitted
+
+-- P: Poison (our own confirmed addition; no PNP equivalent)
+MyDSL._triggers.procPoisonSetup = tempRegexTrigger(
+  "^([\\w\\-\\s,']+) coats ([\\w\\-\\s,']+) with deadly lifebane poison\\.$",
+  function()
+    if not (MyDSL and MyDSL.parseCombatProcLine) then return end
+    -- attacker is matches[2], weapon is matches[3]; target tracked at onset
+    -- just mark a P proc for whoever coated the weapon
+    local aKey = (matches[2] == "You" or matches[2]:lower() == "you") and "you" or normalizeKey(matches[2])
+    MyDSL.parseCombatProcLine("P", aKey, nil)
+  end)
+MyDSL._triggers.procPoisonOnset = tempRegexTrigger(
+  "^([\\w\\-\\s,']+) is poisoned by the venom on ([\\w\\-\\s,']+)\\.$",
+  function()
+    if not (MyDSL and MyDSL.parseCombatProcLine) then return end
+    local tKey = matches[2]:lower() == "you" and "you" or normalizeKey(matches[2])
+    MyDSL.parseCombatProcLine("P", "unknown", tKey)
+  end)
+MyDSL._triggers.procPoisonTick = tempRegexTrigger(
+  "^([\\w\\-\\s,']+) shivers and suffers\\.$",
+  function()
+    if not (MyDSL and MyDSL.parseCombatProcLine) then return end
+    local tKey = matches[2]:lower() == "you" and "you" or normalizeKey(matches[2])
+    MyDSL.parseCombatProcLine("P", "unknown", tKey)
+  end)
+
+-- ---- Round-flush handler -------------------------------------------
+-- Fires on every prompt reprint (which happens once per combat round).
+-- Derives one condensed verb per (attacker,target,noun) combo from the
+-- accumulated round scores, raises combat.updated, then clears round_data.
+-- Rage: if GMCP reported hp_raw == "???" this round, re-fire combat_rage.
+
+if MyDSL._handlers.combatRoundFlush then
+  pcall(killAnonymousEventHandler, MyDSL._handlers.combatRoundFlush)
+end
+MyDSL._handlers.combatRoundFlush = registerAnonymousEventHandler(
+  "MyDSL.time.updated",
+  function()
+    if not (MyDSL and MyDSL.State and MyDSL.State.combat) then return end
+    -- Derive condensed round lines (stored on round_data entries for CombatView)
+    local rd = MyDSL.State.combat.round_data
+    for _, entry in pairs(rd) do
+      entry.derived_verb = MyDSL.derivedVerbForScore(entry.score)
+    end
+    -- Raise combat.updated — CombatView.render() rebuilds the round log
+    raiseEvent("MyDSL.combat.updated", rd)
+    MyDSL.State.combat.round_data = {}
+    -- Rage: check if HP is hidden this round
+    local rage = MyDSL.State.combat.rage
+    local char = MyDSL.State.char
+    if char and char.hp_raw == "???" then
+      raiseEvent("MyDSL.combat_rage", rage.damage, rage.vamp)
+    else
+      rage.damage = 0
+      rage.vamp   = 0
+    end
+  end
+)
 
 ------------------------------------------------------------------------
 -- READY

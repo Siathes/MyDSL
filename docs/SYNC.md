@@ -36,6 +36,8 @@ file guards with the same pattern so they are all safe to load in any order afte
 | `MyDSL.Location.*` | LocationView | Room display; local `M` alias |
 | `MyDSL.MoonWeather.*` | MoonWeather | Moon/time HUD; local `MW` alias |
 | `MyDSL.Prompt.*` | PromptView | Prompt gag overlay |
+| `MyDSL.State.combat` | DataLayer | Combat accumulator: active{}, history[], history_max, round_data{}, rage{damage,vamp} |
+| `MyDSL.CombatView.*` | CombatView | Combat round condenser + fight-summary; local `CV` alias |
 
 **Both `MyDSL.State.*` and `MyDSL.DB.*` exist on disk and at runtime.**
 - `MyDSL.State.*` is written exclusively by DataLayer.
@@ -214,6 +216,11 @@ From `current/autosave.xml` — these are the live `dofile()` wrappers Mudlet ex
 13 MyDSL_LiveView         3       Consumes Timers.Updated (0.25s) + many dead subscriptions
 14 MyDSL_PromptView       3       Consumes MyDSL.login.updated
 15 MyDSL_MoonWeather      3       Loads LAST. Consumes lowercase DataLayer events.
+16 MyDSL_ScanView         3B      Phase B. Needs dofile() wrapper added in Mudlet Script editor.
+17 MyDSL_GroupView        3B      Phase B. Needs dofile() wrapper added in Mudlet Script editor.
+18 MyDSL_TargetView       3B      Phase B. Needs dofile() wrapper added in Mudlet Script editor.
+19 MyDSL_CreatureReference 3B     Phase B. Needs dofile() wrapper added in Mudlet Script editor.
+20 MyDSL_CombatView       3B      Phase B. NEW 2026-07-04. Needs dofile() wrapper added in Mudlet Script editor.
 ```
 
 **DataBridge loads 2nd (immediately after DataLayer), before all Layer 2 modules.**
