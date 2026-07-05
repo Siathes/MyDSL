@@ -1,6 +1,13 @@
 # Project Sync — 2026-06-30
 *Full audit from actual file reads. Supersedes previous SYNC.md from this date.*
 
+**2026-07-05 note:** this file's Namespace/Event-Convention/Data-Flow sections
+below are architectural and still accurate as of this date. The Module
+Inventory, Phase B Progress, and Recommended Next Actions sections were
+updated 2026-07-05 to current reality — everything else is unchanged from
+the original 2026-06-30 audit. See `TODO.md` and `SESSION_START.md` for the
+authoritative current status; this file is architecture-reference-first.
+
 ---
 
 ## Namespace Reality
@@ -163,7 +170,7 @@ The time row will show data once the player types `time`.
 | File | In autosave.xml? | Contract doc? | Notes |
 |---|---|---|---|
 | `MyDSL_DataLayer.lua` | ✅ | ✅ `Contract_DataLayer.md` | Layer 1. Working. |
-| `MyDSL_DataBridge.lua` | ✅ | ⚠️ `Contract_DataBridge.md` — STALE | Contract says DB.time+DB.affects missing; actual code has both. Contract has not been updated since June 24 fix. |
+| `MyDSL_DataBridge.lua` | ✅ | ✅ `Contract_DataBridge.md` | Layer 3. Working. Contract updated since — DB.time/DB.affects both documented and present as of 2026-07-05 recheck. |
 | `MyDSL_ThemeEngine.lua` | ✅ | ✅ `Contract_ThemeEngine.md` | Layer 2. Working. |
 | `MyDSL_LayoutEngine.lua` | ✅ | ✅ `Contract_LayoutEngine.md` | Layer 2. Working. |
 | `MyDSL_WindowRegistry.lua` | ✅ | ✅ `Contract_WindowRegistry.md` | Layer 2. Working. |
@@ -177,10 +184,15 @@ The time row will show data once the player types `time`.
 | `MyDSL_LiveView.lua` | ✅ | ✅ `Contract_LiveView.md` | Layer 3. Working (renders on 0.25s timer). 7 of 8 event subscriptions are dead. |
 | `MyDSL_PromptView.lua` | ✅ | ✅ `Contract_PromptView.md` | Layer 3. In autosave. |
 | `MyDSL_MoonWeather.lua` | ✅ | ✅ `Contract_MoonWeather.md` | Layer 3. ✅ Feature-complete 2026-07-02. Tagged v1.2-moonweather-final. |
-| `MyDSL_ChatTriggers.lua` | ❌ NOT in autosave | ❌ No contract | **Not loaded by Mudlet. Dead on disk.** |
-| `MyDSL_creaturelore.lua` | ❌ NOT in autosave | ❌ No contract | **Not loaded by Mudlet. Dead on disk.** |
+| `MyDSL_ChatTriggers.lua` | ❌ NOT in autosave | ❌ No contract | **Not loaded by Mudlet. Dead on disk.** (not re-verified 2026-07-05) |
+| `MyDSL_creaturelore.lua` | ❌ NOT in autosave | ❌ No contract | **Not loaded by Mudlet. Dead on disk.** (not re-verified 2026-07-05) |
 | `MyDSL_state.lua` | N/A (data file) | N/A | Saved state — loaded by DataLayer via table.load(), not as a script. |
 | `MyDSL_layout.lua` | N/A (data file) | N/A | Saved layout — loaded by LayoutEngine via table.load(), not as a script. |
+| `MyDSL_ScanView.lua` | ✅ (per SESSION_START) | ✅ `Contract_ScanView.md` | Layer 3B. Confirmed live 2026-07-02. Added after this file's original audit. |
+| `MyDSL_GroupView.lua` | ✅ (per SESSION_START) | ✅ `Contract_GroupView.md` | Layer 3B. Built 2026-07-03, not yet live-tested. Added after this file's original audit. |
+| `MyDSL_TargetView.lua` | ✅ (per SESSION_START) | ✅ `Contract_TargetView.md` | Layer 3B. Confirmed live 2026-07-02. Added after this file's original audit. |
+| `MyDSL_CreatureReference.lua` | ✅ (per SESSION_START) | ✅ `Contract_CreatureReference.md` | Layer 3B. Built 2026-07-02, not yet live-tested. Added after this file's original audit. |
+| `MyDSL_CombatView.lua` | ✅ (per SESSION_START) | ✅ `Contract_CombatWindow.md` | Layer 3B. Built 2026-07-04, hardened 2026-07-05 (syntax fix + PNP audit, 4 bugs fixed). Not yet live-tested. Added after this file's original audit. |
 
 ### Contracts that exist in docs/ but have no matching .lua on disk
 
@@ -190,8 +202,11 @@ None found. All contracts in `docs/Contract_*.md` have a corresponding `.lua` fi
 
 | Contract | Issue |
 |---|---|
-| `Contract_DataBridge.md` | **Stale — written pre-June-24 fix.** Says DB.time, DB.affects, score text fields, and score.updated listener are all missing. All four exist in the actual DataBridge.lua. |
-| `Contract_DataLayer.md` | Minor: Gap 1 (no equipment section) still accurate. Score trigger wiring note says "must exist in Mudlet Trigger editor" — actually fixed by tempRegexTrigger in DataLayer itself. |
+| `Contract_DataBridge.md` | ✅ Resolved — contract now documents DB.time/DB.affects/score text fields correctly (confirmed 2026-07-05). |
+| `Contract_DataLayer.md` | Minor: Gap 1 (no equipment section) still accurate as of 2026-07-05 recheck. Score trigger wiring note says "must exist in Mudlet Trigger editor" — actually fixed by tempRegexTrigger in DataLayer itself. |
+| `Contract_TickSource.md` | ✅ Resolved 2026-07-05 — all 3 listed gaps (warnTime, handler dereg, loop generation) were already fixed in code (commit `b16ec52`), contract updated to match. |
+| `Contract_ChatWrapper.md` | ✅ Partially resolved 2026-07-05 — 3 of 5 gaps fixed in code and updated; 2 (hardcoded tab CSS, non-character-bound settings) confirmed still genuinely open. |
+| `Contract_ScanView.md` / `Contract_TargetView.md` | ✅ Resolved 2026-07-05 — code samples showed pre-2026-07-03 PCRE bugs already fixed live; docs corrected. |
 
 ---
 
@@ -295,15 +310,18 @@ Deferred to Phase B+ (see Open Items below).
 
 ## Phase B Progress
 
+*Updated 2026-07-05 — all five windows now built; see TODO.md for the
+authoritative current per-module status, this table is a quick summary.*
+
 | Module | Status |
 |---|---|
 | MoonWeather | ✅ Complete 2026-06-30 — all alignments verified (neutral/red, good/white, evil/black) |
 | ScanView | ✅ Complete 2026-07-02 — in-game confirmed; appendBuffer preserves game colors |
 | RightHereView | ✅ Complete 2026-07-02 — in-game confirmed; clickable names, ×N count aggregation |
 | TargetView | ✅ Complete 2026-07-02 — combat confirmed; murder/flee/rescue all firing correctly |
-| CreatureReference | ✅ Built 2026-07-02 — not yet combat-tested with actual creaturelore command |
-| Group window | ✅ Built 2026-07-03 — MyDSL_GroupView.lua; DataLayer triggers wired; needs in-game smoke test |
-| Combat window | Not started |
+| CreatureReference | ✅ Built 2026-07-02 — still not yet combat-tested with actual creaturelore command |
+| Group window | ✅ Built 2026-07-03 — MyDSL_GroupView.lua; DataLayer triggers wired; still needs in-game smoke test |
+| Combat window | ✅ Built 2026-07-04, hardened 2026-07-05 — syntax bug + evasion-trigger bug fixed, then a full PNP/log audit found and fixed 3 more issues (missing death form, weapon-proc misattribution, quoted weapon names) plus confirmed 1 still open (self-condition never registers). Not yet live-tested at all. |
 | LiveView/Character panel redesign | Not started |
 
 **MoonWeather note:** Date field re-anchors automatically via the player's existing
@@ -337,31 +355,28 @@ elapsed time accumulates before the widget re-renders. Acceptable for now.
 
 ## Recommended Next Actions
 
-*Updated 2026-07-03 — Scan/RightHere/Target combat-confirmed. Tagged v1.4.*
+*Updated 2026-07-05 — see TODO.md's "Immediate Next Steps" for the current
+authoritative list; this section is kept for historical continuity.*
 
-1. ~~**Validate time row in game**~~ — ✅ Done. Steven confirmed working 2026-06-30.
-2. ~~**Remove debug logging from `buildTimeRow()`**~~ — ✅ Done (commit `d758806`).
-3. ~~**Update `Contract_DataBridge.md`**~~ — ✅ Done (commit `6398094`).
-4. ~~**Fix score parser issues**~~ — ✅ Already done (Jun-29). No action needed.
-5. ~~**Wire weather trigger**~~ — ✅ Done. No display row yet — deferred to Phase B+.
-6. ~~**Validate day/night indicator, living clock, stacked layout**~~ — ✅ MoonWeather feature-complete.
-7. ~~**Scan/RightHere in-game smoke test**~~ — ✅ Confirmed 2026-07-02. Game-colored scan text, clickable RightHere names.
-8. ~~**Target in-game smoke test**~~ — ✅ Confirmed 2026-07-02. Combat working end-to-end.
-9. ~~**CreatureReference built**~~ — ✅ Built 2026-07-02. In-game test still pending.
+1-10. (2026-06-30 through 2026-07-03 items) — ✅ all done, see prior revisions
+of this file or CHANGELOG.md for detail.
 
-10. ~~**Begin Phase B next window — Group window.**~~ — ✅ Done 2026-07-03. Needs in-game smoke test.
-
-11. **Update autosave.xml / dofile load order** — add scripts 16-19 to the MyDSL_Full group:
-    16. MyDSL_ScanView  (after MyDSL_MoonWeather)
-    17. MyDSL_TargetView
-    18. MyDSL_CreatureReference
-    19. MyDSL_GroupView
-    Steven must add these dofile() wrappers in Mudlet's Script editor.
+11. ~~**Update autosave.xml / dofile load order**~~ — ✅ done; CombatView also
+    needed and got its `dofile()` wrapper added (2026-07-04 CHANGELOG entry).
 
 12. **Test CreatureReference** — type `creaturelore <mob>` in combat and confirm the
-    reference window auto-populates. Opportunistic — do when next in combat.
+    reference window auto-populates. Still not done as of 2026-07-05.
 
 13. **Test GroupView** — type `group` when in a group and confirm the Group window
-    populates with member names, class tags, and HP bars.
+    populates with member names, class tags, and HP bars. Still not done as of 2026-07-05.
 
 14. **LiveView dead event subscriptions** — low priority. Works via 0.25s timer. Fix when convenient.
+
+15. **Live-test CombatView** (new 2026-07-05) — built, hardened, syntax-clean,
+    and cross-checked against PNP source + a 578-file log corpus, but has
+    never actually run in a live DSL combat session. This is now the top
+    priority — see TODO.md's "OPEN — Combat window" section for the specific
+    things to watch for.
+
+16. **Fix the self-condition trigger gap** (new 2026-07-05) — confirmed via
+    logs that DSL phrases your own condition in second person; not yet fixed.

@@ -1,0 +1,1000 @@
+   121  Your pierce *** DEVASTATES *** <mob>!
+        e.g. Your pierce *** DEVASTATES *** a gnome student!
+    63  Your pierce DISEMBOWELS <mob>!
+        e.g. Your pierce DISEMBOWELS a gnome student!
+    57  Your pierce DISMEMBERS <mob>!
+        e.g. Your pierce DISMEMBERS a gnome student!
+    52  ------------ dire wounds.
+        e.g. ------------ dire wounds.
+    49  <mob> is in excellent condition.
+        e.g. A gnome philosophy instructor is in excellent condition.
+    47  <mob> slash MASSACRES <mob>!
+        e.g. A wild bear's slash MASSACRES a gnome student!
+    42  <mob> has quite <mob> wounds.
+        e.g. A gnome student has quite a few wounds.
+    39  <mob> scratch misses <mob>.
+        e.g. A liger cub's scratch misses a snow weasel.
+    34  <mob> has some small wounds and bruises.
+        e.g. A gnome student has some small wounds and bruises.
+    32  <mob> is DEAD!!
+        e.g. a snow weasel is DEAD!!
+    32  <mob> slash DISMEMBERS <mob>!
+        e.g. A wild bear's slash DISMEMBERS a gnome student!
+    30  You parry <mob> attack.
+        e.g. You parry a gnome student's attack.
+    30  Your pierce *** DEMOLISHES *** <mob>!
+        e.g. Your pierce *** DEMOLISHES *** a gnome student!
+    30  Your slash misses <mob>.
+        e.g. Your slash misses a red fox.
+    29  <mob> slash MANGLES <mob>!
+        e.g. A wild bear's slash MANGLES a gnome student!
+    27  you see <mob> city...or is it just <mob>?
+        e.g. you see the towers of a magnificent city...or is it just a mirage?
+    26  <mob> has some big nasty wounds and scratches.
+        e.g. A boar has some big nasty wounds and scratches.
+    23  Your pierce misses <mob>.
+        e.g. Your pierce misses a gnome student.
+    22  Your pierce MASSACRES <mob>!
+        e.g. Your pierce MASSACRES a gnome student!
+    22  <mob> looks pretty hurt.
+        e.g. A boar looks pretty hurt.
+    19  <mob> is in awful condition.
+        e.g. A boar is in awful condition.
+    14  You hear <mob>.
+        e.g. You hear a red fox's death cry.
+    14  to <mob>, green forest grass. <mob> brush block
+        e.g. to the soft, green forest grass.  A tangle of branches and brush block
+    13  Your pierce MUTILATES <mob>!
+        e.g. Your pierce MUTILATES a gnome student!
+    13  You dodge <mob> attack.
+        e.g. You dodge a gnome student's attack.
+    12  <mob> bite misses <mob>.
+        e.g. A throughbred stallion's bite misses a gnome student.
+    11  <mob> dodges your attack.
+        e.g. A gnome student dodges your attack.
+    10  Your pierce MANGLES <mob>!
+        e.g. Your pierce MANGLES a gnome student!
+    10  Your pierce === OBLITERATES === <mob>!
+        e.g. Your pierce === OBLITERATES === a gnome student!
+     9  <mob> pound misses <mob>.
+        e.g. A tinker gnome mage's pound misses a liger cub.
+     8  <mob> bite wounds <mob>.
+        e.g. A throughbred stallion's bite wounds a gnome student.
+     8  <mob> bite mauls <mob>.
+        e.g. A throughbred stallion's bite mauls a gnome student.
+     8  <mob> slash *** DEMOLISHES *** <mob>!
+        e.g. A wild bear's slash *** DEMOLISHES *** a gnome student!
+     7  <mob> has <mob>.
+        e.g. A gnome student has a few scratches.
+     7  <mob> pound misses you.
+        e.g. A gnome student's pound misses you.
+     7  polearm 1% shield block 1%
+        e.g. polearm              1%      shield block         1%
+     7  <mob> slash DISEMBOWELS <mob>!
+        e.g. A wild bear's slash DISEMBOWELS a gnome student!
+     6  sounds, those known only to the <player> market, barrage your senses. <player>
+        e.g. sounds, those known only to the New Thalos market, barrage your senses.  The
+     6  long healed and appearing nothing more than flesh wounds.
+        e.g. long healed and appearing nothing more than flesh wounds.
+     6  <mob>, green marble blocks <mob>. <player>
+        e.g. An enormous wall of polished, green marble blocks the way north. Dense
+     5  You hear something's death cry.
+        e.g. You hear something's death cry.
+     5  <player> the <player> is in excellent condition.
+        e.g. Aruncus the Druid is in excellent condition.
+     5  <player> to your west have grown so thick with brush, that they block all
+        e.g. Trees to your west have grown so thick with brush, that they block all
+     5  Your slash misses <player> .
+        e.g. Your slash misses Shaenus Sha'falas.
+     5  You receive 0 experience points.
+        e.g. You receive 0 experience points.
+     4  You block <mob> attack with your shield.
+        e.g. You block a gnome student's attack with your shield.
+     4  <mob> chomp DISMEMBERS you!
+        e.g. A turtle's chomp DISMEMBERS you!
+     4  try to hide in <mob> trees, but fail to dodge your
+        e.g. try to hide in the bark of the surrounding trees, but fail to dodge your
+     4  blocking <mob>, while <mob>
+        e.g. blocking a great amount of vision, while the border of trees continues
+     4  wall to block your passage in those directions. <player> <mob>
+        e.g. wall to block your passage in those directions.  Where the trunks didn't
+     4  <mob> slams into <mob>!
+        e.g. A wild bear slams into a gnome student's body!
+     4  <mob> pierce misses you.
+        e.g. A gnome student's pierce misses you.
+     4  <mob> slash misses <mob>.
+        e.g. A wild bear's slash misses a gnome student.
+     3  <mob> east and <mob> blocks <mob>.
+        e.g. The hall continues to the east and a door blocks the west.
+     3  one wall to <mob> block passage to <mob>. <player> from <mob>
+        e.g. one wall to the other to block passage to the vault.  Sand from the desert
+     3  <mob> other and block out <mob>. <mob>
+        e.g. The trees crowd against each other and block out the sunlight.  A hush
+     3  <player> is in excellent condition.
+        e.g. The Dragon Master is in excellent condition.
+     3  vast sweeps of pale marble, each colossal block fitted with such precision
+        e.g. vast sweeps of pale marble, each colossal block fitted with such precision
+     3  trees and branches block your movement. <mob> remains
+        e.g. trees and branches block your movement.  The soft grass below you remains
+     3  blocking most passage, except off to <mob>. <mob>
+        e.g. blocking most passage, except off to the north and west.  The very faint
+     3  blocking <mob>.
+        e.g. blocking the way west.
+     3  <mob> scratch misses <player> .
+        e.g. A liger cub's scratch misses Shaenus Sha'falas.
+     3  <player> has quite <mob> wounds.
+        e.g. Shaenus Sha'falas has quite a few wounds.
+     3  <player> :berserk dodge fast rescue
+        e.g. Offensive Tactics:berserk dodge fast rescue
+     3  <mob> is sent flying by <mob>!
+        e.g. A gnome student is sent flying by the impact!
+     3  <mob> slash misses you.
+        e.g. A wild bear's slash misses you.
+     2  07:42:07.858 <mob> claw misses you (0)
+        e.g. 07:42:07.858 a mirthful diablerie's claw misses you (0)
+     2  08:18:37.895 <mob> claw misses you (0)
+        e.g. 08:18:37.895 a mirthful diablerie's claw misses you (0)
+     2  10:39:43.476 <mob> claw misses you (0)
+        e.g. 10:39:43.476 a mirthful diablerie's claw misses you (0)
+     2  11:03:01.810 <mob> claw misses you (0)
+        e.g. 11:03:01.810 a mirthful diablerie's claw misses you (0)
+     2  11:38:24.018 <mob> claw misses you (0)
+        e.g. 11:38:24.018 a mirthful diablerie's claw misses you (0)
+     2  18:20:35.036 <mob> pound wounds you (18.5)
+        e.g. 18:20:35.036 A gnome student's pound wounds you (18.5)
+     2  19:09:13.946 <mob> pound wounds you (18.5)
+        e.g. 19:09:13.946 A gnome student's pound wounds you (18.5)
+     2  07:34:09.816 <mob> slash MUTILATES you (38.5)
+        e.g. 07:34:09.816 A gnome stone excavator's slash MUTILATES you (38.5)
+     2  12:01:38.390 <mob> has quite <mob> wounds.
+        e.g. 12:01:38.390 A gnome gem hunter has quite a few wounds.
+     2  13:29:03.756 <mob> slash MUTILATES you (38.5)
+        e.g. 13:29:03.756 A gnome stone excavator's slash MUTILATES you (38.5)
+     2  13:55:02.370 <mob> slash DISEMBOWELS you (42.5)
+        e.g. 13:55:02.370 A gnome stone excavator's slash DISEMBOWELS you (42.5)
+     2  14:36:12.936 <mob> has quite <mob> wounds.
+        e.g. 14:36:12.936 A gnome stone excavator has quite a few wounds.
+     2  12:59:34.871 <mob> has some small wounds and bruises.
+        e.g. 12:59:34.871 A floating construct has some small wounds and bruises.
+     2  19:03:48.107 <mob> claw misses you (0)
+        e.g. 19:03:48.107 An insane sea elf's claw misses you (0)
+     2  to recover from the wounds of adventuring. <mob> grove
+        e.g. to recover from the wounds of adventuring.  A faint path through the grove
+     2  shield strike caltraps cleanse ambush berserk
+        e.g. shield strike  caltraps       cleanse        ambush         berserk
+     2  pixie dust rage ragercharge screech smite
+        e.g. pixie dust     rage           ragercharge    screech        smite
+     2  polearm 6 shield block 6 spear 4
+        e.g. polearm            6     shield block       6     spear              4
+     2  blind fighting 12 dodge 8 enhanced damage 10
+        e.g. blind fighting     12    dodge              8     enhanced damage    10
+     2  hand to hand 8 parry 8 second attack 10
+        e.g. hand to hand       8     parry              8     second attack      10
+     2  building blocks of this foundation are worn, but sturdy, as they have
+        e.g. building blocks of this foundation are worn, but sturdy, as they have
+     2  <mob> charge misses <mob>.
+        e.g. A boar's charge misses a liger cub.
+     2  <player> :bash berserk disarm dodge fast rescue crush
+        e.g. Offensive Tactics:bash berserk disarm dodge fast rescue crush
+     2  <mob> gets <mob> look in her eyes.
+        e.g. A wild bear gets a wild look in her eyes.
+     2  experience points, then fleeing).
+        e.g. experience points, then fleeing).
+     2  <mob> to cure the wounds that adventurers inevitably
+        e.g. The healing spells are used to cure the wounds that adventurers inevitably
+     2  cure light heals minor wounds
+        e.g. cure light      heals minor wounds
+     2  cure serious heals more severe wounds
+        e.g. cure serious    heals more severe wounds
+     2  cure critical closes all but <mob> wounds
+        e.g. cure critical   closes all but the worst wounds
+     2  <mob> slams into your body!
+        e.g. A wild bear slams into your body!
+     2  it is encouraged for serious priests to use <mob>
+        e.g. it is encouraged for serious priests to use a website to track interaction
+     2  ------------ systems through the blocks all <mob>. <mob> white.
+        e.g. ------------ systems through the blocks all the way to the top. The wooden gates are petrified white.
+     2  20:03:44.744 [51] <player> parries your attack.
+        e.g. 20:03:44.744 [51] Hildegarde parries your attack.
+     2  20:03:47.549 You parry [51] <player> attack.
+        e.g. 20:03:47.549 You parry [51] Hildegarde's attack.
+     2  20:04:53.736 [51] <player> parries your attack.
+        e.g. 20:04:53.736 [51] Hildegarde parries your attack.
+     2  20:06:03.078 [51] <player> parries your attack.
+        e.g. 20:06:03.078 [51] Hildegarde parries your attack.
+     2  20:06:36.158 You parry [51] <player> attack.
+        e.g. 20:06:36.158 You parry [51] Hildegarde's attack.
+     2  15:40:51.269 Your slash misses <mob>.
+        e.g. 15:40:51.269 Your slash misses a guide.
+     2  15:44:40.702 Your slash mauls <mob>.
+        e.g. 15:44:40.702 Your slash mauls a battle mage.
+     2  15:46:33.497 Your slash mauls <mob>.
+        e.g. 15:46:33.497 Your slash mauls a mage.
+     2  15:46:43.259 Your slash mauls <mob>.
+        e.g. 15:46:43.259 Your slash mauls a mage.
+     2  03:35:12.445 Your charge === OBLITERATES === <mob>!
+        e.g. 03:35:12.445 Your charge === OBLITERATES === a female gypsy!
+     2  05:15:05.008 You parry A <player> attack.
+        e.g. 05:15:05.008 You parry A Half Ogre's attack.
+     2  11:19:04.119 You parry someone's attack.
+        e.g. 11:19:04.119 You parry someone's attack.
+     2  11:20:58.956 <player> ogre parries your attack.
+        e.g. 11:20:58.956 Large Giant ogre parries your attack.
+     2  11:21:59.200 <player> ogre parries your attack.
+        e.g. 11:21:59.200 Large Giant ogre parries your attack.
+     2  15:32:40.026 You parry encampment guard's attack.
+        e.g. 15:32:40.026 You parry encampment guard's attack.
+     2  15:32:40.030 You parry encampment guard's attack.
+        e.g. 15:32:40.030 You parry encampment guard's attack.
+     1  07:48:52.762 polearm 1% shield block 75%
+        e.g. 07:48:52.762           polearm              1%      shield block        75%
+     1  07:48:52.766 parry 92% rescue 75%
+        e.g. 07:48:52.766           parry               92%      rescue              75%
+     1  07:48:52.779 <player> 13: blind fighting 75% dodge 75%
+        e.g. 07:48:52.779 Level 13: blind fighting      75%      dodge               75%
+     1  07:48:52.784 <player> 18: berserk 75%
+        e.g. 07:48:52.784 Level 18: berserk             75%
+     1  07:49:29.162 improve dodge
+        e.g. 07:49:29.162 improve dodge
+     1  07:49:29.301 You focus your training on dodge.
+        e.g. 07:49:29.301 You focus your training on dodge.
+     1  07:49:29.547 You are currently improving dodge (75%). (71 online minutes to improvement)
+        e.g. 07:49:29.547   You are currently improving dodge (75%). (71 online minutes to improvement)
+     1  07:50:43.881 of <mob>. <mob>, tall wall of <player> blocks your way to the
+        e.g. 07:50:43.881 of the north wall.  The thick, tall wall of Ganth blocks your way to the
+     1  07:50:43.883 south, and <mob> blocks your way north. <mob>
+        e.g. 07:50:43.883 south, and the ice-chunked river blocks your way north.  The sounds of the
+     1  07:50:49.570 impenetrable city wall blocks your path to <mob>. <player> clay path leads
+        e.g. 07:50:49.570 impenetrable city wall blocks your path to the west.  This clay path leads
+     1  07:50:53.071 impenetrable city wall blocks your path to <mob>. <player> clay path leads
+        e.g. 07:50:53.071 impenetrable city wall blocks your path to the west.  This clay path leads
+     1  07:53:55.605 <player> winds whip up snow to both blind you and block your way. <player>
+        e.g. 07:53:55.605   Howling winds whip up snow to both blind you and block your way.  Beneath
+     1  07:54:17.285 You parry <mob> attack.
+        e.g. 07:54:17.285 You parry a cave bear's attack.
+     1  07:54:17.396 <mob> claw DISMEMBERS you!
+        e.g. 07:54:17.396 A cave bear's claw DISMEMBERS you!
+     1  07:54:17.426 <mob> is in excellent condition.
+        e.g. 07:54:17.426 A cave bear is in excellent condition.
+     1  07:54:19.536 <mob> claw misses you.
+        e.g. 07:54:19.536 A cave bear's claw misses you.
+     1  07:54:19.590 <mob> claw misses you.
+        e.g. 07:54:19.590 A cave bear's claw misses you.
+     1  07:54:19.644 <mob> dodges your attack.
+        e.g. 07:54:19.644 A cave bear dodges your attack.
+     1  07:54:19.676 <mob> parries your attack.
+        e.g. 07:54:19.676 A cave bear parries your attack.
+     1  07:54:19.682 <mob> parries your attack.
+        e.g. 07:54:19.682 A cave bear parries your attack.
+     1  07:54:19.688 <mob> dodges your attack.
+        e.g. 07:54:19.688 A cave bear dodges your attack.
+     1  07:54:19.718 <mob> is in excellent condition.
+        e.g. 07:54:19.718 A cave bear is in excellent condition.
+     1  07:54:22.561 <mob> claw misses you.
+        e.g. 07:54:22.561 A cave bear's claw misses you.
+     1  07:54:22.615 <mob> claw MUTILATES you!
+        e.g. 07:54:22.615 A cave bear's claw MUTILATES you!
+     1  07:54:22.645 <mob> dodges your attack.
+        e.g. 07:54:22.645 A cave bear dodges your attack.
+     1  07:54:22.676 <mob> parries your attack.
+        e.g. 07:54:22.676 A cave bear parries your attack.
+     1  07:54:22.683 <mob> parries your attack.
+        e.g. 07:54:22.683 A cave bear parries your attack.
+     1  07:54:22.689 <mob> is in excellent condition.
+        e.g. 07:54:22.689 A cave bear is in excellent condition.
+     1  07:54:25.550 <mob> claw misses you.
+        e.g. 07:54:25.550 A cave bear's claw misses you.
+     1  07:54:25.603 <mob> claw DISMEMBERS you!
+        e.g. 07:54:25.603 A cave bear's claw DISMEMBERS you!
+     1  07:54:25.631 Your chop misses <mob>.
+        e.g. 07:54:25.631 Your chop misses a cave bear.
+     1  07:54:25.688 <mob> parries your attack.
+        e.g. 07:54:25.688 A cave bear parries your attack.
+     1  07:54:25.694 <mob> dodges your attack.
+        e.g. 07:54:25.694 A cave bear dodges your attack.
+     1  07:54:25.726 <mob> dodges your attack.
+        e.g. 07:54:25.726 A cave bear dodges your attack.
+     1  07:54:25.757 <mob> is in excellent condition.
+        e.g. 07:54:25.757 A cave bear is in excellent condition.
+     1  07:54:28.800 A <player> draft horse's bite misses <mob>.
+        e.g. 07:54:28.800 A Percheron draft horse's bite misses a cave bear.
+     1  07:54:28.807 <mob> claw MUTILATES you!
+        e.g. 07:54:28.807 A cave bear's claw MUTILATES you!
+     1  07:54:28.839 <mob> claw MUTILATES you!
+        e.g. 07:54:28.839 A cave bear's claw MUTILATES you!
+     1  07:54:28.868 <mob> dodges your attack.
+        e.g. 07:54:28.868 A cave bear dodges your attack.
+     1  07:54:28.901 <mob> dodges your attack.
+        e.g. 07:54:28.901 A cave bear dodges your attack.
+     1  07:54:28.932 Your chop MANGLES <mob>!
+        e.g. 07:54:28.932 Your chop MANGLES a cave bear!
+     1  07:54:28.990 <mob> dodges your attack.
+        e.g. 07:54:28.990 A cave bear dodges your attack.
+     1  07:54:29.022 <mob> has <mob>.
+        e.g. 07:54:29.022 A cave bear has a few scratches.
+     1  07:54:31.582 A <player> draft horse's bite misses <mob>.
+        e.g. 07:54:31.582 A Percheron draft horse's bite misses a cave bear.
+     1  07:54:31.591 A <player> draft horse slams into <mob>!
+        e.g. 07:54:31.591 A Percheron draft horse slams into a cave bear's body!
+     1  07:54:31.592 <mob> claw DISMEMBERS you!
+        e.g. 07:54:31.592 A cave bear's claw DISMEMBERS you!
+     1  07:54:31.624 <mob> claw MUTILATES you!
+        e.g. 07:54:31.624 A cave bear's claw MUTILATES you!
+     1  07:54:31.655 <mob> parries your attack.
+        e.g. 07:54:31.655 A cave bear parries your attack.
+     1  07:54:31.661 <mob> parries your attack.
+        e.g. 07:54:31.661 A cave bear parries your attack.
+     1  07:54:31.667 <mob> dodges your attack.
+        e.g. 07:54:31.667 A cave bear dodges your attack.
+     1  07:54:31.700 <mob> dodges your attack.
+        e.g. 07:54:31.700 A cave bear dodges your attack.
+     1  07:54:31.732 <mob> parries your attack.
+        e.g. 07:54:31.732 A cave bear parries your attack.
+     1  07:54:31.738 <mob> has <mob>.
+        e.g. 07:54:31.738 A cave bear has a few scratches.
+     1  07:54:34.605 A <player> draft horse's bite misses <mob>.
+        e.g. 07:54:34.605 A Percheron draft horse's bite misses a cave bear.
+     1  07:54:34.613 <mob> claw MUTILATES you!
+        e.g. 07:54:34.613 A cave bear's claw MUTILATES you!
+     1  07:54:34.650 <mob> claw MUTILATES you!
+        e.g. 07:54:34.650 A cave bear's claw MUTILATES you!
+     1  07:54:34.689 <mob> dodges your attack.
+        e.g. 07:54:34.689 A cave bear dodges your attack.
+     1  07:54:34.728 <mob> parries your attack.
+        e.g. 07:54:34.728 A cave bear parries your attack.
+     1  07:54:34.734 Your chop misses <mob>.
+        e.g. 07:54:34.734 Your chop misses a cave bear.
+     1  07:54:34.797 <mob> has <mob>.
+        e.g. 07:54:34.797 A cave bear has a few scratches.
+     1  07:54:37.751 <mob> claw misses you.
+        e.g. 07:54:37.751 A cave bear's claw misses you.
+     1  07:54:37.809 <mob> claw MUTILATES you!
+        e.g. 07:54:37.809 A cave bear's claw MUTILATES you!
+     1  07:54:37.840 <mob> parries your attack.
+        e.g. 07:54:37.840 A cave bear parries your attack.
+     1  07:54:37.847 <mob> has <mob>.
+        e.g. 07:54:37.847 A cave bear has a few scratches.
+     1  07:54:40.747 A <player> draft horse's kick wounds <mob>.
+        e.g. 07:54:40.747 A Percheron draft horse's kick wounds a cave bear.
+     1  07:54:40.755 <mob> claw MUTILATES you!
+        e.g. 07:54:40.755 A cave bear's claw MUTILATES you!
+     1  07:54:40.789 <mob> claw MUTILATES you!
+        e.g. 07:54:40.789 A cave bear's claw MUTILATES you!
+     1  07:54:40.822 <mob> dodges your attack.
+        e.g. 07:54:40.822 A cave bear dodges your attack.
+     1  07:54:40.854 <mob> parries your attack.
+        e.g. 07:54:40.854 A cave bear parries your attack.
+     1  07:54:40.861 <mob> dodges your attack.
+        e.g. 07:54:40.861 A cave bear dodges your attack.
+     1  07:54:40.895 <mob> parries your attack.
+        e.g. 07:54:40.895 A cave bear parries your attack.
+     1  07:54:40.902 <mob> has <mob>.
+        e.g. 07:54:40.902 A cave bear has a few scratches.
+     1  07:54:43.604 <mob> claw DISMEMBERS you!
+        e.g. 07:54:43.604 A cave bear's claw DISMEMBERS you!
+     1  07:54:43.636 <mob> claw MUTILATES you!
+        e.g. 07:54:43.636 A cave bear's claw MUTILATES you!
+     1  07:54:43.669 <mob> dodges your attack.
+        e.g. 07:54:43.669 A cave bear dodges your attack.
+     1  07:54:43.702 <mob> dodges your attack.
+        e.g. 07:54:43.702 A cave bear dodges your attack.
+     1  07:54:43.735 <mob> parries your attack.
+        e.g. 07:54:43.735 A cave bear parries your attack.
+     1  07:54:43.742 <mob> has <mob>.
+        e.g. 07:54:43.742 A cave bear has a few scratches.
+     1  07:54:46.626 A <player> draft horse's kick wounds <mob>.
+        e.g. 07:54:46.626 A Percheron draft horse's kick wounds a cave bear.
+     1  07:54:46.633 <mob> claw misses you.
+        e.g. 07:54:46.633 A cave bear's claw misses you.
+     1  07:54:46.697 <mob> claw misses you.
+        e.g. 07:54:46.697 A cave bear's claw misses you.
+     1  07:54:46.761 Your chop *** DEVASTATES *** <mob>!
+        e.g. 07:54:46.761 Your chop *** DEVASTATES *** a cave bear!
+     1  07:54:46.830 <mob> parries your attack.
+        e.g. 07:54:46.830 A cave bear parries your attack.
+     1  07:54:46.837 <mob> has <mob>.
+        e.g. 07:54:46.837 A cave bear has a few scratches.
+     1  07:54:48.954 <mob> has <mob>.
+        e.g. 07:54:48.954 A cave bear has a few scratches.
+     1  07:54:49.202 <mob> has <mob>.
+        e.g. 07:54:49.202 A cave bear has a few scratches.
+     1  07:54:49.721 <mob> claw MUTILATES you!
+        e.g. 07:54:49.721 A cave bear's claw MUTILATES you!
+     1  07:54:49.754 <mob> claw misses you.
+        e.g. 07:54:49.754 A cave bear's claw misses you.
+     1  07:54:49.810 <mob> parries your attack.
+        e.g. 07:54:49.810 A cave bear parries your attack.
+     1  07:54:49.816 Your pierce *** DEVASTATES *** <mob>!
+        e.g. 07:54:49.816 Your pierce *** DEVASTATES *** a cave bear!
+     1  07:54:49.873 <mob> dodges your attack.
+        e.g. 07:54:49.873 A cave bear dodges your attack.
+     1  07:54:49.909 Your pierce misses <mob>.
+        e.g. 07:54:49.909 Your pierce misses a cave bear.
+     1  07:54:49.967 <mob> has some small wounds and bruises.
+        e.g. 07:54:49.967 A cave bear has some small wounds and bruises.
+     1  07:56:54.449 <mob> claw DISEMBOWELS you!
+        e.g. 07:56:54.449 A cave bear's claw DISEMBOWELS you!
+     1  07:56:54.464 <mob> claw misses you.
+        e.g. 07:56:54.464 A cave bear's claw misses you.
+     1  07:56:54.487 <mob> has <mob>.
+        e.g. 07:56:54.487 A cave bear has a few scratches.
+     1  07:56:56.447 <mob> claw MUTILATES you!
+        e.g. 07:56:56.447 A cave bear's claw MUTILATES you!
+     1  07:56:56.462 <mob> claw DISMEMBERS you!
+        e.g. 07:56:56.462 A cave bear's claw DISMEMBERS you!
+     1  07:56:56.476 Your chop misses <mob>.
+        e.g. 07:56:56.476 Your chop misses a cave bear.
+     1  07:56:56.499 <mob> dodges your attack.
+        e.g. 07:56:56.499 A cave bear dodges your attack.
+     1  07:56:56.512 <mob> parries your attack.
+        e.g. 07:56:56.512 A cave bear parries your attack.
+     1  07:56:56.515 <mob> dodges your attack.
+        e.g. 07:56:56.515 A cave bear dodges your attack.
+     1  07:56:56.527 <mob> has <mob>.
+        e.g. 07:56:56.527 A cave bear has a few scratches.
+     1  08:00:29.330 women of <player> heal their wounds, thankful to be alive, so that they might
+        e.g. 08:00:29.330 women of Ganth heal their wounds, thankful to be alive, so that they might
+     1  08:08:28.053 polearm 1% shield block 100%
+        e.g. 08:08:28.053           polearm              1%      shield block       100%
+     1  08:08:28.059 <player> 3: dodge 95%
+        e.g. 08:08:28.059 Level  3: dodge               95%
+     1  08:10:39.622 polearm 85% shield block 100%
+        e.g. 08:10:39.622           polearm             85%      shield block       100%
+     1  08:10:39.627 parry 100% rescue 85%
+        e.g. 08:10:39.627           parry              100%      rescue              85%
+     1  08:10:39.637 <player> 13: blind fighting 100% dodge 99%
+        e.g. 08:10:39.637 Level 13: blind fighting     100%      dodge               99%
+     1  08:10:39.640 <player> 18: berserk 100%
+        e.g. 08:10:39.640 Level 18: berserk            100%
+     1  08:11:17.076 polearm 85% shield block 100%
+        e.g. 08:11:17.076           polearm             85%      shield block       100%
+     1  08:11:17.080 parry 100% rescue 85%
+        e.g. 08:11:17.080           parry              100%      rescue              85%
+     1  08:11:17.091 <player> 13: blind fighting 100% dodge 99%
+        e.g. 08:11:17.091 Level 13: blind fighting     100%      dodge               99%
+     1  08:11:17.094 <player> 18: berserk 100%
+        e.g. 08:11:17.094 Level 18: berserk            100%
+     1  08:12:01.535 polearm 1% shield block 1%
+        e.g. 08:12:01.535           polearm              1%      shield block         1%
+     1  08:12:01.539 parry 100% rescue 1%
+        e.g. 08:12:01.539           parry              100%      rescue               1%
+     1  08:12:22.468 polearm 1% shield block 1%
+        e.g. 08:12:22.468           polearm              1%      shield block         1%
+     1  08:12:22.472 parry 100% rescue 1%
+        e.g. 08:12:22.472           parry              100%      rescue               1%
+     1  08:13:16.190 polearm 1% shield block 1%
+        e.g. 08:13:16.190           polearm              1%      shield block         1%
+     1  08:13:16.195 parry 100% rescue 1%
+        e.g. 08:13:16.195           parry              100%      rescue               1%
+     1  08:13:23.948 polearm 1% shield block 1%
+        e.g. 08:13:23.948           polearm              1%      shield block         1%
+     1  08:13:23.953 parry 100% rescue 1%
+        e.g. 08:13:23.953           parry              100%      rescue               1%
+     1  08:13:23.964 <player> 13: blind fighting n/a dodge n/a
+        e.g. 08:13:23.964 Level 13: blind fighting     n/a      dodge              n/a
+     1  08:13:23.967 <player> 18: berserk n/a
+        e.g. 08:13:23.967 Level 18: berserk            n/a
+     1  08:17:32.154 steaming food and pitchers of <mob> .
+        e.g. 08:17:32.154 steaming food and pitchers of the finest beverages out to the tables.
+     1  08:17:43.063 <player> 1: dagger 100% shield block 100%
+        e.g. 08:17:43.063 Level  1: dagger             100%      shield block       100%
+     1  08:17:43.074 <player> 20: dodge 100% alchemy 100%
+        e.g. 08:17:43.074 Level 20: dodge              100%      alchemy            100%
+     1  08:17:43.076 <player> 21: parry 100%
+        e.g. 08:17:43.076 Level 21: parry              100%
+     1  08:19:10.916 polearm 1% shield block 1%
+        e.g. 08:19:10.916           polearm              1%      shield block         1%
+     1  08:19:10.920 parry 100% rescue 1%
+        e.g. 08:19:10.920           parry              100%      rescue               1%
+     1  08:22:12.351 <player>-
+        e.g. 08:22:12.351 Courage-
+     1  08:22:12.352 <player> courageous. <mob> <player> does not shy from battle even when
+        e.g. 08:22:12.352 Be courageous.  The brotherhood of Raije does not shy from battle even when
+     1  08:24:19.144 <mob> our <player> AGL seasonal matches, where
+        e.g. 08:24:19.144 The afternoon will begin with our Leveraged AGL seasonal matches, where
+     1  08:24:21.649 <mob> <player> AGL <player>, and your last opportunity to climb the
+        e.g. 08:24:21.649 the inaugural Leveraged AGL Season, and your last opportunity to climb the
+     1  08:24:21.652 <player> of <mob> has been set! <player> AGL <player>
+        e.g. 08:24:21.652 Speaking of the tournament, the date has been set!  The Leveraged AGL Season
+     1  08:24:21.661 honor of becoming <mob> <player> AGL <player> and <mob>
+        e.g. 08:24:21.661 honor of becoming the first Leveraged AGL Seasonal Champion and the first
+     1  08:26:03.662 shield block 100% spear 100%
+        e.g. 08:26:03.662           shield block       100%      spear              100%
+     1  08:26:03.678 <player> 20: parry 100% astrology 75%
+        e.g. 08:26:03.678 Level 20: parry              100%      astrology           75%
+     1  08:26:03.680 <player> 22: dodge 100%
+        e.g. 08:26:03.680 Level 22: dodge              100%
+     1  08:29:09.263 whip 1% dodge 91%
+        e.g. 08:29:09.263           whip                 1%      dodge               91%
+     1  08:29:09.276 <player> 13: parry 92%
+        e.g. 08:29:09.276 Level 13: parry               92%
+     1  08:37:23.234 <player> is in excellent condition.
+        e.g. 08:37:23.234 Zyralith is in excellent condition.
+     1  08:37:33.990 <player> is in excellent condition.
+        e.g. 08:37:33.990 Uriol is in excellent condition.
+     1  08:57:28.000 cannons, and storage locker. (<player>: <player> can
+        e.g. 08:57:28.000 cannons, and storage locker. (Note: Lockers can
+     1  08:58:20.232 5 items (food/beverage only)
+        e.g. 08:58:20.232       5 items (food/beverage only)
+     1  10:02:19.518 <player> is in excellent condition.
+        e.g. 10:02:19.518 Ariaenys is in excellent condition.
+     1  10:08:12.980 <player> is in excellent condition.
+        e.g. 10:08:12.980 Atravirox is in excellent condition.
+     1  10:38:36.512 <player> is in excellent condition.
+        e.g. 10:38:36.512 Vharyzathrxa is in excellent condition.
+     1  10:58:58.020 are very vulnerable to drowning. <player> receive <mob>
+        e.g. 10:58:58.020 are very vulnerable to drowning.  They receive the berserk skill for free
+     1  11:33:13.010 dodge <mob> dodge attacks against you
+        e.g. 11:33:13.010 dodge             the ability to dodge attacks against you
+     1  11:33:13.012 parry being able to deflect blows with one's weapon
+        e.g. 11:33:13.012 parry             being able to deflect blows with one's weapon
+     1  11:33:23.205 <player> - <mob> song will enrage the
+        e.g. 11:33:23.205 We Come, We Come - The strong tempo of this song will enrage the
+     1  11:33:27.199 all their groupmates wounds and helps them to prepare for battle once more.
+        e.g. 11:33:27.199 all their groupmates wounds and helps them to prepare for battle once more.
+     1  11:33:43.797 <player> - <mob> song will enrage the
+        e.g. 11:33:43.797 We Come, We Come - The strong tempo of this song will enrage the
+     1  11:35:05.441 <player> of where you serve in the <player>, you are encouraged to seek
+        e.g. 11:35:05.441 Regardless of where you serve in the Priesthood, you are encouraged to seek
+     1  11:35:05.442 encouraged to offer insightful words describing your goals and efforts in
+        e.g. 11:35:05.442 encouraged to offer insightful words describing your goals and efforts in
+     1  11:35:22.042 dodge <mob> dodge attacks against you
+        e.g. 11:35:22.042 dodge             the ability to dodge attacks against you
+     1  11:35:22.044 parry being able to deflect blows with one's weapon
+        e.g. 11:35:22.044 parry             being able to deflect blows with one's weapon
+     1  11:37:43.029 <mob> <player> discipline carries <mob>
+        e.g. 11:37:43.029 The water Wu Jen discipline carries the rage of storms and the crushing
+     1  12:17:13.821 polearm 6 shield block 6 spear 4
+        e.g. 12:17:13.821 polearm            6     shield block       6     spear              4
+     1  12:17:13.824 blind fighting 12 dodge 8 enhanced damage 10
+        e.g. 12:17:13.824 blind fighting     12    dodge              8     enhanced damage    10
+     1  12:17:13.826 hand to hand 8 parry 8 second attack 10
+        e.g. 12:17:13.826 hand to hand       8     parry              8     second attack      10
+     1  12:17:28.842 polearm 6 shield block 6 spear 4
+        e.g. 12:17:28.842 polearm            6     shield block       6     spear              4
+     1  12:17:28.844 blind fighting 12 dodge 8 enhanced damage 10
+        e.g. 12:17:28.844 blind fighting     12    dodge              8     enhanced damage    10
+     1  12:17:28.845 hand to hand 8 parry 8 second attack 10
+        e.g. 12:17:28.845 hand to hand       8     parry              8     second attack      10
+     1  12:30:03.442 <player> evening will feature <mob> for <player> AGL
+        e.g. 12:30:03.442 This evening will feature the penultimate round of matches for Leveraged AGL
+     1  13:34:55.527 <player> is in excellent condition.
+        e.g. 13:34:55.527 Vael'Zorath is in excellent condition.
+     1  14:17:46.799 <mob> scratch misses <mob>.
+        e.g. 14:17:46.799 A liger cub's scratch misses a lizard.
+     1  14:17:50.210 <mob> is DEAD!!
+        e.g. 14:17:50.210 a lizard is DEAD!!
+     1  14:17:50.235 You receive 1386 experience points.
+        e.g. 14:17:50.235 You receive 1386 experience points.
+     1  14:17:50.239 You hear <mob>.
+        e.g. 14:17:50.239 You hear a lizard's death cry.
+     1  14:18:02.151 <mob> scratch misses <mob>.
+        e.g. 14:18:02.151 A liger cub's scratch misses a lizard.
+     1  14:18:02.155 <mob> scratch misses <mob>.
+        e.g. 14:18:02.155 A liger cub's scratch misses a lizard.
+     1  14:18:02.159 <mob> bite misses <mob>.
+        e.g. 14:18:02.159 A lizard's bite misses a liger cub.
+     1  14:18:05.010 <mob> is DEAD!!
+        e.g. 14:18:05.010 a lizard is DEAD!!
+     1  14:18:05.033 You receive 1462 experience points.
+        e.g. 14:18:05.033 You receive 1462 experience points.
+     1  14:18:05.039 You hear <mob>.
+        e.g. 14:18:05.039 You hear a lizard's death cry.
+     1  14:18:44.182 <mob> scratch misses <mob>.
+        e.g. 14:18:44.182 A liger cub's scratch misses a lizard.
+     1  14:18:44.185 <mob> bite misses <mob>.
+        e.g. 14:18:44.185 A lizard's bite misses a liger cub.
+     1  14:18:47.197 <mob> scratch misses <mob>.
+        e.g. 14:18:47.197 A liger cub's scratch misses a lizard.
+     1  14:18:50.447 <mob> scratch misses <mob>.
+        e.g. 14:18:50.447 A liger cub's scratch misses a lizard.
+     1  14:18:50.454 <mob> is DEAD!!
+        e.g. 14:18:50.454 a lizard is DEAD!!
+     1  14:18:50.476 You receive 2396 experience points.
+        e.g. 14:18:50.476 You receive 2396 experience points.
+     1  14:18:50.483 You hear <mob>.
+        e.g. 14:18:50.483 You hear a lizard's death cry.
+     1  14:23:24.081 <mob> is in excellent condition.
+        e.g. 14:23:24.081 A kender is in excellent condition.
+     1  14:23:33.980 <mob> misses <mob>.
+        e.g. 14:23:33.980 A kender's trip misses a liger cub.
+     1  14:23:40.193 <mob> is DEAD!!
+        e.g. 14:23:40.193 a kender is DEAD!!
+     1  14:23:40.220 You receive 1568 experience points.
+        e.g. 14:23:40.220 You receive 1568 experience points.
+     1  14:24:10.233 You block <mob> attack with your shield.
+        e.g. 14:24:10.233 You block a beast's attack with your shield.
+     1  14:24:10.307 <mob> is in excellent condition.
+        e.g. 14:24:10.307 A beast is in excellent condition.
+     1  14:24:13.270 <mob> has some small wounds and bruises.
+        e.g. 14:24:13.270 A beast has some small wounds and bruises.
+     1  14:24:16.370 <mob> scratch misses <mob>.
+        e.g. 14:24:16.370 A liger cub's scratch misses a beast.
+     1  14:24:16.417 <mob> misses you.
+        e.g. 14:24:16.417 A beast's trip misses you.
+     1  14:24:16.475 <mob> has quite <mob> wounds.
+        e.g. 14:24:16.475 A beast has quite a few wounds.
+     1  14:24:19.242 <mob> scratch misses <mob>.
+        e.g. 14:24:19.242 A liger cub's scratch misses a beast.
+     1  14:24:19.288 <mob> has some big nasty wounds and scratches.
+        e.g. 14:24:19.288 A beast has some big nasty wounds and scratches.
+     1  14:24:19.433 <mob> has some big nasty wounds and scratches.
+        e.g. 14:24:19.433 A beast has some big nasty wounds and scratches.
+     1  14:24:22.330 <mob> scratch misses <mob>.
+        e.g. 14:24:22.330 A liger cub's scratch misses a beast.
+     1  14:24:22.337 <mob> claw misses you.
+        e.g. 14:24:22.337 A beast's claw misses you.
+     1  14:24:22.396 <mob> looks pretty hurt.
+        e.g. 14:24:22.396 A beast looks pretty hurt.
+     1  14:24:25.267 <mob> scratch misses <mob>.
+        e.g. 14:24:25.267 A liger cub's scratch misses a beast.
+     1  14:24:25.275 You dodge <mob> attack.
+        e.g. 14:24:25.275 You dodge a beast's attack.
+     1  14:24:25.360 <mob> is in awful condition.
+        e.g. 14:24:25.360 A beast is in awful condition.
+     1  14:24:28.429 <mob> is DEAD!!
+        e.g. 14:24:28.429 a beast is DEAD!!
+     1  14:24:28.456 You receive 840 experience points.
+        e.g. 14:24:28.456 You receive 840 experience points.
+     1  14:41:06.830 you see <mob> city...or is it just <mob>?
+        e.g. 14:41:06.830 you see the towers of a magnificent city...or is it just a mirage?
+     1  14:42:18.248 you see <mob> city...or is it just <mob>?
+        e.g. 14:42:18.248 you see the towers of a magnificent city...or is it just a mirage?
+     1  14:43:50.114 to recover from the wounds of adventuring. <mob> grove
+        e.g. 14:43:50.114 to recover from the wounds of adventuring.  A faint path through the grove
+     1  14:45:30.136 to recover from the wounds of adventuring. <mob> grove
+        e.g. 14:45:30.136 to recover from the wounds of adventuring.  A faint path through the grove
+     1  14:45:54.672 to recover from the wounds of adventuring. <mob> grove
+        e.g. 14:45:54.672 to recover from the wounds of adventuring.  A faint path through the grove
+     1  14:48:02.180 to recover from the wounds of adventuring. <mob> grove
+        e.g. 14:48:02.180 to recover from the wounds of adventuring.  A faint path through the grove
+     1  14:49:33.481 (<player>) <mob> block
+        e.g. 14:49:33.481      (Glowing) a letter block
+     1  14:53:51.085 <player> whip DISEMBOWELS <player>!
+        e.g. 14:53:51.085 Askook's whip DISEMBOWELS Madox!
+     1  18:31:41.087 <player> 12: disarm n/a dodge n/a
+        e.g. 18:31:41.087 Level 12: disarm             n/a      dodge              n/a
+     1  20:01:56.242 demonic spirits to inflict terrible wounds on <mob>.
+        e.g. 20:01:56.242 demonic spirits to inflict terrible wounds on the enemies of the caster.
+     1  20:02:50.810 demonic spirits to inflict terrible wounds on <mob>.
+        e.g. 20:02:50.810 demonic spirits to inflict terrible wounds on the enemies of the caster.
+     1  20:03:07.259 demonic spirits to inflict terrible wounds on <mob>.
+        e.g. 20:03:07.259 demonic spirits to inflict terrible wounds on the enemies of the caster.
+     1  20:22:58.231 you see <mob> city...or is it just <mob>?
+        e.g. 20:22:58.231 you see the towers of a magnificent city...or is it just a mirage?
+     1  20:46:13.648 sounds, those known only to the <player> market, barrage your senses. <player>
+        e.g. 20:46:13.648 sounds, those known only to the New Thalos market, barrage your senses.  The
+     1  20:49:53.778 you see <mob> city...or is it just <mob>?
+        e.g. 20:49:53.778 you see the towers of a magnificent city...or is it just a mirage?
+     1  20:51:29.226 you see <mob> city...or is it just <mob>?
+        e.g. 20:51:29.226 you see the towers of a magnificent city...or is it just a mirage?
+     1  20:56:49.594 <player> are scattered across <mob>, partially blocking <mob>, and <mob> is calm.
+        e.g. 20:56:49.594 Clouds are scattered across the sky, partially blocking the sun, and the wind is calm.
+     1  18:03:51.753 [BROADCAST from <player>] 2 hours till our <player> night AGL fights! <player> seasonal and
+        e.g. 18:03:51.753 [BROADCAST from Croatoan] 2 hours till our Friday night AGL fights! Both Leveraged seasonal and
+     1  18:30:11.434 <player> gets <mob> look in his eyes!
+        e.g. 18:30:11.434 Kinrithlir gets a wild look in his eyes!
+     1  18:30:20.716 <player> is in excellent condition.
+        e.g. 18:30:20.716 Kinrithlir is in excellent condition.
+     1  18:57:30.332 <player> gets <mob> look in his eyes!
+        e.g. 18:57:30.332 Kinrithlir gets a wild look in his eyes!
+     1  19:03:48.806 <player> gets <mob> look in his eyes!
+        e.g. 19:03:48.806 Kinrithlir gets a wild look in his eyes!
+     1  ------------ last night of our <player> AGL <player> 1 where <mob> final tournament shall
+        e.g. ------------ last night of our Leveraged AGL Season 1 where the final standings for our final tournament shall
+     1  19:25:40.744 <player> gets <mob> look in his eyes!
+        e.g. 19:25:40.744 Kinrithlir gets a wild look in his eyes!
+     1  19:30:22.726 <player> gets <mob> look in his eyes!
+        e.g. 19:30:22.726 Kinrithlir gets a wild look in his eyes!
+     1  ------------ briefly? <player> has <mob> spare if overwatch is needed.'
+        e.g. ------------ briefly?  He has a few more moments to spare if overwatch is needed.'
+     1  19:34:42.673 <player> gets <mob> look in his eyes!
+        e.g. 19:34:42.673 Kinrithlir gets a wild look in his eyes!
+     1  19:40:11.782 <player> is in excellent condition.
+        e.g. 19:40:11.782 Kinrithlir is in excellent condition.
+     1  19:43:48.827 <player> are scattered across <mob>, partially blocking <mob>, and <mob>
+        e.g. 19:43:48.827 Clouds are scattered across the sky, partially blocking the sun, and a temperate gentle breeze blows
+     1  19:45:12.420 <player> are scattered across <mob>, partially blocking <mob>, and <mob>
+        e.g. 19:45:12.420 Clouds are scattered across the sky, partially blocking the sun, and a temperate gentle breeze blows
+     1  19:59:47.271 <player> is in excellent condition.
+        e.g. 19:59:47.271 Zyralith is in excellent condition.
+     1  20:04:18.878 <player> is in excellent condition.
+        e.g. 20:04:18.878 Valdaris is in excellent condition.
+     1  20:04:45.687 <player> is in excellent condition.
+        e.g. 20:04:45.687 Maccus is in excellent condition.
+     1  20:05:00.488 <player> is in excellent condition.
+        e.g. 20:05:00.488 Riordan Atennim is in excellent condition.
+     1  20:09:43.329 <player> is in excellent condition.
+        e.g. 20:09:43.329 Hindera Gloran'di is in excellent condition.
+     1  20:10:14.885 <player> yells '<player> be our second to last night for our first <player> season and what a
+        e.g. 20:10:14.885 Ri'gon Del'nichi yells 'This be our second to last night for our first Leveraged season and what a
+     1  20:17:24.880 <player> are scattered across <mob>, partially blocking <mob>, and <mob> in
+        e.g. 20:17:24.880 Clouds are scattered across the sky, partially blocking the sun, and a warm gentle breeze blows in
+     1  20:19:51.700 [ <player> of the <player> ] <player> ambush *** DEMOLISHES *** <player>!
+        e.g. 20:19:51.700 [ The Center of the Coliseum ] Moe's ambush *** DEMOLISHES *** Rylae!
+     1  20:19:51.703 [ <player> of the <player> ] <player> pierce DISEMBOWELS <mob>!
+        e.g. 20:19:51.703 [ The Center of the Coliseum ] Rylae's pierce DISEMBOWELS a wild bear!
+     1  20:19:51.736 [ <player> of the <player> ] <player> pierce DISEMBOWELS <mob>!
+        e.g. 20:19:51.736 [ The Center of the Coliseum ] Rylae's pierce DISEMBOWELS a wild bear!
+     1  20:19:51.768 [ <player> of the <player> ] <player> pierce DISEMBOWELS <mob>!
+        e.g. 20:19:51.768 [ The Center of the Coliseum ] Rylae's pierce DISEMBOWELS a wild bear!
+     1  20:19:53.351 [ <player> of the <player> ] <player> polevault kick *** DEMOLISHES *** <mob>!
+        e.g. 20:19:53.351 [ The Center of the Coliseum ] Rylae's polevault kick *** DEMOLISHES *** a wild bear!
+     1  20:19:54.639 [ <player> of the <player> ] <mob> misses <player>.
+        e.g. 20:19:54.639 [ The Center of the Coliseum ] a wild bear's wrath misses Rylae.
+     1  20:19:54.644 [ <player> of the <player> ] <player> pierce DISMEMBERS <mob>!
+        e.g. 20:19:54.644 [ The Center of the Coliseum ] Rylae's pierce DISMEMBERS a wild bear!
+     1  20:19:54.672 [ <player> of the <player> ] <player> pierce DISMEMBERS <mob>!
+        e.g. 20:19:54.672 [ The Center of the Coliseum ] Rylae's pierce DISMEMBERS a wild bear!
+     1  20:19:54.696 [ <player> of the <player> ] <player> pierce DISEMBOWELS <mob>!
+        e.g. 20:19:54.696 [ The Center of the Coliseum ] Rylae's pierce DISEMBOWELS a wild bear!
+     1  20:19:54.722 [ <player> of the <player> ] <player> pierce DISEMBOWELS <mob>!
+        e.g. 20:19:54.722 [ The Center of the Coliseum ] Rylae's pierce DISEMBOWELS a wild bear!
+     1  20:19:57.688 [ <player> of the <player> ] <mob> pierce mauls <mob>.
+        e.g. 20:19:57.688 [ The Center of the Coliseum ] A spirit's pierce mauls a wild bear.
+     1  20:19:57.702 [ <player> of the <player> ] <mob> pierce misses <mob>.
+        e.g. 20:19:57.702 [ The Center of the Coliseum ] A spirit's pierce misses a wild bear.
+     1  20:19:57.713 [ <player> of the <player> ] <mob> misses <player>.
+        e.g. 20:19:57.713 [ The Center of the Coliseum ] a wild bear's wrath misses Rylae.
+     1  20:19:57.718 [ <player> of the <player> ] <player> pierce DISEMBOWELS <mob>!
+        e.g. 20:19:57.718 [ The Center of the Coliseum ] Rylae's pierce DISEMBOWELS a wild bear!
+     1  20:20:00.637 [ <player> of the <player> ] <player> pierce DISMEMBERS <mob>!
+        e.g. 20:20:00.637 [ The Center of the Coliseum ] Rylae's pierce DISMEMBERS a wild bear!
+     1  20:20:00.663 [ <player> of the <player> ] <player> pierce DISMEMBERS <mob>!
+        e.g. 20:20:00.663 [ The Center of the Coliseum ] Rylae's pierce DISMEMBERS a wild bear!
+     1  20:20:00.688 [ <player> of the <player> ] <player> pierce DISEMBOWELS <mob>!
+        e.g. 20:20:00.688 [ The Center of the Coliseum ] Rylae's pierce DISEMBOWELS a wild bear!
+     1  20:20:03.704 [ <player> of the <player> ] <mob> mauls <mob>.
+        e.g. 20:20:03.704 [ The Center of the Coliseum ] a wild bear's wrath mauls A spirit.
+     1  20:20:03.706 [ <player> of the <player> ] <mob> mauls <mob>.
+        e.g. 20:20:03.706 [ The Center of the Coliseum ] a wild bear's wrath mauls A spirit.
+     1  20:20:06.709 [ <player> of the <player> ] <mob> mauls <mob>.
+        e.g. 20:20:06.709 [ The Center of the Coliseum ] a wild bear's wrath mauls A spirit.
+     1  20:20:06.711 [ <player> of the <player> ] <mob> mauls <mob>.
+        e.g. 20:20:06.711 [ The Center of the Coliseum ] a wild bear's wrath mauls A spirit.
+     1  20:20:06.713 [ <player> of the <player> ] <mob> gets <mob> look in her eyes.
+        e.g. 20:20:06.713 [ The Center of the Coliseum ] a wild bear gets a wild look in her eyes.
+     1  20:20:09.793 [ <player> of the <player> ] <player> pierce DISEMBOWELS <mob>!
+        e.g. 20:20:09.793 [ The Center of the Coliseum ] Rylae's pierce DISEMBOWELS a wild bear!
+     1  20:20:48.851 [ <player> of the <player> ] <player> whip misses <player>.
+        e.g. 20:20:48.851 [ The Center of the Coliseum ] Moe's whip misses Rylae.
+     1  20:20:49.907 [ <player> of the <player> ] <player> kicked dirt misses <player>.
+        e.g. 20:20:49.907 [ The Center of the Coliseum ] Moe's kicked dirt misses Rylae.
+     1  20:20:51.930 [ <player> of the <player> ] <player> whip misses <player>.
+        e.g. 20:20:51.930 [ The Center of the Coliseum ] Moe's whip misses Rylae.
+     1  20:20:51.932 [ <player> of the <player> ] <player> whip misses <player>.
+        e.g. 20:20:51.932 [ The Center of the Coliseum ] Moe's whip misses Rylae.
+     1  20:20:51.935 [ <player> of the <player> ] <player> pierce misses <player>.
+        e.g. 20:20:51.935 [ The Center of the Coliseum ] Rylae's pierce misses Moe.
+     1  20:20:51.937 [ <player> of the <player> ] <player> pierce wounds <player>.
+        e.g. 20:20:51.937 [ The Center of the Coliseum ] Rylae's pierce wounds Moe.
+     1  20:20:54.866 [ <player> of the <player> ] <mob> pierce misses <player>.
+        e.g. 20:20:54.866 [ The Center of the Coliseum ] A spirit's pierce misses Moe.
+     1  20:20:54.870 [ <player> of the <player> ] <player> whip wounds <player>.
+        e.g. 20:20:54.870 [ The Center of the Coliseum ] Moe's whip wounds Rylae.
+     1  20:20:54.890 [ <player> of the <player> ] <player> pierce wounds <player>.
+        e.g. 20:20:54.890 [ The Center of the Coliseum ] Rylae's pierce wounds Moe.
+     1  20:20:57.920 [ <player> of the <player> ] <player> pierce DISEMBOWELS <mob>!
+        e.g. 20:20:57.920 [ The Center of the Coliseum ] Rylae's pierce DISEMBOWELS a wild bear!
+     1  20:20:57.936 [ <player> of the <player> ] <player> pierce DISEMBOWELS <mob>!
+        e.g. 20:20:57.936 [ The Center of the Coliseum ] Rylae's pierce DISEMBOWELS a wild bear!
+     1  20:21:00.595 [ <player> of the <player> ] <player> polevault kick MUTILATES <player>!
+        e.g. 20:21:00.595 [ The Center of the Coliseum ] Rylae's polevault kick MUTILATES Moe!
+     1  20:21:00.882 [ <player> of the <player> ] <player> whip misses <player>.
+        e.g. 20:21:00.882 [ The Center of the Coliseum ] Moe's whip misses Rylae.
+     1  20:21:00.889 [ <player> of the <player> ] <player> pierce misses <mob>.
+        e.g. 20:21:00.889 [ The Center of the Coliseum ] Rylae's pierce misses a wild bear.
+     1  20:21:00.900 [ <player> of the <player> ] <player> pierce DISEMBOWELS <mob>!
+        e.g. 20:21:00.900 [ The Center of the Coliseum ] Rylae's pierce DISEMBOWELS a wild bear!
+     1  20:21:00.915 [ <player> of the <player> ] <player> pierce DISEMBOWELS <mob>!
+        e.g. 20:21:00.915 [ The Center of the Coliseum ] Rylae's pierce DISEMBOWELS a wild bear!
+     1  20:21:03.883 [ <player> of the <player> ] <player> whip wounds <player>.
+        e.g. 20:21:03.883 [ The Center of the Coliseum ] Moe's whip wounds Rylae.
+     1  20:21:03.886 [ <player> of the <player> ] <player> whip wounds <player>.
+        e.g. 20:21:03.886 [ The Center of the Coliseum ] Moe's whip wounds Rylae.
+     1  20:21:03.888 [ <player> of the <player> ] <player> pierce DISMEMBERS <mob>!
+        e.g. 20:21:03.888 [ The Center of the Coliseum ] Rylae's pierce DISMEMBERS a wild bear!
+     1  20:21:06.886 [ <player> of the <player> ] <player> pierce DISMEMBERS <mob>!
+        e.g. 20:21:06.886 [ The Center of the Coliseum ] Rylae's pierce DISMEMBERS a wild bear!
+     1  20:21:06.914 [ <player> of the <player> ] <player> pierce DISEMBOWELS <mob>!
+        e.g. 20:21:06.914 [ The Center of the Coliseum ] Rylae's pierce DISEMBOWELS a wild bear!
+     1  20:21:10.009 [ <player> of the <player> ] <mob> wounds <player>.
+        e.g. 20:21:10.009 [ The Center of the Coliseum ] a wild bear's wrath wounds Rylae.
+     1  20:21:10.014 [ <player> of the <player> ] <player> pierce DISMEMBERS <mob>!
+        e.g. 20:21:10.014 [ The Center of the Coliseum ] Rylae's pierce DISMEMBERS a wild bear!
+     1  20:21:12.908 [ <player> of the <player> ] <mob> pierce misses <player>.
+        e.g. 20:21:12.908 [ The Center of the Coliseum ] A spirit's pierce misses Moe.
+     1  20:21:12.910 [ <player> of the <player> ] <mob> misses <player>.
+        e.g. 20:21:12.910 [ The Center of the Coliseum ] a wild bear's wrath misses Rylae.
+     1  20:21:12.922 [ <player> of the <player> ] <player> pierce DISEMBOWELS <mob>!
+        e.g. 20:21:12.922 [ The Center of the Coliseum ] Rylae's pierce DISEMBOWELS a wild bear!
+     1  20:21:12.951 [ <player> of the <player> ] <mob> is DEAD!!
+        e.g. 20:21:12.951 [ The Center of the Coliseum ] a wild bear is DEAD!!
+     1  20:21:12.994 [ <player> of the <player> ] You hear <mob>.
+        e.g. 20:21:12.994 [ The Center of the Coliseum ] You hear a wild bear's death cry.
+     1  20:21:12.996 [ <player> ] You hear something's death cry.
+        e.g. 20:21:12.996 [ Northern Coliseum Wall ] You hear something's death cry.
+     1  20:21:13.000 [ <player> ] You hear something's death cry.
+        e.g. 20:21:13.000 [ Eastern Coliseum Wall ] You hear something's death cry.
+     1  20:21:13.003 [ <player> ] You hear something's death cry.
+        e.g. 20:21:13.003 [ Southern Coliseum Wall ] You hear something's death cry.
+     1  20:21:13.010 [ <player> ] You hear something's death cry.
+        e.g. 20:21:13.010 [ Western Coliseum Wall ] You hear something's death cry.
+     1  20:21:16.111 [ <player> of the <player> ] <player> whip misses <player>.
+        e.g. 20:21:16.111 [ The Center of the Coliseum ] Moe's whip misses Rylae.
+     1  20:21:16.126 [ <player> of the <player> ] <player> pierce wounds <player>.
+        e.g. 20:21:16.126 [ The Center of the Coliseum ] Rylae's pierce wounds Moe.
+     1  20:21:16.134 [ <player> of the <player> ] <player> pierce wounds <player>.
+        e.g. 20:21:16.134 [ The Center of the Coliseum ] Rylae's pierce wounds Moe.
+     1  20:21:31.084 [ <player> ] <mob> slash misses <player>.
+        e.g. 20:21:31.084 [ Western Coliseum Wall ] a wild bear's slash misses Rylae.
+     1  20:21:31.086 [ <player> ] <player> whip misses <player>.
+        e.g. 20:21:31.086 [ Western Coliseum Wall ] Moe's whip misses Rylae.
+     1  20:21:34.154 [ <player> ] <player> pierce DISEMBOWELS <mob>!
+        e.g. 20:21:34.154 [ Western Coliseum Wall ] Rylae's pierce DISEMBOWELS a wild bear!
+     1  20:21:34.181 [ <player> ] <player> pierce DISMEMBERS <mob>!
+        e.g. 20:21:34.181 [ Western Coliseum Wall ] Rylae's pierce DISMEMBERS a wild bear!
+     1  20:21:37.172 [ <player> ] <mob> slash misses <player>.
+        e.g. 20:21:37.172 [ Western Coliseum Wall ] a wild bear's slash misses Rylae.
+     1  20:21:37.175 [ <player> ] <player> pierce DISMEMBERS <mob>!
+        e.g. 20:21:37.175 [ Western Coliseum Wall ] Rylae's pierce DISMEMBERS a wild bear!
+     1  20:21:37.194 [ <player> ] <player> pierce DISEMBOWELS <mob>!
+        e.g. 20:21:37.194 [ Western Coliseum Wall ] Rylae's pierce DISEMBOWELS a wild bear!
+     1  20:21:37.209 [ <player> ] <player> pierce DISMEMBERS <mob>!
+        e.g. 20:21:37.209 [ Western Coliseum Wall ] Rylae's pierce DISMEMBERS a wild bear!
+     1  20:21:37.314 [ <player> ] <player> pierce DISEMBOWELS <mob>!
+        e.g. 20:21:37.314 [ Western Coliseum Wall ] Rylae's pierce DISEMBOWELS a wild bear!
+     1  20:21:40.109 [ <player> ] <player> pierce DISEMBOWELS <mob>!
+        e.g. 20:21:40.109 [ Western Coliseum Wall ] Rylae's pierce DISEMBOWELS a wild bear!
+     1  20:21:40.131 [ <player> ] <player> pierce DISMEMBERS <mob>!
+        e.g. 20:21:40.131 [ Western Coliseum Wall ] Rylae's pierce DISMEMBERS a wild bear!
+     1  20:21:40.156 [ <player> ] <player> pierce DISMEMBERS <mob>!
+        e.g. 20:21:40.156 [ Western Coliseum Wall ] Rylae's pierce DISMEMBERS a wild bear!
+     1  20:21:43.324 [ <player> ] <player> pierce DISEMBOWELS <mob>!
+        e.g. 20:21:43.324 [ Western Coliseum Wall ] Rylae's pierce DISEMBOWELS a wild bear!
+     1  20:21:49.140 [ <player> ] <player> whip wounds <player>.
+        e.g. 20:21:49.140 [ Eastern Coliseum Wall ] Moe's whip wounds Rylae.
+     1  20:21:49.142 [ <player> ] <player> pierce wounds <player>.
+        e.g. 20:21:49.142 [ Eastern Coliseum Wall ] Rylae's pierce wounds Moe.
+     1  20:21:49.153 [ <player> ] <mob> pierce misses <player>.
+        e.g. 20:21:49.153 [ Eastern Coliseum Wall ] A spirit's pierce misses Moe.
+     1  20:21:52.211 [ <player> ] <player> pierce DISEMBOWELS <mob>!
+        e.g. 20:21:52.211 [ Eastern Coliseum Wall ] Rylae's pierce DISEMBOWELS a wild bear!
+     1  20:22:09.984 [ <player> ] <player> gets <mob> look in his eyes.
+        e.g. 20:22:09.984 [ Southern Coliseum Wall ] Someone gets a wild look in his eyes.
+     1  20:22:15.756 [ <player> of the <player> ] <player> kicked dirt misses <player>.
+        e.g. 20:22:15.756 [ The Center of the Coliseum ] Rylae's kicked dirt misses Moe.
+     1  20:22:16.866 [ <player> of the <player> ] <player> pierce wounds <player>.
+        e.g. 20:22:16.866 [ The Center of the Coliseum ] Rylae's pierce wounds Moe.
+     1  20:22:19.789 [ <player> of the <player> ] <mob> misses <player>.
+        e.g. 20:22:19.789 [ The Center of the Coliseum ] a wild bear's wrath misses Rylae.
+     1  20:22:22.924 [ <player> of the <player> ] <player> pierce DISEMBOWELS <mob>!
+        e.g. 20:22:22.924 [ The Center of the Coliseum ] Rylae's pierce DISEMBOWELS a wild bear!
+     1  20:22:24.551 [ <player> of the <player> ] <player> whip misses <player>.
+        e.g. 20:22:24.551 [ The Center of the Coliseum ] Moe's whip misses Rylae.
+     1  20:22:25.830 [ <player> of the <player> ] <mob> misses <player>.
+        e.g. 20:22:25.830 [ The Center of the Coliseum ] a wild bear's wrath misses Rylae.
+     1  20:22:25.846 [ <player> of the <player> ] <player> pierce DISEMBOWELS <mob>!
+        e.g. 20:22:25.846 [ The Center of the Coliseum ] Rylae's pierce DISEMBOWELS a wild bear!
+     1  20:22:25.871 [ <player> of the <player> ] <player> pierce DISEMBOWELS <mob>!
+        e.g. 20:22:25.871 [ The Center of the Coliseum ] Rylae's pierce DISEMBOWELS a wild bear!
+     1  20:22:25.884 [ <player> of the <player> ] <mob> is DEAD!!
+        e.g. 20:22:25.884 [ The Center of the Coliseum ] a wild bear is DEAD!!
+     1  20:22:25.907 [ <player> of the <player> ] You hear <mob>.
+        e.g. 20:22:25.907 [ The Center of the Coliseum ] You hear a wild bear's death cry.
+     1  20:22:25.909 [ <player> ] You hear something's death cry.
+        e.g. 20:22:25.909 [ Northern Coliseum Wall ] You hear something's death cry.
+     1  20:22:25.918 [ <player> ] You hear something's death cry.
+        e.g. 20:22:25.918 [ Eastern Coliseum Wall ] You hear something's death cry.
+     1  20:22:25.927 [ <player> ] You hear something's death cry.
+        e.g. 20:22:25.927 [ Southern Coliseum Wall ] You hear something's death cry.
+     1  20:22:25.932 [ <player> ] You hear something's death cry.
+        e.g. 20:22:25.932 [ Western Coliseum Wall ] You hear something's death cry.
+     1  20:22:37.814 [ <player> ] <player> pierce wounds <player>.
+        e.g. 20:22:37.814 [ Southern Coliseum Wall ] Rylae's pierce wounds Moe.
+     1  20:22:37.818 [ <player> ] <player> pierce wounds <player>.
+        e.g. 20:22:37.818 [ Southern Coliseum Wall ] Rylae's pierce wounds Moe.
+     1  20:22:37.827 [ <player> ] <player> pierce wounds <player>.
+        e.g. 20:22:37.827 [ Southern Coliseum Wall ] Rylae's pierce wounds Moe.
+     1  20:22:37.836 [ <player> ] <player> pierce misses <player>.
+        e.g. 20:22:37.836 [ Southern Coliseum Wall ] Rylae's pierce misses Moe.
+     1  20:22:40.860 [ <player> ] <player> pierce DISEMBOWELS <mob>!
+        e.g. 20:22:40.860 [ Southern Coliseum Wall ] Rylae's pierce DISEMBOWELS a wild bear!
+     1  20:22:56.919 [ <player> ] <player> piercing winds wounds <player>.
+        e.g. 20:22:56.919 [ Western Coliseum Wall ] Rylae's piercing winds wounds Moe.
+     1  20:23:01.951 [ <player> ] <player> pierce DISEMBOWELS <mob>!
+        e.g. 20:23:01.951 [ Western Coliseum Wall ] Rylae's pierce DISEMBOWELS a wild bear!
+     1  20:23:04.979 [ <player> ] <mob> mauls <mob>.
+        e.g. 20:23:04.979 [ Western Coliseum Wall ] a wild bear's wrath mauls A spirit.
+     1  20:23:04.982 [ <player> ] <mob> misses <mob>.
+        e.g. 20:23:04.982 [ Western Coliseum Wall ] a wild bear's wrath misses A spirit.
+     1  20:23:04.984 [ <player> ] <player> pierce wounds <player>.
+        e.g. 20:23:04.984 [ Western Coliseum Wall ] Rylae's pierce wounds Moe.
+     1  20:23:04.995 [ <player> ] <player> wrath wounds <player>.
+        e.g. 20:23:04.995 [ Western Coliseum Wall ] Moe's wrath wounds Rylae.
+     1  20:23:04.997 [ <player> ] <player> pierce wounds <player>.
+        e.g. 20:23:04.997 [ Western Coliseum Wall ] Rylae's pierce wounds Moe.
+     1  20:23:07.966 [ <player> ] <mob> mauls <mob>.
+        e.g. 20:23:07.966 [ Western Coliseum Wall ] a wild bear's wrath mauls A spirit.
+     1  20:23:07.970 [ <player> ] <mob> mauls <mob>.
+        e.g. 20:23:07.970 [ Western Coliseum Wall ] a wild bear's wrath mauls A spirit.
+     1  20:23:07.972 [ <player> ] <player> wrath wounds <player>.
+        e.g. 20:23:07.972 [ Western Coliseum Wall ] Moe's wrath wounds Rylae.
+     1  20:23:07.974 [ <player> ] <player> pierce wounds <player>.
+        e.g. 20:23:07.974 [ Western Coliseum Wall ] Rylae's pierce wounds Moe.
+     1  20:23:11.038 [ <player> ] <mob> mauls <mob>.
+        e.g. 20:23:11.038 [ Western Coliseum Wall ] a wild bear's wrath mauls A spirit.
+     1  20:23:11.039 [ <player> ] <player> pierce DISEMBOWELS <mob>!
+        e.g. 20:23:11.039 [ Western Coliseum Wall ] Rylae's pierce DISEMBOWELS a wild bear!
+     1  20:23:11.051 [ <player> ] <player> pierce DISEMBOWELS <mob>!
+        e.g. 20:23:11.051 [ Western Coliseum Wall ] Rylae's pierce DISEMBOWELS a wild bear!
+     1  20:23:14.302 [ <player> ] <mob> mauls <mob>.
+        e.g. 20:23:14.302 [ Western Coliseum Wall ] a wild bear's wrath mauls A spirit.
+     1  20:23:14.306 [ <player> ] <mob> pierce misses <player>.
+        e.g. 20:23:14.306 [ Western Coliseum Wall ] A spirit's pierce misses Moe.
+     1  20:23:14.317 [ <player> ] <player> pierce DISEMBOWELS <mob>!
+        e.g. 20:23:14.317 [ Western Coliseum Wall ] Rylae's pierce DISEMBOWELS a wild bear!
+     1  20:23:14.330 [ <player> ] <player> pierce DISEMBOWELS <mob>!
+        e.g. 20:23:14.330 [ Western Coliseum Wall ] Rylae's pierce DISEMBOWELS a wild bear!
+     1  20:23:14.727 [ <player> ] <player> kicked dirt misses <mob>.
+        e.g. 20:23:14.727 [ Western Coliseum Wall ] Moe's kicked dirt misses A spirit.
+     1  20:23:17.259 [ <player> ] <mob> mauls <mob>.
+        e.g. 20:23:17.259 [ Western Coliseum Wall ] a wild bear's wrath mauls A spirit.
+     1  20:23:17.961 [ <player> ] <player> polevault kick MUTILATES <player>!
+        e.g. 20:23:17.961 [ Western Coliseum Wall ] Rylae's polevault kick MUTILATES Moe!
+     1  20:23:20.245 [ <player> ] <mob> mauls <mob>.
+        e.g. 20:23:20.245 [ Western Coliseum Wall ] a wild bear's wrath mauls A spirit.
+     1  20:23:20.257 [ <player> ] <player> pierce wounds <player>.
+        e.g. 20:23:20.257 [ Western Coliseum Wall ] Rylae's pierce wounds Moe.
+     1  20:23:20.267 [ <player> ] <player> pierce wounds <player>.
+        e.g. 20:23:20.267 [ Western Coliseum Wall ] Rylae's pierce wounds Moe.
+     1  20:23:23.570 [ <player> ] <mob> mauls <mob>.
+        e.g. 20:23:23.570 [ Western Coliseum Wall ] a wild bear's wrath mauls A spirit.
+     1  20:23:23.576 [ <player> ] <mob> mauls <mob>.
+        e.g. 20:23:23.576 [ Western Coliseum Wall ] a wild bear's wrath mauls A spirit.
+     1  20:23:23.580 [ <player> ] <player> pierce DISMEMBERS <mob>!
+        e.g. 20:23:23.580 [ Western Coliseum Wall ] Rylae's pierce DISMEMBERS a wild bear!
+     1  20:23:29.480 [ <player> ] <player> pierce wounds <player>.
+        e.g. 20:23:29.480 [ Northern Coliseum Wall ] Rylae's pierce wounds Moe.
+     1  20:23:32.362 [ <player> ] <mob> gets <mob> look in her eyes.
+        e.g. 20:23:32.362 [ Northern Coliseum Wall ] a wild bear gets a wild look in her eyes.
+     1  20:23:32.363 [ <player> ] <player> pierce DISEMBOWELS <mob>!
+        e.g. 20:23:32.363 [ Northern Coliseum Wall ] Rylae's pierce DISEMBOWELS a wild bear!
+     1  20:23:32.384 [ <player> ] <player> pierce DISEMBOWELS <mob>!
+        e.g. 20:23:32.384 [ Northern Coliseum Wall ] Rylae's pierce DISEMBOWELS a wild bear!
+     1  20:23:35.465 [ <player> ] <mob> misses <mob>.
+        e.g. 20:23:35.465 [ Northern Coliseum Wall ] a wild bear's wrath misses A spirit.
+     1  20:23:35.471 [ <player> ] <player> pierce wounds <player>.
+        e.g. 20:23:35.471 [ Northern Coliseum Wall ] Rylae's pierce wounds Moe.
+     1  20:23:35.484 [ <player> ] <player> pierce wounds <player>.
+        e.g. 20:23:35.484 [ Northern Coliseum Wall ] Rylae's pierce wounds Moe.
+     1  20:23:35.493 [ <player> ] <player> pierce wounds <player>.
+        e.g. 20:23:35.493 [ Northern Coliseum Wall ] Rylae's pierce wounds Moe.
+     1  20:23:35.506 [ <player> ] <player> pierce wounds <player>.
+        e.g. 20:23:35.506 [ Northern Coliseum Wall ] Rylae's pierce wounds Moe.
+     1  20:23:35.672 [ <player> ] <player> kicked dirt misses <player>.
+        e.g. 20:23:35.672 [ Northern Coliseum Wall ] Moe's kicked dirt misses Rylae.
+     1  20:23:38.384 [ <player> ] <player> pierce wounds <player>.
+        e.g. 20:23:38.384 [ Northern Coliseum Wall ] Rylae's pierce wounds Moe.
+     1  20:23:38.392 [ <player> ] <player> pierce wounds <player>.
+        e.g. 20:23:38.392 [ Northern Coliseum Wall ] Rylae's pierce wounds Moe.
+     1  20:23:38.402 [ <player> ] <player> pierce wounds <player>.
+        e.g. 20:23:38.402 [ Northern Coliseum Wall ] Rylae's pierce wounds Moe.
+     1  20:23:38.412 [ <player> ] <player> pierce wounds <player>.
+        e.g. 20:23:38.412 [ Northern Coliseum Wall ] Rylae's pierce wounds Moe.
+     1  20:23:41.397 [ <player> ] <player> wrath wounds <player>.
+        e.g. 20:23:41.397 [ Northern Coliseum Wall ] Moe's wrath wounds Rylae.
+     1  20:23:41.400 [ <player> ] <player> wrath wounds <player>.
+        e.g. 20:23:41.400 [ Northern Coliseum Wall ] Moe's wrath wounds Rylae.
+     1  20:23:44.373 [ <player> ] <mob> mauls <mob>.
+        e.g. 20:23:44.373 [ Northern Coliseum Wall ] a wild bear's wrath mauls A spirit.
+     1  20:23:44.376 [ <player> ] <player> pierce DISMEMBERS <mob>!
+        e.g. 20:23:44.376 [ Northern Coliseum Wall ] Rylae's pierce DISMEMBERS a wild bear!
+     1  20:23:44.397 [ <player> ] <player> pierce MASSACRES <mob>!
+        e.g. 20:23:44.397 [ Northern Coliseum Wall ] Rylae's pierce MASSACRES a wild bear!
+     1  20:23:47.464 [ <player> ] <mob> is DEAD!!
+        e.g. 20:23:47.464 [ Northern Coliseum Wall ] A spirit is DEAD!!
+     1  20:23:47.505 [ <player> of the <player> ] You hear something's death cry.
+        e.g. 20:23:47.505 [ The Center of the Coliseum ] You hear something's death cry.
+     1  20:23:47.509 [ <player> ] You hear something's death cry.
+        e.g. 20:23:47.509 [ Western Coliseum Wall ] You hear something's death cry.

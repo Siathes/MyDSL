@@ -163,7 +163,7 @@ MyDSL.TargetView.actions = {
 }
 ```
 
-All 18 entries are available to `mydsl target mobset/playerset` by key name.
+All 19 entries are available to `mydsl target mobset/playerset` by key name.
 
 ---
 
@@ -212,7 +212,7 @@ tempRegexTrigger("^You wonder if you could kill",
   function() MyDSL.Target.captureConsider(getCurrentLine()) end)
 
 -- Line 2: "... It would be..." or similar
-tempRegexTrigger("^%.%.%. ",
+tempRegexTrigger("^\\.\\.\\. ",
   function() MyDSL.Target.captureConsider(getCurrentLine()) end)
 ```
 

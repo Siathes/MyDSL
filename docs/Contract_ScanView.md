@@ -128,7 +128,7 @@ MyDSL._triggers.scanStart = tempRegexTrigger(
   function() MyDSL.beginScan("around", nil) end
 )
 MyDSL._triggers.scanDir = tempRegexTrigger(
-  "^You peer intently (%a+)%.$",
+  "^You peer intently ([a-zA-Z]+)\\.$",
   function() MyDSL.beginScan("direction", matches[2]) end
 )
 ```

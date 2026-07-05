@@ -398,18 +398,20 @@ prompt, not gmcp.tick.time. See SESSION_START.md "Prompt System" section.
 
 ## STILL NEEDED (TODO for CommandRef)
 
-Commands to capture next:
-- [ ] `lunar` / `l moons` — moon phase output
-- [ ] `time` — full time command output
-- [ ] `inventory` / `inv` — item list format
-- [ ] `equipment` / `eq` — equipped items format
-- [ ] `affects` — spell list (text fallback format)
-- [ ] `improve` — improve command output, help improve
-- [ ] `scan` — scan command output (for Scan/RightHere windows)
-- [ ] `group` — group command output
-- [ ] `consider <mob>` — difficulty assessment (for Target window)
-- [ ] Day/night transition messages — exact text for History routing
-- [ ] Weather description lines — what formats appear?
+**2026-07-05 audit: most of this checklist was stale — captured elsewhere
+during Phase B but never checked off here.** Corrected:
+- [x] `lunar` / `l moons` — captured, see "MOON SYSTEM" section this file
+- [x] `time` — captured, see "GAME TIME / TICK" section this file
+- [x] `scan` — captured in `Contract_ScanView.md` (not duplicated here)
+- [x] `group` — captured in `Contract_GroupView.md` (not duplicated here)
+- [x] `consider <mob>` — captured in `Contract_TargetView.md` (not duplicated here)
+- [x] Weather description lines — trigger wired in DataLayer (`MyDSL._triggers.weather`);
+      no display row consumes it yet (MoonWeather Gap, low priority)
+- [x] `improve` — parser exists (`MyDSL.parseImproveLine`)
+- [ ] `inventory` / `inv` — item list format — still genuinely not captured
+- [ ] `equipment` / `eq` — equipped items format — still genuinely not captured, no parser exists
+- [ ] `affects` — spell list (text fallback format) — GMCP path works; text-fallback format still uncaptured
+- [ ] Day/night transition messages — exact text for History routing — still uncaptured
 
 ---
 

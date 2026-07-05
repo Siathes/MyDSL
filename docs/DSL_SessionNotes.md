@@ -220,7 +220,7 @@ All 13 Layer 2/3 modules extracted and available for contract review:
 Feature branches per module, merge to main after in-game verification.
 Tags at each stable milestone: v0.3.1, v0.3.2, etc.
 
-### Three-way workflow:
+### Three-way workflow (superseded 2026-07-05 — see final entry, this is historical):
 - Claude.ai: design, contracts, specs, generates Claude Code prompts
 - Claude Code: reads contracts, writes files, runs git
 - Steven: tests in-game, provides captures, approves
@@ -231,17 +231,6 @@ Contract states: what it reads, what it writes, what events it uses, what it NEV
 
 ---
 
-## FILES TO UPLOAD TO PROJECT FOLDER
-
-Download from session outputs and add to claude.ai project:
-1. `DSL_CommandRef.md` — all collected in-game text patterns
-2. `Contract_DataLayer.md` — DataLayer contract with confirmed bugs
-3. `DSL_SessionNotes.md` — this file
-
-The autosave.xml does NOT need re-uploading to project — scripts extracted.
-
----
-
 # Session Notes: June 28–29, 2026
 *Status: Phase A complete. Major window system fix. Full smoke test passed.*
 
@@ -313,71 +302,142 @@ Need `scan` output format captured in DSL_CommandRef.md first.
 
 ---
 
-# Session Notes: June 28–29, 2026
-*Status: Phase A complete. Major window system fix. Full smoke test passed.*
+# Session Notes: 2026-07-01 through 2026-07-04 (reconstructed from CHANGELOG.md)
+*Status: Phase B built out almost entirely. No session notes were written for
+this stretch — Claude.ai's side of the workflow fell behind the actual work
+happening in Claude Code. Reconstructed 2026-07-05 from CHANGELOG.md so the
+record isn't just a gap. Full detail is in CHANGELOG.md; this is the summary.*
 
 ---
 
 ## WHAT WAS ACCOMPLISHED
 
-### Window System — Root Cause Found and Fixed
-After extensive investigation, the actual cause of all window reset problems
-was identified and fixed:
+- **MoonWeather** taken from working to feature-complete: living DSL clock
+  (interpolates time between GMCP ticks), compact stacked layout, smaller
+  circle sizes, period label from prompt parser, day/night derivation fixed.
+  Confirmed working in-game by Steven, tagged `v1.2-moonweather-final`.
+- **Group triggers wired in DataLayer** — `beginGroup()`/`parseGroupLine()`/
+  `endGroup()`, catch-all body trigger mirroring the scan pattern.
+- **MyDSL_GroupView built** — member list with class tags, HP/mana/mv bars,
+  quick-action buttons (heal/rescue by default), clickable names → Target.
+- **PCRE regex bugs found and fixed across three files** — `tempRegexTrigger`/
+  `tempAlias` use pure PCRE, not Lua patterns; several trigger strings had
+  stray Lua-style `%` escapes that never matched anything (`%'`, `%s`, `%.`).
+  Fixed in DataLayer (groupStart, scanDir, sunrise/sunset, weather, loreStart),
+  ScanView (gagDir), TargetView (considerLine2). `docs/MyDSL_MudletAPIReference.md`
+  created specifically to prevent this recurring.
+- **TargetView action library expanded** to 19 actions (10 healing/curative/
+  buff spells added, plus `order_attack`), `commandArg()` fixed to always
+  return the last word only (DSL's keyword matching is single-word only,
+  confirmed via live testing — quoting multi-word names never worked).
+- **Three confirmed live bugs fixed**: commandArg last-word behavior (above),
+  GroupView rescue button hidden for Mob rows (rescue only works
+  player→player/pet→player, confirmed via `rescue bear` always failing),
+  ScanView RightHere counter fix (was sharing a reference with the full-scan
+  counter, inflating the room-only count).
+- **MyDSL_CombatView built** — round condenser + per-target fight summary,
+  DataLayer extended with `State.combat`, a 26-entry PNP-tuned severity
+  ladder, unified damage trigger, 5 avoidance triggers, condition/death/flee/
+  rescue triggers, 14 weapon-flag proc triggers + a 3-step poison sequence
+  (poison has no PNP equivalent — our own addition from Steven's logs).
+- **Post-review pass on CombatView** found and fixed 5 more issues: compound-
+  noun procs never flagged, `last_updated` never set, missing gag check on
+  condition trigger, and all-wrong config defaults (had display opt-out
+  instead of PNP's actual opt-in/gagged-by-default behavior).
+- **Scan/RightHere/Target confirmed working in live combat** — full pipeline
+  scan→righthere→target→action confirmed end-to-end, tagged
+  `v1.4-scan-target-combat-confirmed`.
 
-**Root cause:** `MyDSL_LayoutEngine.lua` had a `sysWindowResizeEvent` handler
-that called `reflowAll()` → `applyToWindow()` → `resize()`/`move()` on every
-window. Docking a UserWindow fires `sysWindowResizeEvent`. So every dock
-operation forced all windows back to LayoutEngine's default pixel positions.
+## KNOWN GAP FROM THIS STRETCH
 
-**Fix:** Handler removed entirely. Commit `e50b56a`, branch `fix/remove-reflow-handler`.
-`reflowAll()` and `applyToWindow()` kept as explicit-call functions only.
-
-**Additional issue:** Old `applyBorders()` calls had saved border values
-(left=294, right=281, bottom=121) in autosave.xml. Cleared manually in-game:
-`setBorderLeft(0); setBorderRight(0); setBorderBottom(0); setBorderTop(0); saveProfile()`
-
-Windows now stay where placed. `mydsl layout save` persists arrangement.
-
-### Score Parser — Trigger Registration Fixed
-Score parser was not firing because no triggers were ever registered
-(comment said "write in Mudlet separately" but nobody did). Fixed by adding
-`tempRegexTrigger` calls directly in `MyDSL_DataLayer.lua` Section 10:
-- `tempRegexTrigger("^Score for ", ...)` → `beginScore()`
-- `beginScore()` installs catch-all `".*"` trigger for body lines
-- Two-separator logic in `parseScoreLine()` handles open/close `---` lines
-- `endScore()` kills catch-all trigger, commits to `MyDSL.State.score`
-
-Commit `f66c477`, merged via `fix/datalayer-score-parser`.
-
-### Phase A Smoke Test — All Passed
-Full in-game smoke test with Kien (W-Elf Druid 51):
-- DataLayer GMCP: login, char, room, tick, affects all flowing ✅
-- HP/Mana/MV bars updating in real-time ✅
-- Tick countdown working ✅
-- Affects window populating ✅
-- Location window updating on room change ✅
-- Portrait showing ✅
-- Chat routing to tabs, gagged from main ✅
-- Score parser populating all fields ✅
-
-Tagged: `v1.0-phase-a-complete` at commit `8f7bb2b`
-
-### Three Project Files Corrected
-The June 25 versions of these files contained errors from the window debugging
-process. Corrected versions produced and uploaded:
-- `MyDSL_MudletWindowManagement.md` — complete rewrite, corrects all wrong claims
-- `Contract_LayoutEngine.md` — critical note: resize handler removed, why it was wrong
-- `Contract_WindowRegistry.md` — correct startup sequence, no applyToWindow after construction
-
-### Two Known Minor Score Issues (not blocking Phase B)
-1. `stance` captures trailing text after "Offensive"
-2. `profession` field missing (endScore fires before PROFESSION section)
+This is exactly the kind of drift the 2026-07-05 workflow change was meant to
+fix: substantial, well-tested work happened here with zero corresponding
+entries in this file or updates to `SESSION_START.md`/`TODO.md`, because that
+was Claude.ai's job in the old workflow and it never happened. CHANGELOG.md
+stayed current throughout (it's a Claude Code responsibility on every commit)
+— that's what this entry was reconstructed from.
 
 ---
 
-## NEXT SESSION STARTS AT
+# Session Notes: 2026-07-05 — Combat window hardening, full PNP audit, workflow change
+*Status: Claude.ai removed from the workflow as of this session. Claude Code
+now owns SESSION_START.md/TODO.md/DSL_SessionNotes.md directly.*
 
-Layer 3 Phase B — design and contract one of the remaining windows:
-Combat, Scan/RightHere, Group, Target, or MoonWeather.
-Recommend starting with Scan/RightHere (most self-contained).
-Need `scan` output format captured in DSL_CommandRef.md first.
+---
+
+## WHAT WAS ACCOMPLISHED
+
+### CombatView syntax bug fixed
+File used `goto`/`::label::` (Lua 5.2+), which doesn't exist in Mudlet's
+Lua 5.1/LuaJIT — the file never loaded, threw a syntax error at `dofile()`
+time. Refactored to a local function + `return`. Verified with `luajit -e
+"loadfile(...)"` since no interpreter access existed on the Claude Code side
+until this session confirmed `luajit` was available.
+
+### Evasion-trigger bug found and fixed
+`combatDodge`/`combatParry`/`combatBlock` were reinvented from a contract's
+prose description of PNP's behavior instead of copied from PNP's actual
+tested regex — hardcoded third-person verb forms and a literal `'s attack`,
+so they silently never matched you-as-subject or your-attack phrasing.
+Replaced with PNP's verbatim patterns from `DSL_PNP_Battle.lua` lines
+464-466. This is the concrete incident that motivated removing the
+prose-relay step from the workflow entirely (see below).
+
+### Full PNP/log audit beyond the evasion fix
+Cross-checked condition triggers, death triggers, and all 14 flag/proc
+triggers against PNP's actual source and a much larger log corpus Steven
+added (`log/` — 578 files, 414MB, extracted from `combat_logs_full_raw.zip`)
+plus a pre-distilled template list (`docs/templates_by_freq.txt` /
+`templates_with_examples.txt`). Found and fixed three more real issues:
+1. Self-condition never registers (DSL uses second-person phrasing for your
+   own condition; neither PNP nor our code handles it) — **confirmed, not
+   yet fixed**.
+2. A second death-message form (`"<mob> hits the ground ... DEAD."`) is very
+   common and was completely unhandled — **fixed**, added as a second trigger
+   alongside `is DEAD!!`.
+3. Several weapon-flag procs (Flame/Shock/Vamp/Stun) misattribute the
+   "attacker" — the captured text is often a weapon name, not the wielder
+   (confirmed: `"A grand arcanium hoopak draws life from Rylae."`) — **fixed**
+   with a pragmatic pseudo-attacker-key design, documented as a deliberate
+   simplification in `Contract_CombatWindow.md`.
+4. Quoted weapon names (`"Nadrik's Honor"`) broke the Frost/Vampiric/Stunning
+   patterns — **fixed**, char classes now include `"` and a `stripQuotes()`
+   helper strips it before normalizing.
+
+Also found that the distilled templates files have real blind spots — they
+contain zero entries for either the death-ground-hit form or any weapon-flag
+proc phrase, despite dozens of confirmed real occurrences in `log/`. Noted in
+`MyDSL_MudletAPIReference.md` as a standing caution: treat them as a fast
+first pass, not evidence of absence.
+
+### Workflow changed — Claude.ai removed
+Discussed with Steven whether routing design through Claude.ai before
+Claude Code was adding value or just a lossy layer. Decided directly: the
+evasion-trigger bug above is concrete evidence that a paraphrase step can
+silently drop the exact detail that matters. Claude.ai is out. Claude Code
+now works from source/logs/contracts directly and owns updating
+`SESSION_START.md`, `TODO.md`, and this file going forward.
+
+### Full staleness audit of project docs
+Triggered by finding `SESSION_START.md`/`TODO.md`/this file all badly out of
+date relative to the work above (TODO.md still said Combat/Scan/Group/Target
+were "not started"; this file's last real entry was June 28-29). Spot-checked
+every Contract_*.md against live code. Found and fixed:
+- `Contract_TickSource.md` — all 3 listed gaps (warnTime, handler
+  deregistration, loop generation counter) were already fixed by commit
+  `b16ec52`, contract never updated
+- `Contract_ChatWrapper.md` — 3 of 5 listed gaps (5s forced rebuild, fallback
+  window position, fragile window-key lookup) were already fixed, contract
+  never updated; 2 gaps (hardcoded tab CSS, settings not character-bound)
+  confirmed still genuinely open
+- `Contract_ScanView.md` / `Contract_TargetView.md` — code samples still
+  showed pre-2026-07-03 PCRE bugs that were already fixed in the live files
+- `TODO.md` — DataBridge's 6 listed gaps all confirmed fixed; RouteHelper's
+  `routeMap` already removed and its decho/appendBuffer "gap" was never
+  actually a bug; DataLayer's two Phase-A score issues confirmed fixed
+- Confirmed still genuinely open (not touched, tracked in TODO.md): ThemeEngine
+  key validation, LayoutEngine `resetAll()`/error handling, WindowRegistry
+  character-bound visibility/error handling, ChatWrapper's 2 remaining gaps,
+  DataLayer's missing equipment parser
+
+`SESSION_START.md` and `TODO.md` rewritten to match current reality.

@@ -53,7 +53,7 @@ Tab routing is handled by the Trigger editor (separate from this module).
    └─ Uses LayoutEngine position, proper registration
 2. C.window (already exists)             ← Previous call cached it
 3. Geyser.UserWindow:new({...})         ← Fallback (hardcoded position)
-   └─ Position: x="65%", y="0%", w="35%", h="35%" ← Gap 3
+   └─ Position: x="78%", y="0%", w="22%", h="46%" (Gap 3, fixed 2026-07-05 — matches confirmed layout)
 ```
 
 The WindowRegistry path is correct. The fallback path exists in case the module
@@ -107,9 +107,10 @@ multiple deferred creates:
 5.0s  → createInWindow() ALWAYS (final "forced" rebuild)
 ```
 
-**The 5.0s forced rebuild is the critical issue** (see Gap 2). It unconditionally
-calls `createInWindow()` 5 seconds after login. Any chat text that appeared in the
-first 5 seconds gets wiped when a fresh EMCO replaces the previous one.
+**The 5.0s forced rebuild was the critical issue** (see Gap 2, fixed 2026-07-05).
+It used to call `createInWindow()` unconditionally 5 seconds after login, wiping
+any chat text that appeared in the first 5 seconds when a fresh EMCO replaced
+the previous one. Now guarded — only force-rebuilds when actually broken.
 
 ---
 
@@ -195,58 +196,28 @@ All hardcoded. Should read from ThemeEngine for at minimum background, active
 color (should be `highlightColor`), and inactive color (should be `dimColor`).
 No ThemeEngine refresh callback registered.
 
-### Gap 2 — 5.0s forced rebuild wipes early chat ❌
-The final `tempTimer(5.0, function() C.createInWindow() end)` always fires and
-always recreates EMCO unconditionally. If the player joins a conversation in the
-first 5 seconds (tells, group chat, shouts), that text is wiped.
+### Gap 2 — 5.0s forced rebuild wipes early chat ✅ FIXED
+**2026-07-05 audit: confirmed fixed.** The 5.0s timer now guards with a
+readiness check and only force-rebuilds when something is actually broken;
+otherwise it calls the gentle `C.revive()` (resize/reposition, no content
+wipe) — exactly the fix this gap called for, in place in the live code today.
 
-**Fix:** Guard with a readiness check:
-```lua
-tempTimer(5.0, function()
-  if not MyDSL or not MyDSL.Chat then return end
-  -- Only force-rebuild if something is actually wrong
-  if not C.emco or not (demonnic and demonnic.chat) or not C.state.windowReady then
-    C.createInWindow()
-    C.state.lastAction = "startup-final-create"
-  end
-  -- Otherwise, just revive (gentle resize/reposition only)
-  -- C.revive("startup-5s-check")
-end)
-```
+### Gap 3 — Fallback window position wrong ✅ FIXED
+**2026-07-05 audit: confirmed fixed.** The fallback `Geyser.UserWindow:new()`
+now uses `x="78%", y="0%", width="22%", height="46%"` — matches the confirmed
+layout exactly.
 
-### Gap 3 — Fallback window position wrong ⚠️
-If WindowRegistry is not available, ChatWrapper creates:
-```lua
-Geyser.UserWindow:new({ x="65%", y="0%", width="35%", height="35%" })
-```
-Confirmed layout has Chat at x=0.78, y=0.00, w=0.22, h=0.46.
-Width (35% vs 22%) and height (35% vs 46%) are both wrong.
-
-**Fix:** Update fallback to match confirmed layout:
-```lua
-{ x="78%", y="0%", width="22%", height="46%" }
-```
-
-### Gap 4 — Settings not character-bound ⚠️
-`chat_settings.lua` is a single shared file. Font size, wrap, timestamp
-preferences are shared across all characters.
+### Gap 4 — Settings not character-bound ⚠️ still open
+**2026-07-05 audit: confirmed still open.** `chat_settings.lua` is still a
+single shared file (path has no character name in it) — font size, wrap,
+timestamp preferences are still shared across all characters.
 
 **Fix:** Same pattern as TickView — include character name in settings path.
 
-### Gap 5 — `getWindowEntry()` uses fragile key lookup ⚠️
-```lua
-reg[C.config.windowId]     -- "Chat"
-or reg[C.config.windowName]  -- "MyDSL_Chat"
-or reg.Chat
-or reg["Chat"]
-```
-Trying four different keys for the same window. If WindowRegistry uses
-`"MyDSL_Chat"` as its canonical key (which it does), `reg["Chat"]` will
-always be nil. The first hit `reg["Chat"]` (via `windowId`) will actually be
-correct if `C.config.windowId = "Chat"` maps to `registry["Chat"]`, but
-WindowRegistry uses `"MyDSL_Chat"` as the key, not `"Chat"`.
-
-**Fix:** Use `C.config.windowName` (`"MyDSL_Chat"`) as the single lookup key.
+### Gap 5 — `getWindowEntry()` uses fragile key lookup ✅ FIXED
+**2026-07-05 audit: confirmed fixed.** `getWindowEntry()` now tries exactly
+two keys (`C.config.windowName` then the literal `"MyDSL_Chat"`), with a
+comment noting the old 4-key version always had a dead `reg["Chat"]` lookup.
 WindowRegistry uses the full name as its key consistently.
 
 ### Gap 6 — applyFont() probes undocumented EMCO internals ⚠️
@@ -311,9 +282,9 @@ deleteLine()                      -- gag from main console
 | 6 confirmed tabs | ✅ |
 | commandLine = false (display only) | ✅ |
 | WindowRegistry integration (primary) | ✅ |
-| 5.0s forced rebuild (wipes early chat) | ❌ Needs guard — Gap 2 |
-| Fallback window position correct | ❌ Wrong dimensions — Gap 3 |
-| ThemeEngine tab CSS | ❌ Hardcoded — Gap 1 |
-| Character-bound settings | ❌ Shared file — Gap 4 |
-| Window key lookup | ⚠️ Fragile — Gap 5 |
+| 5.0s forced rebuild (wipes early chat) | ✅ Fixed 2026-07-05 — Gap 2 |
+| Fallback window position correct | ✅ Fixed 2026-07-05 — Gap 3 |
+| ThemeEngine tab CSS | ❌ Still hardcoded — Gap 1 |
+| Character-bound settings | ❌ Still shared file — Gap 4 |
+| Window key lookup | ✅ Fixed 2026-07-05 — Gap 5 |
 EOF

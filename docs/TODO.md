@@ -1,83 +1,146 @@
 # DSL Observer UI — TODO
-*Updated June 29, 2026 — Phase A complete, tagged v1.0-phase-a-complete*
+*Updated 2026-07-05 — full staleness audit against live code. Claude.ai removed
+from the workflow as of this date; Claude Code now owns keeping this file current.*
 
 ---
 
-## ✅ DONE — Phase A Complete (June 29, 2026)
+## ✅ DONE — Phase A Complete (2026-06-29)
 
-All Layer 1 and Layer 2 systems working. All Layer 3 Phase A modules
-smoke tested with Kien and confirmed working:
-- DataLayer (GMCP + score text parser)
-- ThemeEngine, LayoutEngine, WindowRegistry
-- ChatWrapper, AffectsView, TickSource/TickView, PortraitView, LocationView, LiveView
+All Layer 1 and Layer 2 systems working. All Layer 3 Phase A modules smoke
+tested with Kien and confirmed working: DataLayer, ThemeEngine, LayoutEngine,
+WindowRegistry, ChatWrapper, AffectsView, TickSource/TickView, PortraitView,
+LocationView, LiveView. Window layout persistence working. Score trigger wired.
 
-Window layout persistence working (`mydsl layout save`).
-Main console borders cleared. LayoutEngine resize handler removed (root cause of resets).
-Score trigger wired in DataLayer via tempRegexTrigger.
+The two Phase-A score issues (`stance` capturing trailing text, `profession`
+field missing) are fixed — confirmed still fixed in code as of this audit.
 
 ---
 
-## MINOR — Score Cleanup (not blocking Phase B)
+## ✅ DONE — Phase B (2026-07-02 through 2026-07-05)
 
-- [ ] Fix `stance` field — pattern captures trailing text. Change to stop at
-      first whitespace: `Stance:%s*(%S+)` instead of `Stance:%s*(.+)`
-- [ ] Fix `profession` field missing — `endScore()` fires on the second `---`
-      separator which is BEFORE `PROFESSION:`. Need to consume PROFESSION section
-      before closing the block. One approach: detect `^PROFESSION:` line and set
-      a flag, then fire endScore() on the `---` that follows it.
+All five Phase B windows are built, wired into DataLayer, and syntax-clean.
+In-game confirmation status varies — see per-module notes:
 
----
-
-## NEXT — Layer 3 Phase B Windows
-
-These windows are defined in Layer 2 (WindowRegistry) but Layer 3 content
-modules have not been built yet. Design each with a contract before implementing.
-
-### Combat Window
-- Port BattleCondenser from PNP reference suite
-- Damage dealt/received, kill counter, XP per kill
-- Source: trigger-capture from combat lines (not GMCP)
-- Uses: appendBuffer for color-preserving damage output
-
-### Scan/RightHere Windows
-- Scan window: display output of `scan` command
-- RightHere window: clickable mob list from scan output (mob targeting)
-- Both work together — scan populates RightHere
-- Need `scan` output format in DSL_CommandRef.md before implementing
-
-### Group Window
-- Group member list with HP/condition
-- Source: GMCP if available, else text capture from `gr` command
-- Clickable party members
-- Need `group`/`gr` output format in DSL_CommandRef.md
-
-### Target Window
-- Current target name, level, condition
-- Significant redesign needed: mob vs player interaction differences
-- Kill/Assist/Heal button changes based on target type
-- Uses cechoPopup or Geyser.Label with swapped stylesheet
-
-### MoonWeather Window
-- Moon phase + weather conditions
-- Source: GMCP or text capture from `time`/`lunar` commands
-- Important for Kien (Druid) — moon phase affects spells
-- Moon parse patterns confirmed in DSL_CommandRef.md
+| Module | Built | In-game confirmed? |
+|---|---|---|
+| MoonWeather | ✅ 2026-07-02 | ✅ Confirmed working by Steven |
+| ScanView / RightHere | ✅ 2026-07-02 | ✅ Confirmed working in live combat |
+| TargetView | ✅ 2026-07-02 | ✅ Confirmed working in live combat |
+| GroupView | ✅ 2026-07-03 | ⚠️ Not yet confirmed — needs an in-game `group` smoke test |
+| CreatureReference | ✅ 2026-07-02 | ⚠️ Not yet confirmed — needs an in-game `creaturelore` test in combat |
+| CombatView | ✅ 2026-07-04, hardened 2026-07-05 | ⚠️ Not yet confirmed — needs a live combat session (see open items below) |
 
 ---
 
-## NEXT — PromptView Module
+## OPEN — Combat window, from the 2026-07-05 PNP/log audit
 
-Design confirmed in SESSION_START.md but no formal contract yet.
-- Toggleable pretty prompt, default ON
-- Gags all 3 server prompt lines via deleteLine() triggers
-- New MyDSL_PromptBar overlay (Adjustable.Container, bottom of main console)
-- Shows HP/Mana/MV bars + status line (stance/align/language/time/room)
-- Toggle alias: `mydsl prompt on|off`
-- No extra DataLayer fields needed beyond existing score.align and GMCP time
+All fixed in code, none yet live-tested:
+- [ ] Evasion triggers (dodge/parry/block) rewritten to PNP's verbatim
+      you-as-subject-aware patterns — needs a live combat session with someone
+      dodging/parrying/blocking your attack (not just you missing theirs)
+- [ ] Second death form (`<mob> hits the ground ... DEAD.`) now handled
+      alongside `is DEAD!!` — needs a live kill to confirm `MyDSL.combat.ended`
+      actually fires from this form
+- [ ] Weapon-as-subject proc misattribution — weapon-named procs (Flame/Shock/
+      Vamp/Stun) now get their own pseudo-attacker row instead of being
+      dropped — needs a live proc to confirm the fight-summary row renders
+      sanely (known cosmetic wrinkle: "(proc)" row shows "0 hits, 0 miss" above
+      its flag count line — harmless but a little odd-looking, not fixed yet)
+- [ ] Quoted weapon names ("Nadrik's Honor") — regex fix confirmed via
+      `luajit` pattern test only, not yet seen matching a real quoted-name
+      proc line in a live session
+
+Still genuinely unconfirmed/unresolved (not new, carried forward):
+- [ ] **Self-condition never registers** — DSL phrases your own condition in
+      second person ("You have some small wounds"), our trigger + PNP's both
+      only match third person. Confirmed via logs, not yet fixed.
+- [ ] Sharp proc — no confirmed trigger text observed in any log to date
+- [ ] Poison sequence (setup/onset/tick) — our own addition, not yet
+      in-game re-confirmed
 
 ---
 
-## DECISIONS RECORDED (ready for implementation)
+## LOW PRIORITY — Confirmed still-open code gaps (2026-07-05 audit)
+
+Spot-checked every gap listed in the old version of this file against live
+code. Most were already fixed and just never checked off (see "RESOLVED"
+section below) — these are the ones still genuinely open:
+
+### ChatWrapper (`Contract_ChatWrapper.md`)
+- [ ] Gap 1 — tab active/inactive CSS still hardcoded, no ThemeEngine hookup
+- [ ] Gap 4 — `chat_settings.lua` still a single shared file, not character-bound
+
+### ThemeEngine (`Contract_ThemeEngine.md`)
+- [ ] Gap 2 — `setOverride()` has no key validation (silently accepts any key)
+
+### LayoutEngine (`Contract_LayoutEngine.md`)
+- [ ] Gap 2 — `resetAll()` does not exist
+- [ ] Gap 3 — `save()` has no error handling around `table.save()`
+- [ ] **New 2026-07-05 (character-binding audit):** window positions
+      (`MyDSL_layout.lua`) are a single shared file, not character-bound —
+      contradicts the recorded decision "all settings (theme, layout,
+      visibility) are character-bound." Not previously flagged in the
+      contract at all.
+
+### WindowRegistry (`Contract_WindowRegistry.md`)
+- [ ] Gap 6 — visibility state (`MyDSL_windowstate.lua`) not character-bound
+- [ ] Gap 7 — `saveState()` has no error handling around `table.save()`
+
+### TargetView (`Contract_TargetView.md`)
+- [ ] **New 2026-07-05 (character-binding audit):** button config
+      (`MyDSL/targetview_config.lua`, the `mob_buttons`/`player_buttons`
+      set from `mydsl target mobset/playerset`) is a single shared file, not
+      character-bound. Not previously flagged. Unclear if this *should* be
+      per-character (a druid and a warrior might want different default
+      buttons) or intentionally shared like ThemeEngine — needs a decision,
+      not just a fix.
+
+### DataLayer
+- [ ] Gap 1 — no `equipment`/`eq` parser at all (confirmed still missing)
+
+None of these are blocking anything currently in progress — low priority,
+pick up opportunistically. See `CLAUDE.md`'s "Character-binding" section for
+the full current inventory of what's bound correctly vs. not.
+
+---
+
+## ✅ RESOLVED — confirmed fixed in code, doc was just never updated (2026-07-05 audit)
+
+These were listed as open bugs in this file and their respective contracts.
+Checked each against live code directly; all confirmed fixed. Contracts
+updated to match.
+
+- [x] TickSource Gap 1/2/3 (warnTime alert, handler deregistration, loop
+      generation counter) — all fixed by commit `b16ec52`
+- [x] ChatWrapper Gap 2 (5.0s forced rebuild wiping early chat) — now guarded
+- [x] ChatWrapper Gap 3 (fallback window position wrong) — now `x=78% y=0%
+      w=22% h=46%`, matches confirmed layout
+- [x] ChatWrapper Gap 5 (fragile 4-key window lookup) — now 2-key lookup
+- [x] WindowRegistry Gap 2 (stale "18 windows" comment) — now says 20
+- [x] RouteHelper — `routeMap` already removed per the addendum; the
+      decho-vs-appendBuffer "gap" was never actually a bug — `decho()` is used
+      only for caller-formatted (non-game) text by design, `appendBuffer()`
+      still used for all real game-color text
+- [x] DataBridge Gaps 1–6 (room.name, room.sector, DB.time, DB.affects, score
+      text fields, hitroll/damroll/armor/items/posn) — all present in live code
+- [x] DataLayer score `stance`/`profession` parsing — both fixed, matches
+      SESSION_START.md's own (previously contradicted) claim
+
+---
+
+## DESIGN — Not Yet Started
+
+- [ ] Layer 4: Reference library (items, mobs, lore) — not started
+
+**Note:** MyDSL_PromptView was listed as "not yet started" / "contract stub" in
+older versions of this file — that's stale. It's fully built (170 lines,
+save/load/toggle/boot, prompt-gag-only design per its June 25 contract, which
+superseded the earlier fancier PromptBar-with-HP-bars concept from the June 9
+notes). Confirmed matches its current contract as of this audit.
+
+---
+
+## DECISIONS RECORDED (ready for implementation, unchanged from Phase A)
 
 - All settings (theme, layout, visibility) are character-bound
 - Themes: user-creatable named presets, shared across all characters
@@ -90,66 +153,3 @@ Design confirmed in SESSION_START.md but no formal contract yet.
 - Alignment from score only, persists until next score run, no auto-send
 - No sysWindowResizeEvent handler in LayoutEngine — was resetting windows on dock
 - No setBorderLeft/Right/Bottom — Mudlet handles console space for docked windows natively
-
----
-
-## DESIGN — Not Yet Started
-
-- [ ] Layer 3 Phase B: Combat window (BattleCondenser port from PNP)
-- [ ] Layer 3 Phase B: Scan/RightHere mob targeting windows
-- [ ] Layer 3 Phase B: Group window with clickable party members
-- [ ] Layer 3 Phase B: Target window (mob vs player interaction differences)
-- [ ] Layer 3 Phase B: MoonWeather window
-- [ ] MyDSL_PromptView module — contract needed
-- [ ] Layer 4: Reference library (items, mobs, lore) — not started
-
----
-
-## LOW PRIORITY — DataBridge Gaps (Contract_DataBridge.md)
-
-These blocked on DataLayer fixes which are now done. Revisit before Phase B
-modules consume DataBridge data.
-
-- [ ] Gap 1: room.name field — use room.room (DataLayer uses "room" not "name")
-- [ ] Gap 2: room.area → room.sector (area not in GMCP)
-- [ ] Gap 3: DB.time section entirely missing — needed by LiveView
-- [ ] Gap 4: DB.affects section entirely missing
-- [ ] Gap 6: score text fields (align, race, class, religion) not mapped to DB.score
-- [ ] Gap 6 extended: add hitroll, damroll, armor, items, posn to DB.score
-
----
-
-## LOW PRIORITY — Other Module Gaps
-
-### ChatWrapper (Contract_ChatWrapper.md)
-- [ ] Gap 2: 5.0s forced rebuild wipes chat from first 5 seconds
-- [ ] Gap 5: window key lookup tries wrong registry key
-
-### RouteHelper (Contract_RouteHelper.md + Addendum)
-- [ ] Gap 1: uses decho() instead of appendBuffer() — strips game colors
-- [ ] Remove routeMap entirely
-
-### TickSource (Contract_TickSource.md)
-- [ ] Gap 1: warnTime 5-second alert not firing
-- [ ] Gap 2/3: handler deregistration + reload safety
-
-### Layer 2 minor gaps
-- [ ] ThemeEngine Gap 2: no key validation on setOverride()
-- [ ] LayoutEngine Gap 3: save() no error handling
-- [ ] LayoutEngine Gap 2: resetAll() missing
-- [ ] WindowRegistry Gap 7: saveState() no error handling
-- [ ] WindowRegistry Gap 2: stale comment says 18 windows (actually 20)
-- [ ] WindowRegistry Gap 6: visibility state not character-bound
-
----
-
-## DSL CommandRef — Still Needed
-
-- [ ] scan output format (needed before Scan/RightHere windows)
-- [ ] group/gr output format (needed before Group window)
-- [ ] consider <mob> output (needed for Target window)
-- [ ] weather description lines (needed for MoonWeather)
-- [ ] equipment/eq output format
-- [ ] improve command output (no-argument form)
-- [ ] Black moon lunar output (needs evil-aligned character)
-- [ ] Combat output lines (needed for BattleCondenser port)

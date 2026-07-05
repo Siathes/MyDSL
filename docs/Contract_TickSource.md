@@ -34,7 +34,7 @@ MyDSL.TickSource.config = {
   average   = 40,    -- starting assumed tick interval in seconds
   window    = 5,     -- smoothing acceptance window in seconds
   increment = 0.25,  -- timer resolution in seconds
-  warnTime  = 5,     -- seconds remaining to fire warning event ⚠️ Gap 1: unused
+  warnTime  = 5,     -- seconds remaining to fire warning event -- fixed 2026-07-05, see Gap 1
   closeTime = 15,    -- seconds remaining for "close" visual state ℹ️ Gap 6: unused
 }
 ```
@@ -74,7 +74,7 @@ from distorting the average.
 | `MyDSL.Tick.Pulse` | Every real game tick (`gmcp.tick` fires) |
 | `MyDSL.Tick.Updated` | Every 0.25-second countdown step |
 | `MyDSL.Timers.Pulse` | Every 0.25-second step (shared timer bus) |
-| `MyDSL.Tick.Warning` | When remaining hits `warnTime` seconds ❌ Gap 1: not yet implemented |
+| `MyDSL.Tick.Warning` | When remaining hits `warnTime` seconds ✅ Gap 1 fixed 2026-07-05 |
 
 ---
 
@@ -151,14 +151,10 @@ but indicates the tick is late.
 
 ## Gaps and Issues Found in Code
 
-### Gap 1 — warnTime defined but never used ❌ THE KNOWN BUG
-`T.config.warnTime = 5` and `T.state.lastWarnSecond` are defined, and
-`lastWarnSecond` is reset to nil on each tick. But **nothing fires when remaining
-hits 5 seconds.** The warning logic is absent from `updateTimer()`.
-
-This is the confirmed broken "5-second alert" from the backlog.
-
-**Fix:** Add to `T.updateTimer()`:
+### Gap 1 — warnTime defined but never used ✅ FIXED
+**2026-07-05 audit: confirmed fixed.** Commit `b16ec52` ("fix: TickSource —
+warnTime alert, handler deregistration, loop generation counter") added the
+exact logic this gap called for, verbatim, to `T.updateTimer()`:
 ```lua
 local rem = math.floor(T.state.remaining or 0)
 local warn = tonumber(T.config.warnTime) or 5
@@ -167,47 +163,17 @@ if T.state.running and rem == warn and T.state.lastWarnSecond ~= rem then
   safeRaise("MyDSL.Tick.Warning", rem)
 end
 ```
-
 TickView listens to `MyDSL.Tick.Warning` to flash the display and optionally
 play a sound. The `warn` threshold is configurable via `T.config.warnTime`.
 
-### Gap 2 — No handler deregistration on reload ⚠️
-DataBridge has `deregisterHandlers()` to prevent duplicate handlers on reload.
-TickSource does not. The `T.handlersInstalled` flag prevents new registrations
-on reload, but old handlers from previous loads are never killed.
+### Gap 2 — No handler deregistration on reload ✅ FIXED
+**2026-07-05 audit: confirmed fixed**, same commit `b16ec52`. `killAnonymousEventHandler`
+is now called on stored handler IDs before re-registering.
 
-During development (frequent reloads), old handlers accumulate silently.
-After N reloads, N copies of `onGameTick()` fire per tick.
-
-**Fix:** Add handler ID tracking and deregistration at boot:
-```lua
-function T.deregisterHandlers()
-  if T.handlers then
-    for _, id in ipairs(T.handlers) do pcall(killAnonymousEventHandler, id) end
-  end
-  T.handlers = {}
-  T.handlersInstalled = false
-end
--- Call at top of T.boot()
-```
-
-### Gap 3 — Timer loop multiplies on reload ⚠️
-`T.loop()` starts a `tempTimer` chain. On reload, `T.looping` may be false
-(reset mid-step), allowing a second loop to start alongside the first. Over
-multiple reloads, parallel loops accumulate, causing multiple publishes per
-0.25-second step and inflated `current` values.
-
-**Fix:** Add a loop generation counter:
-```lua
-T.generation = (T.generation or 0) + 1
-local myGen = T.generation
-local function step()
-  if T.generation ~= myGen then return end  -- abort if superseded
-  T.looping = false
-  T.updateTimer()
-  tempTimer(T.config.increment, function() T.loop() end)
-end
-```
+### Gap 3 — Timer loop multiplies on reload ✅ FIXED
+**2026-07-05 audit: confirmed fixed**, same commit `b16ec52`. `T.generation`
+counter now exists; `T.loop()`'s step function checks `T.generation ~= myGen`
+and aborts if superseded, so reloads can't leave parallel timer chains running.
 
 ### Gap 4 — closeTime defined but unused ℹ️
 `T.config.closeTime = 15` exists but nothing uses it. Originally intended for
@@ -244,9 +210,9 @@ is fine). On Mudlet restart: `T.aliasesInstalled` is nil (table rebuilt),
 | Publishes to MyDSL.DB.tick | ✅ |
 | Raises MyDSL.Tick.Pulse on real ticks | ✅ |
 | Raises MyDSL.Tick.Updated on countdown | ✅ |
-| 5-second warning (warnTime) | ❌ Config defined, logic missing — Gap 1 |
-| Handler deregistration on reload | ❌ Missing — Gap 2 |
-| Timer loop isolation on reload | ❌ Missing — Gap 3 |
+| 5-second warning (warnTime) | ✅ Fixed 2026-07-05 — Gap 1 |
+| Handler deregistration on reload | ✅ Fixed 2026-07-05 — Gap 2 |
+| Timer loop isolation on reload | ✅ Fixed 2026-07-05 — Gap 3 |
 | closeTime visual state for TickView | ℹ️ Defined, unused — Gap 4 |
 | Config persistence across restarts | ℹ️ Session-only — Gap 5 |
 EOF

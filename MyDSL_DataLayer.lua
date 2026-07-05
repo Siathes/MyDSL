@@ -1388,6 +1388,13 @@ local function normalizeKey(name)
   return trim(s)
 end
 
+-- Named weapons are sometimes quoted in proc text (e.g. "Nadrik's Honor").
+-- Strip the quote characters before normalizing so the key matches the
+-- unquoted form used elsewhere.
+local function stripQuotes(s)
+  return (s or ""):gsub('"', "")
+end
+
 local function isRelevant(aKey, tKey)
   if aKey == "you" or tKey == "you" then return true end
   local grp = MyDSL.State.group and MyDSL.State.group.members
@@ -1395,6 +1402,20 @@ local function isRelevant(aKey, tKey)
   for _, m in ipairs(grp) do
     local mk = normalizeKey(m.name)
     if aKey == mk or tKey == mk then return true end
+  end
+  return false
+end
+
+-- Weapon-flag proc lines often name the weapon wielding a flag, not the
+-- wielder (e.g. "A grand arcanium hoopak draws life from Kien.") -- we
+-- can't resolve an arbitrary weapon name back to its wielder from text
+-- alone. Used to tell a real combatant key apart from a likely weapon name.
+local function isKnownCombatant(key)
+  if key == "you" then return true end
+  local grp = MyDSL.State.group and MyDSL.State.group.members
+  if not grp then return false end
+  for _, m in ipairs(grp) do
+    if normalizeKey(m.name) == key then return true end
   end
   return false
 end
@@ -1482,22 +1503,30 @@ function MyDSL.parseCombatDamageLine(attacker, noun, verb, target, punct)
 end
 
 -- ---- parseCombatAvoidLine -------------------------------------------
-function MyDSL.parseCombatAvoidLine(line)
-  local evader, attacker
+-- Two call shapes:
+--   (evader, verb, attacker) -- dodge/parry/block triggers, PNP-derived PCRE
+--     capture groups. attacker is the literal word "your" when you're the
+--     one whose attack got avoided, otherwise a "Name's" possessive.
+--   (line)                   -- sense triggers, still whole-line Lua-pattern
+--     parsed (unchanged; not part of the PNP evasion-trigger port).
+function MyDSL.parseCombatAvoidLine(evader, verb, attacker)
+  if not attacker then
+    local line = evader
+    evader, attacker = line:match("^(.+) senses (.+)'s attack coming and avoids")
+    if not evader then evader = line:match("^(.+) senses they'?re about to be hit") end
+    if not evader then return end
+  end
 
-  -- dodge / parry
-  evader, attacker = line:match("^(.+) dodges (.+)'s attack%.")
-  if not evader then evader, attacker = line:match("^(.+) parries (.+)'s attack%.") end
-  if not evader then evader, attacker = line:match("^(.+) blocks (.+)'s attack") end
-  -- perception sense + named attacker
-  if not evader then evader, attacker = line:match("^(.+) senses (.+)'s attack coming and avoids") end
-  -- perception sense, no attacker visible
-  if not evader then evader = line:match("^(.+) senses they'?re about to be hit") end
-
-  if not evader then return end
   evader = trim(evader)
   local eKey = normalizeKey(evader)
-  local aKey = attacker and normalizeKey(trim(attacker)) or "unknown"
+  local aKey
+  if attacker and attacker:lower() == "your" then
+    aKey = "you"
+  elseif attacker then
+    aKey = normalizeKey(trim(attacker):gsub("'s$", ""))
+  else
+    aKey = "unknown"
+  end
 
   if not isRelevant(eKey, aKey) then return end
 
@@ -1534,8 +1563,15 @@ end
 
 -- ---- parseCombatDeathLine -------------------------------------------
 function MyDSL.parseCombatDeathLine(line)
-  -- "<mob> is DEAD!!"
+  -- Two confirmed death-message forms (DSL-Logs, 2026-07-05 audit):
+  -- "<mob> is DEAD!!" (room/kill broadcast) and "<mob> hits the ground ...
+  -- DEAD." (the killing-blow line, seen exclusively in some sessions with
+  -- zero "is DEAD!!" anywhere). Both fire for the same kill in some logs,
+  -- only one in others -- treat identically. snapshotFight() already
+  -- returns nil and no-ops if the target was already cleared, so if both
+  -- somehow fire for the same death this doesn't double-snapshot.
   local name = line:match("^(.+) is DEAD!!$")
+  if not name then name = line:match("^(.+) hits the ground %.%.%. DEAD%.$") end
   if not name then return end
   local tKey   = normalizeKey(trim(name))
   local snap   = snapshotFight(tKey)
@@ -1602,6 +1638,17 @@ function MyDSL.parseCombatProcLine(flagCode, attackerKey, targetKey)
 
   attackerKey = attackerKey or "you"
   local ba = entry.by_attacker[attackerKey]
+
+  -- Pragmatic fix, not full resolution (see Contract_CombatWindow.md): if
+  -- attackerKey isn't a known combatant (you / group member), it's almost
+  -- certainly a weapon name the proc line named instead of the wielder.
+  -- Rather than dropping the proc, give the weapon its own pseudo-attacker
+  -- row so it stays visible in the fight summary.
+  if not ba and not isKnownCombatant(attackerKey) then
+    entry.by_attacker[attackerKey] = entry.by_attacker[attackerKey] or {}
+    ba = entry.by_attacker[attackerKey]
+    ba["(proc)"] = ba["(proc)"] or { swings=0, hits=0, misses=0, score_total=0, flags={} }
+  end
   if not ba then return end
 
   -- Add to the first non-evade noun found for this attacker
@@ -1824,19 +1871,26 @@ MyDSL._triggers.combatDamage = tempRegexTrigger(
 )
 
 -- ---- Avoidance triggers
+-- Dodge/parry/block patterns are a direct port of DSL_PNP_Battle.lua's
+-- tested trigger text (make_triggers(), the {dodge/parry/block/sense}
+-- table) -- PNP already solved the you-as-subject vs third-party grammar
+-- split: the (your|[\w\-\,\s']+) alternation matches "your" as a literal
+-- alternative, while the same char class lets the non-"your" branch swallow
+-- a possessive like "a gnome greaser's" whole (the embedded "'" keeps the
+-- trailing 's inside the captured name instead of breaking the match).
 MyDSL._triggers.combatDodge = tempRegexTrigger(
-  "^[\\w\\-\\s,']+ dodges [\\w\\-\\s,']+'s attack\\.",
-  function() if MyDSL and MyDSL.parseCombatAvoidLine then MyDSL.parseCombatAvoidLine(getCurrentLine()) end
+  "(You|[\\w\\-\\,\\s']+) (dodge)s? (your|[\\w\\-\\,\\s']+) attack\\.$",
+  function() if MyDSL and MyDSL.parseCombatAvoidLine then MyDSL.parseCombatAvoidLine(matches[2], matches[3], matches[4]) end
     if MyDSL and MyDSL.CombatView and MyDSL.CombatView.config and MyDSL.CombatView.config.gag_combat then deleteLine() end
   end)
 MyDSL._triggers.combatParry = tempRegexTrigger(
-  "^[\\w\\-\\s,']+ parries [\\w\\-\\s,']+'s attack\\.",
-  function() if MyDSL and MyDSL.parseCombatAvoidLine then MyDSL.parseCombatAvoidLine(getCurrentLine()) end
+  "(You|[\\w\\-\\,\\s']+) (parry|parries) (your|[\\w\\-\\,\\s']+) attack\\.$",
+  function() if MyDSL and MyDSL.parseCombatAvoidLine then MyDSL.parseCombatAvoidLine(matches[2], matches[3], matches[4]) end
     if MyDSL and MyDSL.CombatView and MyDSL.CombatView.config and MyDSL.CombatView.config.gag_combat then deleteLine() end
   end)
 MyDSL._triggers.combatBlock = tempRegexTrigger(
-  "^[\\w\\-\\s,']+ blocks [\\w\\-\\s,']+'s attack",
-  function() if MyDSL and MyDSL.parseCombatAvoidLine then MyDSL.parseCombatAvoidLine(getCurrentLine()) end
+  "(You|[\\w\\-\\,\\s']+) (block)[s]? (your|[\\w\\-\\,\\s']+) attack .*\\.$",
+  function() if MyDSL and MyDSL.parseCombatAvoidLine then MyDSL.parseCombatAvoidLine(matches[2], matches[3], matches[4]) end
     if MyDSL and MyDSL.CombatView and MyDSL.CombatView.config and MyDSL.CombatView.config.gag_combat then deleteLine() end
   end)
 MyDSL._triggers.combatSense1 = tempRegexTrigger(
@@ -1865,6 +1919,12 @@ MyDSL._triggers.combatDead = tempRegexTrigger(
     if MyDSL and MyDSL.parseCombatDeathLine then MyDSL.parseCombatDeathLine(getCurrentLine()) end
     if MyDSL and MyDSL.CombatView and MyDSL.CombatView.config and MyDSL.CombatView.config.gag_combat then deleteLine() end
   end)
+MyDSL._triggers.combatDeadGroundHit = tempRegexTrigger(
+  " hits the ground \\.\\.\\. DEAD\\.$",
+  function()
+    if MyDSL and MyDSL.parseCombatDeathLine then MyDSL.parseCombatDeathLine(getCurrentLine()) end
+    if MyDSL and MyDSL.CombatView and MyDSL.CombatView.config and MyDSL.CombatView.config.gag_combat then deleteLine() end
+  end)
 
 -- ---- Flee / rescue / escape-fail triggers
 MyDSL._triggers.combatFlee = tempRegexTrigger(
@@ -1885,11 +1945,11 @@ MyDSL._triggers.combatTargetFled = tempRegexTrigger(
 -- ---- Weapon-flag proc triggers
 -- C: Frost
 MyDSL._triggers.procFrostFreeze = tempRegexTrigger(
-  "^([\\w\\-\\s,']+) freezes ([\\w\\-\\s,']+)\\.$",
+  "^([\\w\\-\\s,'\"]+) freezes ([\\w\\-\\s,'\"]+)\\.$",
   function()
     if not (MyDSL and MyDSL.parseCombatProcLine) then return end
-    local aKey = normalizeKey(matches[2] == "You" and "you" or matches[2])
-    local tKey = normalizeKey(matches[3]:lower() == "you" and "you" or matches[3])
+    local aKey = normalizeKey(matches[2] == "You" and "you" or stripQuotes(matches[2]))
+    local tKey = normalizeKey(matches[3]:lower() == "you" and "you" or stripQuotes(matches[3]))
     MyDSL.parseCombatProcLine("C", aKey, tKey)
   end)
 MyDSL._triggers.procFrostTouch = tempRegexTrigger(
@@ -1929,11 +1989,11 @@ MyDSL._triggers.procShockShocked = tempRegexTrigger(
 
 -- H: Vampiric
 MyDSL._triggers.procVampDraw = tempRegexTrigger(
-  "^([\\w\\-\\s,']+) draws life from ([\\w\\-\\s,']+)\\.$",
+  "^([\\w\\-\\s,'\"]+) draws life from ([\\w\\-\\s,'\"]+)\\.$",
   function()
     if not (MyDSL and MyDSL.parseCombatProcLine) then return end
-    local aKey = (matches[2] == "You" or matches[2]:lower() == "you") and "you" or normalizeKey(matches[2])
-    local tKey = matches[3]:lower() == "you" and "you" or normalizeKey(matches[3])
+    local aKey = (matches[2] == "You" or matches[2]:lower() == "you") and "you" or normalizeKey(stripQuotes(matches[2]))
+    local tKey = matches[3]:lower() == "you" and "you" or normalizeKey(stripQuotes(matches[3]))
     MyDSL.parseCombatProcLine("H", aKey, tKey)
   end)
 MyDSL._triggers.procVampDrain = tempRegexTrigger(
@@ -1945,10 +2005,10 @@ MyDSL._triggers.procVampDrain = tempRegexTrigger(
 
 -- S: Stunning
 MyDSL._triggers.procStun = tempRegexTrigger(
-  "^([\\w\\-\\s,']+) is knocked to the ground by ([\\w\\-\\s,']+)\\.$",
+  "^([\\w\\-\\s,'\"]+) is knocked to the ground by ([\\w\\-\\s,'\"]+)\\.$",
   function()
     if not (MyDSL and MyDSL.parseCombatProcLine) then return end
-    MyDSL.parseCombatProcLine("S", normalizeKey(matches[3]), normalizeKey(matches[2]))
+    MyDSL.parseCombatProcLine("S", normalizeKey(stripQuotes(matches[3])), normalizeKey(stripQuotes(matches[2])))
   end)
 
 -- M: Mana drain

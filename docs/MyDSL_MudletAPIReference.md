@@ -157,3 +157,54 @@ end
 
 This is the same category of "habit from another language/version that silently breaks in Mudlet"
 as the Lua-pattern-vs-PCRE confusion — captured here so it doesn't recur in future modules.
+
+---
+
+## CONFIRMED: When PNP already solved a trigger, read its source directly — don't re-derive from a contract/summary
+
+**Source:** 2026-07-05 evasion-trigger bug. `Contract_CombatWindow.md` and `MyDSL_PNP_Reference.md`
+both describe PNP's dodge/parry/block handling in prose. The dodge/parry/block triggers were written
+from that prose description instead of copied from PNP's actual tested regex in `DSL_PNP_Battle.lua`
+(lines 464-466). The reinvented version hardcoded third-person verb forms (`dodges`/`parries`/`blocks`)
+and required a literal `'s attack`, so it silently never matched the you-as-subject or your-attack
+grammar forms (`"You dodge Mob's attack."`, `"Mob dodges your attack."`) — only third-party phrasing.
+PNP's own pattern handles both via a `(your|[\w\-\,\s']+)` alternation and an optional `s?`/`[s]?` on
+the verb; it was already solved, tested, and sitting right there.
+
+**Rule:** when a contract or reference doc says "this mirrors PNP" / "adapted from PNP" / "PNP already
+handles this," that is a pointer, not the implementation. Open the actual PNP `.lua` file
+(`DSL_PNP_Battle.lua`, `DSL_PNP_Character.lua`, `DSL_PNP_Affects.lua`, etc.) and copy the tested pattern
+verbatim (translating only the PCRE double-backslash convention if needed), rather than writing new
+regex from the contract's description of what it does. This applies especially to:
+- Trigger regex text itself (verb conjugation, punctuation, anchoring)
+- What each capture group actually contains — PNP's flag/proc triggers, for example, often capture a
+  **weapon name**, not the wielder's name (confirmed live: `"A whisper thin blade of satiny steel
+  draws life from Kien."`, `"... is knocked to the ground by a grand arcanium polearm."`); code that
+  assumes a captured group is always a person/attacker name will silently misattribute or drop data.
+
+Contract docs and this reference are summaries for orientation, not a substitute for the source when
+something needs to be ported or verified byte-for-byte.
+
+---
+
+## CONFIRMED: `docs/templates_by_freq.txt` / `templates_with_examples.txt` are first-pass only, not authoritative
+
+**Source:** 2026-07-05 audit. These two files are a pre-distilled, deduplicated list of normalized
+combat-message shapes (with frequency counts and real examples) built from the log archive under
+`log/`. They're genuinely useful as a fast first pass before grepping raw logs for something specific.
+
+**But they have confirmed gaps.** Neither file contains a single entry for `"<mob> hits the ground
+... DEAD."` or for any of the weapon-flag proc phrases (`draws life from`, `is knocked to the ground
+by`, `is burned by`, `is shocked by a`, `freezes`) — despite raw-grepping `log/` directly and finding
+dozens of real, confirmed occurrences of each (see the 2026-07-05 CHANGELOG entries for both the
+death-trigger and weapon-misattribution fixes, which relied on the raw grep, not the templates files,
+to confirm). The likely cause is that the distillation's mob/player name-substitution regex doesn't
+handle weapon-item names or the specific "hits the ground" sentence shape, silently dropping those
+lines from the corpus entirely rather than mis-normalizing them into a visible (if wrong) template.
+
+**Rule:** treat `templates_by_freq.txt`/`templates_with_examples.txt` as a fast-lookup accelerant only.
+Absence of a phrase in these files is not evidence the phrase doesn't occur in-game — grep `log/`
+directly before concluding something is rare or nonexistent, especially for anything safety/correctness
+critical (trigger patterns, capture-group identity). This is the same category of mistake as trusting
+a contract summary over PNP's source — a derived artifact can silently omit exactly the thing you're
+trying to verify.

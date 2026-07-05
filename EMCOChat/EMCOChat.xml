@@ -1,0 +1,598 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE MudletPackage>
+<MudletPackage version="1.001">
+  <ScriptPackage>
+    <ScriptGroup isActive="yes" isFolder="yes">
+        
+      <name>EMCO</name>
+      <script/>
+        
+      <packageName/>
+      
+      <eventHandlerList>
+</eventHandlerList>
+      <Script isActive="yes" isFolder="no">
+          
+        <name>Code</name>
+        <script>local defaultConfig = {activeColor = "black", inactiveColor = "black", activeBorder = "green", activeText = "green", inactiveText = "grey", background = "black", windowBorder = "green", title = "green"}
+local emco = require("EMCOChat.emco")
+emco.cmdLineStyleSheet = nil
+demonnic = demonnic or {}
+demonnic.helpers = demonnic.helpers or {}
+demonnic.config = demonnic.config or defaultConfig
+local baseStyle = Geyser.StyleSheet:new(f [[
+  border-width: 2px; 
+  border-style: solid; 
+]])
+local activeStyle = Geyser.StyleSheet:new(f [[
+  border-color: {demonnic.config.activeBorder};
+  background-color: {demonnic.config.activeColor};
+]], baseStyle)
+local inactiveStyle = Geyser.StyleSheet:new(f [[
+  border-color: {demonnic.config.inactiveColor};
+  background-color: {demonnic.config.inactiveColor};
+]], baseStyle)
+local adjLabelStyle = Geyser.StyleSheet:new(f[[
+  background-color: rgba(0,0,0,100%);
+  border: 4px double;
+  border-color: {demonnic.config.windowBorder};
+  border-radius: 4px;]])
+
+local default_constraints = {name = "EMCOPrebuiltChatContainer", x = "-25%", y = "-60%", width = "25%", height = "60%", titleText = "Tabbed Chat"}
+
+
+local chatEMCO = demonnic.chat
+local EMCOfilename = getMudletHomeDir() .. "/EMCO/EMCOPrebuiltChat.lua"
+local confFile = getMudletHomeDir() .. "/EMCO/EMCOPrebuiltExtraOptions.lua"
+
+function demonnic.helpers.echo(msg)
+  msg = msg or ""
+  cecho(f "&lt;green&gt;EMCO Chat: &lt;reset&gt;{msg}\n")
+end
+
+function demonnic.helpers.resetToDefaults()
+  default_constraints.adjLabelstyle = adjLabelStyle:getCSS()
+  demonnic.container = demonnic.container or Adjustable.Container:new(default_constraints)
+  demonnic.config = defaultConfig
+  demonnic.chat = emco:new({
+    name = "EMCOPrebuiltChat",
+    x = 0,
+    y = 0,
+    height = "100%",
+    width = "100%",
+    consoles = {"All", "Local", "City", "OOC", "Tells", "Group"},
+    allTab = true,
+    allTabName = "All",
+    blankLine = true,
+    blink = true,
+    bufferSize = 10000,
+    deleteLines = 500,
+    timestamp = true,
+    fontSize = 12,
+    font = "Ubuntu Mono",
+    consoleColor = demonnic.config.background,
+    activeTabCSS = activeStyle:getCSS(),
+    inactiveTabCSS = inactiveStyle:getCSS(),
+    activeTabFGColor = demonnic.config.activeText,
+    inactiveTabFGColor = demonnic.config.inactiveText,
+    gap = 3,
+    commandLine = true,
+  }, demonnic.container)
+  chatEMCO = demonnic.chat
+  demonnic.helpers.retheme()
+end
+
+function demonnic.helpers.retheme()
+  activeStyle:set("background-color", demonnic.config.activeColor)
+  activeStyle:set("border-color", demonnic.config.activeBorder)
+  inactiveStyle:set("background-color", demonnic.config.inactiveColor)
+  inactiveStyle:set("border-color", demonnic.config.inactiveColor)
+  adjLabelStyle:set("border-color", demonnic.config.windowBorder)
+  local als = adjLabelStyle:getCSS()
+  demonnic.container.adjLabelstyle = als
+  demonnic.container.adjLabel:setStyleSheet(als)
+  demonnic.container:setTitle(demonnic.container.titleText, demonnic.config.title)
+  chatEMCO.activeTabCSS = activeStyle:getCSS()
+  chatEMCO.inactiveTabCSS = inactiveStyle:getCSS()
+  chatEMCO:setActiveTabFGColor(demonnic.config.activeText)
+  chatEMCO:setInactiveTabFGColor(demonnic.config.inactiveText)
+  chatEMCO:setConsoleColor(demonnic.config.background)
+  chatEMCO:switchTab(chatEMCO.currentTab)
+end
+
+function demonnic.helpers.setConfig(cfg, val)
+  local validOptions = table.keys(demonnic.config)
+  if not table.contains(validOptions, cfg) then
+    return nil, f"invalid option: valid options are {table.concat(validOptions, ', ')}"
+  end
+  demonnic.config[cfg] = val
+  demonnic.helpers.retheme()
+  return true
+end
+
+function demonnic.helpers.save()
+  chatEMCO:save()
+  table.save(confFile, demonnic.config)
+  demonnic.container:save()
+end
+
+function demonnic.helpers.load()
+  if io.exists(confFile) then
+    local conf = {}
+    table.load(confFile, conf)
+    demonnic.config = table.update(demonnic.config, conf)
+    for option, value in pairs(defaultConfig) do
+      demonnic.config[option] = demonnic.config[option] or value
+    end
+  end
+  if io.exists(EMCOfilename) then
+    chatEMCO:hide()
+    chatEMCO:load()
+    chatEMCO:show()
+  end
+  demonnic.container:load()
+  demonnic.helpers.retheme()
+end
+
+local function startup()
+  demonnic.helpers.resetToDefaults()
+  demonnic.helpers.load()
+end
+
+registerNamedEventHandler("demonnicEMCO", "EMCOprebuilt startup", "sysLoadEvent", startup)
+</script>
+          
+        <packageName/>
+        
+        <eventHandlerList>
+</eventHandlerList>
+        
+      </Script>
+      
+    </ScriptGroup>
+    
+  </ScriptPackage>
+  <AliasPackage>
+    <AliasGroup isActive="yes" isFolder="yes">
+        
+      <name>EMCO</name>
+      <script>local valid_options = {"font", "fontSize", "blink", "blankLine", "timestamp", "save", "load", "show", "hide"}
+local valid_options_string = table.concat(valid_options, ", ")
+local option = matches[2]
+local value = matches[3]
+local lecho = demonnic.helpers.echo
+if not table.contains(valid_options, option) then
+  lecho("Tried to change a config value that does not exist: valid options are " .. valid_options_string)
+  return
+end
+local chatEMCO = demonnic.chat
+
+if option == "save" then
+  demonnic.helpers.save()
+  lecho("Options saved")
+elseif option == "load" then
+  demonnic.helpers.load()
+  lecho("Options loaded")
+elseif option == "show" then
+  demonnic.container:show()
+elseif option == "hide" then
+  demonnic.container:hide()
+else
+  if value == nil then
+    lecho("You need to provide a value when trying to configure things")
+    return
+  end
+  if option == "font" then
+    local validFont = table.contains(getAvailableFonts(), value)
+    if not validFont then
+      lecho("You tried to set the font to one that Mudlet doesn't recognize. This will not do.")
+    else
+      chatEMCO:setFont(value)
+    end
+  elseif table.contains({"blink", "blankLine", "timestamp"}, option) then
+    value = chatEMCO:fuzzyBoolean(value)
+    if value then
+      if option == "timestamp" then
+        chatEMCO:enableTimestamp()
+      elseif option == "blankLine" then
+        chatEMCO:enableBlankLine()
+      elseif option == "blink" then
+        chatEMCO:enableBlink()
+      elseif option == "commandLine" then
+        chatEMCO:enableCommandLine()
+      end
+    else
+      if option == "timestamp" then
+        chatEMCO:disableTimestamp()
+      elseif option == "blankLine" then
+        chatEMCO:disableBlankLine()
+      elseif option == "blink" then
+        chatEMCO:disableBlink()
+      elseif option == "commandLine" then
+        chatEMCO:disableCommandLine()
+      end
+    end
+  else
+    value = tonumber(value)
+    if value then
+      chatEMCO:setFontSize(value)
+    else
+      lecho("You tried to set the fontSize to a nonnumber. Attempted: " .. matches[3])
+    end
+  end
+end
+</script>
+        
+      <command/>
+        
+      <packageName/>
+        
+      <regex/>
+      <Alias isActive="yes" isFolder="no">
+          
+        <name>emco</name>
+        <script>local valid_options = {"font", "fontSize", "blink", "blankLine", "timestamp", "save", "load", "show", "hide"}
+local valid_options_string = table.concat(valid_options, ", ")
+local option = matches[2]
+local value = matches[3]
+local lecho = demonnic.helpers.echo
+if not table.contains(valid_options, option) then
+  lecho("Tried to change a config value that does not exist: valid options are " .. valid_options_string)
+  return
+end
+local chatEMCO = demonnic.chat
+
+if option == "save" then
+  demonnic.helpers.save()
+  lecho("Options saved")
+elseif option == "load" then
+  demonnic.helpers.load()
+  lecho("Options loaded")
+elseif option == "show" then
+  demonnic.container:show()
+elseif option == "hide" then
+  demonnic.container:hide()
+else
+  if value == nil then
+    lecho("You need to provide a value when trying to configure things")
+    return
+  end
+  if option == "font" then
+    local validFont = table.contains(getAvailableFonts(), value)
+    if not validFont then
+      lecho("You tried to set the font to one that Mudlet doesn't recognize. This will not do.")
+    else
+      chatEMCO:setFont(value)
+    end
+  elseif table.contains({"blink", "blankLine", "timestamp"}, option) then
+    value = chatEMCO:fuzzyBoolean(value)
+    if value then
+      if option == "timestamp" then
+        chatEMCO:enableTimestamp()
+      elseif option == "blankLine" then
+        chatEMCO:enableBlankLine()
+      elseif option == "blink" then
+        chatEMCO:enableBlink()
+      elseif option == "commandLine" then
+        chatEMCO:enableCommandLine()
+      end
+    else
+      if option == "timestamp" then
+        chatEMCO:disableTimestamp()
+      elseif option == "blankLine" then
+        chatEMCO:disableBlankLine()
+      elseif option == "blink" then
+        chatEMCO:disableBlink()
+      elseif option == "commandLine" then
+        chatEMCO:disableCommandLine()
+      end
+    end
+  else
+    value = tonumber(value)
+    if value then
+      chatEMCO:setFontSize(value)
+    else
+      lecho("You tried to set the fontSize to a nonnumber. Attempted: " .. matches[3])
+    end
+  end
+end
+</script>
+          
+        <command/>
+          
+        <packageName/>
+          
+        <regex>^emco (save|load|font|fontSize|blink|blankLine|timestamp|show|hide)(?: (.+))?$</regex>
+        
+      </Alias>
+      <Alias isActive="yes" isFolder="no">
+          
+        <name>emco gag</name>
+        <script>local success = demonnic.chat:addGag(matches[2])
+local echo = demonnic.helpers.echo
+if success then
+  echo(f"Successfully added '{matches[2]}' as a gag pattern")
+  return
+end
+echo(f"Unable to add '{matches[2]}' as a gag pattern, this is usually because it's already added.")</script>
+          
+        <command/>
+          
+        <packageName/>
+          
+        <regex>^emco gag (.+)</regex>
+        
+      </Alias>
+      <Alias isActive="yes" isFolder="no">
+          
+        <name>emco ungag</name>
+        <script>local success = demonnic.chat:removeGag(matches[2])
+local echo = demonnic.helpers.echo
+if success then
+  echo(f"Successfully removed '{matches[2]}' as a gag pattern")
+  return
+end
+echo(f"Unable to remove '{matches[2]}' as a gag pattern, this is usually because it hasn't been set.")</script>
+          
+        <command/>
+          
+        <packageName/>
+          
+        <regex>^emco ungag (.+)</regex>
+        
+      </Alias>
+      <Alias isActive="yes" isFolder="no">
+          
+        <name>emco gaglist</name>
+        <script>local lecho = demonnic.helpers.echo
+local gaggedLines = table.keys(demonnic.chat.gags)
+table.sort(gaggedLines)
+
+lecho("&lt;orange&gt;Gagging report. Remember these are Lua patterns, not regex")
+lecho()
+lecho("&lt;orange&gt;Gagged lines")
+for _,pattern in ipairs(gaggedLines) do
+  lecho("  &lt;purple&gt;" .. pattern)
+end
+</script>
+          
+        <command/>
+          
+        <packageName/>
+          
+        <regex>^emco gaglist$</regex>
+        
+      </Alias>
+      <Alias isActive="yes" isFolder="no">
+          
+        <name>emco notify</name>
+        <script>local tabName = matches[2]:title()
+local echo = demonnic.helpers.echo
+local ok = demonnic.chat:addNotifyTab(tabName)
+
+if ok then
+  echo(f"Enabled OS notifications for tab {tabName}")
+elseif ok == false then
+  echo(f"Tab {tabName} already had notifications enabled!")
+else
+  echo(f"Tab {tabName} does not exist")
+end</script>
+          
+        <command/>
+          
+        <packageName/>
+          
+        <regex>^emco notify (.*)</regex>
+        
+      </Alias>
+      <Alias isActive="yes" isFolder="no">
+          
+        <name>emco unnotify</name>
+        <script>local tabName = matches[2]:title()
+local echo = demonnic.helpers.echo
+local ok = demonnic.chat:removeNotifyTab(tabName)
+
+if ok then
+  echo(f"Disabled OS notifications for tab {tabName}")
+elseif ok == false then
+  echo(f"Tab {tabName} already had notifications disabled!")
+else
+  echo(f"Tab {tabName} does not exist")
+end</script>
+          
+        <command/>
+          
+        <packageName/>
+          
+        <regex>^emco unnotify (.*)</regex>
+        
+      </Alias>
+      <Alias isActive="yes" isFolder="no">
+          
+        <name>emco addtab</name>
+        <script>local tabName = matches[2]
+local pos = tonumber(matches[3])
+local echo = demonnic.helpers.echo
+local chatEMCO = demonnic.chat
+
+if table.contains(chatEMCO.consoles, tabName) then
+  echo(f"{tabName} already exists!")
+  return
+end
+chatEMCO:addTab(tabName, pos)</script>
+          
+        <command/>
+          
+        <packageName/>
+          
+        <regex>^emco addtab (\w+)( \d+)?$</regex>
+        
+      </Alias>
+      <Alias isActive="yes" isFolder="no">
+          
+        <name>emco remtab</name>
+        <script>local tabName = matches[2]
+local echo = demonnic.helpers.echo
+local chatEMCO = demonnic.chat
+local tabList = chatEMCO.consoles
+if not table.contains(tabList, tabName) then
+  echo(f"{tabName} does not exist to remove. Current tabs are: {table.concat(tabList, ', '}")
+  return
+end
+chatEMCO:removeTab(tabName)</script>
+          
+        <command/>
+          
+        <packageName/>
+          
+        <regex>^emco remtab (.+)</regex>
+        
+      </Alias>
+      <Alias isActive="yes" isFolder="no">
+          
+        <name>emco color</name>
+        <script>local echo = demonnic.helpers.echo
+local ok, err = demonnic.helpers.setConfig(matches[2], matches[3])
+
+if not ok then
+  echo(err)
+  return
+end
+echo(f"Set color for {matches[2]} to {matches[3]}")</script>
+          
+        <command/>
+          
+        <packageName/>
+          
+        <regex>^emco color (\w+) (.+)</regex>
+        
+      </Alias>
+      <Alias isActive="yes" isFolder="no">
+          
+        <name>emco color usage</name>
+        <script>local echo = demonnic.helpers.echo
+local validOptions = table.keys(demonnic.config)
+table.sort(validOptions)
+local validOptionsString = table.concat(validOptions, ", ")
+echo("Usage information for changing emco colors")
+echo()
+echo("emco color &lt;option&gt; &lt;color&gt;")
+echo("Color can be anything you would use in CSS, such as 'rgb(128,128,128)', '#888888', or 'grey'")
+echo("examples:")
+echo("  * emco color activeBorder goldenrod")
+echo("    * changes the border around the active tab to goldenrod")
+echo("  * emco color activeColor #00ff00")
+echo("    * changes the color of the active tab to green")
+echo()
+echo("Valid options are " .. validOptionsString)
+echo("Remember to use 'emco save' to make your changes permanent, or 'emco load' to undo them and reset back to what you previously saved.")</script>
+          
+        <command/>
+          
+        <packageName/>
+          
+        <regex>^emco color$</regex>
+        
+      </Alias>
+      <Alias isActive="yes" isFolder="no">
+          
+        <name>emco usage</name>
+        <script>local echo = demonnic.helpers.echo
+local aliases = {
+  ["emco save"] = "saves your config to disk",
+  ["emco load"] = "loads your config from disk",
+  ["emco addtab &lt;tabname&gt;"] = "adds a tab to your EMCO",
+  ["emco remtab &lt;tabname&gt;"] = "removes a tab from your EMCO",
+  ["emco fontSize"] = "set the font size for the consoles",
+  ["emco font"] = "set the font to use for the consoles",
+  ["emco blink &lt;true|false&gt;"] = "turn blinking on/off",
+  ["emco blankLine &lt;true|false&gt;"] = "turn inserting a blank line between messages on/off",
+  ["emco timestamp &lt;true|false&gt;"] = "turn timestamps on/off",
+  ["emco show"] = "show the EMCO",
+  ["emco hide"] = "hide the EMCO",
+  ["emco gaglist"] = "prints out the list of gag patterns",
+  ["emco gag &lt;pattern&gt;"] = "add a gag pattern",
+  ["emco ungag &lt;pattern&gt;"] = "remove a gag pattern",
+  ["emco notify &lt;tabName&gt;"] = "turn on OS notifications for tabName",
+  ["emco unnotify &lt;tabName&gt;"] = "turn off OS notifications for tabName",
+  ["emco color &lt;option&gt; &lt;value&gt;"] = "used to change the colors for the active/inactive tab, and the background color for the consoles. 'emco color' with no options will print out available options",
+}
+
+echo("\nAvailable aliases for the prebuilt EMCO package")
+echo()
+for name, desc in spairs(aliases) do
+  echo(f"* {name}")
+  echo(f"  * {desc}")
+end
+</script>
+          
+        <command/>
+          
+        <packageName/>
+          
+        <regex>^emco( usage)?$</regex>
+        
+      </Alias>
+      <Alias isActive="yes" isFolder="no">
+          
+        <name>emco update</name>
+        <script>uninstallPackage("EMCOChat")
+installPackage("https://github.com/demonnic/EMCO/releases/latest/download/EMCOChat.mpackage")</script>
+          
+        <command/>
+          
+        <packageName/>
+          
+        <regex>^emco update$</regex>
+        
+      </Alias>
+      <Alias isActive="yes" isFolder="no">
+          
+        <name>emco title</name>
+        <script>local title = matches[2]
+if title == "clear" then
+  title = ""
+end
+demonnic.container:setTitle(title)</script>
+          
+        <command/>
+          
+        <packageName/>
+          
+        <regex>^emco title (.+)</regex>
+        
+      </Alias>
+      <Alias isActive="yes" isFolder="no">
+          
+        <name>emco lock</name>
+        <script>demonnic.container:lockContainer()</script>
+          
+        <command/>
+          
+        <packageName/>
+          
+        <regex>^emco lock$</regex>
+        
+      </Alias>
+      <Alias isActive="yes" isFolder="no">
+          
+        <name>emco unlock</name>
+        <script>demonnic.container:unlockContainer()</script>
+          
+        <command/>
+          
+        <packageName/>
+          
+        <regex>^emco unlock$</regex>
+        
+      </Alias>
+      
+    </AliasGroup>
+    
+  </AliasPackage>
+  <TimerPackage>
+</TimerPackage>
+  <TriggerPackage>
+</TriggerPackage>
+  <KeyPackage>
+</KeyPackage>
+</MudletPackage>

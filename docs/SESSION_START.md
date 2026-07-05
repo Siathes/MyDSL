@@ -1,5 +1,5 @@
 # DSL Observer UI — Session Context
-*Last updated: July 2, 2026 — MoonWeather Phase B complete, tagged v1.2-moonweather-final*
+*Last updated: 2026-07-05 — full staleness audit; Claude.ai removed from workflow*
 
 ---
 
@@ -9,10 +9,10 @@ Dark and Shattered Lands (DSL), running on Mudlet 4.20.1 / Fedora Linux.
 
 **Primary build character:** Kien (W-Elf Druid 51, True Neutral, Zandreya, Arkane kingdom)
 **Alts:** Olyndros, Tibbins
-**Profile:** `/home/owner/Desktop/Mudlet/mudlet-data/profiles/DSL2/`
+**Profile:** `/home/owner/.config/mudlet/profiles/DSL2/` (also mirrored at
+`/home/owner/Desktop/Mudlet/mudlet-data/profiles/DSL2/`)
 
-DSL2 is the clean working profile. DSL1 is archived reference (still in active
-in-game use until DSL2 reaches feature parity).
+DSL2 is the clean working profile. DSL1 is archived reference.
 
 **Philosophy:** Move text, don't replace it. Main console is sacred. Passive
 observation only. Every module optional. Stale data beats spam. All positions
@@ -20,53 +20,57 @@ stored as fractions/percentages, not pixels.
 
 ---
 
-## Orientation for Claude Code
+## Workflow (changed 2026-07-05)
+
+**Claude.ai has been removed from the workflow.** It's Steven and Claude Code
+directly now — no more design-doc relay through a separate chat, no more
+upload/download dance with a project folder. Claude Code reads contracts,
+source, logs, and PNP reference material directly off disk and owns keeping
+`SESSION_START.md`, `TODO.md`, `DSL_SessionNotes.md`, and `CHANGELOG.md` current.
+
+**Why:** the 2026-07-05 evasion-trigger bug happened because a contract
+produced by the old design layer *described* PNP's behavior in prose, and
+that description got reinvented into new (wrong) regex instead of the tested
+PNP source being copied directly. Routing engineering decisions through a
+paraphrase step cost real correctness. See `MyDSL_MudletAPIReference.md`'s
+"read PNP source directly" and "templates files are first-pass only" notes
+for the two concrete lessons from that.
 
 **Before touching any file:**
 1. Read this file
-2. Read the relevant `Contract_*.md` for the module being worked on
+2. Read the relevant `Contract_*.md` for the module being worked on — but
+   verify it against the live `.lua` file if anything looks like it might have
+   drifted; contracts are summaries, not ground truth (see above)
 3. Read `DSL_CommandRef.md` for any text patterns needed
 4. Check git log for current branch state
 
-**Source of truth for current scripts:** The actual `.lua` files on disk at
-`/home/owner/Desktop/Mudlet/mudlet-data/profiles/DSL2/`. The autosave.xml in
-the project folder is stale — all scripts now loaded via `dofile()` wrappers.
+**Source of truth for current scripts:** the actual `.lua` files on disk in
+this profile directory. `docs/SYNC.md` has a load-order and namespace map but
+is dated 2026-06-30 — predates GroupView's later fixes and all of CombatView;
+treat it as historical background, not current status.
 
 ---
 
-## Current State — Phase A Complete ✅
+## Current State — Phase A and Phase B both substantially complete
 
-**git tag:** `v1.0-phase-a-complete` at commit `8f7bb2b`
+**Phase A** (Layer 1/2 + first Layer 3 modules): ✅ complete since 2026-06-29,
+tagged `v1.0-phase-a-complete`. DataLayer, ThemeEngine, LayoutEngine,
+WindowRegistry, ChatWrapper, AffectsView, TickSource/TickView, PortraitView,
+LocationView, LiveView, PromptView all built and working.
 
-All Layer 1 (DataLayer) and Layer 2 (ThemeEngine, LayoutEngine, WindowRegistry)
-systems confirmed working. All Layer 3 Phase A modules confirmed working via
-in-game smoke test with Kien.
+**Phase B** (Combat/Scan/Group/Target/MoonWeather windows): all five built.
+In-game confirmation status varies — see `TODO.md`'s Phase B table for the
+current per-module breakdown (MoonWeather/ScanView/TargetView confirmed live;
+GroupView/CreatureReference/CombatView built but not yet live-tested).
 
-### Phase A Smoke Test Results (June 29, 2026)
-
-| Test | Result |
-|---|---|
-| DataLayer alive (`MyDSL.State.login`) | ✅ Kien, level 51, Arkane |
-| GMCP vitals (`MyDSL.State.char`) | ✅ All fields, updating live |
-| HP/Mana/MV bars | ✅ Updating in real-time |
-| Tick countdown | ✅ Counting down, resetting on tick |
-| Affects window | ✅ Populating from GMCP |
-| Location window | ✅ Updating on room change |
-| Portrait | ✅ Kien's portrait showing |
-| Chat routing | ✅ say→Local tab, tell→Tells tab, gagged from main |
-| Score parser | ✅ All fields populated — see known issues below |
-| Window layout persistence | ✅ `mydsl layout save` persists arrangement |
-| Main console borders | ✅ Cleared (old applyBorders() values purged) |
-
-### Two Known Score Issues (minor, not blocking Phase B)
-1. `stance` captures trailing text — `"Offensive         NoBattle ( )..."` 
-   instead of just `"Offensive"`. Pattern needs `%S+` not `(.+)`.
-2. `profession` field missing — `endScore()` fires on the second `---` separator
-   which appears before `PROFESSION:`. Need to fire on the line AFTER profession.
+**Full detail on what's fixed vs. still open lives in `TODO.md` now** — it was
+rewritten 2026-07-05 alongside this file after finding it badly out of date
+(it still said Combat/Scan/Group/Target were "not started" when all four were
+already built and iterated on).
 
 ---
 
-## Window System — Resolved ✅
+## Window System — Resolved ✅ (Phase A, still holds)
 
 **Root cause of all window reset problems:** LayoutEngine registered a
 `sysWindowResizeEvent` handler that called `reflowAll()` → `applyToWindow()`
@@ -76,12 +80,6 @@ in-game smoke test with Kien.
 **Fix:** Handler removed from LayoutEngine entirely (commit `e50b56a`, branch
 `fix/remove-reflow-handler`, merged to main). `reflowAll()` and `applyToWindow()`
 remain as explicit-call functions only.
-
-**Additional fix:** Old `applyBorders()` calls had saved border values
-(left=294px, right=281px, bottom=121px) to autosave.xml. Cleared manually:
-```lua
-setBorderLeft(0); setBorderRight(0); setBorderBottom(0); setBorderTop(0); saveProfile()
-```
 
 **Current correct startup sequence:**
 ```lua
@@ -95,45 +93,39 @@ if loadWindowLayout then loadWindowLayout() end  -- restore saved positions
 
 ---
 
-## Score Trigger — How It Works Now
+## Contract Status
 
-The score trigger was not registered anywhere (the comment said "write these in
-Mudlet separately" but nobody did). Fixed by adding `tempRegexTrigger` calls
-at the bottom of `MyDSL_DataLayer.lua`:
-
-- `tempRegexTrigger("^Score for ", ...)` → calls `beginScore()`
-- `beginScore()` installs a catch-all `tempRegexTrigger(".*", ...)` that feeds
-  every line to `parseScoreLine()`
-- `parseScoreLine()` tracks two `---` separator lines: first skips, second calls
-  `endScore()` which kills the catch-all trigger
-- Trigger IDs stored in `MyDSL._triggers{}`, killed on script reload
-
----
-
-## Contract Status — ALL PHASE A MODULES CONTRACTED
+All contracts spot-checked against live code 2026-07-05. Where a contract's
+"gap" was already fixed in code but the doc wasn't updated, that's now
+corrected in the contract itself — see `TODO.md`'s "RESOLVED" section for the
+full list of what changed. Still-open low-priority gaps are also tracked
+there.
 
 | Layer | Module | Contract | Status |
 |---|---|---|---|
-| 1 | DataLayer | `Contract_DataLayer.md` | ✅ Working, 2 minor score issues |
-| 2 | ThemeEngine | `Contract_ThemeEngine.md` | ✅ Contracted |
-| 2 | LayoutEngine | `Contract_LayoutEngine.md` | ✅ Working, resize handler removed |
-| 2 | WindowRegistry | `Contract_WindowRegistry.md` | ✅ Working, layout persistence working |
-| 3 | DataBridge | `Contract_DataBridge.md` | Contracted, gaps documented |
-| 3 | RouteHelper | `Contract_RouteHelper.md` | Contracted, see addendum |
-| 3 | TickSource | `Contract_TickSource.md` | ✅ Working |
+| 1 | DataLayer | `Contract_DataLayer.md` | ✅ Working |
+| 2 | ThemeEngine | `Contract_ThemeEngine.md` | ✅ Working — 1 minor gap open (no key validation on setOverride) |
+| 2 | LayoutEngine | `Contract_LayoutEngine.md` | ✅ Working — 2 minor gaps open (resetAll missing, save() no error handling) |
+| 2 | WindowRegistry | `Contract_WindowRegistry.md` | ✅ Working — 2 minor gaps open (visibility not char-bound, saveState no error handling) |
+| 3 | DataBridge | `Contract_DataBridge.md` | ✅ Working — all documented gaps confirmed fixed |
+| 3 | RouteHelper | `Contract_RouteHelper.md` | ✅ Working |
+| 3 | TickSource | `Contract_TickSource.md` | ✅ Working — all 3 gaps confirmed fixed (commit `b16ec52`) |
 | 3 | TickView | `Contract_TickView.md` | ✅ Working |
-| 3 | ChatWrapper | `Contract_ChatWrapper.md` | ✅ Working |
+| 3 | ChatWrapper | `Contract_ChatWrapper.md` | ✅ Working — 3 of 5 gaps confirmed fixed, 2 still open (hardcoded tab CSS, settings not char-bound) |
 | 3 | AffectsView | `Contract_AffectsView.md` | ✅ Working |
 | 3 | PortraitView | `Contract_PortraitView.md` | ✅ Working |
 | 3 | LocationView | `Contract_LocationView.md` | ✅ Working |
-| 3 | LiveView | `Contract_LiveView.md` | ✅ Working (bars + room info) |
-| 3 | MoonWeather | `Contract_MoonWeather.md` | ✅ Feature-complete 2026-07-02 (v1.2-moonweather-final) |
+| 3 | LiveView | `Contract_LiveView.md` | ✅ Working (renders on 0.25s timer; 7 of 8 event subscriptions are dead but harmless) |
+| 3 | PromptView | `Contract_PromptView.md` | ✅ Working — simple prompt-gag design, not the earlier PromptBar concept |
+| 3B | MoonWeather | `Contract_MoonWeather.md` | ✅ Feature-complete, confirmed live |
+| 3B | ScanView | `Contract_ScanView.md` | ✅ Confirmed live |
+| 3B | GroupView | `Contract_GroupView.md` | ✅ Built, rescue-hidden-for-Mob fix confirmed in code, not yet live-tested |
+| 3B | TargetView | `Contract_TargetView.md` | ✅ Confirmed live |
+| 3B | CreatureReference | `Contract_CreatureReference.md` | ✅ Built, not yet live-tested |
+| 3B | CombatView | `Contract_CombatWindow.md` | ✅ Built and hardened 2026-07-05, not yet live-tested — see TODO.md open items |
 
 See `Contract_Addendum_2026-06-21.md` for changes that supersede parts of
 the LayoutEngine, WindowRegistry, RouteHelper, and PortraitView contracts.
-See updated `Contract_LayoutEngine.md` and `Contract_WindowRegistry.md` for
-the June 28 corrections (resize handler, border management, startup sequence).
-See updated `MyDSL_MudletWindowManagement.md` for the corrected Mudlet API notes.
 
 ---
 
@@ -143,7 +135,7 @@ See updated `MyDSL_MudletWindowManagement.md` for the corrected Mudlet API notes
 gmcp.char_data = { hp, max_hp, mana, max_mana, move, max_move,
   str/int/wis/dex/con (+ max_), gold, silver, carry_weight,
   can_carry_weight, stance, language, is_flying, is_riding,
-  is_fighting, is_afk, is_quiet, tnl, wimpy }
+  is_fighting, is_afk, is_quiet, tnl, wimpy, hp_raw }
 
 gmcp.login_data = { name="Kien", level=51, kingdom="Arkane",
   is_clan, is_kingdom, time="6:30am" }  -- time here is login timestamp only
@@ -168,11 +160,6 @@ It is 10:00 o'clock am, Day of the Great Gods, 26th the Month of the Great Evil.
 ```
 Both handled by one flexible pattern using `[^,]-` (see DSL_CommandRef.md).
 
-Day/Night time-of-day states confirmed from live capture:
-- `Night Time` — prompt line 2 prefix
-- `Dawn` — appears at 6:00am
-- `Day Time` — appears at 7:00am
-
 ---
 
 ## DSL1 Modified Mapper Script — MUST CARRY FORWARD AS-IS
@@ -184,44 +171,41 @@ self-update, or all patches are lost.
 
 ---
 
-## Three-Tool Workflow
+## Reference Material Available On Disk
 
-```
-Claude.ai (this chat)          Claude Code (terminal)        Steven
-Writes contracts                Reads contracts               Tests in-game
-Writes design docs              Writes Lua files              Provides captures
-Generates CC prompts       ->   Runs git operations      <-   Approves changes
-Makes architecture calls        Updates CHANGELOG.md          Reports bugs
-Answers "why" questions         Smoke tests                   Uploads files to project
-```
+- `PNP files/` (profile root) — full PNP source, 46 files. Read directly for
+  anything the old workflow would have summarized in a contract's prose.
+- `log/` (profile root) — the full combat-log archive (578 files, 414MB),
+  including AGL/coliseum character reports. Raw-grep this for anything
+  correctness-critical — see `docs/MyDSL_MudletAPIReference.md`'s note on why
+  the distilled templates files below aren't sufficient on their own.
+- `docs/templates_by_freq.txt` / `docs/templates_with_examples.txt` —
+  pre-distilled combat-message shapes with frequency counts. Fast first pass
+  only; confirmed gaps exist (see the note in `MyDSL_MudletAPIReference.md`).
+- `docs/claude_export_2026-07-05/` — a snapshot produced for the old
+  Claude.ai handoff, now obsolete now that the workflow doesn't need it.
+  Harmless to leave, safe to delete next time this repo gets tidied.
 
 ---
-
-## Phase B Status
-
-| Module | Status |
-|---|---|
-| MoonWeather | ✅ Feature-complete 2026-07-02 — living clock, day/night indicator, gold bonus text, border removed |
-| Combat window | Not started — next priority |
-| Scan/RightHere | Not started |
-| Group window | Not started |
-| Target window | Not started |
 
 ## Immediate Next Steps (in order)
 
-1. ~~**Fix two known score issues**~~ — ✅ Both fixed (commit `468ee77`, Jun-29).
-2. **Begin next Phase B window** — Combat window (BattleCondenser port) or Scan/RightHere.
-   Write Contract doc first; use `Contract_MoonWeather.md` as structural template.
-3. **PromptView** — contract needed before implementation
+1. **Live-test the 2026-07-05 CombatView fixes** — evasion triggers, both
+   death-message forms, weapon-proc pseudo-attacker rows, quoted weapon names.
+   None of this has been exercised in an actual DSL combat session yet.
+2. **In-game smoke test GroupView** — type `group` while grouped, confirm
+   member list, HP bars, rescue-hidden-for-Mob behavior.
+3. **In-game smoke test CreatureReference** — `creaturelore <mob>` in combat.
+4. **Fix the self-condition trigger gap** — confirmed via logs that DSL uses
+   second-person phrasing for your own condition; not yet fixed in code.
+5. Pick up any of the low-priority open gaps in `TODO.md` opportunistically.
 
 ---
 
-## Session End Ritual
+## Session End Ritual (revised 2026-07-05)
 
-Claude.ai does: Update SESSION_START.md, append to DSL_SessionNotes.md,
-update TODO.md, write any new Contract_*.md files, tell Steven what to upload.
+Claude Code does, every session: append to `CHANGELOG.md`, update `TODO.md`
+and this file if project state materially changed, append a dated entry to
+`DSL_SessionNotes.md`, tag git milestones on request.
 
-Steven does: Download new/updated files from outputs, upload to project folder.
-
-Claude Code does on every commit: meaningful commit message, append to
-CHANGELOG.md, tag milestones.
+Steven does: tests in-game, reports bugs/confirmations, approves changes.

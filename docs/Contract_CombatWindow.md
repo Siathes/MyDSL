@@ -2,6 +2,15 @@
 **Layer 3 Phase B — Combat Round Condenser + Per-Target Tally**
 *Written 2026-07-04 — design finalized via extensive live-log analysis; several fields marked NEEDS LIVE CONFIRMATION per this project's established practice*
 
+**This is a summary, not a substitute for source.** Where this contract
+describes PNP-derived behavior, it is a transcription — re-verify against
+`DSL_PNP_Battle.lua` (and `DSL_PNP_Character.lua`/`DSL_PNP_Affects.lua` for
+anything death/condition-adjacent) directly before trusting it, especially
+for regex patterns and any place a captured group's identity (person vs.
+weapon vs. "your") matters. The 2026-07-05 evasion-trigger bug (reinvented
+from prose instead of copied from PNP's tested text) is the confirmed
+example of what trusting the summary alone costs.
+
 ---
 
 ## What This Module Is
@@ -183,6 +192,19 @@ N gold and M silver are collected for <kingdom>'s coffers.
 The Gods give you N silver coins for your sacrifice.
 ```
 
+**Second confirmed death form (2026-07-05 audit, fixed):** `<mob> hits the
+ground ... DEAD.` is a separate, very common death message — 188 occurrences
+in one full session log with **zero** `is DEAD!!` anywhere in that same
+file. The two forms aren't reliably alternate phrasings of the same kill;
+some sessions use `is DEAD!!` first and `hits the ground ...` again later
+for the same corpse (redundant), others use only one form for an entire
+session. `parseCombatDeathLine()` now matches both
+(`^(.+) is DEAD!!$` / `^(.+) hits the ground %.%.%. DEAD%.$`), registered as
+two separate triggers (`combatDead` / `combatDeadGroundHit`) both calling
+the same parser. `snapshotFight()` already returns `nil` and no-ops if the
+target's accumulator was already cleared, so if both fire for one death
+this doesn't double-snapshot or double-count.
+
 ### Combat-end triggers (beyond death)
 Confirmed live, and confirmed **not** subject to player customization for
 the forms CombatView needs (the `setflee` command only customizes the
@@ -191,7 +213,7 @@ so `<name> has fled!` stays a reliable NPC-flee anchor):
 
 | Event | Line | Ends this target's accumulator? |
 |---|---|---|
-| Kill | `<mob> is DEAD!!` | Yes — snapshot + clear |
+| Kill | `<mob> is DEAD!!` **or** `<mob> hits the ground ... DEAD.` (both handled, see above) | Yes — snapshot + clear |
 | You flee successfully | `You flee from combat!` | Yes — snapshot + clear (your own combat state) |
 | Flee attempt fails | `You cannot escape from combat!!!` | **No** — combat continues, not an end condition |
 | Rescued out | `<name> rescues you!` | Yes — snapshot + clear |
@@ -302,6 +324,43 @@ independently-confirmed Poison sequence — that's 9 working proc types
 total, well beyond the original 5. Do not wire Vorpal. Leave Sharp as a
 commented placeholder with a TODO referencing this table.
 
+### Weapon-as-subject proc attribution — deliberate simplification, not a bug (2026-07-05)
+
+**Confirmed live, across many examples:** the capture group that looks like
+it should be "the attacker" in several of the patterns above is frequently
+the **weapon's own name**, not the wielding character:
+```
+A grand arcanium hoopak draws life from Rylae.
+A fine alloy great sword draws life from an office worker.
+is knocked to the ground by a runehammer.
+is knocked to the ground by "Nadrik's Honor".
+```
+There is no text-only way to resolve an arbitrary weapon name back to
+whichever character is wielding it — DSL's combat text simply doesn't
+surface that mapping. Silently dropping these procs (the pre-2026-07-05
+behavior — `entry.by_attacker[attackerKey]` lookup failed since no real
+combatant is ever keyed by a weapon name, so `parseCombatProcLine` returned
+early) loses real data every time this shape fires.
+
+**Fix (pragmatic, not full resolution):** `parseCombatProcLine()` now checks
+`isKnownCombatant(attackerKey)` — true only for `"you"` or a normalized
+group-member name. If the resolved attacker key is *not* a known combatant,
+the proc is recorded under the weapon's own name as its own row in
+`entry.by_attacker[weaponKey]`, with a synthetic `"(proc)"` noun bucket to
+hold the flag count — visible and counted in the fight summary, rather than
+lost. This is an intentional simplification: the fight summary may show a
+row for `"a grand arcanium hoopak"` alongside rows for real combatants. Full
+resolution (mapping weapon → wielder) would require tracking who is
+wielding what weapon over time, which nothing in DSL's combat text provides
+a hook for.
+
+**Quoted weapon names:** confirmed names like `"Nadrik's Honor"` appear with
+surrounding double-quotes in the raw text. The Frost (`procFrostFreeze`),
+Vampiric (`procVampDraw`), and Stunning (`procStun`) trigger patterns'
+character classes now include `"` so these don't break the match; the
+quotes are stripped (`stripQuotes()`) before the captured text is
+normalized into a key.
+
 ---
 
 ## Data Model
@@ -334,6 +393,15 @@ MyDSL.State.combat = {
             swings = 6, hits = 6, misses = 0,
             score_total = 187.5,
             flags = {},
+          },
+        },
+        -- Pseudo-attacker row: a weapon-flag proc named a weapon, not a
+        -- known combatant (see "Weapon-as-subject proc attribution" above).
+        -- No swings/hits data, just the "(proc)" bucket holding flag counts.
+        ["a grand arcanium hoopak"] = {
+          ["(proc)"] = {
+            swings = 0, hits = 0, misses = 0, score_total = 0,
+            flags = { H = 3 },
           },
         },
       },

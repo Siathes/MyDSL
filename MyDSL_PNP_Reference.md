@@ -2,6 +2,17 @@
 Source: PNP.zip (Desktop copy, dated 2025-05-25 / 2025-07-03 for Chat).
 This is a read-only reference for understanding the PNP system before Layer 2 work.
 
+**This is a summary, not a substitute for source.** Descriptions here are
+prose paraphrases of what each PNP module does — they are not a reliable
+source for exact trigger regex, capture-group meaning, or edge-case
+handling. When porting behavior (trigger text, flag mappings, condition
+lists, etc.), read the actual `.lua` file directly (`DSL_PNP_Battle.lua`,
+`DSL_PNP_Character.lua`, `DSL_PNP_Affects.lua`, ...) rather than trusting
+this document. Confirmed cost of skipping that step: the 2026-07-05
+evasion-trigger bug, where dodge/parry/block regex were re-derived from
+this kind of prose description instead of copied verbatim from PNP's
+tested source, and silently missed the you-as-subject grammar form.
+
 ---
 
 ## Window_Manager.lua
