@@ -245,3 +245,24 @@ check `EMCO-2.9.0.zip`'s `aliases.json` for EMCO's) and reuse that vocabulary di
 inventing a `mydsl <module> <verb>` equivalent. Internal implementation can and should still be adapted
 for our window system (Geyser.UserWindow vs PNP's windowManager) and data layer (GMCP vs text-parsing)
 — it's the user-facing command names that need to match, not the code underneath them.
+
+---
+
+## CONFIRMED: Mudlet's HTML session logs never capture custom UserWindow/MiniConsole content
+
+**Source:** 2026-07-05, Steven's post-combat-pass log review. Verified directly: grepped for
+`"Fight summary"` and `"Right Here:"` (text that only ever gets written via `mc:decho()` into the
+`MyDSL_Combat`/`MyDSL_RightHere` MiniConsoles, never the main console) across every log in `log/`,
+including the specific session where a screenshot *proved* the Combat window's fight-summary was
+rendering correctly at that exact moment. Zero matches, in every log, ever.
+
+**What this means:** `log/*.html` only captures the main Mudlet console's text stream. Anything a
+module writes exclusively into its own window (CombatView's round log/fight summary, RightHere's list,
+GroupView, TargetView, CreatureReference, etc.) is **structurally invisible to log files**, regardless
+of whether it's working. This isn't a bug in our modules — it's just what Mudlet's logger captures.
+
+**Rule:** logs are the right tool for confirming raw game text (trigger-firing conditions, exact
+wording, whether a line was gagged from main) and anything a module explicitly echoes to main
+console. They are the **wrong** tool for confirming whether a custom window actually displayed
+something — that requires a screenshot. Don't conclude a window-only feature is broken (or working)
+from log absence/presence; check a screenshot from the same moment instead.

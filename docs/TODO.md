@@ -49,6 +49,42 @@ All fixed in code, none yet live-tested:
 - [ ] Quoted weapon names ("Nadrik's Honor") — regex fix confirmed via
       `luajit` pattern test only, not yet seen matching a real quoted-name
       proc line in a live session
+- [x] **Weapon-flag procs were never gagged, confirmed live 2026-07-05** —
+      Steven's own cecho note during testing ("all i see on screen is A fine
+      alloy great dagger draws life from an insane half elf...") confirmed a
+      raw Vamp-proc line stayed on screen. Root cause: none of the 17 proc
+      trigger handlers ever called `deleteLine()`, unlike every other combat
+      trigger (damage/dodge/condition/death), which all already gag
+      correctly. Fixed — all 17 now call a shared `gagIfCombatGagged()`
+      helper. Needs live re-confirmation that a proc line is now actually
+      gagged when `gag_combat` is on.
+- [ ] **Possible interference from a separate "itemstats" trigger system** —
+      Steven flagged (and I confirmed in `current/autosave.xml`, 319 hits) a
+      pre-existing, unrelated item-identification trigger system (not part of
+      `PNP files/` or our own code) that does a bare `cecho(" -[N] ...")`
+      with no leading newline whenever certain item names are recognized.
+      Plausible mechanism for silently breaking our `$`-anchored combat/proc
+      regexes if an item name appears inline within a combat line (the
+      item-stat suffix would get appended before our trigger evaluates the
+      line). Not conclusively proven this session — the exact raw merged
+      line wasn't found verbatim in the log, only Steven's paraphrased
+      description of it. Toggle-able via a global `itemstats` variable.
+      Needs a deliberate test: trigger a weapon proc on an item this system
+      tracks and check whether our proc trigger fires.
+- [ ] **No sustained combat happened in the 2026-07-05 evening test session**
+      (16:21–18:08 logs) — no `murder`, no damage verbs, no deaths anywhere
+      in those logs, confirmed via grep. Evasion, both death forms, and
+      group-member fight tracking all remain unconfirmed by real combat data
+      from this particular session; only the "group is working here" note
+      (a solo `group` listing populating correctly) is a positive signal so
+      far. **Important methodology note**: logs cannot confirm whether
+      CombatView/GroupView/RightHere/TargetView actually *displayed*
+      anything — Mudlet's session logs never capture custom-window content,
+      confirmed by checking the session that had a screenshot proving the
+      fight-summary rendered correctly at that exact moment (zero log
+      matches for that text, ever). See
+      `MyDSL_MudletAPIReference.md`'s new note. Screenshots remain the only
+      way to confirm window display; logs confirm raw text/trigger firing.
 
 Still genuinely unconfirmed/unresolved (not new, carried forward):
 - [ ] **Self-condition never registers** — DSL phrases your own condition in

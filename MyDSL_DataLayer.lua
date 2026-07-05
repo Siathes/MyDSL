@@ -1936,6 +1936,17 @@ MyDSL._triggers.combatTargetFled = tempRegexTrigger(
   function() if MyDSL and MyDSL.parseCombatEndLine then MyDSL.parseCombatEndLine(getCurrentLine()) end end)
 
 -- ---- Weapon-flag proc triggers
+-- Gag check added to every one of these 2026-07-05 -- confirmed live by
+-- Steven (a raw "draws life from" proc line stayed on screen with
+-- gag_combat presumably on) that none of these ever called deleteLine(),
+-- unlike every other combat trigger (damage/dodge/condition/death) which
+-- all already gag correctly. Real, confirmed gap, now fixed consistently.
+local function gagIfCombatGagged()
+  if MyDSL and MyDSL.CombatView and MyDSL.CombatView.config and MyDSL.CombatView.config.gag_combat then
+    deleteLine()
+  end
+end
+
 -- C: Frost
 MyDSL._triggers.procFrostFreeze = tempRegexTrigger(
   "^([\\w\\-\\s,'\"]+) freezes ([\\w\\-\\s,'\"]+)\\.$",
@@ -1944,12 +1955,14 @@ MyDSL._triggers.procFrostFreeze = tempRegexTrigger(
     local aKey = normalizeKey(matches[2] == "You" and "you" or stripQuotes(matches[2]))
     local tKey = normalizeKey(matches[3]:lower() == "you" and "you" or stripQuotes(matches[3]))
     MyDSL.parseCombatProcLine("C", aKey, tKey)
+    gagIfCombatGagged()
   end)
 MyDSL._triggers.procFrostTouch = tempRegexTrigger(
   "^The cold touch of ([\\w\\-\\s,']+) surrounds you with ice",
   function()
     if not (MyDSL and MyDSL.parseCombatProcLine) then return end
     MyDSL.parseCombatProcLine("C", normalizeKey(matches[2]), "you")
+    gagIfCombatGagged()
   end)
 
 -- F: Flaming
@@ -1958,12 +1971,14 @@ MyDSL._triggers.procFlameBurn = tempRegexTrigger(
   function()
     if not (MyDSL and MyDSL.parseCombatProcLine) then return end
     MyDSL.parseCombatProcLine("F", normalizeKey(matches[3]), normalizeKey(matches[2]))
+    gagIfCombatGagged()
   end)
 MyDSL._triggers.procFlameSear = tempRegexTrigger(
   "^([\\w\\-\\s,']+) sears your flesh",
   function()
     if not (MyDSL and MyDSL.parseCombatProcLine) then return end
     MyDSL.parseCombatProcLine("F", normalizeKey(matches[2]), "you")
+    gagIfCombatGagged()
   end)
 
 -- L: Shocking
@@ -1972,12 +1987,14 @@ MyDSL._triggers.procShockLightning = tempRegexTrigger(
   function()
     if not (MyDSL and MyDSL.parseCombatProcLine) then return end
     MyDSL.parseCombatProcLine("L", normalizeKey(matches[3]), normalizeKey(matches[2]))
+    gagIfCombatGagged()
   end)
 MyDSL._triggers.procShockShocked = tempRegexTrigger(
   "^([\\w\\-\\s,']+) is shocked by a",
   function()
     if not (MyDSL and MyDSL.parseCombatProcLine) then return end
     MyDSL.parseCombatProcLine("L", "unknown", normalizeKey(matches[2]))
+    gagIfCombatGagged()
   end)
 
 -- H: Vampiric
@@ -1988,12 +2005,14 @@ MyDSL._triggers.procVampDraw = tempRegexTrigger(
     local aKey = (matches[2] == "You" or matches[2]:lower() == "you") and "you" or normalizeKey(stripQuotes(matches[2]))
     local tKey = matches[3]:lower() == "you" and "you" or normalizeKey(stripQuotes(matches[3]))
     MyDSL.parseCombatProcLine("H", aKey, tKey)
+    gagIfCombatGagged()
   end)
 MyDSL._triggers.procVampDrain = tempRegexTrigger(
   "^You feel ([\\w\\-\\s,']+) drawing your life away",
   function()
     if not (MyDSL and MyDSL.parseCombatProcLine) then return end
     MyDSL.parseCombatProcLine("H", normalizeKey(matches[2]), "you")
+    gagIfCombatGagged()
   end)
 
 -- S: Stunning
@@ -2002,6 +2021,7 @@ MyDSL._triggers.procStun = tempRegexTrigger(
   function()
     if not (MyDSL and MyDSL.parseCombatProcLine) then return end
     MyDSL.parseCombatProcLine("S", normalizeKey(stripQuotes(matches[3])), normalizeKey(stripQuotes(matches[2])))
+    gagIfCombatGagged()
   end)
 
 -- M: Mana drain
@@ -2010,6 +2030,7 @@ MyDSL._triggers.procManaSelf = tempRegexTrigger(
   function()
     if not (MyDSL and MyDSL.parseCombatProcLine) then return end
     MyDSL.parseCombatProcLine("M", "unknown", "you")
+    gagIfCombatGagged()
   end)
 MyDSL._triggers.procManaDraw = tempRegexTrigger(
   "^([\\w\\-\\s,']+) draws energy from ([\\w\\-\\s,']+)\\.$",
@@ -2018,6 +2039,7 @@ MyDSL._triggers.procManaDraw = tempRegexTrigger(
     local aKey = (matches[2] == "You" or matches[2]:lower() == "you") and "you" or normalizeKey(matches[2])
     local tKey = matches[3]:lower() == "you" and "you" or normalizeKey(matches[3])
     MyDSL.parseCombatProcLine("M", aKey, tKey)
+    gagIfCombatGagged()
   end)
 
 -- O: Holy
@@ -2026,12 +2048,14 @@ MyDSL._triggers.procHolyWrath = tempRegexTrigger(
   function()
     if not (MyDSL and MyDSL.parseCombatProcLine) then return end
     MyDSL.parseCombatProcLine("O", normalizeKey(matches[2]), "you")
+    gagIfCombatGagged()
   end)
 MyDSL._triggers.procHolyFlash = tempRegexTrigger(
   "^A flash of holy power erupts from ([\\w\\-\\s,']+) and hits ([\\w\\-\\s,']+)!$",
   function()
     if not (MyDSL and MyDSL.parseCombatProcLine) then return end
     MyDSL.parseCombatProcLine("O", normalizeKey(matches[2]), normalizeKey(matches[3]))
+    gagIfCombatGagged()
   end)
 
 -- U: Unholy
@@ -2040,6 +2064,7 @@ MyDSL._triggers.procUnholy = tempRegexTrigger(
   function()
     if not (MyDSL and MyDSL.parseCombatProcLine) then return end
     MyDSL.parseCombatProcLine("U", normalizeKey(matches[2]), "you")
+    gagIfCombatGagged()
   end)
 
 -- Sharp: TODO — no confirmed trigger text observed in any log to date
@@ -2054,6 +2079,7 @@ MyDSL._triggers.procPoisonSetup = tempRegexTrigger(
     -- just mark a P proc for whoever coated the weapon
     local aKey = (matches[2] == "You" or matches[2]:lower() == "you") and "you" or normalizeKey(matches[2])
     MyDSL.parseCombatProcLine("P", aKey, nil)
+    gagIfCombatGagged()
   end)
 MyDSL._triggers.procPoisonOnset = tempRegexTrigger(
   "^([\\w\\-\\s,']+) is poisoned by the venom on ([\\w\\-\\s,']+)\\.$",
@@ -2061,6 +2087,7 @@ MyDSL._triggers.procPoisonOnset = tempRegexTrigger(
     if not (MyDSL and MyDSL.parseCombatProcLine) then return end
     local tKey = matches[2]:lower() == "you" and "you" or normalizeKey(matches[2])
     MyDSL.parseCombatProcLine("P", "unknown", tKey)
+    gagIfCombatGagged()
   end)
 MyDSL._triggers.procPoisonTick = tempRegexTrigger(
   "^([\\w\\-\\s,']+) shivers and suffers\\.$",
@@ -2068,6 +2095,7 @@ MyDSL._triggers.procPoisonTick = tempRegexTrigger(
     if not (MyDSL and MyDSL.parseCombatProcLine) then return end
     local tKey = matches[2]:lower() == "you" and "you" or normalizeKey(matches[2])
     MyDSL.parseCombatProcLine("P", "unknown", tKey)
+    gagIfCombatGagged()
   end)
 
 -- ---- Round-flush handler -------------------------------------------
