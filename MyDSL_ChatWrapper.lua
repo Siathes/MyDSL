@@ -25,7 +25,9 @@
     - Keeps normal EMCO append API.
     - Does NOT install chat capture triggers.
     - Does NOT route channels.
-    - Does NOT disable stock EMCO triggers.
+    - Does NOT disable stock EMCO triggers, EXCEPT "emco update" (2026-07-05:
+      confirmed live self-uninstaller, disabled as a safety exception -- see
+      disableEmcoUpdateAlias()).
     - Does NOT use Geyser.changeContainer.
     - Does NOT dock/move EMCOPrebuiltChatContainer.
     - Does NOT use EMCO mapTab.
@@ -636,10 +638,25 @@ function C.installAliases()
   C.aliasesInstalled = true
 end
 
+-- Neutralize EMCO's own "emco update" alias -- confirmed live in this
+-- profile's native alias tree (current/autosave.xml), it silently
+-- uninstalls EMCOChat and reinstalls a vanilla copy from GitHub, wiping any
+-- of our customization. Disabled rather than killed outright so it's still
+-- visible/inspectable in the Alias Manager if ever needed, just inert.
+-- Only exception to this file's "does NOT disable stock EMCO triggers"
+-- design note -- self-update is a safety issue, not a feature choice.
+local function disableEmcoUpdateAlias()
+  local ok, id = pcall(exists, "emco update", "alias")
+  if ok and id and id ~= 0 then
+    pcall(disableAlias, id)
+  end
+end
+
 function C.install()
   C.loadSettings()
   C.installAliases()
   C.ensureWindow()
+  disableEmcoUpdateAlias()
 
   if C.config.rebuildOnLoad then
     C.startupSync()

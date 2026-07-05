@@ -73,6 +73,53 @@ Still genuinely unconfirmed/unresolved (not new, carried forward):
       first mob of opposing alignment if one is visible; otherwise fall back
       to the first mob not in your own group. Design idea, not yet scoped.
 
+## OPEN — Command-surface retrofit (queued for after Steven's combat-pass testing, 2026-07-05)
+
+Core mandate restated by Steven: reuse PNP/EMCO's actual command vocabulary,
+not just their internal logic, so migrating from PNP/EMCO doesn't mean
+learning new commands. See `docs/MyDSL_MudletAPIReference.md`'s "Reuse
+PNP/EMCO's actual command vocabulary" note and
+[[project_reuse_pnp_emco_philosophy]] for full rationale. Steven wants
+commands short/efficient/clear — rejected the idea of just prefixing
+everything with `mydsl` as inefficient.
+
+**Already done (safe, low-risk, didn't need to wait):**
+- [x] Neutralized EMCO's live self-updater alias (`emco update` — was doing
+      `uninstallPackage("EMCOChat")` + reinstall from GitHub, confirmed live
+      in `current/autosave.xml`). Disabled (not deleted) via
+      `MyDSL_ChatWrapper.lua`'s new `disableEmcoUpdateAlias()`, called from
+      `C.install()` every load.
+- Deliberately NOT touched: `generic_mapper`'s own internal
+  `uninstallPackage("generic_mapper")` call — buried deep inside its
+  vendored "Map Script" blob, not an isolated alias like EMCO's; mapper work
+  is already separately deferred (see DESIGN section below). Also not
+  touched: Mudlet's own built-in "mudlet accessibility reader" alias —
+  unrelated to this project.
+
+**Held until after Steven's combat-pass testing (his call, 2026-07-05):**
+- [ ] `toggle <module>` — PNP's real universal on/off alias is already live
+      (`raiseEvent("onToggle", module, option)`). CombatView/AffectsView/
+      MoonWeather should hook this same event instead of registering
+      competing `mydsl combat gag`/`mydsl affects show`/`mydsl moon toggle`
+      aliases. Proposed: `toggle combat`, `toggle affects`, `toggle moons`.
+- [ ] `emco <verb>` — EMCO's own native aliases (`emco show/hide/font/gag/...`)
+      are already live and reach the same `demonnic.chat` object our
+      ChatWrapper wraps. Our custom `mydsl chat show/hide/font/...` aliases
+      are likely fully redundant once confirmed, not just renamed —
+      candidate for deletion, not just a rename.
+- [ ] Combat's extra sub-toggles (`show_miss`/`show_evade`/`show_flag`/
+      `show_condition`) have no PNP alias equivalent (PNP only exposes these
+      via editing its config table directly) — keep a short bespoke form,
+      e.g. `combat show miss` instead of `mydsl combat show miss`.
+- [ ] Scan/Target/Group/CreatureReference are net-new (no PNP equivalent
+      feature at all) — keep bespoke commands, just trim the `mydsl` prefix,
+      e.g. `target mobset` instead of `mydsl target mobset`.
+- Scope: touches ChatWrapper, CombatView, AffectsView, MoonWeather at
+  minimum — multiple already-working, already-tested modules. Do this as
+  its own deliberate pass, not mixed into other fixes.
+
+---
+
 ## OPEN — From Steven's 2026-07-05 live-test session (notes_utf8.txt)
 
 First live-combat confirmation of the 2026-07-05 CombatView fixes: fight

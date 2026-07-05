@@ -208,3 +208,40 @@ directly before concluding something is rare or nonexistent, especially for anyt
 critical (trigger patterns, capture-group identity). This is the same category of mistake as trusting
 a contract summary over PNP's source — a derived artifact can silently omit exactly the thing you're
 trying to verify.
+
+---
+
+## CONFIRMED: Reuse PNP/EMCO's actual command vocabulary, not just their internal logic
+
+**Source:** Steven, 2026-07-05. Restated after reporting he'd repeatedly had to push back on Claude.ai
+recreating PNP/EMCO functionality from scratch instead of reusing it — the same failure mode as the
+evasion-trigger bug above, just at the command-surface level instead of a single trigger pattern.
+
+**The gap this is meant to catch:** "port PNP/EMCO's logic" is not the same thing as "port PNP/EMCO's
+commands." Confirmed on the first pass: EMCO's real, documented alias surface (from
+`EMCO-2.9.0/src/aliases/EMCO/aliases.json` in the full archive at `~/Downloads/EMCO-2.9.0.zip`) is:
+
+```
+emco (save|load|font|fontSize|blink|blankLine|timestamp|show|hide) [value]
+emco gag <tab>          emco ungag <tab>          emco gaglist
+emco notify <tab>       emco unnotify <tab>
+emco addtab <name> [pos]   emco remtab <tab>
+emco color <tab> <color>   emco color               (usage)
+emco title <text>
+emco lock                emco unlock
+emco update               -- SELF-UPDATER, do not port: uninstallPackage() +
+                              reinstall from GitHub releases
+```
+
+But `MyDSL_ChatWrapper.lua` built an entirely separate `mydsl chat
+show/hide/font/wrap/timestamp/save/reload settings/...` vocabulary instead of just calling into EMCO's
+own aliases. Functionally fine, but it means a PNP/EMCO user migrating to this UI has to learn a
+second, parallel command set for functionality EMCO already named — exactly what Steven's mandate
+prohibits.
+
+**Rule:** before adding an alias for something PNP or EMCO already exposes a command for, check its
+actual alias/command names (grep `PNP files/*.lua` for `dslpnp.triggers.register`/alias patterns;
+check `EMCO-2.9.0.zip`'s `aliases.json` for EMCO's) and reuse that vocabulary directly rather than
+inventing a `mydsl <module> <verb>` equivalent. Internal implementation can and should still be adapted
+for our window system (Geyser.UserWindow vs PNP's windowManager) and data layer (GMCP vs text-parsing)
+— it's the user-facing command names that need to match, not the code underneath them.

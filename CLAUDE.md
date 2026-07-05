@@ -63,6 +63,22 @@ into wrong regex instead of PNP's tested source being copied directly).
 - Every display module is optional / toggleable.
 - All window positions: percentages, never hardcoded pixels (this is a
   confirmed past bug — see MyDSL_Audit.md item 9 in docs/ if present).
+- **Reuse PNP/EMCO source and their command vocabulary — don't reinvent.**
+  Restated 2026-07-05 after Steven reported having to repeatedly fight
+  Claude.ai's tendency to recreate PNP/EMCO functionality from scratch
+  instead of reusing it. This applies at two levels: (1) internal logic —
+  when PNP/EMCO already solved something, port the actual tested code,
+  adapted for our window system/data layer; (2) **command surface** — reuse
+  PNP's/EMCO's existing alias vocabulary as-is wherever possible, so someone
+  migrating from PNP/EMCO doesn't have to learn new commands. Kill their own
+  updater/self-maintenance mechanisms when porting (e.g. EMCO's `emco
+  update` alias does `uninstallPackage()` + reinstall from GitHub — must not
+  survive into our copy). GMCP should be used wherever it covers the same
+  ground as a text trigger. Full rationale: `docs/MyDSL_MudletAPIReference.md`.
+  Confirmed violation found immediately on first audit: `MyDSL_ChatWrapper.lua`
+  invented `mydsl chat show/hide/font/...` instead of reusing EMCO's own
+  `emco show/hide/font/...` — see `docs/TODO.md` for the full command-surface
+  gap inventory as it's built out.
 
 ## Character-binding — confirmed status as of 2026-07-05 audit
 Correctly character-bound: DataLayer's `MyDSL.Data[charName]` persistent
