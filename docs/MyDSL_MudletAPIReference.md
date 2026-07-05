@@ -122,3 +122,38 @@ Room order = top-to-bottom order in scan/look output.
 `State.scan.rightHere[key].count` tracks how many are in the current room.
 These counts, combined with ordinal syntax (`N.keyword`), are the inputs for a
 future Combat-window target-disambiguation feature. Not implemented yet.
+
+---
+
+## CONFIRMED: Mudlet Lua version — no goto/::label:: (Lua 5.1 / LuaJIT)
+
+**Source:** Mudlet 4.20.1 embeds LuaJIT, which implements Lua 5.1 semantics.
+
+`goto` and `::label::` were added in Lua **5.2** and are **not available** in Mudlet's Lua.
+Any file using them will throw a **syntax error at `dofile()` time** — not a runtime error.
+The file never loads at all; nothing inside it runs.
+
+### Pattern to use instead of `goto continue`
+
+Replace continue-style early exits in loops with a local helper function and `return`:
+
+```lua
+-- WRONG (Lua 5.2+ only — syntax error in Mudlet):
+for _, item in pairs(list) do
+  if skip_condition then goto continue end
+  -- ...work...
+  ::continue::
+end
+
+-- CORRECT (Lua 5.1 compatible):
+local function processItem(item)
+  if skip_condition then return end
+  -- ...work...
+end
+for _, item in pairs(list) do
+  processItem(item)
+end
+```
+
+This is the same category of "habit from another language/version that silently breaks in Mudlet"
+as the Lua-pattern-vs-PCRE confusion — captured here so it doesn't recur in future modules.

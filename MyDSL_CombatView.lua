@@ -81,6 +81,67 @@ end
 -- Called every round via "MyDSL.combat.updated". Receives the round_data
 -- snapshot that DataLayer passed at the moment of flush.
 
+-- Lua 5.1 (LuaJIT) has no goto/::label:: — use local function + return
+-- instead of continue-style early exits in loops.
+local function renderRoundEntry(mc, rd)
+  local aKey = rd.attacker or "?"
+  local tKey = rd.target   or "?"
+  local noun = rd.noun     or "?"
+  local verb = rd.derived_verb or "miss"
+
+  -- Apply config filters.
+  if verb == "miss" and not CV.config.show_miss then return end
+  if noun == "(evade)" and not CV.config.show_evade then return end
+  if aKey == "you" and not CV.config.show_damage_by_me then return end
+  if tKey == "you" and not CV.config.show_damage_to_me then return end
+
+  -- Build the line.
+  local aColor = attackerColor(aKey)
+  local vColor = (tKey == "you") and "204,68,68" or "68,204,68"
+  if verb == "miss" or noun == "(evade)" then vColor = "136,136,136" end
+
+  local brk    = VERB_BRACKETS[verb]
+  local verbTxt
+  if brk and brk.things then
+    verbTxt = string.format("does %s things to", verb)
+  elseif brk then
+    verbTxt = brk.pre .. verb .. brk.suf
+  else
+    verbTxt = verb
+  end
+
+  -- Flag tags for this round entry (from active entry if available).
+  local flagStr = ""
+  if CV.config.show_flag and rd.flags then
+    for code, cnt in pairs(rd.flags) do
+      local tag = FLAG_TAGS[code] or code
+      flagStr = flagStr .. string.format(" <255,215,65>%s%s<r>",
+        tag, cnt > 1 and "×" .. cnt or "")
+    end
+  end
+
+  -- Also check lore for vulnerability cross-reference.
+  if CV.config.show_flag and rd.flags and next(rd.flags) then
+    local lore = MyDSL.State and MyDSL.State.creaturelore
+    if lore and lore.key and tKey == lore.key then
+      -- creaturelore doesn't currently parse resistances/vulnerabilities as
+      -- structured fields — just store the note for future use when it does.
+    end
+  end
+
+  local line = string.format(
+    "<%s>%s<r> → <%s>%s<r> (%s): <%s>%s<r>%s (%d/%d)\n",
+    aColor, aKey,
+    "204,204,204", tKey,
+    noun,
+    vColor, verbTxt,
+    flagStr,
+    rd.hits or 0, rd.swings or 0)
+
+  mc:decho(line)
+  if CV.config.echo_to_main then decho(line) end
+end
+
 function CV.render(roundData)
   local mc = CV._mc and CV._mc.combat
   if not mc then return end
@@ -89,65 +150,7 @@ function CV.render(roundData)
   if not roundData or not next(roundData) then return end
 
   for _, rd in pairs(roundData) do
-    local aKey = rd.attacker or "?"
-    local tKey = rd.target   or "?"
-    local noun = rd.noun     or "?"
-    local verb = rd.derived_verb or "miss"
-
-    -- Apply config filters.
-    if verb == "miss" and not CV.config.show_miss then goto continue end
-    if noun == "(evade)" and not CV.config.show_evade then goto continue end
-    if aKey == "you" and not CV.config.show_damage_by_me then goto continue end
-    if tKey == "you" and not CV.config.show_damage_to_me then goto continue end
-
-    -- Build the line.
-    local aColor = attackerColor(aKey)
-    local vColor = (tKey == "you") and "204,68,68" or "68,204,68"
-    if verb == "miss" or noun == "(evade)" then vColor = "136,136,136" end
-
-    local brk    = VERB_BRACKETS[verb]
-    local verbTxt
-    if brk and brk.things then
-      verbTxt = string.format("does %s things to", verb)
-    elseif brk then
-      verbTxt = brk.pre .. verb .. brk.suf
-    else
-      verbTxt = verb
-    end
-
-    -- Flag tags for this round entry (from active entry if available).
-    local flagStr = ""
-    if CV.config.show_flag and rd.flags then
-      for code, cnt in pairs(rd.flags) do
-        local tag = FLAG_TAGS[code] or code
-        flagStr = flagStr .. string.format(" <255,215,65>%s%s<r>",
-          tag, cnt > 1 and "×" .. cnt or "")
-      end
-    end
-
-    -- Also check lore for vulnerability cross-reference.
-    local loreNote = ""
-    if CV.config.show_flag and rd.flags and next(rd.flags) then
-      local lore = MyDSL.State and MyDSL.State.creaturelore
-      if lore and lore.key and tKey == lore.key then
-        -- creaturelore doesn't currently parse resistances/vulnerabilities as
-        -- structured fields — just store the note for future use when it does.
-      end
-    end
-
-    local line = string.format(
-      "<%s>%s<r> → <%s>%s<r> (%s): <%s>%s<r>%s (%d/%d)\n",
-      aColor, aKey,
-      "204,204,204", tKey,
-      noun,
-      vColor, verbTxt,
-      flagStr,
-      rd.hits or 0, rd.swings or 0)
-
-    mc:decho(line)
-    if CV.config.echo_to_main then decho(line) end
-
-    ::continue::
+    renderRoundEntry(mc, rd)
   end
 end
 
