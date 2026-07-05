@@ -608,6 +608,25 @@ MyDSL.parseCombatProcLine(line)  -- Flaming/Frost/Shocking/Vampiric/Poison confi
 
 ---
 
+## Window logging (2026-07-05)
+
+Mudlet's `startLogging()` only ever captures the main console — confirmed
+there is no built-in way to log a MiniConsole/UserWindow's content at all
+(see `MyDSL_MudletAPIReference.md`). Every `mc:decho()`/`mc:dechoLink()` call
+in this module now routes through a local `mcLog()`/`mcLog()` wrapper that
+also calls `MyDSL.logWindow("combat", text)` (defined in DataLayer), which
+mirrors the same text into `MyDSL/logs/combat/<YYYY-MM-DD>.log` (plain text,
+decho color tags stripped, one file per day). RightHere/Group/Target got the
+same treatment the same day — see their own contracts.
+
+```lua
+MyDSL.logWindow(category, text)  -- DataLayer, Section 2. category is the
+                                  -- MyDSL/logs/ subdirectory name (combat,
+                                  -- righthere, group, target, chat, events, raw)
+```
+
+---
+
 ## Event Subscriptions
 
 ```lua

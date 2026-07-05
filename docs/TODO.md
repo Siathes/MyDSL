@@ -83,8 +83,21 @@ All fixed in code, none yet live-tested:
       confirmed by checking the session that had a screenshot proving the
       fight-summary rendered correctly at that exact moment (zero log
       matches for that text, ever). See
-      `MyDSL_MudletAPIReference.md`'s new note. Screenshots remain the only
-      way to confirm window display; logs confirm raw text/trigger firing.
+      `MyDSL_MudletAPIReference.md`'s new note. Screenshots were the only way
+      to confirm window display **until now**:
+- [x] **Fixed 2026-07-05** — Steven asked whether we could make the Combat
+      window (and others) log, since Mudlet's `startLogging()` can't. Checked
+      the Mudlet manual/wiki via search: confirmed no built-in per-window
+      logging exists. Added `MyDSL.logWindow(category, text)` in DataLayer
+      (Section 2) — mirrors any `mc:decho()`/`mc:dechoLink()` call into
+      `MyDSL/logs/<category>/<YYYY-MM-DD>.log` (plain text, color tags
+      stripped, one file per day). Wired into CombatView (`combat`),
+      ScanView's RightHere render (`righthere`), GroupView (`group`), and
+      TargetView (`target`) — every window-write in all four now logs. This
+      also gives a real way to test the itemstats-interference concern above
+      going forward: compare `MyDSL/logs/combat/` against the raw main-console
+      log for the same moment to see if a proc/damage line silently failed
+      to register.
 
 Still genuinely unconfirmed/unresolved (not new, carried forward):
 - [ ] **Self-condition never registers** — DSL phrases your own condition in

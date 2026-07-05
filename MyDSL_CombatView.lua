@@ -84,6 +84,14 @@ local function attackerColor(aKey)
   end
 end
 
+-- Writes to the window AND mirrors into MyDSL/logs/combat/ (2026-07-05:
+-- Mudlet's startLogging() can't capture MiniConsole content at all, so this
+-- is the only way to get combat-window text into a file for later review).
+local function mcLog(mc, text)
+  mc:decho(text)
+  if MyDSL.logWindow then MyDSL.logWindow("combat", text) end
+end
+
 
 ------------------------------------------------------------------------
 -- render()  —  redraws the round log from the latest round_data
@@ -148,7 +156,7 @@ local function renderRoundEntry(mc, rd)
     flagStr,
     rd.hits or 0, rd.swings or 0)
 
-  mc:decho(line)
+  mcLog(mc, line)
 end
 
 function CV.render(roundData)
@@ -174,13 +182,13 @@ function CV.renderSummary(snapshot)
 
   local display = snapshot.target_display or "?"
   local hdr = string.format("<255,204,68>── Fight summary: %s ──<r>\n", display)
-  mc:decho(hdr)
+  mcLog(mc, hdr)
 
   for aKey, weapons in pairs(snapshot.by_attacker or {}) do
     for noun, nd in pairs(weapons) do
       if noun == "(evade)" then
         if CV.config.show_evade then
-          mc:decho(string.format("  <136,136,136>%s evaded %s (%d times)<r>\n",
+          mcLog(mc, string.format("  <136,136,136>%s evaded %s (%d times)<r>\n",
             display, aKey, nd.swings or 0))
         end
       else
@@ -189,7 +197,7 @@ function CV.renderSummary(snapshot)
         local misses = nd.misses or 0
         local pct    = swings > 0 and math.floor(hits * 100 / swings) or 0
         local pctC   = hitRateColor(pct)
-        mc:decho(string.format(
+        mcLog(mc, string.format(
           "  <204,204,204>%s (%s):<r> %d hits, %d miss  <<%s>%d%%<r> landed)\n",
           noun, aKey, hits, misses, pctC, pct))
         -- Proc sub-lines
@@ -197,7 +205,7 @@ function CV.renderSummary(snapshot)
           for code, cnt in pairs(nd.flags or {}) do
             local tag = FLAG_TAGS[code] or code
             local procPct = hits > 0 and math.floor(cnt * 100 / hits) or 0
-            mc:decho(string.format(
+            mcLog(mc, string.format(
               "    <255,215,65>%s %s procs: %d/%d (%d%%)<r>\n",
               tag, code, cnt, hits, procPct))
           end
@@ -208,9 +216,9 @@ function CV.renderSummary(snapshot)
 
   local cond = snapshot.target_condition or "unknown"
   if CV.config.show_condition then
-    mc:decho(string.format("  <136,136,136>Condition when fight ended: %s<r>\n", cond))
+    mcLog(mc, string.format("  <136,136,136>Condition when fight ended: %s<r>\n", cond))
   end
-  mc:decho("<255,204,68>────────────────────────────────────<r>\n")
+  mcLog(mc, "<255,204,68>────────────────────────────────────<r>\n")
 end
 
 
@@ -221,7 +229,7 @@ end
 function CV.renderRage(dmg, vamp)
   local mc = CV._mc and CV._mc.combat
   if not mc then return end
-  mc:decho(string.format(
+  mcLog(mc, string.format(
     "<255,68,68>⚠ RAGE<r>  dmg≈%.0f  vamp≈%.0f\n", dmg or 0, vamp or 0))
 end
 

@@ -35,6 +35,17 @@ TV.config = TV.config or {
 local TARGET_WIN = "MyDSL_Target"
 local TARGET_MC  = "MyDSL_Target_MC"
 
+-- Mirrors the Target window's text into MyDSL/logs/target/ (2026-07-05:
+-- Mudlet's startLogging() can't capture MiniConsole content at all).
+local function tvLog(mc, text)
+  mc:decho(text)
+  if MyDSL.logWindow then MyDSL.logWindow("target", text) end
+end
+local function tvLogLink(mc, text, cmd, hint, underline)
+  mc:dechoLink(text, cmd, hint, underline)
+  if MyDSL.logWindow then MyDSL.logWindow("target", text) end
+end
+
 -- Config persistence path -- character-bound as of 2026-07-05 (was a single
 -- shared file; different characters may want different default buttons).
 -- Same charName()/safeFileName() pattern as MyDSL_AffectsView.lua.
@@ -295,15 +306,15 @@ function TV.render()
   -- Line 1: [M]/[P] toggle + name
   local type_tag   = (t and t.is_mob) and "M" or "P"
   local type_color = (t and t.is_mob) and "204,136,68" or "136,170,255"
-  mc:dechoLink(string.format("<%s>[%s]<r>", type_color, type_tag),
+  tvLogLink(mc, string.format("<%s>[%s]<r>", type_color, type_tag),
     "MyDSL.Target.toggle()", "Switch mob/player mode", false)
 
   if not t or not t.name then
-    mc:decho(" <85,85,85>(no target)<r>\n")
+    tvLog(mc, " <85,85,85>(no target)<r>\n")
   else
-    mc:decho(" ")
-    mc:dechoLink("<170,68,68>[Clear]<r>", "MyDSL.Target.clear()", "Clear target", false)
-    mc:decho(string.format(" <255,255,255>%s<r>\n", t.name))
+    tvLog(mc, " ")
+    tvLogLink(mc, "<170,68,68>[Clear]<r>", "MyDSL.Target.clear()", "Clear target", false)
+    tvLog(mc, string.format(" <255,255,255>%s<r>\n", t.name))
   end
 
   -- Lines 2-3: 6 action buttons
@@ -317,18 +328,18 @@ function TV.render()
         if act then
           local btn_text = string.format("<%s>[%s]<r>", act.color, act.label)
           if col < 3 then btn_text = btn_text .. " " end
-          mc:dechoLink(btn_text,
+          tvLogLink(mc, btn_text,
             string.format("MyDSL.Target.doAction('%s')", key),
             act.tooltip .. ": " .. t.name, false)
         end
       end
-      mc:decho("\n")
+      tvLog(mc, "\n")
     end
   end
 
   -- Line 4+: consider output (dim grey, cleared on target change)
   for _, line in ipairs(TV._consider_lines) do
-    mc:decho(string.format("<136,136,136>%s<r>\n", line))
+    tvLog(mc, string.format("<136,136,136>%s<r>\n", line))
   end
 end
 

@@ -29,6 +29,17 @@ local RH_WIN      = "MyDSL_RightHere"
 local SCAN_MC     = "MyDSL_Scan_MC"
 local RH_MC       = "MyDSL_RightHere_MC"
 
+-- Mirrors RightHere's window text into MyDSL/logs/righthere/ (2026-07-05:
+-- Mudlet's startLogging() can't capture MiniConsole content at all).
+local function rhLog(mc, text)
+  mc:decho(text)
+  if MyDSL.logWindow then MyDSL.logWindow("righthere", text) end
+end
+local function rhLogLink(mc, text, cmd, hint, underline)
+  mc:dechoLink(text, cmd, hint, underline)
+  if MyDSL.logWindow then MyDSL.logWindow("righthere", text) end
+end
+
 
 ------------------------------------------------------------------------
 -- renderRightHere()  —  redraws the MyDSL_RightHere window
@@ -42,13 +53,13 @@ function SV.renderRightHere()
   mc:clear()
   local scan = MyDSL.State and MyDSL.State.scan
   if not scan or not scan.rightHere then
-    mc:decho("\n<128,128,128>Right Here: (empty)\n")
+    rhLog(mc, "\n<128,128,128>Right Here: (empty)\n")
     return
   end
-  mc:decho("<136,136,136>Right Here:\n<r>")
+  rhLog(mc, "<136,136,136>Right Here:\n<r>")
 
   if not next(scan.rightHere) then
-    mc:decho("<68,68,68>  (empty)\n<r>")
+    rhLog(mc, "<68,68,68>  (empty)\n<r>")
     return
   end
 
@@ -64,7 +75,7 @@ function SV.renderRightHere()
       'if MyDSL and MyDSL.Target then MyDSL.Target.set("%s", %s, "righthereclick") end',
       safe_name, tostring(entry.is_mob))
     local hint = "Click to target: " .. entry.display
-    mc:dechoLink(text, cmd, hint, true)
+    rhLogLink(mc, text, cmd, hint, true)
   end
 end
 

@@ -30,6 +30,17 @@ GV.config.quickActions = GV.config.quickActions or {"heal", "rescue"}
 local GROUP_WIN = "MyDSL_Group"
 local GROUP_MC  = "MyDSL_Group_MC"
 
+-- Mirrors the Group window's text into MyDSL/logs/group/ (2026-07-05:
+-- Mudlet's startLogging() can't capture MiniConsole content at all).
+local function gvLog(mc, text)
+  mc:decho(text)
+  if MyDSL.logWindow then MyDSL.logWindow("group", text) end
+end
+local function gvLogLink(mc, text, cmd, hint, underline)
+  mc:dechoLink(text, cmd, hint, underline)
+  if MyDSL.logWindow then MyDSL.logWindow("group", text) end
+end
+
 
 ------------------------------------------------------------------------
 -- hpColor(pct)  —  returns decho RGB string for an HP percentage
@@ -68,19 +79,19 @@ function GV.render()
 
   local grp = MyDSL.State and MyDSL.State.group
   if not grp or not grp.members or #grp.members == 0 then
-    mc:decho("<85,85,85>(no group)\n")
+    gvLog(mc, "<85,85,85>(no group)\n")
     return
   end
 
   for idx, m in ipairs(grp.members) do
     -- Class tag: Mob gets dim yellow, all other classes get blue.
     local tag_color = (m.class == "Mob") and "136,136,68" or "68,136,204"
-    mc:decho(string.format("<%s>[%-3s]<r> ", tag_color, m.class))
+    gvLog(mc, string.format("<%s>[%-3s]<r> ", tag_color, m.class))
 
     -- Name: clickable to set Target; mobs warm tan, players near-white; max 20 chars.
     local name_color = m.is_mob and "204,170,100" or "204,204,204"
     local display_name = m.name:sub(1, 20)
-    mc:dechoLink(
+    gvLogLink(mc,
       string.format("<%s>%-20s<r>", name_color, display_name),
       string.format("MyDSL.GroupView.setTarget(%d)", idx),
       "Click to target: " .. m.name,
@@ -88,11 +99,11 @@ function GV.render()
 
     -- HP percentage — always shown, colored by threshold.
     local hp_c = hpColor(m.hp_pct)
-    mc:decho(string.format(" <%s>%3d%%hp<r>", hp_c, m.hp_pct))
+    gvLog(mc, string.format(" <%s>%3d%%hp<r>", hp_c, m.hp_pct))
 
     -- Mana and move percentages — always shown.
-    mc:decho(string.format(" <68,136,204>%3d%%mn<r>", m.mana_pct))
-    mc:decho(string.format(" <136,204,136>%3d%%mv<r>", m.mv_pct))
+    gvLog(mc, string.format(" <68,136,204>%3d%%mn<r>", m.mana_pct))
+    gvLog(mc, string.format(" <136,204,136>%3d%%mv<r>", m.mv_pct))
 
     -- Quick-action buttons — reuse TV.actions entries.
     -- Exception: rescue is skipped for Mob rows — DSL rescue only works player→player
@@ -105,7 +116,7 @@ function GV.render()
         local act = MyDSL.TargetView and MyDSL.TargetView.actions
                     and MyDSL.TargetView.actions[key]
         if act then
-          mc:dechoLink(
+          gvLogLink(mc,
             string.format(" <%s>[%s]<r>", act.color, act.label),
             string.format("MyDSL.GroupView.quickAction(%d, '%s')", idx, key),
             act.tooltip .. ": " .. m.name,
@@ -114,7 +125,7 @@ function GV.render()
       end
     end
 
-    mc:decho("\n")
+    gvLog(mc, "\n")
   end
 end
 

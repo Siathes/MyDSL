@@ -25,6 +25,37 @@ MyDSL = MyDSL or {}
 local function now()    return os.time() end
 local function trim(s)  return s and s:match("^%s*(.-)%s*$") or "" end
 
+-- Strips decho/cecho inline color tags ("<r,g,b>"/"<r>") for a clean
+-- plain-text log line.
+local function stripColorTags(s)
+  return (s or ""):gsub("<%d+,%d+,%d+>", ""):gsub("<r>", "")
+end
+
+-- Per-window plain-text logging. Confirmed 2026-07-05 (see
+-- MyDSL_MudletAPIReference.md): Mudlet's startLogging() only ever captures
+-- the main console -- there is no built-in way to log a MiniConsole/
+-- UserWindow's content. This mirrors whatever a module writes to its own
+-- window into a same-day file under MyDSL/logs/<category>/ (already
+-- gitignored -- runtime data, not source, and git doesn't track empty dirs
+-- so a fresh checkout won't have these -- lfs.mkdir() below handles that,
+-- same pattern as MyDSL_AffectsView.lua/MyDSL_ChatWrapper.lua). One file
+-- per day, so it rotates naturally instead of growing forever.
+function MyDSL.logWindow(category, text)
+  if not category or not text or text == "" then return end
+  local dir  = getMudletHomeDir() .. "/MyDSL/logs/" .. category
+  -- mkdir -p equivalent: lfs.mkdir only makes one level, so try os.execute
+  -- too for the full path in case MyDSL/logs/ itself doesn't exist yet
+  -- (fresh checkout -- git doesn't track empty dirs). Same dual approach as
+  -- MyDSL_ChatWrapper.lua's ensureDir().
+  if lfs and lfs.mkdir then pcall(lfs.mkdir, dir) end
+  if os and os.execute then pcall(os.execute, "mkdir -p " .. string.format("%q", dir)) end
+  local path = dir .. "/" .. os.date("%Y-%m-%d") .. ".log"
+  local f = io.open(path, "a")
+  if not f then return end
+  f:write(os.date("%H:%M:%S") .. "  " .. stripColorTags(text) .. "\n")
+  f:close()
+end
+
 
 ------------------------------------------------------------------------
 -- SECTION 3: STATE TABLE
