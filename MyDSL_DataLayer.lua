@@ -1395,17 +1395,6 @@ local function stripQuotes(s)
   return (s or ""):gsub('"', "")
 end
 
-local function isRelevant(aKey, tKey)
-  if aKey == "you" or tKey == "you" then return true end
-  local grp = MyDSL.State.group and MyDSL.State.group.members
-  if not grp then return false end
-  for _, m in ipairs(grp) do
-    local mk = normalizeKey(m.name)
-    if aKey == mk or tKey == mk then return true end
-  end
-  return false
-end
-
 -- Weapon-flag proc lines often name the weapon wielding a flag, not the
 -- wielder (e.g. "A grand arcanium hoopak draws life from Kien.") -- we
 -- can't resolve an arbitrary weapon name back to its wielder from text
@@ -1462,7 +1451,11 @@ function MyDSL.parseCombatDamageLine(attacker, noun, verb, target, punct)
                or normalizeKey(attacker)
   local tKey = (target:lower() == "you") and "you" or normalizeKey(target)
 
-  if not isRelevant(aKey, tKey) then return end
+  -- No relevance filter, matching PNP: it tracks every combat line it sees
+  -- unfiltered, relying on DSL only ever showing you combat in your own
+  -- vicinity (which naturally includes group members fighting nearby).
+  -- Confirmed 2026-07-05 -- our own isRelevant() filter was an unnecessary
+  -- restriction PNP never had.
 
   local score = SEVERITY_SCORE[verb] or 0
   local entry = ensureActive(tKey, target)
@@ -1528,7 +1521,7 @@ function MyDSL.parseCombatAvoidLine(evader, verb, attacker)
     aKey = "unknown"
   end
 
-  if not isRelevant(eKey, aKey) then return end
+  -- No relevance filter here either, same reasoning as parseCombatDamageLine.
 
   local entry = ensureActive(eKey, evader)
   entry.by_attacker[aKey] = entry.by_attacker[aKey] or {}

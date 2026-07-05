@@ -20,18 +20,28 @@ CV._handlers = {}
 CV._aliases  = {}
 CV._mc       = CV._mc or {}   -- persists across reloads
 
--- Config table (all defaults match PNP's tested surface).
--- Out-of-box: raw combat lines are gagged and echoed to the combat window only.
--- Use "mydsl combat show <key>" to opt individual categories back in.
+-- Config table. Redesigned 2026-07-05 to match PNP's actual tested behavior
+-- (DSL_PNP_Battle.lua handle_damage(): every non-miss damage line gets an
+-- UNCONDITIONAL live echo into the battle window, regardless of any show_*
+-- flag -- those flags only ever gated the *main console* copy in PNP, never
+-- the battle window itself). Ours now works the same way:
+--   - gag_combat = true (default): raw line deleted from main console;
+--     always shown, live, in the Combat window -- no per-category opt-in
+--     needed for damage.
+--   - gag_combat = false: raw line left completely untouched in main
+--     console (no reformatted duplicate added -- "echo_to_main" removed,
+--     it doesn't fit this model).
+--   - show_miss / show_evade: still opt-in for the Combat window itself,
+--     matching PNP (misses are never in its live feed at all; evasion is
+--     tracked but never streamed live either, only in round/fight summaries).
+--   - show_flag / show_condition: unchanged, still opt-in.
+-- Use "mydsl combat show <key>" / "mydsl combat hide <key>" to toggle.
 CV.config = CV.config or {}
-if CV.config.show_damage_by_me  == nil then CV.config.show_damage_by_me  = false end
-if CV.config.show_damage_to_me  == nil then CV.config.show_damage_to_me  = false end
-if CV.config.show_miss          == nil then CV.config.show_miss          = false end
-if CV.config.show_evade         == nil then CV.config.show_evade         = false end
-if CV.config.show_flag          == nil then CV.config.show_flag          = false end
-if CV.config.show_condition     == nil then CV.config.show_condition     = false end
-if CV.config.echo_to_main       == nil then CV.config.echo_to_main       = true  end
-if CV.config.gag_combat         == nil then CV.config.gag_combat         = true  end
+if CV.config.show_miss           == nil then CV.config.show_miss           = false end
+if CV.config.show_evade          == nil then CV.config.show_evade          = false end
+if CV.config.show_flag           == nil then CV.config.show_flag           = false end
+if CV.config.show_condition      == nil then CV.config.show_condition      = false end
+if CV.config.gag_combat          == nil then CV.config.gag_combat          = true  end
 
 -- Window / MiniConsole name constants.
 local COMBAT_WIN = "MyDSL_Combat"
@@ -89,11 +99,11 @@ local function renderRoundEntry(mc, rd)
   local noun = rd.noun     or "?"
   local verb = rd.derived_verb or "miss"
 
-  -- Apply config filters.
+  -- Apply config filters. Damage itself (not a miss, not an evade entry) is
+  -- always shown in the Combat window, unconditionally -- matching PNP,
+  -- which never gated its battle-window echo on who the attacker/target was.
   if verb == "miss" and not CV.config.show_miss then return end
   if noun == "(evade)" and not CV.config.show_evade then return end
-  if aKey == "you" and not CV.config.show_damage_by_me then return end
-  if tKey == "you" and not CV.config.show_damage_to_me then return end
 
   -- Build the line.
   local aColor = attackerColor(aKey)
@@ -139,7 +149,6 @@ local function renderRoundEntry(mc, rd)
     rd.hits or 0, rd.swings or 0)
 
   mc:decho(line)
-  if CV.config.echo_to_main then decho(line) end
 end
 
 function CV.render(roundData)

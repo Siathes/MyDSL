@@ -24,8 +24,10 @@ TV._mc       = TV._mc or {}   -- persists to avoid duplicate MiniConsole creatio
 TV._consider_lines = {}       -- cleared on target change, appended by captureConsider
 
 -- Config with defaults; loadConfig() may override these from disk.
+-- order_attack ("Order All") made a default 2026-07-05 per Steven -- was
+-- opt-in only; swapped in for "glance" (redundant with consider/look).
 TV.config = TV.config or {
-  mob_buttons    = { "murder", "glance", "consider", "creaturelore", "rescue", "flee" },
+  mob_buttons    = { "murder", "consider", "order_attack", "creaturelore", "rescue", "flee" },
   player_buttons = { "murder", "glance", "rescue", "look", "heal", "flee" },
 }
 
@@ -33,8 +35,29 @@ TV.config = TV.config or {
 local TARGET_WIN = "MyDSL_Target"
 local TARGET_MC  = "MyDSL_Target_MC"
 
--- Config persistence path.
-local CONFIG_FILE = getMudletHomeDir() .. "/MyDSL/targetview_config.lua"
+-- Config persistence path -- character-bound as of 2026-07-05 (was a single
+-- shared file; different characters may want different default buttons).
+-- Same charName()/safeFileName() pattern as MyDSL_AffectsView.lua.
+local function charName()
+  if gmcp and gmcp.login_data and gmcp.login_data.name and gmcp.login_data.name ~= "" then
+    return tostring(gmcp.login_data.name)
+  end
+  if MyCore and MyCore.getChar then
+    local ok, name = pcall(MyCore.getChar)
+    if ok and name and name ~= "" then return tostring(name) end
+  end
+  return "Unknown"
+end
+
+local function safeFileName(s)
+  s = tostring(s or "Unknown"):gsub("[^%w_%-%.]+", "_"):gsub("^_+", ""):gsub("_+$", "")
+  if s == "" then s = "Unknown" end
+  return s
+end
+
+local function configFile()
+  return getMudletHomeDir() .. "/MyDSL/targetview_config_" .. safeFileName(charName()) .. ".lua"
+end
 
 
 ------------------------------------------------------------------------
@@ -188,7 +211,7 @@ TV.actions = {
 ------------------------------------------------------------------------
 
 local function loadConfig()
-  local ok, data = pcall(table.load, CONFIG_FILE)
+  local ok, data = pcall(table.load, configFile())
   if ok and type(data) == "table" then
     if type(data.mob_buttons) == "table" and #data.mob_buttons == 6 then
       TV.config.mob_buttons = data.mob_buttons
@@ -200,7 +223,7 @@ local function loadConfig()
 end
 
 local function saveConfig()
-  pcall(table.save, CONFIG_FILE, TV.config)
+  pcall(table.save, configFile(), TV.config)
 end
 
 

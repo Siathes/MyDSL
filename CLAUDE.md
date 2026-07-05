@@ -67,13 +67,13 @@ into wrong regex instead of PNP's tested source being copied directly).
 ## Character-binding — confirmed status as of 2026-07-05 audit
 Correctly character-bound: DataLayer's `MyDSL.Data[charName]` persistent
 store, per-character affects files (`MyDSL/affects/<Name>.lua`), PromptView
-(`MyDSL/prompt_<charName>.lua`).
+(`MyDSL/prompt_<charName>.lua`), TargetView button config
+(`MyDSL/targetview_config_<CharName>.lua`, fixed 2026-07-05 — was shared).
 
 **Not character-bound, but should be** (open bugs, tracked in `docs/TODO.md`):
 LayoutEngine window positions (`MyDSL_layout.lua`, single shared file),
 WindowRegistry visibility state (`MyDSL_windowstate.lua`, single shared
-file), TargetView button config (`MyDSL/targetview_config.lua`, single
-shared file), ChatWrapper settings (`chat_settings.lua`, single shared file).
+file), ChatWrapper settings (`chat_settings.lua`, single shared file).
 
 **Not character-bound, intentionally** (recorded decision): ThemeEngine —
 themes are user-creatable named presets, shared across all characters.

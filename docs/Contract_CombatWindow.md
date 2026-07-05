@@ -51,31 +51,30 @@ prompt trigger.** Do not guess the event name — confirm it directly in the fil
 
 ---
 
-## Scope filter — whose combat gets condensed
+## Scope filter — REMOVED 2026-07-05, tracks everything now (deliberate, matches PNP)
 
-DSL's room-wide combat broadcast includes fights that have nothing to do with
-you (confirmed live in the archive: `A boar's charge misses a liger cub.` —
-an ambient NPC fight nowhere near Kien). CombatView must **ignore lines where
-neither party is you nor a current group member**:
+**Reversed from the original design.** CombatView used to filter out any
+combat line where neither side was you nor a current group member (an
+`isRelevant()` gate), justified by a real confirmed example of ambient noise:
+`A boar's charge misses a liger cub.` — an NPC fight nowhere near Kien.
 
-```lua
--- A line is "yours" if either side normalizes to you, or matches a key
--- currently present in MyDSL.State.group.members (same normalization as
--- GroupView/ScanView: lowercase, strip leading a/an/the).
-local function isRelevant(attackerKey, targetKey)
-  if attackerKey == "you" or targetKey == "you" then return true end
-  local grp = MyDSL.State.group and MyDSL.State.group.members
-  if not grp then return false end
-  for _, m in ipairs(grp) do
-    local mkey = m.name:lower():gsub("^[Aa]n? ", ""):gsub("^[Tt]he ", "")
-    if attackerKey == mkey or targetKey == mkey then return true end
-  end
-  return false
-end
-```
+Steven asked (2026-07-05) for group-members' own fights to show up in
+CombatView, and pointed at PNP as the reference implementation to trust
+rather than re-derive. Reading `DSL_PNP_Battle.lua`'s `handle_damage()`
+directly: **PNP has no relevance filter at all.** It calls `add_battle_data()`
+unconditionally for whatever attacker/target its regex captured — every
+combat line DSL shows you gets tracked, full stop. PNP relies entirely on
+DSL's own broadcast rules (you only see combat in your immediate vicinity)
+rather than filtering client-side.
 
-This reuses the exact key-normalization convention already established in
-`ScanView`/`GroupView` — no new pattern invented here.
+`isRelevant()` has been removed from `parseCombatDamageLine()` and
+`parseCombatAvoidLine()` to match. **Known, accepted tradeoff:** ambient
+bystander fights like the boar/liger-cub example above will track again too
+— there's no way to get "your group's fights" without also getting "any
+fight DSL happens to show you," since PNP doesn't distinguish the two
+either. If this turns out to be too noisy in practice, the fix would be a
+new, narrower filter (not a revert to the old blanket `isRelevant()`) —
+not yet needed, unconfirmed whether it's actually a problem live.
 
 ---
 
@@ -566,19 +565,31 @@ MyDSL.CombatView.render()    -- redraw round log from this round's derived lines
 MyDSL.CombatView.renderSummary(snapshot)  -- render one fight-summary block
 MyDSL.CombatView.renderRage(dmg, vamp)    -- render/update the live rage-mode indicator
 MyDSL.CombatView.config = {
-  -- Out-of-box: raw combat lines are gagged; condensed lines go to the
-  -- combat window only (not echoed to main). Use "mydsl combat show <key>"
-  -- to opt individual categories back into the round log.
-  -- Corrected from earlier draft — all show_* default false matches PNP's
-  -- actual tested behavior (display is opt-in, not opt-out).
-  show_damage_by_me   = false,
-  show_damage_to_me    = false,
-  show_miss            = false,
+  -- Redesigned 2026-07-05 to match PNP's actual tested behavior, confirmed
+  -- by reading DSL_PNP_Battle.lua's handle_damage() directly: every non-miss
+  -- damage line gets an UNCONDITIONAL live echo into the battle window --
+  -- none of PNP's show_* flags ever gated its battle window, only the main
+  -- console copy. Earlier drafts had this backwards (all show_* gating the
+  -- Combat window itself, which meant nothing but fight-summaries ever
+  -- appeared there by default — confirmed live, flagged by Steven 2026-07-05).
+  --
+  -- Current model:
+  --   gag_combat = true (default): raw line deleted from main console;
+  --     Combat window always shows damage live, no opt-in needed.
+  --   gag_combat = false: raw line left completely untouched in main
+  --     console -- no reformatted duplicate is ever added there.
+  --   show_miss / show_evade: still opt-in for the Combat window, matching
+  --     PNP (misses never appear in its live feed at all; evasion is
+  --     tracked but never streamed live either, only in summaries).
+  --   show_flag / show_condition: unchanged, still opt-in.
+  --
+  -- show_damage_by_me / show_damage_to_me / echo_to_main REMOVED -- they
+  -- don't fit this model (window is unconditional for damage; main is
+  -- purely gag-or-untouched, never a reformatted duplicate).
+  show_miss             = false,
   show_evade            = false,
   show_flag             = false,  -- weapon-flag proc tags
   show_condition        = false,  -- opponent condition-ladder line
-  echo_to_main          = true,   -- echo condensed round line to main console
-                                  -- (matches PNP "prints to both" behavior)
   gag_combat            = true,   -- gag DSL's raw combat lines from main
                                   -- console (PNP default; player can ungag
                                   -- with "mydsl combat ungag")
@@ -618,9 +629,11 @@ mydsl combat clear     → manually clear State.combat.active and round_data
                          e.g. you logged out mid-fight and it never got a
                          death/flee/rescue line to close it out)
 mydsl combat history   → print the last N fight summaries again on demand
-mydsl combat gag       → set config.gag_combat = true (hide raw combat
-                         spam from main console, condensed log only)
-mydsl combat ungag     → set config.gag_combat = false (default)
+mydsl combat gag       → set config.gag_combat = true (default -- hide raw
+                         combat spam from main console; Combat window
+                         still shows it live regardless)
+mydsl combat ungag     → set config.gag_combat = false (raw combat lines
+                         left completely untouched in main console)
 mydsl combat show <k>  → set config.show_<k> = true, one of the boolean
                          keys listed in the config table above
 mydsl combat hide <k>  → set config.show_<k> = false
