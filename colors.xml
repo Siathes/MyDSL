@@ -1,0 +1,4904 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE MudletPackage>
+<MudletPackage version="1.001">
+	<TriggerPackage>
+		<TriggerGroup isActive="yes" isFolder="yes" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+			<name>People</name>
+			<script></script>
+			<triggerType>0</triggerType>
+			<conditonLineDelta>0</conditonLineDelta>
+			<mStayOpen>0</mStayOpen>
+			<mCommand></mCommand>
+			<packageName></packageName>
+			<mFgColor>#ff0000</mFgColor>
+			<mBgColor>#ffff00</mBgColor>
+			<mSoundFile></mSoundFile>
+			<colorTriggerFgColor>#000000</colorTriggerFgColor>
+			<colorTriggerBgColor>#000000</colorTriggerBgColor>
+			<regexCodeList />
+			<regexCodePropertyList />
+			<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="yes" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+				<name>you</name>
+				<script></script>
+				<triggerType>0</triggerType>
+				<conditonLineDelta>0</conditonLineDelta>
+				<mStayOpen>0</mStayOpen>
+				<mCommand></mCommand>
+				<packageName></packageName>
+				<mFgColor>#ffffff</mFgColor>
+				<mBgColor>#000000</mBgColor>
+				<mSoundFile></mSoundFile>
+				<colorTriggerFgColor>#000000</colorTriggerFgColor>
+				<colorTriggerBgColor>#000000</colorTriggerBgColor>
+				<regexCodeList>
+					<string>\b(you)\b</string>
+				</regexCodeList>
+				<regexCodePropertyList>
+					<integer>1</integer>
+				</regexCodePropertyList>
+			</Trigger>
+			<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+				<name>Friends</name>
+				<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+
+  for i = 1, #name do
+    local color
+
+    if i % 5 == 1 then
+      color = {255, 120, 200} -- bright rose-pink
+    elseif i % 5 == 2 then
+      color = {220, 90, 255} -- magenta-purple
+    elseif i % 5 == 3 then
+      color = {255, 170, 215} -- soft pink
+    elseif i % 5 == 4 then
+      color = {190, 130, 255} -- lavender
+    else
+      color = {255, 185, 150} -- warm peach highlight
+    end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+				<triggerType>0</triggerType>
+				<conditonLineDelta>0</conditonLineDelta>
+				<mStayOpen>0</mStayOpen>
+				<mCommand></mCommand>
+				<packageName></packageName>
+				<mFgColor>#ff0000</mFgColor>
+				<mBgColor>#ffff00</mBgColor>
+				<mSoundFile></mSoundFile>
+				<colorTriggerFgColor>#000000</colorTriggerFgColor>
+				<colorTriggerBgColor>#000000</colorTriggerBgColor>
+				<regexCodeList>
+					<string>\b(Friendname|Otherfriend|Anotherfriend)\b</string>
+					<string>\b(Meki)\b</string>
+					<string>\b(Laiton)\b</string>
+				</regexCodeList>
+				<regexCodePropertyList>
+					<integer>0</integer>
+					<integer>1</integer>
+					<integer>1</integer>
+				</regexCodePropertyList>
+			</Trigger>
+			<TriggerGroup isActive="yes" isFolder="yes" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+				<name>Remort Name Colors</name>
+				<script></script>
+				<triggerType>0</triggerType>
+				<conditonLineDelta>0</conditonLineDelta>
+				<mStayOpen>0</mStayOpen>
+				<mCommand></mCommand>
+				<packageName></packageName>
+				<mFgColor>#ff0000</mFgColor>
+				<mBgColor>#ffff00</mBgColor>
+				<mSoundFile></mSoundFile>
+				<colorTriggerFgColor>#000000</colorTriggerFgColor>
+				<colorTriggerBgColor>#000000</colorTriggerBgColor>
+				<regexCodeList />
+				<regexCodePropertyList />
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Crystal</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+
+  for i = 1, #name do
+    local color
+
+if i % 5 == 1 then
+  color = {255, 255, 255}
+elseif i % 5 == 2 then
+  color = {170, 230, 255}
+elseif i % 5 == 3 then
+  color = {90, 200, 255}
+elseif i % 5 == 4 then
+  color = {230, 250, 255}
+else
+  color = {70, 190, 255}
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Crystal)\b</string>
+						<string>\b(Crystl Dra)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Crystal Names</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+
+  for i = 1, #name do
+    local color
+
+if i % 5 == 1 then
+  color = {255, 255, 255}
+elseif i % 5 == 2 then
+  color = {170, 230, 255}
+elseif i % 5 == 3 then
+  color = {90, 200, 255}
+elseif i % 5 == 4 then
+  color = {230, 250, 255}
+else
+  color = {70, 190, 255}
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Qinrathaz)\b</string>
+						<string>\b(Vaelis)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Black</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+
+  for i = 1, #name do
+    local color
+
+if i % 4 == 1 then
+  color = {110, 110, 110}
+elseif i % 4 == 2 then
+  color = {55, 55, 55}
+elseif i % 4 == 3 then
+  color = {150, 150, 150}
+else
+  color = {25, 25, 25}
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Black Dra)\b</string>
+						<string>\b(Black)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Black Names</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+
+  for i = 1, #name do
+    local color
+
+if i % 4 == 1 then
+  color = {110, 110, 110}
+elseif i % 4 == 2 then
+  color = {55, 55, 55}
+elseif i % 4 == 3 then
+  color = {150, 150, 150}
+else
+  color = {25, 25, 25}
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Vael'Zorath)\b</string>
+						<string>\b(Zecnys)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Blue</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+
+  for i = 1, #name do
+    local color
+
+if i % 4 == 1 then
+  color = {0, 80, 255}
+elseif i % 4 == 2 then
+  color = {0, 170, 255}
+elseif i % 4 == 3 then
+  color = {90, 210, 255}
+else
+  color = {0, 40, 180}
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Blue Dra)\b</string>
+						<string>\b(Blue)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Blue Names</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+
+  for i = 1, #name do
+    local color
+
+if i % 4 == 1 then
+  color = {0, 80, 255}
+elseif i % 4 == 2 then
+  color = {0, 170, 255}
+elseif i % 4 == 3 then
+  color = {90, 210, 255}
+else
+  color = {0, 40, 180}
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Rimunath)\b</string>
+						<string>\b(Sidorinath)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Green</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+
+  for i = 1, #name do
+    local color
+
+if i % 4 == 1 then
+  color = {0, 170, 60}
+elseif i % 4 == 2 then
+  color = {60, 255, 100}
+elseif i % 4 == 3 then
+  color = {0, 120, 40}
+else
+  color = {130, 255, 150}
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Green Dra)\b</string>
+						<string>\b(Green)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Green Names</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+
+  for i = 1, #name do
+    local color
+
+if i % 4 == 1 then
+  color = {0, 170, 60}
+elseif i % 4 == 2 then
+  color = {60, 255, 100}
+elseif i % 4 == 3 then
+  color = {0, 120, 40}
+else
+  color = {130, 255, 150}
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(NameOne|NameTwo|NameThree)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>0</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Red</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+
+  for i = 1, #name do
+    local color
+
+if i % 4 == 1 then
+  color = {255, 40, 20}
+elseif i % 4 == 2 then
+  color = {170, 0, 0}
+elseif i % 4 == 3 then
+  color = {255, 100, 70}
+else
+  color = {220, 20, 20}
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Red Dra)\b</string>
+						<string>\b(Red)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Red Names</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+
+  for i = 1, #name do
+    local color
+
+if i % 4 == 1 then
+  color = {255, 40, 20}
+elseif i % 4 == 2 then
+  color = {170, 0, 0}
+elseif i % 4 == 3 then
+  color = {255, 100, 70}
+else
+  color = {220, 20, 20}
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(NameOne|NameTwo|NameThree)\b</string>
+						<string>\b(Carionmaw)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>0</integer>
+						<integer>0</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>White</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+
+  for i = 1, #name do
+    local color
+
+if i % 4 == 1 then
+  color = {255, 255, 255}
+elseif i % 4 == 2 then
+  color = {210, 230, 255}
+elseif i % 4 == 3 then
+  color = {180, 205, 235}
+else
+  color = {235, 245, 255}
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(White Dra)\b</string>
+						<string>\b(White)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>White Names</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+
+  for i = 1, #name do
+    local color
+
+if i % 4 == 1 then
+  color = {255, 255, 255}
+elseif i % 4 == 2 then
+  color = {210, 230, 255}
+elseif i % 4 == 3 then
+  color = {180, 205, 235}
+else
+  color = {235, 245, 255}
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Ude)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Brass</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+
+  for i = 1, #name do
+    local color
+
+if i % 4 == 1 then
+  color = {210, 165, 45}
+elseif i % 4 == 2 then
+  color = {245, 210, 85}
+elseif i % 4 == 3 then
+  color = {165, 125, 30}
+else
+  color = {225, 180, 55}
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Brass Dra)\b</string>
+						<string>\b(Brass)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Brass Names</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+
+  for i = 1, #name do
+    local color
+
+if i % 4 == 1 then
+  color = {210, 165, 45}
+elseif i % 4 == 2 then
+  color = {245, 210, 85}
+elseif i % 4 == 3 then
+  color = {165, 125, 30}
+else
+  color = {225, 180, 55}
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Brasmankai)\b</string>
+						<string>\b(Kinrithlir)\b</string>
+						<string>\b(Solivar)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Bronze</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+
+  for i = 1, #name do
+    local color
+
+if i % 4 == 1 then
+  color = {150, 95, 45}
+elseif i % 4 == 2 then
+  color = {95, 65, 35}
+elseif i % 4 == 3 then
+  color = {190, 125, 60}
+else
+  color = {120, 80, 40}
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Bronze Dra)\b</string>
+						<string>\b(Bronze)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>0</integer>
+						<integer>0</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Bronze Names</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+
+  for i = 1, #name do
+    local color
+
+if i % 4 == 1 then
+  color = {150, 95, 45}
+elseif i % 4 == 2 then
+  color = {95, 65, 35}
+elseif i % 4 == 3 then
+  color = {190, 125, 60}
+else
+  color = {120, 80, 40}
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(NameOne|NameTwo|NameThree)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>0</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Copper</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+
+  for i = 1, #name do
+    local color
+
+if i % 4 == 1 then
+  color = {255, 115, 35}
+elseif i % 4 == 2 then
+  color = {210, 70, 25}
+elseif i % 4 == 3 then
+  color = {255, 160, 85}
+else
+  color = {180, 55, 20}
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Copper Dra)\b</string>
+						<string>\b(Copper)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Copper Names</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+
+  for i = 1, #name do
+    local color
+
+if i % 4 == 1 then
+  color = {255, 115, 35}
+elseif i % 4 == 2 then
+  color = {210, 70, 25}
+elseif i % 4 == 3 then
+  color = {255, 160, 85}
+else
+  color = {180, 55, 20}
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Uriol)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Gold</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+
+  for i = 1, #name do
+    local color
+
+if i % 4 == 1 then
+  color = {255, 215, 0}
+elseif i % 4 == 2 then
+  color = {255, 240, 90}
+elseif i % 4 == 3 then
+  color = {210, 150, 0}
+else
+  color = {255, 185, 20}
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Gold Dra)\b</string>
+						<string>\b(Gold)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Gold Names</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+
+  for i = 1, #name do
+    local color
+
+if i % 4 == 1 then
+  color = {255, 215, 0}
+elseif i % 4 == 2 then
+  color = {255, 240, 90}
+elseif i % 4 == 3 then
+  color = {210, 150, 0}
+else
+  color = {255, 185, 20}
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Bahamut)\b</string>
+						<string>\b(Pythaerae)\b</string>
+						<string>\b(Gabrielle)\b</string>
+						<string>\b(Agapitos)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Silver</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+
+  for i = 1, #name do
+    local color
+
+if i % 4 == 1 then
+  color = {245, 245, 245}
+elseif i % 4 == 2 then
+  color = {180, 190, 200}
+elseif i % 4 == 3 then
+  color = {220, 225, 230}
+else
+  color = {135, 145, 155}
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Silver Dra)\b</string>
+						<string>\b(Silver)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Silver Names</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+
+  for i = 1, #name do
+    local color
+
+if i % 4 == 1 then
+  color = {245, 245, 245}
+elseif i % 4 == 2 then
+  color = {180, 190, 200}
+elseif i % 4 == 3 then
+  color = {220, 225, 230}
+else
+  color = {135, 145, 155}
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Ariaenys)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Brown</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+
+  for i = 1, #name do
+    local color
+
+if i % 4 == 1 then
+  color = {145, 85, 35}
+elseif i % 4 == 2 then
+  color = {95, 55, 25}
+elseif i % 4 == 3 then
+  color = {185, 120, 60}
+else
+  color = {120, 75, 35}
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Brown Dra)\b</string>
+						<string>\b(Brown)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Brown Names</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+
+  for i = 1, #name do
+    local color
+
+if i % 4 == 1 then
+  color = {145, 85, 35}
+elseif i % 4 == 2 then
+  color = {95, 55, 25}
+elseif i % 4 == 3 then
+  color = {185, 120, 60}
+else
+  color = {120, 75, 35}
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Vharyzathrxa)\b</string>
+						<string>\b(Ryzzynth)\b</string>
+						<string>\b(Akhmenzar)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Steel</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+
+  for i = 1, #name do
+    local color
+
+if i % 4 == 1 then
+  color = {110, 130, 145}
+elseif i % 4 == 2 then
+  color = {165, 185, 200}
+elseif i % 4 == 3 then
+  color = {75, 95, 115}
+else
+  color = {205, 220, 230}
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Steel Dra)\b</string>
+						<string>\b(Steel)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Steel Names</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+
+  for i = 1, #name do
+    local color
+
+if i % 4 == 1 then
+  color = {110, 130, 145}
+elseif i % 4 == 2 then
+  color = {165, 185, 200}
+elseif i % 4 == 3 then
+  color = {75, 95, 115}
+else
+  color = {205, 220, 230}
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Ruaqheix)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="yes" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Topaz</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+
+  for i = 1, #name do
+    local color
+
+if i % 4 == 1 then
+  color = {255, 205, 70}
+elseif i % 4 == 2 then
+  color = {0, 100, 0} --{255, 155, 35}
+elseif i % 4 == 3 then
+  color = {255, 235, 120}
+else
+  color = {210, 115, 20}
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>transparent</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Topaz Dra)\b</string>
+						<string>\b(Topaz)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="yes" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Topaz Names</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+
+  for i = 1, #name do
+    local color
+
+if i % 4 == 1 then
+  color = {255, 205, 70}
+elseif i % 4 == 2 then
+  color = {0, 100, 0} --{255, 155, 35}
+elseif i % 4 == 3 then
+  color = {255, 235, 120}
+else
+  color = {210, 115, 20}
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>transparent</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Balerian)\b</string>
+						<string>\b(Zyralith)\b</string>
+						<string>\b(Talarien)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="yes" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Dragon</name>
+					<script></script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#00ff00</mFgColor>
+					<mBgColor>#000000</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>[Dd]ragon</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="yes" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Dragon</name>
+					<script></script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#00ff00</mFgColor>
+					<mBgColor>#000000</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Dra)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Angel</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+
+  for i = 1, #name do
+    local color
+
+if i % 5 == 1 then
+  color = {255, 255, 255} -- pure white wing
+elseif i % 5 == 2 then
+  color = {255, 235, 130} -- soft divine gold
+elseif i % 5 == 3 then
+  color = {210, 235, 255} -- pale celestial blue
+elseif i % 5 == 4 then
+  color = {255, 250, 210} -- warm white-gold
+else
+  color = {180, 220, 255} -- sky-lit feather blue
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(NameOne|NameTwo|NameThree)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>0</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Angel Names</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+
+  for i = 1, #name do
+    local color
+
+if i % 5 == 1 then
+  color = {255, 255, 255} -- pure white wing
+elseif i % 5 == 2 then
+  color = {255, 235, 130} -- soft divine gold
+elseif i % 5 == 3 then
+  color = {210, 235, 255} -- pale celestial blue
+elseif i % 5 == 4 then
+  color = {255, 250, 210} -- warm white-gold
+else
+  color = {180, 220, 255} -- sky-lit feather blue
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(NameOne|NameTwo|NameThree)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>0</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Demon</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+
+  for i = 1, #name do
+    local color
+
+if i % 5 == 1 then
+  color = {150, 0, 0} -- blood red
+elseif i % 5 == 2 then
+  color = {45, 45, 45} -- blackened skin
+elseif i % 5 == 3 then
+  color = {255, 45, 20} -- ember red
+elseif i % 5 == 4 then
+  color = {90, 0, 0} -- dark crimson
+else
+  color = {180, 70, 40} -- burnt hellfire
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(NameOne|NameTwo|NameThree)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>0</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Demon Names</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+
+  for i = 1, #name do
+    local color
+
+if i % 5 == 1 then
+  color = {150, 0, 0} -- blood red
+elseif i % 5 == 2 then
+  color = {45, 45, 45} -- blackened skin
+elseif i % 5 == 3 then
+  color = {255, 45, 20} -- ember red
+elseif i % 5 == 4 then
+  color = {90, 0, 0} -- dark crimson
+else
+  color = {180, 70, 40} -- burnt hellfire
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(NameOne|NameTwo|NameThree)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>0</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Balanx</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+
+  for i = 1, #name do
+    local color
+
+if i % 5 == 1 then
+  color = {80, 170, 255} -- blue skin
+elseif i % 5 == 2 then
+  color = {40, 220, 220} -- insect-wing teal
+elseif i % 5 == 3 then
+  color = {120, 120, 255} -- strange indigo
+elseif i % 5 == 4 then
+  color = {170, 230, 255} -- pale wing-glint
+else
+  color = {35, 110, 200} -- deep watcher blue
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Balanx])\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Balanx Names</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+
+  for i = 1, #name do
+    local color
+
+if i % 5 == 1 then
+  color = {80, 170, 255} -- blue skin
+elseif i % 5 == 2 then
+  color = {40, 220, 220} -- insect-wing teal
+elseif i % 5 == 3 then
+  color = {120, 120, 255} -- strange indigo
+elseif i % 5 == 4 then
+  color = {170, 230, 255} -- pale wing-glint
+else
+  color = {35, 110, 200} -- deep watcher blue
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Zyphros)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Frost Giant</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+
+  for i = 1, #name do
+    local color
+
+    -- palette block goes here
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(NameOne|NameTwo|NameThree)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>0</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Frost Giant Names</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+
+  for i = 1, #name do
+    local color
+
+    -- palette block goes here
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(NameOne|NameTwo|NameThree)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>0</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Cloud Giant</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+
+  for i = 1, #name do
+    local color
+
+if i % 5 == 1 then
+  color = {230, 240, 255} -- cloud white
+elseif i % 5 == 2 then
+  color = {150, 175, 205} -- storm grey-blue
+elseif i % 5 == 3 then
+  color = {190, 215, 240} -- mist blue
+elseif i % 5 == 4 then
+  color = {115, 135, 165} -- darker cloud shadow
+else
+  color = {245, 245, 245} -- pale vapor
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(NameOne|NameTwo|NameThree)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>0</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Cloud Giant Names</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+
+  for i = 1, #name do
+    local color
+
+if i % 5 == 1 then
+  color = {230, 240, 255} -- cloud white
+elseif i % 5 == 2 then
+  color = {150, 175, 205} -- storm grey-blue
+elseif i % 5 == 3 then
+  color = {190, 215, 240} -- mist blue
+elseif i % 5 == 4 then
+  color = {115, 135, 165} -- darker cloud shadow
+else
+  color = {245, 245, 245} -- pale vapor
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Tarsok)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Fire Giant</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+
+  for i = 1, #name do
+    local color
+
+if i % 5 == 1 then
+  color = {255, 90, 20} -- flame orange
+elseif i % 5 == 2 then
+  color = {180, 30, 0} -- hot red
+elseif i % 5 == 3 then
+  color = {255, 170, 40} -- molten yellow-orange
+elseif i % 5 == 4 then
+  color = {80, 45, 35} -- coal-dark
+else
+  color = {230, 70, 10} -- lava red-orange
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(NameOne|NameTwo|NameThree)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>0</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Fire Giant Names</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+
+  for i = 1, #name do
+    local color
+
+if i % 5 == 1 then
+  color = {255, 90, 20} -- flame orange
+elseif i % 5 == 2 then
+  color = {180, 30, 0} -- hot red
+elseif i % 5 == 3 then
+  color = {255, 170, 40} -- molten yellow-orange
+elseif i % 5 == 4 then
+  color = {80, 45, 35} -- coal-dark
+else
+  color = {230, 70, 10} -- lava red-orange
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Dravak)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+			</TriggerGroup>
+			<TriggerGroup isActive="yes" isFolder="yes" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+				<name>Titles</name>
+				<script></script>
+				<triggerType>0</triggerType>
+				<conditonLineDelta>0</conditonLineDelta>
+				<mStayOpen>0</mStayOpen>
+				<mCommand></mCommand>
+				<packageName></packageName>
+				<mFgColor>#ff0000</mFgColor>
+				<mBgColor>#ffff00</mBgColor>
+				<mSoundFile></mSoundFile>
+				<colorTriggerFgColor>#000000</colorTriggerFgColor>
+				<colorTriggerBgColor>#000000</colorTriggerBgColor>
+				<regexCodeList />
+				<regexCodePropertyList />
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Royalty</name>
+					<script>local title = matches[2]
+local line = getCurrentLine()
+local start = line:find(title, 1, true)
+
+if start then
+  local mudletStart = start - 1
+  local len = #title
+
+  -- Royal purple -&gt; gold
+  --local primary   = {105, 40, 210}
+  --local secondary = {255, 220, 45}
+  --local primary   = {180, 20, 40}
+  --local secondary = {230, 180, 70}
+  local primary   = {80, 90, 220}
+  local secondary = {245, 215, 120}
+  --local primary   = {155, 70, 255}
+  --local secondary = {255, 215, 65}
+
+  for i = 1, len do
+    local ratio = 0
+
+    if len &gt; 1 then
+      ratio = (i - 1) / (len - 1)
+    end
+
+    local r = math.floor(primary[1] + (secondary[1] - primary[1]) * ratio)
+    local g = math.floor(primary[2] + (secondary[2] - primary[2]) * ratio)
+    local b = math.floor(primary[3] + (secondary[3] - primary[3]) * ratio)
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(r, g, b)
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#55007f</mFgColor>
+					<mBgColor>#000000</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Queen)\b</string>
+						<string>\b(Count)\b</string>
+						<string>\b(Princess)\b</string>
+						<string>\b(Empress)\b</string>
+						<string>\b(Sultan)\b</string>
+						<string>\b(Watcher)\b</string>
+						<string>\b(Thane)\b</string>
+						<string>\b(Member)\b</string>
+						<string>\b(Regent)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Military</name>
+					<script>local title = matches[2]
+local line = getCurrentLine()
+local start = line:find(title, 1, true)
+
+if start then
+  local mudletStart = start - 1
+  local len = #title
+
+  -- Royal purple -&gt; gold
+--    local primary   = {190, 25, 40}
+--  local secondary = {230, 180, 70}
+  --local primary   = {105, 40, 210}
+  --local secondary = {255, 220, 45}
+local primary   = {180, 20, 40}
+local secondary = {230, 180, 70}
+  --local primary   = {80, 90, 220}
+  --local secondary = {245, 215, 120}
+  --local primary   = {155, 70, 255}
+  --local secondary = {255, 215, 65}
+
+  for i = 1, len do
+    local ratio = 0
+
+    if len &gt; 1 then
+      ratio = (i - 1) / (len - 1)
+    end
+
+    local r = math.floor(primary[1] + (secondary[1] - primary[1]) * ratio)
+    local g = math.floor(primary[2] + (secondary[2] - primary[2]) * ratio)
+    local b = math.floor(primary[3] + (secondary[3] - primary[3]) * ratio)
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(r, g, b)
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#55007f</mFgColor>
+					<mBgColor>#000000</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Queensguard)\b</string>
+						<string>\b(Nameless)\b</string>
+						<string>\b(Knight)\b</string>
+						<string>\b(Dread Pirate)\b</string>
+						<string>\b(Blood Rager)\b</string>
+						<string>\b(Huntress)\b</string>
+						<string>\b(Vengeant)\b</string>
+						<string>\b(Devourer)\b</string>
+						<string>\b(General)\b</string>
+						<string>\b(Dark_Knight:Legion)\b</string>
+						<string>\b(Aboleth)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Politics</name>
+					<script>local title = matches[2]
+local line = getCurrentLine()
+local start = line:find(title, 1, true)
+
+if start then
+  local mudletStart = start - 1
+  local len = #title
+
+  -- Religious alignment gradient:
+  -- Good white -&gt; Neutral red -&gt; Evil dark grey
+  local good    = {195, 195, 0}--{255, 255, 255}
+  local neutral = {220, 98, 76}--{220, 35, 35}
+  local evil    = {65, 65, 65}
+
+  for i = 1, len do
+    local ratio = 0
+
+    if len &gt; 1 then
+      ratio = (i - 1) / (len - 1)
+    end
+
+    local r, g, b
+
+    if ratio &lt;= 0.5 then
+      -- first half: white -&gt; red
+      local subratio = ratio / 0.5
+
+      r = math.floor(good[1] + (neutral[1] - good[1]) * subratio)
+      g = math.floor(good[2] + (neutral[2] - good[2]) * subratio)
+      b = math.floor(good[3] + (neutral[3] - good[3]) * subratio)
+    else
+      -- second half: red -&gt; dark grey
+      local subratio = (ratio - 0.5) / 0.5
+
+      r = math.floor(neutral[1] + (evil[1] - neutral[1]) * subratio)
+      g = math.floor(neutral[2] + (evil[2] - neutral[2]) * subratio)
+      b = math.floor(neutral[3] + (evil[3] - neutral[3]) * subratio)
+    end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(r, g, b)
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#55007f</mFgColor>
+					<mBgColor>#dc624c</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Senator)\b</string>
+						<string>\b(Citizen)\b</string>
+						<string>\b(Follower)\b</string>
+						<string>\b(Zealot)\b</string>
+						<string>\b(Clansmen)\b</string>
+						<string>\b(Oreborn)\b</string>
+						<string>\b(Sorcere)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="no" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Politics</name>
+					<script>local title = matches[2]
+local line = getCurrentLine()
+local start = line:find(title, 1, true)
+
+if start then
+  local mudletStart = start - 1
+  local len = #title
+
+  -- Emerald civic green -&gt; parchment gold
+  local primary   = {44, 73, 200}
+  local secondary = {235, 205, 120}
+
+  for i = 1, len do
+    local ratio = 0
+
+    if len &gt; 1 then
+      ratio = (i - 1) / (len - 1)
+    end
+
+    local r = math.floor(primary[1] + (secondary[1] - primary[1]) * ratio)
+    local g = math.floor(primary[2] + (secondary[2] - primary[2]) * ratio)
+    local b = math.floor(primary[3] + (secondary[3] - primary[3]) * ratio)
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(r, g, b)
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#55007f</mFgColor>
+					<mBgColor>#2c49c8</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Senator)\b</string>
+						<string>\b(Citizen)\b</string>
+						<string>\b(Follower)\b</string>
+						<string>\b(Zealot)\b</string>
+						<string>\b(Clansmen)\b</string>
+						<string>\b(Oreborn)\b</string>
+						<string>\b(Sorcere)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Scholarly</name>
+					<script>local title = matches[2]
+local line = getCurrentLine()
+local start = line:find(title, 1, true)
+
+if start then
+  local mudletStart = start - 1
+  local len = #title
+
+  -- Royal purple -&gt; gold
+  --local primary   = {105, 40, 210}
+  --local secondary = {255, 220, 45}
+  --local primary   = {180, 20, 40}
+  --local secondary = {230, 180, 70}
+  --local primary   = {80, 90, 220}
+  --local secondary = {245, 215, 120}
+  --local primary   = {155, 70, 255}
+  --local secondary = {255, 215, 65}
+    local primary   = {40, 210, 200}
+    local secondary = {220, 230, 235}
+
+  for i = 1, len do
+    local ratio = 0
+
+    if len &gt; 1 then
+      ratio = (i - 1) / (len - 1)
+    end
+
+    local r = math.floor(primary[1] + (secondary[1] - primary[1]) * ratio)
+    local g = math.floor(primary[2] + (secondary[2] - primary[2]) * ratio)
+    local b = math.floor(primary[3] + (secondary[3] - primary[3]) * ratio)
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(r, g, b)
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#55007f</mFgColor>
+					<mBgColor>#000000</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Novitiate)\b</string>
+						<string>\b(Aspirant)\b</string>
+						<string>\b(Researcher)\b</string>
+						<string>\b(Apprentice)\b</string>
+						<string>\b(Archmagus)\b</string>
+						<string>\b(Vizier)\b</string>
+						<string>\b(Nascent)\b</string>
+						<string>\b(Sorcerer)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Religious</name>
+					<script>local title = matches[2]
+local line = getCurrentLine()
+local start = line:find(title, 1, true)
+
+if start then
+  local mudletStart = start - 1
+  local len = #title
+
+  -- Religious alignment gradient:
+  -- Good white -&gt; Neutral red -&gt; Evil dark grey
+  local good    = {255, 255, 255}
+  local neutral = {220, 35, 35}
+  local evil    = {65, 65, 65}
+
+  for i = 1, len do
+    local ratio = 0
+
+    if len &gt; 1 then
+      ratio = (i - 1) / (len - 1)
+    end
+
+    local r, g, b
+
+    if ratio &lt;= 0.5 then
+      -- first half: white -&gt; red
+      local subratio = ratio / 0.5
+
+      r = math.floor(good[1] + (neutral[1] - good[1]) * subratio)
+      g = math.floor(good[2] + (neutral[2] - good[2]) * subratio)
+      b = math.floor(good[3] + (neutral[3] - good[3]) * subratio)
+    else
+      -- second half: red -&gt; dark grey
+      local subratio = (ratio - 0.5) / 0.5
+
+      r = math.floor(neutral[1] + (evil[1] - neutral[1]) * subratio)
+      g = math.floor(neutral[2] + (evil[2] - neutral[2]) * subratio)
+      b = math.floor(neutral[3] + (evil[3] - neutral[3]) * subratio)
+    end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(r, g, b)
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#55007f</mFgColor>
+					<mBgColor>#000000</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Deacon)\b</string>
+						<string>\b(Cardinal)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+			</TriggerGroup>
+			<TriggerGroup isActive="yes" isFolder="yes" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+				<name>Clans</name>
+				<script></script>
+				<triggerType>0</triggerType>
+				<conditonLineDelta>0</conditonLineDelta>
+				<mStayOpen>0</mStayOpen>
+				<mCommand></mCommand>
+				<packageName></packageName>
+				<mFgColor>#ff0000</mFgColor>
+				<mBgColor>#ffff00</mBgColor>
+				<mSoundFile></mSoundFile>
+				<colorTriggerFgColor>#000000</colorTriggerFgColor>
+				<colorTriggerBgColor>#000000</colorTriggerBgColor>
+				<regexCodeList />
+				<regexCodePropertyList />
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Knighthood</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+  local len = #name
+
+  for i = 1, len do
+    local color
+
+if i == 1 or i == len then
+  color = {40, 90, 255}
+elseif i &lt;= len / 2 then
+  color = {70, 135, 255}
+else
+  color = {20, 65, 210}
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(NameOne|NameTwo|NameThree)\b</string>
+						<string>\b(Paklop)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>0</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="yes" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Justice</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+  local len = #name
+
+  for i = 1, len do
+    local color
+
+if i == 1 or i == len then
+  color = {6, 52, 255}--{0, 210, 255}
+elseif i &lt;= len / 2 then
+  color = {26, 144, 255}
+else
+  color = {0, 150, 220}
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#000000</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(NameOne|NameTwo|NameThree)\b</string>
+						<string>\b(Skitter)\b</string>
+						<string>\b(Ishap)\b</string>
+						<string>\b(Kyralus)\b</string>
+						<string>\b(Z'szytheis)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>0</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Shalonesti</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+  local len = #name
+
+  for i = 1, len do
+    local color
+
+if i == 1 or i == len then
+  color = {0, 150, 40}
+elseif i &lt;= len / 2 then
+  color = {70, 230, 90}
+else
+  color = {0, 95, 30}
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(NameOne|NameTwo|NameThree)\b</string>
+						<string>\b(Uruvion)\b</string>
+						<string>\b(Valosiz)\b</string>
+						<string>\b(Aerandfinrod)\b</string>
+						<string>\b(Azaros)\b</string>
+						<string>\b(Thanatael)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>0</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Chaos</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+  local len = #name
+
+  for i = 1, len do
+    local color
+
+if i == 1 or i == len then
+  color = {255, 30, 30}
+elseif i &lt;= len / 2 then
+  color = {255, 95, 75}
+else
+  color = {170, 0, 0}
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(NameOne|NameTwo|NameThree)\b</string>
+						<string>\b(Scorn)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>0</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Shadow</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+  local len = #name
+
+  for i = 1, len do
+    local color
+
+if i == 1 or i == len then
+  color = {130, 130, 130}
+elseif i &lt;= len / 2 then
+  color = {185, 185, 185}
+else
+  color = {70, 70, 70}
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(NameOne|NameTwo|NameThree)\b</string>
+						<string>\b(Ezrianne)\b</string>
+						<string>\b(Maccus)\b</string>
+						<string>\b(Kevyn)\b</string>
+						<string>\b(Aothien)\b</string>
+						<string>\b(Morsril)\b</string>
+						<string>\b(Z'resra)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>0</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Bloodlust</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+  local len = #name
+
+  for i = 1, len do
+    local color
+
+if i == 1 or i == len then
+  color = {190, 0, 0}
+elseif i &lt;= len / 2 then
+  color = {255, 45, 45}
+else
+  color = {95, 0, 0}
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Ragnor)\b</string>
+						<string>\b(Tsacherus)\b</string>
+						<string>\b(Tobryck)\b</string>
+						<string>\b(Iztatsin)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Wargar</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+  local len = #name
+
+  for i = 1, len do
+    local color
+
+if i == 1 or i == len then
+  color = {0, 190, 190}
+elseif i &lt;= len / 2 then
+  color = {80, 230, 220}
+else
+  color = {0, 110, 150}
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(NameOne|NameTwo|NameThree)\b</string>
+						<string>\b(Ainz)\b</string>
+						<string>\b(Yoshita)\b</string>
+						<string>\b(Embrel)\b</string>
+						<string>\b(Gares)\b</string>
+						<string>\b(Moe)\b</string>
+						<string>\b(Throdeth)\b</string>
+						<string>\b(Thuken)\b</string>
+						<string>\b(Krosbee)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>0</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Slayer</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+  local len = #name
+
+  for i = 1, len do
+    local color
+
+if i == 1 or i == len then
+  color = {150, 220, 0}
+elseif i &lt;= len / 2 then
+  color = {220, 255, 60}
+else
+  color = {90, 150, 0}
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(NameOne|NameTwo|NameThree)\b</string>
+						<string>\b(Madox)\b</string>
+						<string>\b(Rylae)\b</string>
+						<string>\b(Krazeth)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>0</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Conclave</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+  local len = #name
+
+  -- Conclave mystical palette:
+  -- edges = dark robe/shadow
+  -- inner = crimson robe energy
+  -- center = white arcane glow
+  local edge   = {55, 55, 65}      -- black robes / dark grey
+  local inner  = {210, 35, 35}     -- red robes / crimson
+  local center = {255, 255, 255}   -- white robes / arcane core
+
+  local midpoint = (len + 1) / 2
+  local maxDist = midpoint - 1
+
+  for i = 1, len do
+    local dist = math.abs(i - midpoint)
+    local ratio = 0
+
+    if maxDist &gt; 0 then
+      ratio = dist / maxDist
+    end
+
+    local r, g, b
+
+    if ratio &lt;= 0.5 then
+      -- center -&gt; inner red
+      local subratio = ratio / 0.5
+
+      r = math.floor(center[1] + (inner[1] - center[1]) * subratio)
+      g = math.floor(center[2] + (inner[2] - center[2]) * subratio)
+      b = math.floor(center[3] + (inner[3] - center[3]) * subratio)
+    else
+      -- inner red -&gt; dark edge
+      local subratio = (ratio - 0.5) / 0.5
+
+      r = math.floor(inner[1] + (edge[1] - inner[1]) * subratio)
+      g = math.floor(inner[2] + (edge[2] - inner[2]) * subratio)
+      b = math.floor(inner[3] + (edge[3] - inner[3]) * subratio)
+    end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(r, g, b)
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#fffb95</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Conclave)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>White Robes</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+  local len = #name
+
+  for i = 1, len do
+    local color
+
+if i == 1 or i == len then
+  color = {255, 255, 255}
+elseif i &lt;= len / 2 then
+  color = {255, 248, 130}--{255, 245, 190}
+else
+  color = {220, 220, 220}
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#fffb95</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(NameOne|NameTwo|NameThree)\b</string>
+						<string>\b(Faridoon)\b</string>
+						<string>\b(Gerbunstable)\b</string>
+						<string>\b(Aguidran)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>0</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Red Robes</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+  local len = #name
+
+  for i = 1, len do
+    local color
+
+if i == 1 or i == len then
+  color = {230, 20, 20}
+elseif i &lt;= len / 2 then
+  color = {255, 160, 70}
+else
+  color = {150, 0, 0}
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(NameOne|NameTwo|NameThree)\b</string>
+						<string>\b(Duibhne)\b</string>
+						<string>\b(Kwert)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>0</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Black Robes</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+  local len = #name
+
+  for i = 1, len do
+    local color
+
+if i == 1 or i == len then
+  color = {95, 95, 110}
+elseif i &lt;= len / 2 then
+  color = {150, 130, 190}
+else
+  color = {45, 45, 55}
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(NameOne|NameTwo|NameThree)\b</string>
+						<string>\b(Zishraedanth)\b</string>
+						<string>\b(Kemo)\b</string>
+						<string>\b(Nahart)\b</string>
+						<string>\b(Garflin)\b</string>
+						<string>\b(Gimgrim)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>0</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Loner</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+  local len = #name
+
+  for i = 1, len do
+    local color
+
+if i == 1 or i == len then
+  color = {93, 93, 93}--{255, 255, 255}
+elseif i &lt;= len / 2 then
+  color = {185, 255, 220}
+else
+  color = {190, 210, 205}
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#5d5d5d</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(NameOne|NameTwo|NameThree)\b</string>
+						<string>\b(Dekkyion)\b</string>
+						<string>\b(Blinx)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>0</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Renegade</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+  local len = #name
+
+  for i = 1, len do
+    local color
+
+if i == 1 or i == len then
+  color = {255, 40, 130}
+elseif i &lt;= len / 2 then
+  color = {190, 190, 190}
+else
+  color = {150, 0, 70}
+end
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(color[1], color[2], color[3])
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(NameOne|NameTwo|NameThree)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>0</integer>
+					</regexCodePropertyList>
+				</Trigger>
+			</TriggerGroup>
+			<TriggerGroup isActive="yes" isFolder="yes" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+				<name>Kingdoms</name>
+				<script></script>
+				<triggerType>0</triggerType>
+				<conditonLineDelta>0</conditonLineDelta>
+				<mStayOpen>0</mStayOpen>
+				<mCommand></mCommand>
+				<packageName></packageName>
+				<mFgColor>#ff0000</mFgColor>
+				<mBgColor>#ffff00</mBgColor>
+				<mSoundFile></mSoundFile>
+				<colorTriggerFgColor>#000000</colorTriggerFgColor>
+				<colorTriggerBgColor>#000000</colorTriggerBgColor>
+				<regexCodeList />
+				<regexCodePropertyList />
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="yes" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Abaddon</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+  local len = #name
+
+  -- KINGDOM COLORS GO HERE
+local primary   = {220, 0, 0}
+local secondary = {20, 19, 18}
+
+  for i = 1, len do
+    local ratio = 0
+
+    if len &gt; 1 then
+      ratio = (i - 1) / (len - 1)
+    end
+
+    local r = math.floor(primary[1] + (secondary[1] - primary[1]) * ratio)
+    local g = math.floor(primary[2] + (secondary[2] - primary[2]) * ratio)
+    local b = math.floor(primary[3] + (secondary[3] - primary[3]) * ratio)
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(r, g, b)
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>transparent</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Abaddon)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Abaddon Names</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+  local len = #name
+
+  -- KINGDOM COLORS GO HERE
+local primary   = {220, 0, 0}
+local secondary = {20, 19, 18}
+
+  for i = 1, len do
+    local ratio = 0
+
+    if len &gt; 1 then
+      ratio = (i - 1) / (len - 1)
+    end
+
+    local r = math.floor(primary[1] + (secondary[1] - primary[1]) * ratio)
+    local g = math.floor(primary[2] + (secondary[2] - primary[2]) * ratio)
+    local b = math.floor(primary[3] + (secondary[3] - primary[3]) * ratio)
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(r, g, b)
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Drayven)\b</string>
+						<string>\b(Kayla)\b</string>
+						<string>\b(Ainin)\b</string>
+						<string>\b(Sakharne)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Althainia</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+  local len = #name
+
+  -- KINGDOM COLORS GO HERE
+local primary   = {35, 85, 230}
+local secondary = {235, 240, 255}
+
+  for i = 1, len do
+    local ratio = 0
+
+    if len &gt; 1 then
+      ratio = (i - 1) / (len - 1)
+    end
+
+    local r = math.floor(primary[1] + (secondary[1] - primary[1]) * ratio)
+    local g = math.floor(primary[2] + (secondary[2] - primary[2]) * ratio)
+    local b = math.floor(primary[3] + (secondary[3] - primary[3]) * ratio)
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(r, g, b)
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Althainia)\b</string>
+						<string>\b(AL)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Althainia Names</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+  local len = #name
+
+  -- KINGDOM COLORS GO HERE
+local primary   = {35, 85, 230}
+local secondary = {235, 240, 255}
+
+  for i = 1, len do
+    local ratio = 0
+
+    if len &gt; 1 then
+      ratio = (i - 1) / (len - 1)
+    end
+
+    local r = math.floor(primary[1] + (secondary[1] - primary[1]) * ratio)
+    local g = math.floor(primary[2] + (secondary[2] - primary[2]) * ratio)
+    local b = math.floor(primary[3] + (secondary[3] - primary[3]) * ratio)
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(r, g, b)
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Tyrian)\b</string>
+						<string>\b(Auvendris)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>New Thalos</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+  local len = #name
+
+  -- KINGDOM COLORS GO HERE
+local primary   = {235, 200, 60}--{30, 55, 145}
+local secondary = {30, 55, 145}--{235, 200, 60}
+
+  for i = 1, len do
+    local ratio = 0
+
+    if len &gt; 1 then
+      ratio = (i - 1) / (len - 1)
+    end
+
+    local r = math.floor(primary[1] + (secondary[1] - primary[1]) * ratio)
+    local g = math.floor(primary[2] + (secondary[2] - primary[2]) * ratio)
+    local b = math.floor(primary[3] + (secondary[3] - primary[3]) * ratio)
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(r, g, b)
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(New Thalos)\b</string>
+						<string>\b(NT)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>New Thalos Names</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+  local len = #name
+
+  -- KINGDOM COLORS GO HERE
+local primary   = {235, 200, 60}--{30, 55, 145}
+local secondary = {30, 55, 145}--{235, 200, 60}
+
+  for i = 1, len do
+    local ratio = 0
+
+    if len &gt; 1 then
+      ratio = (i - 1) / (len - 1)
+    end
+
+    local r = math.floor(primary[1] + (secondary[1] - primary[1]) * ratio)
+    local g = math.floor(primary[2] + (secondary[2] - primary[2]) * ratio)
+    local b = math.floor(primary[3] + (secondary[3] - primary[3]) * ratio)
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(r, g, b)
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Kiltion)\b</string>
+						<string>\b(Youiwe)\b</string>
+						<string>\b(Stuwart)\b</string>
+						<string>\b(Zgrath)\b</string>
+						<string>\b(Bahlinkin)\b</string>
+						<string>\b(Rowop)\b</string>
+						<string>\b(Szabo)\b</string>
+						<string>\b(Gadikli)\b</string>
+						<string>\b(Felkur)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Shalonesti</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+  local len = #name
+
+  -- KINGDOM COLORS GO HERE
+local primary   = {0, 145, 45}
+local secondary = {225, 200, 70}
+
+  for i = 1, len do
+    local ratio = 0
+
+    if len &gt; 1 then
+      ratio = (i - 1) / (len - 1)
+    end
+
+    local r = math.floor(primary[1] + (secondary[1] - primary[1]) * ratio)
+    local g = math.floor(primary[2] + (secondary[2] - primary[2]) * ratio)
+    local b = math.floor(primary[3] + (secondary[3] - primary[3]) * ratio)
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(r, g, b)
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Shalonesti)\b</string>
+						<string>\b(SH)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Shalonesti Names</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+  local len = #name
+
+  -- KINGDOM COLORS GO HERE
+local primary   = {0, 145, 45}
+local secondary = {225, 200, 70}
+
+  for i = 1, len do
+    local ratio = 0
+
+    if len &gt; 1 then
+      ratio = (i - 1) / (len - 1)
+    end
+
+    local r = math.floor(primary[1] + (secondary[1] - primary[1]) * ratio)
+    local g = math.floor(primary[2] + (secondary[2] - primary[2]) * ratio)
+    local b = math.floor(primary[3] + (secondary[3] - primary[3]) * ratio)
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(r, g, b)
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Eridessa)\b</string>
+						<string>\b(Dilani)\b</string>
+						<string>\b(Thandoril)\b</string>
+						<string>\b(Seyzule)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Thaxanos</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+  local len = #name
+
+  -- KINGDOM COLORS GO HERE
+local primary   = {90, 90, 100}
+local secondary = {210, 210, 215}
+
+  for i = 1, len do
+    local ratio = 0
+
+    if len &gt; 1 then
+      ratio = (i - 1) / (len - 1)
+    end
+
+    local r = math.floor(primary[1] + (secondary[1] - primary[1]) * ratio)
+    local g = math.floor(primary[2] + (secondary[2] - primary[2]) * ratio)
+    local b = math.floor(primary[3] + (secondary[3] - primary[3]) * ratio)
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(r, g, b)
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Thaxanos)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Thaxanos Names</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+  local len = #name
+
+  -- KINGDOM COLORS GO HERE
+local primary   = {90, 90, 100}
+local secondary = {210, 210, 215}
+
+  for i = 1, len do
+    local ratio = 0
+
+    if len &gt; 1 then
+      ratio = (i - 1) / (len - 1)
+    end
+
+    local r = math.floor(primary[1] + (secondary[1] - primary[1]) * ratio)
+    local g = math.floor(primary[2] + (secondary[2] - primary[2]) * ratio)
+    local b = math.floor(primary[3] + (secondary[3] - primary[3]) * ratio)
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(r, g, b)
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Thaxanos)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>0</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Grey Church</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+  local len = #name
+
+  -- KINGDOM COLORS GO HERE
+local primary   = {135, 145, 150}
+local secondary = {235, 240, 240}
+
+  for i = 1, len do
+    local ratio = 0
+
+    if len &gt; 1 then
+      ratio = (i - 1) / (len - 1)
+    end
+
+    local r = math.floor(primary[1] + (secondary[1] - primary[1]) * ratio)
+    local g = math.floor(primary[2] + (secondary[2] - primary[2]) * ratio)
+    local b = math.floor(primary[3] + (secondary[3] - primary[3]) * ratio)
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(r, g, b)
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Gray Church)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>0</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Grey Church</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+  local len = #name
+
+  -- KINGDOM COLORS GO HERE
+local primary   = {135, 145, 150}
+local secondary = {235, 240, 240}
+
+  for i = 1, len do
+    local ratio = 0
+
+    if len &gt; 1 then
+      ratio = (i - 1) / (len - 1)
+    end
+
+    local r = math.floor(primary[1] + (secondary[1] - primary[1]) * ratio)
+    local g = math.floor(primary[2] + (secondary[2] - primary[2]) * ratio)
+    local b = math.floor(primary[3] + (secondary[3] - primary[3]) * ratio)
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(r, g, b)
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Gray Church)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Arkane</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+  local len = #name
+
+  -- KINGDOM COLORS GO HERE
+local primary   = {30, 70, 235}
+local secondary = {240, 210, 70}
+
+  for i = 1, len do
+    local ratio = 0
+
+    if len &gt; 1 then
+      ratio = (i - 1) / (len - 1)
+    end
+
+    local r = math.floor(primary[1] + (secondary[1] - primary[1]) * ratio)
+    local g = math.floor(primary[2] + (secondary[2] - primary[2]) * ratio)
+    local b = math.floor(primary[3] + (secondary[3] - primary[3]) * ratio)
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(r, g, b)
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Arkane)\b</string>
+						<string>\b(AR)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Arkane Names</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+  local len = #name
+
+  -- KINGDOM COLORS GO HERE
+local primary   = {30, 70, 235}
+local secondary = {240, 210, 70}
+
+  for i = 1, len do
+    local ratio = 0
+
+    if len &gt; 1 then
+      ratio = (i - 1) / (len - 1)
+    end
+
+    local r = math.floor(primary[1] + (secondary[1] - primary[1]) * ratio)
+    local g = math.floor(primary[2] + (secondary[2] - primary[2]) * ratio)
+    local b = math.floor(primary[3] + (secondary[3] - primary[3]) * ratio)
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(r, g, b)
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Havok)\b</string>
+						<string>\b(Hagub)\b</string>
+						<string>\b(Cyrte)\b</string>
+						<string>\b(Stoog)\b</string>
+						<string>\b(Xalser)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="yes" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Verminasia</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+  local len = #name
+
+  -- KINGDOM COLORS GO HERE
+local primary   = {80, 80, 85}--{190, 0, 0}
+local secondary = {85, 0, 255}--{80, 80, 85}
+
+  for i = 1, len do
+    local ratio = 0
+
+    if len &gt; 1 then
+      ratio = (i - 1) / (len - 1)
+    end
+
+    local r = math.floor(primary[1] + (secondary[1] - primary[1]) * ratio)
+    local g = math.floor(primary[2] + (secondary[2] - primary[2]) * ratio)
+    local b = math.floor(primary[3] + (secondary[3] - primary[3]) * ratio)
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(r, g, b)
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>transparent</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Verminasia)\b</string>
+						<string>\b(VR)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Verminasia Names</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+  local len = #name
+
+  -- KINGDOM COLORS GO HERE
+local primary   = {190, 0, 0}
+local secondary = {80, 80, 85}
+
+  for i = 1, len do
+    local ratio = 0
+
+    if len &gt; 1 then
+      ratio = (i - 1) / (len - 1)
+    end
+
+    local r = math.floor(primary[1] + (secondary[1] - primary[1]) * ratio)
+    local g = math.floor(primary[2] + (secondary[2] - primary[2]) * ratio)
+    local b = math.floor(primary[3] + (secondary[3] - primary[3]) * ratio)
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(r, g, b)
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Piknim)\b</string>
+						<string>\b(Teven)\b</string>
+						<string>\b(Tamello)\b</string>
+						<string>\b(Nellie)\b</string>
+						<string>\b(Fatuse)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Marauders</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+  local len = #name
+
+  -- KINGDOM COLORS GO HERE
+local primary   = {220, 25, 20}
+local secondary = {245, 205, 35}
+
+  for i = 1, len do
+    local ratio = 0
+
+    if len &gt; 1 then
+      ratio = (i - 1) / (len - 1)
+    end
+
+    local r = math.floor(primary[1] + (secondary[1] - primary[1]) * ratio)
+    local g = math.floor(primary[2] + (secondary[2] - primary[2]) * ratio)
+    local b = math.floor(primary[3] + (secondary[3] - primary[3]) * ratio)
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(r, g, b)
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Marauders)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Marauders Names</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+  local len = #name
+
+  -- KINGDOM COLORS GO HERE
+local primary   = {220, 25, 20}
+local secondary = {245, 205, 35}
+
+  for i = 1, len do
+    local ratio = 0
+
+    if len &gt; 1 then
+      ratio = (i - 1) / (len - 1)
+    end
+
+    local r = math.floor(primary[1] + (secondary[1] - primary[1]) * ratio)
+    local g = math.floor(primary[2] + (secondary[2] - primary[2]) * ratio)
+    local b = math.floor(primary[3] + (secondary[3] - primary[3]) * ratio)
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(r, g, b)
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Pomacanthus)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Nordmaar</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+  local len = #name
+
+  -- KINGDOM COLORS GO HERE
+local primary   = {35, 90, 230}
+local secondary = {240, 250, 255}
+
+  for i = 1, len do
+    local ratio = 0
+
+    if len &gt; 1 then
+      ratio = (i - 1) / (len - 1)
+    end
+
+    local r = math.floor(primary[1] + (secondary[1] - primary[1]) * ratio)
+    local g = math.floor(primary[2] + (secondary[2] - primary[2]) * ratio)
+    local b = math.floor(primary[3] + (secondary[3] - primary[3]) * ratio)
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(r, g, b)
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>1</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Nordmaar)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Nordmaar Names</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+  local len = #name
+
+  -- KINGDOM COLORS GO HERE
+local primary   = {35, 90, 230}
+local secondary = {240, 250, 255}
+
+  for i = 1, len do
+    local ratio = 0
+
+    if len &gt; 1 then
+      ratio = (i - 1) / (len - 1)
+    end
+
+    local r = math.floor(primary[1] + (secondary[1] - primary[1]) * ratio)
+    local g = math.floor(primary[2] + (secondary[2] - primary[2]) * ratio)
+    local b = math.floor(primary[3] + (secondary[3] - primary[3]) * ratio)
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(r, g, b)
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>1</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Riaghan)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Ganth</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+  local len = #name
+
+  -- KINGDOM COLORS GO HERE
+local primary   = {255, 85, 0}--{130, 0, 0}
+local secondary = {190, 190, 200}
+
+  for i = 1, len do
+    local ratio = 0
+
+    if len &gt; 1 then
+      ratio = (i - 1) / (len - 1)
+    end
+
+    local r = math.floor(primary[1] + (secondary[1] - primary[1]) * ratio)
+    local g = math.floor(primary[2] + (secondary[2] - primary[2]) * ratio)
+    local b = math.floor(primary[3] + (secondary[3] - primary[3]) * ratio)
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(r, g, b)
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Ganth)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Ganth Names</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+  local len = #name
+
+  -- KINGDOM COLORS GO HERE
+local primary   = {255, 85, 0}--{130, 0, 0}
+local secondary = {190, 190, 200}
+
+  for i = 1, len do
+    local ratio = 0
+
+    if len &gt; 1 then
+      ratio = (i - 1) / (len - 1)
+    end
+
+    local r = math.floor(primary[1] + (secondary[1] - primary[1]) * ratio)
+    local g = math.floor(primary[2] + (secondary[2] - primary[2]) * ratio)
+    local b = math.floor(primary[3] + (secondary[3] - primary[3]) * ratio)
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(r, g, b)
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#c66300</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Hindera)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Darkonin</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+  local len = #name
+
+  -- KINGDOM COLORS GO HERE
+local primary   = {75, 75, 80}
+local secondary = {210, 25, 25}
+
+  for i = 1, len do
+    local ratio = 0
+
+    if len &gt; 1 then
+      ratio = (i - 1) / (len - 1)
+    end
+
+    local r = math.floor(primary[1] + (secondary[1] - primary[1]) * ratio)
+    local g = math.floor(primary[2] + (secondary[2] - primary[2]) * ratio)
+    local b = math.floor(primary[3] + (secondary[3] - primary[3]) * ratio)
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(r, g, b)
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Darkonin)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Darkonin Names</name>
+					<script>local name = matches[2]
+local line = getCurrentLine()
+local start = line:find(name, 1, true)
+
+if start then
+  local mudletStart = start - 1
+  local len = #name
+
+  -- KINGDOM COLORS GO HERE
+local primary   = {75, 75, 80}
+local secondary = {210, 25, 25}
+
+  for i = 1, len do
+    local ratio = 0
+
+    if len &gt; 1 then
+      ratio = (i - 1) / (len - 1)
+    end
+
+    local r = math.floor(primary[1] + (secondary[1] - primary[1]) * ratio)
+    local g = math.floor(primary[2] + (secondary[2] - primary[2]) * ratio)
+    local b = math.floor(primary[3] + (secondary[3] - primary[3]) * ratio)
+
+    selectSection(mudletStart + i - 1, 1)
+    setFgColor(r, g, b)
+  end
+
+  resetFormat()
+  deselect()
+end</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Darkonin)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>0</integer>
+					</regexCodePropertyList>
+				</Trigger>
+			</TriggerGroup>
+			<TriggerGroup isActive="yes" isFolder="yes" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+				<name>Race Class</name>
+				<script></script>
+				<triggerType>0</triggerType>
+				<conditonLineDelta>0</conditonLineDelta>
+				<mStayOpen>0</mStayOpen>
+				<mCommand></mCommand>
+				<packageName></packageName>
+				<mFgColor>#ff0000</mFgColor>
+				<mBgColor>#ffff00</mBgColor>
+				<mSoundFile></mSoundFile>
+				<colorTriggerFgColor>#000000</colorTriggerFgColor>
+				<colorTriggerBgColor>#000000</colorTriggerBgColor>
+				<regexCodeList />
+				<regexCodePropertyList />
+				<Trigger isActive="no" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Race</name>
+					<script>local race = matches[2]
+if not race then return end
+
+local colors = {
+  ["Human"] = {220, 205, 170},
+  ["H-Elf"] = {170, 220, 190},
+  ["Mul"]   = {190, 150, 110},
+
+  ["S-Elf"] = {80, 220, 110},
+  ["D-Elf"] = {170, 90, 220},
+  ["W-Elf"] = {40, 185, 80},
+  ["Sea"]   = {60, 210, 220},
+
+  ["M-Dwf"] = {170, 170, 160},
+  ["H-Dwf"] = {190, 145, 80},
+  ["D-Dwf"] = {120, 105, 130},
+
+  ["Minotr"] = {210, 95, 45},
+  ["Ogre"]   = {160, 110, 55},
+  ["G-Ogre"] = {205, 120, 45},
+  ["H-Ogre"] = {185, 135, 75},
+
+  ["Goblin"] = {145, 220, 45},
+  ["HGob"]   = {190, 120, 45},
+  ["B-Bear"] = {150, 95, 55},
+  ["Orc"]    = {115, 190, 65},
+
+  ["TGnome"] = {80, 220, 255},
+  ["DGnome"] = {115, 120, 230},
+  ["Kender"] = {255, 170, 230},
+  ["Pixie"]  = {255, 120, 255},
+
+  ["Wemic"] = {230, 170, 55},
+  ["Felar"] = {255, 190, 90},
+
+  ["Yinn"]   = {120, 235, 220},
+  ["Ariel"]  = {200, 230, 255},
+  ["Centaur"] = {180, 120, 70},
+  ["Troll"]  = {95, 170, 65},
+  ["Gully"]  = {135, 120, 90},
+  ["Arbor"]  = {95, 210, 95},
+}
+
+local color = colors[race]
+if not color then return end
+
+local line = getCurrentLine()
+local start = line:find(race, 1, true)
+if not start then return end
+
+selectSection(start - 1, #race)
+setFgColor(color[1], color[2], color[3])
+resetFormat()
+deselect()</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>^\[\s*\d+\s+([A-Za-z\-]+)\s+[A-Za-z]+[A-Za-z]?\]</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="no" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Race</name>
+					<script>local race = matches[2]
+local class = matches[3]
+
+if not race or not class then return end
+
+-- Skip dragon WHO race/class markers; dragon name coloring handles those.
+if class == "Dra" then return end
+
+local colors = {
+  -- Common / mortal
+  ["Human"] = {220, 205, 170},
+  ["H-Elf"] = {170, 220, 190},
+  ["Mul"]   = {190, 150, 110},
+
+  -- Elves
+  ["S-Elf"] = {80, 220, 110},
+  ["D-Elf"] = {170, 90, 220},
+  ["W-Elf"] = {40, 185, 80},
+  ["Sea"]   = {60, 210, 220},
+
+  -- Dwarves
+  ["M-Dwf"] = {170, 170, 160},
+  ["H-Dwf"] = {190, 145, 80},
+  ["D-Dwf"] = {120, 105, 130},
+
+  -- Large / brute
+  ["Minotr"] = {210, 95, 45},
+  ["Ogre"]   = {160, 110, 55},
+  ["G-Ogre"] = {205, 120, 45},
+  ["H-Ogre"] = {185, 135, 75},
+
+  -- Goblinoids / orcs
+  ["Goblin"] = {145, 220, 45},
+  ["HGob"]   = {190, 120, 45},
+  ["B-Bear"] = {150, 95, 55},
+  ["Orc"]    = {115, 190, 65},
+
+  -- Small / clever / strange
+  ["TGnome"] = {80, 220, 255},
+  ["DGnome"] = {115, 120, 230},
+  ["Kender"] = {255, 170, 230},
+  ["Pixie"]  = {255, 120, 255},
+
+  -- Leonine
+  ["Wemic"] = {230, 170, 55},
+  ["Felar"] = {255, 190, 90},
+
+  -- Other / limited
+  ["Yinn"]   = {120, 235, 220},
+  ["Ariel"]  = {200, 230, 255},
+  ["Centaur"] = {180, 120, 70},
+  ["Troll"]  = {95, 170, 65},
+  ["Gully"]  = {135, 120, 90},
+  ["Arbor"]  = {95, 210, 95},
+}
+
+local color = colors[race]
+if not color then return end
+
+local line = getCurrentLine()
+local start = line:find(race, 1, true)
+if not start then return end
+
+selectSection(start - 1, #race)
+setFgColor(color[1], color[2], color[3])
+resetFormat()
+deselect()</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>^\[\s*\d+\s+([A-Za-z\-]+)\s+([A-Za-z]+)\]</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="no" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Class</name>
+					<script>local race = matches[2]
+local class = matches[3]
+
+if not race or not class then return end
+
+-- Skip dragon class marker; dragon name coloring handles dragons.
+if class == "Dra" then return end
+
+local gradients = {
+  -- Base classes: solid family colors
+  ["War"] = {{230, 95, 45},  {230, 95, 45}},
+  ["Mag"] = {{120, 100, 255}, {120, 100, 255}},
+  ["Cle"] = {{245, 230, 140}, {245, 230, 140}},
+  ["Thi"] = {{120, 150, 130}, {120, 150, 130}},
+  ["Brd"] = {{255, 150, 210}, {255, 150, 210}},
+
+  -- Warrior family
+  ["Ran"] = {{70, 180, 80},   {150, 105, 55}},
+  ["Bar"] = {{210, 35, 25},   {255, 120, 35}},
+  ["Swa"] = {{60, 180, 230},  {210, 230, 240}},
+  ["Arm"] = {{150, 150, 155}, {220, 175, 80}},
+  ["Sam"] = {{190, 35, 55},   {220, 220, 225}},
+
+  -- Mage family
+  ["Wlk"] = {{150, 60, 220},  {70, 45, 100}},
+  ["Ill"] = {{180, 145, 255}, {230, 210, 255}},
+  ["Enc"] = {{70, 220, 255},  {120, 100, 255}},
+  ["Mtl"] = {{70, 110, 255},  {170, 210, 255}},
+  ["WuJ"] = {{40, 210, 190},  {80, 150, 255}},
+
+  -- Conclave / mage-special
+  ["Inv"] = {{140, 80, 255},  {255, 120, 45}},
+  ["Nec"] = {{105, 95, 120},  {210, 205, 185}},
+  ["Trn"] = {{70, 220, 200},  {190, 230, 210}},
+  ["Bmg"] = {{150, 70, 255},  {90, 150, 220}},
+
+  -- Cleric family
+  ["Cru"] = {{255, 220, 80},  {255, 255, 230}},
+  ["Dru"] = {{70, 190, 80},   {150, 110, 60}},
+  ["Sha"] = {{160, 100, 220}, {160, 190, 210}},
+  ["Pri"] = {{255, 255, 230}, {235, 210, 120}},
+  ["Shu"] = {{210, 235, 255}, {120, 220, 230}},
+
+  -- Knighthood / cleric-warrior special
+  ["Pal"] = {{255, 235, 100}, {255, 255, 255}},
+  ["Con"] = {{230, 230, 255}, {255, 245, 190}},
+
+  -- Thief family
+  ["Asn"] = {{110, 40, 45},   {100, 105, 105}},
+  ["Bnd"] = {{145, 95, 45},   {200, 155, 75}},
+  ["Nsh"] = {{130, 70, 170},  {70, 120, 70}},
+  ["Pir"] = {{40, 170, 170},  {120, 130, 135}},
+  ["Nin"] = {{95, 100, 115},  {150, 160, 175}},
+
+  -- Bard family
+  ["Jng"] = {{255, 130, 210}, {255, 210, 90}},
+  ["Cha"] = {{210, 100, 255}, {245, 160, 220}},
+  ["Skd"] = {{220, 150, 70},  {165, 170, 180}},
+  ["Brw"] = {{160, 95, 40},   {235, 190, 95}},
+  ["Ova"] = {{120, 210, 145}, {245, 170, 210}},
+
+  -- Clan / special reclasses
+  ["Btr"] = {{255, 75, 35},   {150, 150, 155}}, -- Battlerager, if abbreviation is Btr
+  ["Rns"] = {{150, 150, 155}, {100, 190, 255}}, -- Runesmith, if abbreviation is Rns
+  ["Bld"] = {{90, 230, 180},  {210, 230, 240}}, -- Bladesinger, if abbreviation is Bld
+  ["Eld"] = {{120, 80, 255},  {70, 210, 180}},  -- Eldritch
+
+  ["APal"] = {{150, 30, 50},  {60, 60, 65}},    -- Anti-Paladin, if abbreviation is APal
+  ["ShK"]  = {{110, 90, 130}, {65, 65, 80}},
+  ["ShM"]  = {{130, 80, 160}, {90, 90, 105}},
+  ["Dsl"]  = {{255, 100, 40}, {150, 150, 155}},
+  ["Mnk"]  = {{210, 200, 160}, {170, 120, 70}},
+}
+
+local pair = gradients[class]
+if not pair then return end
+
+local primary = pair[1]
+local secondary = pair[2]
+
+local line = getCurrentLine()
+
+-- Find the class after the race, not elsewhere later in the line.
+local raceStart, raceEnd = line:find(race, 1, true)
+if not raceEnd then return end
+
+local classStart = line:find(class, raceEnd + 1, true)
+if not classStart then return end
+
+local len = #class
+
+for i = 1, len do
+  local ratio = 0
+
+  if len &gt; 1 then
+    ratio = (i - 1) / (len - 1)
+  end
+
+  local r = math.floor(primary[1] + (secondary[1] - primary[1]) * ratio)
+  local g = math.floor(primary[2] + (secondary[2] - primary[2]) * ratio)
+  local b = math.floor(primary[3] + (secondary[3] - primary[3]) * ratio)
+
+  selectSection(classStart + i - 2, 1)
+  setFgColor(r, g, b)
+end
+
+resetFormat()
+deselect()</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>^\[\s*\d+\s+([A-Za-z\-]+)\s+([A-Za-z]+)\]</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Who</name>
+					<script>local race = matches[2]
+local class = matches[3]
+
+if not race or not class then return end
+
+-- Skip dragon race/class markers; your dragon-name system handles these.
+if class == "Dra" then return end
+
+dslColorRaceTerm(race)
+dslColorClassTerm(class)</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>^\[\s*\d+\s+([A-Za-z\-]+)\s+([A-Za-z]+)\]</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Whok-Whoc</name>
+					<script>local class = matches[2]
+
+if not class then return end
+
+-- Skip dragon marker.
+if class == "Dra" then return end
+
+dslColorClassTerm(class)</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>^\[\s*\d+\s+([A-Za-z]+)\]\s+</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Races</name>
+					<script>local race = matches[2]
+
+if not race then return end
+
+dslColorRaceTerm(race)</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Head Balanx|Lesser Balanx|Balanx|Shalonesti Elf|Dark Elf|Wild Elf|Sea Elf|Half Elf|Mountain Dwarf|Hill Dwarf|Dark Dwarf|Gully Dwarf|Giant Ogre|Half Ogre|Tinker Gnome|Deep Gnome|Human|Elf|Dwarf|Mul|Minotaur|Ogre|Yinn|Goblin|Hobgoblin|Bugbear|Gnome|Kender|Wemic|Felar|Troll|Ariel|Pixie|Centaur|Orc|Arbor)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>Class-Reclass</name>
+					<script>local className = matches[2]
+
+if not className then return end
+
+dslColorClassTerm(className)</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>\b(Head Balanx|Lesser Balanx|Balanx|Anti-Paladins|Anti-Paladin|Shadowknights|Shadowknight|Shadowmages|Shadowmage|Swashbucklers|Swashbuckler|Battleragers|Battlerager|Bladesingers|Bladesinger|Dragonslayers|Dragonslayer|Necromancers|Necromancer|Battlemages|Battlemage|Illusionists|Illusionist|Transmuters|Transmuter|Brewmasters|Brewmaster|Nightshades|Nightshade|Enchantors|Enchantor|Mentalists|Mentalist|Runesmiths|Runesmith|Confessors|Confessor|Barbarians|Barbarian|Charlatans|Charlatan|Crusaders|Crusader|Assassins|Assassin|Jongleurs|Jongleur|Eldritches|Eldritch|Paladins|Paladin|Warlocks|Warlock|Witches|Witch|Rangers|Ranger|Samurai|Armsmen|Armsman|Shukenja|Shaman|Priests|Priest|Clerics|Cleric|Pirates|Pirate|Bandits|Bandit|Ninjas|Ninja|Skalds|Skald|Ovates|Ovate|Monks|Monk|Warriors|Warrior|Thieves|Thief|Mages|Mage|Bards|Bard|Wujen)\b</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+			</TriggerGroup>
+		</TriggerGroup>
+	</TriggerPackage>
+</MudletPackage>
