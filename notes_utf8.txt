@@ -1,0 +1,37 @@
+========== PERSONAL / GAME NOTES (not project scope) ==========
+
+QUESTOPTIONS QUESTINFO WORTH
+
+head back to mud school
+
+500 eggs for a steel skin
+
+make start satchels for dragons and new characters with a parchment explaining where they wee found, area maps!
+
+look at making new maps like thalos's updated one use shattered book editor? (mapper work is deferred -- see docs/TODO.md DESIGN section)
+
+check out stat command and vitality
+
+i turned on timestamps, it might be useful? -- yes for reading live and lining up with screenshots, but on-screen timestamps are NOT written into the log/ files, so I can't grep a log for a specific timestamp after the fact. Still need the actual screenshot (or nearby game text) to locate a moment precisely.
+
+timestamp in gameplay/logs might help spot post/pre action lag -- agreed, worth trying next time something feels laggy and we want to measure it.
+
+can claude code access my obsidian vault for my knowledge library? -- yes, already accessible right now under the same broad read grant. Holding off on designing that workflow since you flagged it as a later project -- say the word whenever you want to start it.
+
+========== PROJECT NOTES ==========
+Everything reported here has been captured into docs/TODO.md (see "OPEN --
+From Steven's 2026-07-05 live-test session" and the GroupView/aura-autotarget
+section just above it) so it isn't sitting only in this file. Keep adding new
+project notes here as they come up during play -- I'll keep folding them into
+TODO.md on request.
+
+========== IDEAS ==========
+The big idea dump (formerly ~/Downloads/aistuff.txt) is now organized by
+category at docs/MyDSL_IdeaBacklog.md. aistuff.txt itself has been deleted --
+that doc is the only copy now. Add new stray ideas either here or straight
+into that file.
+
+========== claude notes ==========
+Add a new dated block here each session with a short recap if useful --
+kept out for now since docs/TODO.md and docs/CHANGELOG.md are the durable
+record and this file was getting long. Ask if you'd like the recaps back.

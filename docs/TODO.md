@@ -73,6 +73,90 @@ Still genuinely unconfirmed/unresolved (not new, carried forward):
       first mob of opposing alignment if one is visible; otherwise fall back
       to the first mob not in your own group. Design idea, not yet scoped.
 
+## OPEN — From Steven's 2026-07-05 live-test session (notes_utf8.txt)
+
+First live-combat confirmation of the 2026-07-05 CombatView fixes: fight
+summaries are rendering correctly in-game (confirmed via screenshot, on
+Vaelis — a red fox/snow weasel/Shaenus Sha'falas/rabbit all summarized
+correctly with hit/miss/% landed).
+
+- [x] **Round-by-round display hidden by default was a real gap, now fixed.**
+      Re-read `DSL_PNP_Battle.lua` directly: PNP's battle window gets an
+      *unconditional* live echo of every non-miss damage line — none of its
+      show_* flags ever gated the window, only the main-console copy.
+      CombatView's `show_damage_by_me`/`show_damage_to_me`/`echo_to_main`
+      removed; the Combat window now always shows damage live regardless of
+      config, matching PNP. `gag_combat` purely controls the main console:
+      `true` deletes the raw line (window still shows it), `false` leaves it
+      completely untouched (no reformatted duplicate ever added). Needs
+      live-test confirmation.
+- [x] **CombatView should include fight reports for group members** — fixed by
+      removing `isRelevant()` entirely from `parseCombatDamageLine()` and
+      `parseCombatAvoidLine()`. Confirmed PNP has no relevance filter at all
+      — it tracks every combat line unconditionally. Known tradeoff: ambient
+      bystander fights (`A boar's charge misses a liger cub.`) will also
+      track again now, same as they would in PNP. See
+      `Contract_CombatWindow.md`'s "Scope filter" section. Needs live-test
+      confirmation this actually surfaces group members' own fights (still
+      unconfirmed whether DSL's broadcast even sends you that text).
+- [ ] **GroupView not populating** — reported not working; unconfirmed whether
+      Steven was actually grouped at the time or `group` output failed to
+      populate the window. Needs repro steps.
+- [ ] **autowhere → PlayersNear routing + gag** — `autowhere` output should be
+      routed into the `MyDSL_PlayersNear` window (like scan-based "Players
+      near you" already is) and then gagged from the main console.
+- [ ] **autowhere should not fire while sleeping** — currently fires
+      regardless of character state.
+- [ ] **Chat capture bug** — grabbing the first letter of the following line;
+      Steven traced this to the GMCP `S` echo colliding with chat capture.
+- [ ] **Clan gossip duplicates in chat window** — possibly same root cause as
+      the next item.
+- [ ] **Chat routing script possibly duplicated** — Steven flagged the DSL2
+      chat-routing script itself as possibly duplicated; needs a direct check
+      against what's actually wired (may explain the clan-gossip duplication
+      above).
+- [ ] **Roller needs to be fixed to match PNP's roller** — current DSL2 roller
+      behaves differently than PNP's; PNP's is the reference implementation.
+- [ ] **RightHere should update on `look` too**, not just `scan`.
+- [ ] **History window font + RightHere font** — need to be adjustable in-game
+      and persist (character-bound, presumably — needs a decision like the
+      other font/config persistence gaps already tracked).
+- [ ] **History window scrollbar doesn't match other windows** — cosmetic;
+      Steven notes it may not be needed at all unless the window actually
+      scrolls.
+- [ ] **Sound/room file naming convention** — loose `.mp3`/room-picture
+      filenames use underscores instead of spaces, making it awkward to
+      copy/paste a display name directly into a rename. Quality-of-life ask,
+      not scoped yet.
+- [ ] **State-scoped sound toggle** — need a way for an alias to turn a sound
+      on for a state and reliably turn it back off when that state ends
+      (example given: a sleep alias turns on a sleep sound, needs to turn it
+      back off on wake/stand/rest/anything that changes you out of sleeping).
+      Not scoped — needs a general "sound tied to state" pattern, not just a
+      one-off for sleep.
+- [ ] **TargetView button colors hard to see** — Steven's own note flags this
+      as belonging to a later visual pass, not urgent now.
+- [ ] **Incorporate `colors.xml` (DslColor) into the UI** — design question,
+      not scoped. `colors.xml` was committed 2026-07-05 as reference
+      material for this.
+- [ ] **Census (from UI) should interact with the reference module** — design
+      idea, depends on the not-yet-started Layer 4 reference library.
+- [ ] **Item-clickable reference module idea** — instead of echoing item stats
+      to the screen on identify, make the item name itself clickable
+      (underline, not color change) and pull stats from a persistent
+      database on click. Would cut down on trigger count significantly.
+      Depends on the not-yet-started Layer 4 reference library.
+
+- [x] **`order_attack` made a default mob button** (2026-07-05, per Steven) —
+      swapped in for `glance` in the default `mob_buttons` set.
+- [x] **TargetView button config made character-bound** (2026-07-05, per
+      Steven) — `MyDSL/targetview_config_<CharName>.lua`, same
+      charName()/safeFileName() pattern as `MyDSL_AffectsView.lua`. Was a
+      single shared file.
+
+**Still open — needs repro from Steven:**
+- GroupView not populating — need repro steps (were you actually grouped?).
+
 ---
 
 ## LOW PRIORITY — Confirmed still-open code gaps (2026-07-05 audit)
@@ -102,13 +186,9 @@ section below) — these are the ones still genuinely open:
 - [ ] Gap 7 — `saveState()` has no error handling around `table.save()`
 
 ### TargetView (`Contract_TargetView.md`)
-- [ ] **New 2026-07-05 (character-binding audit):** button config
-      (`MyDSL/targetview_config.lua`, the `mob_buttons`/`player_buttons`
-      set from `mydsl target mobset/playerset`) is a single shared file, not
-      character-bound. Not previously flagged. Unclear if this *should* be
-      per-character (a druid and a warrior might want different default
-      buttons) or intentionally shared like ThemeEngine — needs a decision,
-      not just a fix.
+- [x] **Button config made character-bound** (2026-07-05, per Steven's
+      decision) — was a single shared file; now
+      `MyDSL/targetview_config_<CharName>.lua`.
 
 ### DataLayer
 - [ ] Gap 1 — no `equipment`/`eq` parser at all (confirmed still missing)
@@ -146,6 +226,15 @@ updated to match.
 ## DESIGN — Not Yet Started
 
 - [ ] Layer 4: Reference library (items, mobs, lore) — not started
+- [ ] **Deferred until current UI workload is finished (per Steven, 2026-07-05):**
+      - Mapper hardening/MyDSL integration — the mapper (`dslmapper/` /
+        `generic_mapper`) was edited by Steven and will need hardening to
+        integrate with MyDSL properly; sibling profiles have mapper scripts
+        showing further progress on this worth reviewing when it's picked up.
+      - Data-driven notes/quest tracking — most of the in-game feature/quest
+        notes (see `notes_utf8.txt`) are meant to be integrated/streamlined
+        via data files eventually rather than living entirely in-game as
+        manual notes. Separate project from the current UI work.
 
 **Note:** MyDSL_PromptView was listed as "not yet started" / "contract stub" in
 older versions of this file — that's stale. It's fully built (170 lines,

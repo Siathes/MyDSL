@@ -45,6 +45,7 @@ from this repository — no separate design-chat relay or upload/download step.
 | `../MyDSL_PNP_Reference.md` | PNP package reference summary — profile root, not docs/. Read `../PNP files/*.lua` directly for anything that needs porting or verifying |
 | `Contract_Addendum_2026-06-21.md` | Addendum superseding parts of several contracts |
 | `templates_by_freq.txt` / `templates_with_examples.txt` | Pre-distilled combat-message shapes from the `log/` archive — fast first pass only, confirmed gaps exist |
+| `MyDSL_IdeaBacklog.md` | Raw, unscoped feature/research idea dump, categorized. Absorbed from Steven's `~/Downloads/aistuff.txt` 2026-07-05 (now deleted — this is the only copy). Add new ideas here directly; nothing here is started unless it also appears in `TODO.md` |
 
 ### Contracts — Written From Actual Code, Spot-Checked 2026-07-05
 | File | Module | Status |
