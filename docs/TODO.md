@@ -176,16 +176,24 @@ summaries are rendering correctly in-game (confirmed via screenshot, on
 Vaelis — a red fox/snow weasel/Shaenus Sha'falas/rabbit all summarized
 correctly with hit/miss/% landed).
 
-- [x] **Round-by-round display hidden by default was a real gap, now fixed.**
-      Re-read `DSL_PNP_Battle.lua` directly: PNP's battle window gets an
-      *unconditional* live echo of every non-miss damage line — none of its
-      show_* flags ever gated the window, only the main-console copy.
-      CombatView's `show_damage_by_me`/`show_damage_to_me`/`echo_to_main`
-      removed; the Combat window now always shows damage live regardless of
-      config, matching PNP. `gag_combat` purely controls the main console:
-      `true` deletes the raw line (window still shows it), `false` leaves it
-      completely untouched (no reformatted duplicate ever added). Needs
-      live-test confirmation.
+- [x] **Round-by-round display hidden by default was a real gap** — partially
+      fixed 2026-07-05 (config redesign), but Steven's live test on Vrokt
+      still showed only the fight-summary, zero round-by-round lines, even
+      after that fix. Root cause found the same day: the round-flush handler
+      (`MyDSL._handlers.combatRoundFlush` in DataLayer) was registered on
+      `"MyDSL.time.updated"` — which only fires when the player manually
+      types `time` — instead of `"MyDSL.char.updated"` (raised by
+      `update("char", ...)` on every `gmcp.char_data` packet, the real
+      once-per-round vitals-refresh signal). So `round_data` accumulated
+      correctly the whole time (the damage trigger populates it fine) but
+      never got flushed to `CV.render()` during an actual fight — only
+      `snapshotFight()`'s kill/flee/rescue path (a separate code path) ever
+      fired, which is exactly why fight summaries worked while the live
+      round log never appeared. Fixed: handler now listens on
+      `"MyDSL.char.updated"`. Confirmed the config-redesign fix from earlier
+      (removing `show_damage_by_me`/`show_damage_to_me`/`echo_to_main`) was
+      necessary but not sufficient — this was the actual blocker. Needs
+      live-test confirmation on the next fight.
 - [x] **CombatView should include fight reports for group members** — fixed by
       removing `isRelevant()` entirely from `parseCombatDamageLine()` and
       `parseCombatAvoidLine()`. Confirmed PNP has no relevance filter at all

@@ -2142,7 +2142,17 @@ MyDSL._triggers.procPoisonTick = tempRegexTrigger(
   end)
 
 -- ---- Round-flush handler -------------------------------------------
--- Fires on every prompt reprint (which happens once per combat round).
+-- Fires on every GMCP char_data packet (vitals refresh), which the game
+-- sends once per prompt/combat round. CONFIRMED BUG, fixed 2026-07-05: this
+-- was wired to "MyDSL.time.updated", which only fires when the player types
+-- the "time" command -- essentially never during a real fight. That's why
+-- round_data accumulated correctly (combatDamage trigger populates it fine)
+-- but never got flushed/rendered live: the round log always sat empty until
+-- either a manual "time" or a kill (a completely separate code path via
+-- snapshotFight(), which is why fight summaries kept working while the
+-- live round-by-round display never appeared). "MyDSL.char.updated" is
+-- raised by update("char", ...) on every gmcp.char_data event -- the actual
+-- once-per-round signal.
 -- Derives one condensed verb per (attacker,target,noun) combo from the
 -- accumulated round scores, raises combat.updated, then clears round_data.
 -- Rage: if GMCP reported hp_raw == "???" this round, re-fire combat_rage.
@@ -2151,7 +2161,7 @@ if MyDSL._handlers.combatRoundFlush then
   pcall(killAnonymousEventHandler, MyDSL._handlers.combatRoundFlush)
 end
 MyDSL._handlers.combatRoundFlush = registerAnonymousEventHandler(
-  "MyDSL.time.updated",
+  "MyDSL.char.updated",
   function()
     if not (MyDSL and MyDSL.State and MyDSL.State.combat) then return end
     -- Derive condensed round lines (stored on round_data entries for CombatView)
