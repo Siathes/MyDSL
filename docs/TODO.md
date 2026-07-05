@@ -60,6 +60,21 @@ Still genuinely unconfirmed/unresolved (not new, carried forward):
 
 ---
 
+## OPEN — From Steven's in-game notes (notes_utf8.txt, 2026-07-05)
+
+- [ ] **GroupView heal quick-action doesn't work on Mob rows** — confirmed by
+      Steven in-game: healing a charmed pet (bear, stallion) via the Group
+      window's [Heal] button fails. Unlike `rescue` (already known and
+      intentionally filtered for Mob rows, see `Contract_GroupView.md`),
+      `heal` is supposed to work on pets — needs investigation into why it's
+      failing, not just filtering it out.
+- [ ] **TargetView: auto-populate target on aura detection** — when an aura
+      shows (detect good/detect evil), TargetView should auto-set to the
+      first mob of opposing alignment if one is visible; otherwise fall back
+      to the first mob not in your own group. Design idea, not yet scoped.
+
+---
+
 ## LOW PRIORITY — Confirmed still-open code gaps (2026-07-05 audit)
 
 Spot-checked every gap listed in the old version of this file against live
