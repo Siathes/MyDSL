@@ -84,7 +84,9 @@ into wrong regex instead of PNP's tested source being copied directly).
 Correctly character-bound: DataLayer's `MyDSL.Data[charName]` persistent
 store, per-character affects files (`MyDSL/affects/<Name>.lua`), PromptView
 (`MyDSL/prompt_<charName>.lua`), TargetView button config
-(`MyDSL/targetview_config_<CharName>.lua`, fixed 2026-07-05 — was shared).
+(`MyDSL/targetview_config_<CharName>.lua`, fixed 2026-07-05 — was shared),
+per-window debug logs (`MyDSL/logs/<category>/<CharName>/<date>.log`, made
+character-bound 2026-07-05 from the start — see `MyDSL.logWindow()`).
 
 **Not character-bound, but should be** (open bugs, tracked in `docs/TODO.md`):
 LayoutEngine window positions (`MyDSL_layout.lua`, single shared file),

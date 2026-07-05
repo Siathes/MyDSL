@@ -615,14 +615,18 @@ there is no built-in way to log a MiniConsole/UserWindow's content at all
 (see `MyDSL_MudletAPIReference.md`). Every `mc:decho()`/`mc:dechoLink()` call
 in this module now routes through a local `mcLog()`/`mcLog()` wrapper that
 also calls `MyDSL.logWindow("combat", text)` (defined in DataLayer), which
-mirrors the same text into `MyDSL/logs/combat/<YYYY-MM-DD>.log` (plain text,
-decho color tags stripped, one file per day). RightHere/Group/Target got the
-same treatment the same day — see their own contracts.
+mirrors the same text into `MyDSL/logs/combat/<CharName>/<YYYY-MM-DD>.log`
+(plain text, decho color tags stripped, one file per character per day).
+Character-bound as of 2026-07-05 (per Steven, once a shared file across
+characters got confusing testing more than one in the same day). RightHere/
+Group/Target got the same treatment the same day — see their own contracts.
 
 ```lua
 MyDSL.logWindow(category, text)  -- DataLayer, Section 2. category is the
                                   -- MyDSL/logs/ subdirectory name (combat,
-                                  -- righthere, group, target, chat, events, raw)
+                                  -- righthere, group, target, chat, events, raw).
+                                  -- Writes to logs/<category>/<CharName>/<date>.log,
+                                  -- via MyDSL.Char() (falls back to "Unknown").
 ```
 
 ---

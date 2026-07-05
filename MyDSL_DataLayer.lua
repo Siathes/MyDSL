@@ -31,18 +31,30 @@ local function stripColorTags(s)
   return (s or ""):gsub("<%d+,%d+,%d+>", ""):gsub("<r>", "")
 end
 
+-- Same sanitizer as MyDSL_AffectsView.lua's safeFileName() -- keeps
+-- character-bound filenames/dirnames consistent across the project.
+local function safeFileName(s)
+  s = tostring(s or "Unknown"):gsub("[^%w_%-%.]+", "_"):gsub("^_+", ""):gsub("_+$", "")
+  if s == "" then s = "Unknown" end
+  return s
+end
+
 -- Per-window plain-text logging. Confirmed 2026-07-05 (see
 -- MyDSL_MudletAPIReference.md): Mudlet's startLogging() only ever captures
 -- the main console -- there is no built-in way to log a MiniConsole/
 -- UserWindow's content. This mirrors whatever a module writes to its own
--- window into a same-day file under MyDSL/logs/<category>/ (already
--- gitignored -- runtime data, not source, and git doesn't track empty dirs
--- so a fresh checkout won't have these -- lfs.mkdir() below handles that,
--- same pattern as MyDSL_AffectsView.lua/MyDSL_ChatWrapper.lua). One file
--- per day, so it rotates naturally instead of growing forever.
+-- window into a same-day file under MyDSL/logs/<category>/<CharName>/
+-- (already gitignored -- runtime data, not source, and git doesn't track
+-- empty dirs so a fresh checkout won't have these -- lfs.mkdir()/mkdir -p
+-- below handles that, same pattern as MyDSL_AffectsView.lua/
+-- MyDSL_ChatWrapper.lua). Character-bound as of 2026-07-05 (per Steven --
+-- a shared file across characters got confusing once more than one
+-- character is tested in the same day, which already happened). One file
+-- per character per day, so it rotates naturally instead of growing forever.
 function MyDSL.logWindow(category, text)
   if not category or not text or text == "" then return end
-  local dir  = getMudletHomeDir() .. "/MyDSL/logs/" .. category
+  local char = safeFileName(MyDSL.Char and MyDSL.Char() or "Unknown")
+  local dir  = getMudletHomeDir() .. "/MyDSL/logs/" .. category .. "/" .. char
   -- mkdir -p equivalent: lfs.mkdir only makes one level, so try os.execute
   -- too for the full path in case MyDSL/logs/ itself doesn't exist yet
   -- (fresh checkout -- git doesn't track empty dirs). Same dual approach as
