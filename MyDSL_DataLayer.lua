@@ -895,6 +895,19 @@ local whoBlock = {}
 
 function MyDSL.beginWho() whoBlock = {} end
 
+-- Rewritten 2026-07-05 -- confirmed broken against DSL_CommandRef.md's own
+-- documented real format and PNP's tested People.lua regex:
+--   `[level race class] (org_code) name title`  -- clan, PARENS
+--   `[level race class] [ Kingdom ] name title`  -- kingdom, BRACKETS (with
+--                                                    spaces inside)
+-- The old version only ever looked for the org/clan in [brackets] --
+-- real clan tags like "(NT)"/"(VR)" (confirmed live in log/) are in
+-- PARENS, so `entry.clan` was always nil, and the leftover "(WANTED)"/
+-- "(VR)" parenthetical text shifted every word after it by one position,
+-- corrupting `kingdom` and `name` for any WANTED or clan-tagged entry
+-- (confirmed: "[27 Goblin Bnd] (WANTED) (VR) Vrokt." parsed as
+-- kingdom="()" name="(VR)" instead of org="VR" name="Vrokt"). Also dropped
+-- "QUIET" -- never found anywhere in log/ or DSL_CommandRef.md, unconfirmed.
 function MyDSL.parseWhoLine(line)
   local level, race, class = line:match("%[%s*(%d+)%s+([%w%-]+)%s+(%w+)%]")
   if not level then return end
@@ -903,29 +916,44 @@ function MyDSL.parseWhoLine(line)
     level  = tonumber(level),
     race   = trim(race),
     class  = trim(class),
-    wanted = line:find("WANTED") ~= nil,
-    afk    = line:find("%sAFK%s") ~= nil,
-    quiet  = line:find("QUIET")  ~= nil,
+    wanted = false,
+    afk    = false,
   }
 
-  -- Everything after the closing bracket
+  -- Everything after the closing [level race class] bracket.
   local rest = line:match("%](.+)$") or ""
 
-  -- Clan is the only part in its own [brackets]
-  entry.clan = rest:match("%[([^%]]+)%]")
-  rest = rest:gsub("%[[^%]]*%]", "")
-    :gsub("WANTED", ""):gsub("%sAFK%s", " "):gsub("QUIET", "")
+  -- Bare, unwrapped AFK (confirmed live in log/ alongside "[AFK]"/"(AFK)" --
+  -- DSL isn't consistent about the delimiter, so check all three forms).
+  if rest:find("%sAFK%s") or rest:find("%sAFK$") then entry.afk = true end
+  rest = rest:gsub("%sAFK%s", " "):gsub("%sAFK$", "")
 
-  -- Remaining words: kingdom  name  title...
-  -- Split by any whitespace; kingdom and name are single words in DSL.
+  -- Every remaining ()/[] group, in order. Per DSL_CommandRef.md + confirmed
+  -- live in log/:
+  --   (WANTED) / (Hostile) / [AFK] / (AFK)  -- status markers, not org
+  --   (org_code)                 -- clan short code: (NT), (VR), (Abaddon)
+  --   [ Kingdom ]                 -- kingdom name (spaces inside brackets)
+  --   (Queen)(Verminasia)         -- multi-org: two groups, both real orgs
+  --   (New Thalos), ( Dragon )    -- multi-word org, spaces inside parens too
+  local orgs = {}
+  rest = rest:gsub("[%(%[]%s*([^%)%]]-)%s*[%)%]]", function(tag)
+    tag = trim(tag)
+    if tag == "WANTED" then entry.wanted = true
+    elseif tag == "Hostile" then entry.hostile = true
+    elseif tag == "AFK" then entry.afk = true
+    elseif tag ~= "" then orgs[#orgs + 1] = tag
+    end
+    return " "
+  end)
+  if #orgs > 0 then entry.org = table.concat(orgs, ", ") end
+
+  -- Whatever's left: name, then title (if any words follow).
   local parts = {}
-  for w in rest:gmatch("%S+") do parts[#parts + 1] = w end
-
-  entry.kingdom = parts[1]
-  entry.name    = parts[2]
-  if #parts > 2 then
+  for w in trim(rest):gmatch("%S+") do parts[#parts + 1] = w end
+  entry.name = parts[1]
+  if #parts > 1 then
     local t = {}
-    for i = 3, #parts do t[#t + 1] = parts[i] end
+    for i = 2, #parts do t[#t + 1] = parts[i] end
     entry.title = table.concat(t, " ")
   end
 

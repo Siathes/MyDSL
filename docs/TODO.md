@@ -4,6 +4,54 @@ from the workflow as of this date; Claude Code now owns keeping this file curren
 
 ---
 
+## IN PROGRESS — Systematic bottom-up integrity audit (started 2026-07-05)
+
+Steven's request: re-verify the whole project against the new direct workflow
+and the "reuse PNP/EMCO, don't reinvent" mandate, starting at the lowest
+layer (DataLayer / data collection) and working up. Explicitly paced as a
+multi-session project, not a single sweep — ~20 DataLayer parse functions
+alone, each needing a real cross-check against the right PNP module and
+`log/` evidence, not a shallow skim.
+
+**Layer 1 (DataLayer) — in progress:**
+- [x] Score/prompt/vitals — confirmed correct as-is. PNP's equivalent
+      (`DSL_PNP_Statusbar.lua`) is fundamentally text/prompt-based because it
+      predates/works around limited GMCP; our GMCP-first approach
+      (`gmcp.char_data`) is the legitimate modern replacement, not a
+      reinvention gap. `parsePromptLine()` only extracts the day/night
+      "period" tag GMCP doesn't provide — no redundancy, correctly scoped.
+- [x] **Who-list parsing — confirmed broken, now fixed.** `parseWhoLine()`
+      only ever looked for the org/clan field in `[brackets]`. Real DSL
+      format (confirmed in `DSL_CommandRef.md` *and* live in `log/`, and
+      matching `DSL_PNP_People.lua`'s tested regex): clan/org codes are in
+      `(parens)` — `(NT)`, `(VR)`, `(Abaddon)` — brackets are for kingdom
+      names only. Old code's `entry.clan` was therefore always `nil`, and
+      leftover parenthetical text (`(WANTED)`, `(VR)`, etc.) shifted every
+      following word by one position, corrupting `kingdom`/`name` for any
+      WANTED- or clan-tagged entry (confirmed: `"[27 Goblin Bnd] (WANTED)
+      (VR) Vrokt."` parsed as `kingdom="()" name="(VR)"` instead of
+      `org="VR" name="Vrokt"`). Rewritten to extract every `()`/`[]` group
+      in order, classify status tags (`WANTED`/`Hostile`/`AFK`  — confirmed
+      live in all three of bare/`[bracket]`/`(paren)` form, DSL isn't
+      consistent) vs. org/kingdom text, verified against 5 real examples
+      from `log/`. Dropped an unconfirmed `quiet` field (never found in
+      `log/` or `DSL_CommandRef.md`). No downstream module consumed the old
+      fields yet (no People/Friends view built), so this was safe to fix
+      with no breakage — but real value once that Layer 4 work happens.
+- [ ] Remaining DataLayer parse functions not yet audited this pass: lunar,
+      weather, group, inv, unread, improve, scan, creaturelore, whok/whoc/
+      whocraft (may share the who-list bug above — same bracket-only clan
+      bug pattern, needs its own check against `DSL_PNP_People.lua`'s other
+      4 trigger variants), map. Combat was already thoroughly audited
+      2026-07-05 (see the Combat sections above/below).
+
+**Layers 2-4:** not started this pass (Layer 2: ThemeEngine/LayoutEngine/
+WindowRegistry; Layer 3: every view module's command surface, already
+partially covered by the command-surface retrofit plan above; Layer 4:
+not started at all as a feature, nothing to audit yet).
+
+---
+
 ## ✅ DONE — Phase A Complete (2026-06-29)
 
 All Layer 1 and Layer 2 systems working. All Layer 3 Phase A modules smoke
