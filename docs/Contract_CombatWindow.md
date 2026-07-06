@@ -624,9 +624,18 @@ Group/Target got the same treatment the same day — see their own contracts.
 ```lua
 MyDSL.logWindow(category, text)  -- DataLayer, Section 2. category is the
                                   -- MyDSL/logs/ subdirectory name (combat,
-                                  -- righthere, group, target, chat, events, raw).
+                                  -- righthere, group, target, history,
+                                  -- playersnear, scan, bloodbath, chat, ...).
                                   -- Writes to logs/<category>/<CharName>/<date>.log,
                                   -- via MyDSL.Char() (falls back to "Unknown").
+```
+
+**Toggleable as of 2026-07-05** (per Steven — "players near you" logging was
+noise he didn't want): `MyDSL.LogConfig = { enabled, disabled_categories }`,
+also in DataLayer. `playersnear` is disabled by default. Aliases:
+```
+mydsl log on/off              -- master switch, all categories
+mydsl log <category> on/off   -- e.g. "mydsl log playersnear on" to re-enable
 ```
 
 ---

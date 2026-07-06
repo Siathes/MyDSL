@@ -192,6 +192,11 @@ Still genuinely unconfirmed/unresolved (not new, carried forward):
       at all (only CombatView/GroupView/ScanView's RightHere/TargetView got
       it when that feature was built). `Route.to()` now mirrors into
       `MyDSL/logs/<windowname>/` for every routed window, same pattern.
+- [x] **Window logging made toggleable** (Steven: didn't want
+      "players near you" logged at all). `MyDSL.LogConfig` (DataLayer) —
+      `enabled` master switch + `disabled_categories` per-category opt-out,
+      `playersnear` disabled by default. `mydsl log on/off` and
+      `mydsl log <category> on/off` aliases.
 - [ ] **Skills/Spells → Combat window** (Steven: wants skill/spell actions
       you actually take to echo to main *and* copy into the Combat window,
       "same as PNP," while cutting down on raw attack spam). Investigated:

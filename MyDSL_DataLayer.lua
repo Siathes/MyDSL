@@ -39,6 +39,17 @@ local function safeFileName(s)
   return s
 end
 
+-- Master + per-category toggle for MyDSL.logWindow(), added 2026-07-05 per
+-- Steven ("i dont think we need to log players near you, can you make
+-- logging toggleable?"). playersnear defaults OFF -- it fires every ~20s
+-- from Steven's own autowhere alias and isn't worth the disk churn. Toggle
+-- via aliases: "mydsl log on"/"mydsl log off" (master), "mydsl log <category>
+-- on"/"mydsl log <category> off" (per-category) -- see Section 10.
+MyDSL.LogConfig = MyDSL.LogConfig or {
+  enabled = true,
+  disabled_categories = { playersnear = true },
+}
+
 -- Per-window plain-text logging. Confirmed 2026-07-05 (see
 -- MyDSL_MudletAPIReference.md): Mudlet's startLogging() only ever captures
 -- the main console -- there is no built-in way to log a MiniConsole/
@@ -53,6 +64,8 @@ end
 -- per character per day, so it rotates naturally instead of growing forever.
 function MyDSL.logWindow(category, text)
   if not category or not text or text == "" then return end
+  if not MyDSL.LogConfig.enabled then return end
+  if MyDSL.LogConfig.disabled_categories[category] then return end
   local char = safeFileName(MyDSL.Char and MyDSL.Char() or "Unknown")
   local dir  = getMudletHomeDir() .. "/MyDSL/logs/" .. category .. "/" .. char
   -- mkdir -p equivalent: lfs.mkdir only makes one level, so try os.execute
@@ -67,6 +80,26 @@ function MyDSL.logWindow(category, text)
   f:write(os.date("%H:%M:%S") .. "  " .. stripColorTags(text) .. "\n")
   f:close()
 end
+
+-- "mydsl log on/off" (master) and "mydsl log <category> on/off" (per-
+-- category, e.g. "mydsl log playersnear on" to re-enable it).
+if MyDSL._aliases.logToggle then pcall(killAlias, MyDSL._aliases.logToggle) end
+MyDSL._aliases.logToggle = tempAlias(
+  "^mydsl log (on|off)$",
+  [[MyDSL.LogConfig.enabled = (matches[2] == "on")
+    echo("Window logging " .. matches[2] .. ".\n")]]
+)
+if MyDSL._aliases.logCategoryToggle then pcall(killAlias, MyDSL._aliases.logCategoryToggle) end
+MyDSL._aliases.logCategoryToggle = tempAlias(
+  "^mydsl log (\\S+) (on|off)$",
+  [[local cat = matches[2]
+    if matches[3] == "off" then
+      MyDSL.LogConfig.disabled_categories[cat] = true
+    else
+      MyDSL.LogConfig.disabled_categories[cat] = nil
+    end
+    echo("Window logging for '" .. cat .. "' " .. matches[3] .. ".\n")]]
+)
 
 
 ------------------------------------------------------------------------
@@ -120,6 +153,10 @@ MyDSL._handlers = MyDSL._handlers or {}
 
 -- Trigger IDs from tempRegexTrigger, kept so we can kill them on reload.
 MyDSL._triggers = MyDSL._triggers or {}
+
+-- Alias IDs from tempAlias, kept so we can kill them on reload. DataLayer
+-- had no aliases of its own until the log-toggle ones (2026-07-05).
+MyDSL._aliases = MyDSL._aliases or {}
 
 
 ------------------------------------------------------------------------
