@@ -1,0 +1,7 @@
+WING STALL 'WING STALL'
+Syntax:  wing stall
+Wing stall is a skill known only to dragons. (Of course, who else has wings?
+*grin*)  Dragons may close up their wings allowing them to plummet earthward
+briefly, then stall by spreading their wings again.  The effect of this is to
+stir up dust and debris, damaging every creature in the room.  While it may
+seem like play to a dragon, it is interpreted by those affected as an attack.

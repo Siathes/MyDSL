@@ -1,0 +1,65 @@
+DESCRIPTION
+DESCRIPTION
+
+All players are required to have a suitable description for their characters
+which should be in place by level 5.  Descriptions should not be any less
+than four (4) lines of text in written, paragraph form.
+
+If players pass level 5 and still do not have a written description for
+their character, they will be transed to the DSL Classroom where they can
+work on their description and see examples of descriptions for their race
+and others, should they have writers block.  These examples are NOT to be
+used as a copy and paste but to give you ideas on how to write your own.
+Descriptions can be changed or added to at any point in time.
+
+The syntaxes below will assist you in creating your descriptions either
+within the editor or line by line.  Please refer to the HELP EDITOR file
+before entering the editor for a quick tutorial.
+
+  Syntax: Description <string>            For use outside of the Editor
+  Syntax: Description + <string>          For use outside of the Editor
+  Syntax: Description - <string>          For use outside of the Editor
+  Syntax: Desc ++                         Puts you in the Editor
+
+Description <string> will set your long description to the given string that
+you type in.  Using description + or - <string> will add or remove single
+lines from your description.  To add or remove spacing with the + or -
+feature, do not include any other text as your string.  Desc ++ will place
+you into the editor where you can copy and paste paragraphs of text or free
+write your own.  There are commands within the editor for centering,
+formatting, etc.  So it is recommended that you review the HELP EDITOR
+helpfile prior to using.
+
+WHAT NOT TO DO:
+
+- Include actions, thoughts, feelings, or ASCII art
+- Tell other people how they react to your character
+- Share stories about your features or equipment
+- Combine your background with your description
+
+NOT PERMITTED:  ASCII art or Excessive use of color (ie: kender colors)
+
+
+WHAT TO DO:
+
+- Use your creation characteristics as an outline
+- Keep in line with your race and class
+     - A priest can be burly, but will still wear cloth.
+     - Kender are kender-sized, ogres are ogre-sized.
+- Make the description flow
+     - Start from the top or bottom and work to the other end
+     - Does something about you immediately stand out?
+- Consider what people would see and they would not
+     - Is your dress green? We can see that.
+     - Is your dagger hidden? We can't see that.
+- Remember that small details can tell a lot about a person
+     - Callused hands can imply physical labor.
+     - Worn boots might mean that someone is well-travelled.
+     - Eyes are the most important part of the face. Don't forget them.
+- Dress your character appropriately for their class and position
+     - Does your knight wear plate armor? Is it ornamental?
+     - Is your dress modest or made from expensive material?
+
+SEE ALSO:  BACKGROUND, EDITOR, NEWBIE, HELP <RACE>, RESTRING
+
+Updated 03.19.2021

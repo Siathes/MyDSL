@@ -1,0 +1,16 @@
+'ACID BLAST'
+ACID BLAST
+
+Syntax: cast 'acid blast' <target>
+
+Taking an ability from the draconian arts, the combat spellbooks offer the
+growing caster the spell of acid blast.  This spell, when cast, spews forth
+from the caster's hands literally as a gout of acid.
+
+Opponents learn quickly to be wary, as the spell is quite damaging, and can
+have potential side effects upon the equipment it lands on.
+
+Groups containing this spell: Combat
+
+
+SEE ALSO:  COMBAT SPELLS

@@ -1,0 +1,6 @@
+knock
+You can knock on a door by typing 'knock door'.  You may also pound the
+hell out of it.
+
+This code was based off a snippet by John Patrick (j.  S.  Patrick@ieee.
+Org) and used with permission.

@@ -1,0 +1,52 @@
+SHIP PORT PRICES
+These prices are only for organizations.  Individuals can not purchase
+ships and ports.
+Private Dock . . . . . . . . . . . . . 100 eggs
+(Includes two-way portal to and
+from clan hall/kingdom hall.
+Can only be accessed via the portal.)
+Water Way Rights and Port Taxes . . . . 1 egg / month
+(Only clans have to pay this. These
+fees go to the kingdom in which the
+port is located.)
+Ship pricing:
+Scout Ship    (10-20 rooms). . . . . .150 eggs
+Light Cruiser (21-30 rooms). . . . . .175 eggs
+Heavy Cruiser (31-40 rooms). . . . . .200 eggs
+Galley        (41-50 rooms). . . . . .225 eggs
+Great Galley  (51-60 rooms). . . . . .250 eggs
+Great Galley  (61-70 rooms). . . . . .275 eggs
+Great Galley  (71-80 rooms). . . . . .300 eggs
+You may not go beyond 80 rooms
+
+All Ships include the following items in the above
+configuration.
+Anchor, Wheel, Plank, Sails, Ladder or Cargo Net
+cannons, and storage locker. (Note: Lockers can
+only hold food, water, and ammo)
+
+Ship Upgrades:
+Additional Cannons. . . . . . . . . . . 20 eggs
+Additional Armor. . . . . . . . . . . . 5 eggs per 5 points
+Larger Sails. . . . . . . . . . . . . . 20 eggs per 3 yards of cloth
+
+Port/Clan Hall Upgrades:
+Coastal Defense Cannon. . . . . . . . . 50 eggs
+All Upgrades ARE limited by the ship size.
+Ships sizes are permanent and can not be changed.
+NOTE: Clan or kingdom MUST have a private port before they can
+purchase any ships.
+
+UPGRADE LIMITATIONS:
+
+Scout ship - cannons 0, sails 15 yds of cloth, armor 200 points.
+Light cruiser - cannons 2, sails 15 yds of cloth, armor 200 points
+Heavy cruiser - cannons 2, sails 15 yds of cloth, armor 200 points
+Galley - cannons 4, sails 15 yds of cloth, armor 200 points
+Great galley - cannons 4, sails 15 yds of cloth, armor 200 points
+
+Scout ship comes with 2 cannons
+Light cruiser comes with 2 cannons
+Heavy cruiser comes with 4 cannons
+Galley comes with 4 cannons
+Great galley comes with 8 cannons

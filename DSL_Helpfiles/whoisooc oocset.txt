@@ -1,0 +1,25 @@
+WHOISOOC OOCSET
+WHOISOOC OOCSET
+Syntax: whoisooc <character name>
+Syntax: oocset <field> <value>
+Field can be any of: 'name' 'city' 'state' 'nation' 'email' 'www'
+        The tilde does not translate into WWW addresses, so use a {- instead,
+this will place a tilde in its place.
+The OOC, or out of character, who list is accessed with the
+'whoisooc' command (see syntax below).
+        Although DSL does not currently require you to fill in your OOC
+information, you are highly urged to do so.  Because many players like to
+keep their true identities hidden, you may mask parts of your data.  Your
+game position and login time are not maskable, nor is your character's name,
+but the rest of your data is.  The 'oocset' command is used to change
+your OOC Wholist data, set pieces of data on and off, and view your current
+hidden/visible status.
+        Typing 'oocset' along will give you a list of your current
+visibility/hidden status.  All new players start with no information, and all
+data hidden.  To toggle a given field on, use 'oocset <field name>'.  For
+your Location, any of city, state, or nation will turn it on or off.  Your
+geographical location acts as one field for the sake of masked data.
+        To set your OOC Wholist data, use 'oocset <field> <value>'.  For
+example: 'oocset name Pat Migroin' will set your real life name to 'Pat
+Migroin.'  Note that this is TRUE data, and if you wish not to use it, then
+do NOT fill it in with bogus data.  You will be punished for it.

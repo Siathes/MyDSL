@@ -1,0 +1,38 @@
+KINGDOMS
+
+Althainian Continent:
+
+   Althainia  - The leading economic Kingdom in the world.  Traditionally
+                powerful and good in nature.
+
+   New Thalos - A Sultan and Sultana lead these people with Arabian
+                flavor.  This is a traditionally neutral kingdom.
+
+   Shalonesti - The Elven Kingdom of legend.  Always a Shalonesti Elf as
+                King or Queen from House Shalonost.
+
+   Thaxanos   - The Dwarven Kingdom from northern Althainia.
+
+   Abaddon    - The ancient Undead Kingdom ruled by the Vampire Queens.
+
+
+Arkania Continent:
+
+   Arkane     - The mystical Kingdom of western Arkania.  Traditionally
+                a neutral kingdom.
+
+   Verminasia - The famous evil Kingdom on Arkania.
+
+   Marauders  - A group of conquerors out to defeat any kingdom they see
+                fit.  Traditionally a neutral to evil group.
+
+Icewall Continent:
+
+   Ganth      - The Minotaur Kingdom on the continent of Icewall.
+
+   Nordmaar   - The Celtic Kingdom located on southern Icewall.
+
+   Darkonin   - The Goblin and Ogre Kingdom located in Icewall.
+
+
+Type HELP <KINGDOM NAME> for more specific information on that kingdom.

@@ -1,0 +1,31 @@
+  -----------------------------------------------------------------------
+
+        {RApproaching Recruiters{x
+
+    An important part of your character's life will be getting into a clan
+      or kingdom. The recruiting process is completely in-character. Don't
+      say anything Out of Character. It is required that you have a
+      description before you can be recruited, so check the RP section on
+      the website for assistance. Again, the URL is
+      {Bhttp://www.dsl-mud.org/rp.{x
+
+    First, figure out which kingdom or clan you want to join. Read through
+      their individual help files to help make your decision. Once you've
+      done so, type {cwhok (kingdom) recruiter{x or {cwhoc (clan) recruiter{x.
+      So, if you were looking to join New Thalos, you would type {cwhok
+      New_Thalos recruiter{x. If you wanted to join Shadow, you would type
+      {cwhoc Shadow recruiter{x. Send the recruiter a tell once you're
+      prepared for a recruitment session.
+
+    If they approve of you, they will ask you to invite them. Simply
+      {cinvite (name){x and they will guild you.
+
+    On a final note, beware of joining clans unless you're confident you
+      know the game well enough. Many clanners have been playing for years
+      and know every trick and tactic to kill you. Clanning is only for
+      people who've played the game long enough to know the areas and
+      mechanics of the game and are looking for a new challenge.
+
+        Type HELP NEWBIE to return to the table of contents.
+
+  -----------------------------------------------------------------------

@@ -1,0 +1,15 @@
+'EMPATH' 'EMPATHIC WOUND TRANSFER'
+EMPATH 'EMPATHIC WOUND TRANSFER'
+
+Syntax: c 'empath' <target>
+
+The Empathic Wound Transfer spell, or 'empath, ' as the Necromancers have
+dubbed it, is the closest that mages come to being able to heal.  The Empath
+spell removes damage taken by a target creature, and transfers it to the
+Necromancer.
+
+This is a dangerous practice, as the Necromancer can't control exactly how
+much damage he takes on, and a few careless spellcasters have wound up dead
+from overcasting this spell.
+
+See also - NECROMANCY NECROMANCER

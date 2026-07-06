@@ -1,0 +1,18 @@
+'ILLUSION SPELLS'
+
+The illusions spells are dedicated to deception and trickery.  They can be
+used to mask appearances or create distractions for the party.  Currently,
+the illusion group is very small, but it may be expanded in the future.
+Only thieves and mages can cast illusion spells.
+
+More information on individual spells may be found by typing help
+(spellname).  The illusions spell group consists of the following spells:
+
+invis           turns the target invisible
+mass invis      turns the caster's group invisible
+ventriloquate   allows the caster to put words in someone's mouth
+self projection shifts an image of oneself before them
+
+This group is available to the following classes -
+    BLADESINGER DRAGON GIANT INVOKER MAGE
+    NECROMANCER THIEF TRANSMUTER ASSASSIN

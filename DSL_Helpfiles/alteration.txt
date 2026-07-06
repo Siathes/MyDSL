@@ -1,0 +1,34 @@
+ALTERATION 'ALTERATION SPELLS'
+
+The alteration spell group contains numerous spells that allow one to
+literally change, or alter themselves, or items around them, either
+temporarily, or permanently.  This group is extremely specialized, and as
+such, is available only to those members of the conclave that are
+transmuters.
+
+More information on individual spells may be found by typing help
+(spellname).  The alteration spell group consists of the following spells:
+
+alter armor        changes armor from one type into cloth
+alter elements     changes silver into gold
+alter self         disguises player as a mob
+blackstaff         transforms a special gem into a staff with exceptional properties
+disjunction        a powerful disrupting spell which dispels magic as well as deals damage
+enlarge            enlarges characters
+forget             causes one's foe to forget critical spells and skills
+frost shroud       chills an enemy and can freeze an enemies feet to the ground
+permanency         changes a temporary effect to a permanent one, has side-effects
+reduce             reduces the size of characters
+summon manticore   summons a charmed beast of magic
+wizard mark        marks an object as the property of the wizard who casts this
+
+This group is available to the following classes -
+
+    TRANSMUTERS
+
+
+SEE ALSO:  ALTER ARMOR, ALTER ELEMENTS, ALTER SELF, BLACKSTAFF, DISJUNCTION
+           ENLARGE, FORGET, FROST SHROUD, PERMANENCY, REDUCE,
+           SUMMON MANTICORE, TRANSMUTER, WIZARD MARK
+
+Updated 12.03.2023

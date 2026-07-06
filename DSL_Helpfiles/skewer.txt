@@ -1,0 +1,8 @@
+SKEWER
+Skewer is a Shaman skill, allowing shamen to use their voodoo chants and
+spear throwing ability to throw a spear from a distance and hold their
+victims transfixed for a short amount of time.  The victim may try to escape
+from the skewer, but will probably seriously wound themselves trying.
+
+syntax: skewer (direction) (target)
+Must have a spear in inventory.

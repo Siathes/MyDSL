@@ -1,0 +1,57 @@
+charmies charmed beings creatures mobs
+CHARMIES
+
+A variety of classes and reclasses have the ability to summon their own
+charmed beings, spirits, etc.  Into Algoron and a variety of other classes
+that have the charm spell to call creatures to them to do their bidding.  If
+it is in your control, it does your bidding or you can work through it to
+otherwise manipulate a normal situation, these rules apply.
+
+As this is a powerful set of spells, in either situation, there are some
+rules to follow when using either.  Please also refer to HELP CHARM PERSON
+as this provides a list of actions that are illegal to order players and
+charmies to do.
+
+The illegal nature of these are in old news notes but now consolidated in
+the helpfile.
+
+It is illegal to do the following with any charmed creature:
+
+1.  Using charmies or other assisting mobs to bypass the mobprog code in
+order to keep mobs from triggering their progs and hitting you while you
+kill them.  Assist functions and attack limits were not designed for this.
+This has been used a lot in the UW as well as with other end game mobs.
+Don't do it.
+
+2.  Set your charmed being or army upon a mob to fight or farm items and
+then leave while the fight is going on.  YOU need to remain with your
+charmie(s) ALL THE TIME.  If you need to leave, dismiss it/them FIRST.  This
+includes initiating on a mob and nofollowing it.
+
+3.  Setting charmies upon keeps/keep lords that you own to prevent others
+from taking the keep.
+
+4.  Using your charmed mob to rescue a non charmed mob that someone else is
+fighting.
+
+5.  Using charmies, including thief/scavenger mobs, to purposely destroy or
+loot from other players.
+
+6.  Leaving aggressive mobs in public areas such as kingdoms, churches,
+shops, taverns or on well traveled pathways, such as recall spots, newbie
+areas like the gray church or outside popular leveling areas.
+
+7.  Shaman spirits - There are mobs in the game that were created before
+shaman with immune physical and magical attributes.  These are illegal for a
+shaman to use.
+
+8.  Eldritch gryffons - These are intended for eldritch use only and should
+not be created for other players to ride.
+
+9.  Any other situation not specifically listed that would abuse the spirit
+of the rules.
+
+
+SEE ALSO: CHARM, RULES
+
+Updated 12.11.2023

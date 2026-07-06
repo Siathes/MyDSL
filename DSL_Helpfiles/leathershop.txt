@@ -1,0 +1,44 @@
+LEATHERSHOP
+LEATHERSHOP
+
+Directions to the leather shops in the realm -
+
+Leather    Arkane    (8 - 15)
+
+Arkania Dock to Arkane Town Center
+-    14e
+Grokk's Leather Crafting from the Arkane Town Center
+-    e,n
+
+Leather  Darkonin   (18-24)
+
+Icewall Port to Entrance of Darkonin
+- ne, e, ne, 2n, 7w, u, 3e, u, 2w, u
+
+entrance of Darkonin to Gorkil's Leather Goods
+-  open e, e, e, e, e, e, e, e, open n, n
+
+
+Leather    Dolund'ir    (28 - 34)
+Althainia Market Square to Dolund'ir Fountain Square
+-    3w,8s,2e,6s,2d,2w
+Althainia Dock to Dolund'ir Fountain Square
+-    w,2s,27w,sw,3s,w,sw,4s,2d,2w
+Old Dung Leather Shop from Dolund'ir's Fountain Square
+-    w,3s,6w,2s,e,s,e
+
+Leather    Arkane    (38 - 44)
+
+Arkania Dock to Arkane Town Center
+-    14e
+Whitetail Leather Goods from the Arkane Town Center
+-    e,s
+
+Leather    Arkane    (48 - 51)
+
+Arkania Dock to Arkane Town Center
+-    14e
+Arkane Fur Importers from the Arkane Town Center
+-    3n,w
+
+See also - HELP ARMOR SHOPS

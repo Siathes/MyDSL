@@ -1,0 +1,42 @@
+outpost
+CLAN OUTPOST
+
+A clan can fund and build an outpost on another continent if they so wish
+for the cost of 750 eggs.  What this entitles them to is 2 rooms connected
+to a kingdom or area near a kingdom that offers shelter and safety.  If they
+want furniture you have to buy it.  If you want regen, portals - including a
+portal to your clanhall, a healer, etc.  These are all extra costs.
+
+What is required is permission from the Kingdom hosting your outpost.  Only
+1 outpost is permitted per kingdom.  Meaning if Justice has an outpost in
+Althainia, then no one else can have an outpost in Althainia.  The kingdom
+will also need to agree to and pay an upfront building tax of 250 eggs
+for the occupation of an outpost in their kingdom.
+
+The host kingdom also reserves the right to destroy the outpost if they so
+choose.
+
+You also have to show extensive rp reasoning for the outposts existence and
+reason for being there, on both sides from the clan and the kingdom.
+
+CLAN PRICING:
+
+Outpost Building ...................750 Eggs for two rooms and one exit
+Room Remodel ....................... 40 Eggs per room - Remodel Only
+Object in Outpost (furniture) ...... 20 Eggs per object
+Nighttime Description .............. 20 Eggs per room - New or Remodel
+Extended Descriptions .............. 10 Eggs per extended
+Regen Rate Increase ................ 15 Eggs per 10% boost for hp or mana - up to 200%
+Healer Employment ..................250 Eggs and starts at level 35
+Increase Healer Level .............. 50 Eggs per level up to level 51
+Outpost Portals .......... ........ 100 Eggs per portal - Portals only go to specific locations
+
+KINGDOM COSTS:
+
+Outpost Building Tax ................250 Eggs for the initial build
+Destroy Clan Outpost .............. 1000 Eggs
+
+
+SEE ALSO:  PRICING
+
+Updated 11.08.2023

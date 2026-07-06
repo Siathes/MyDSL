@@ -1,0 +1,20 @@
+NINJA
+{YNINJA{x
+
+Ninja are experts of covert warfare hailing from the exotic continent of
+Shokono.  They are skilled in the art of stealth attacks and infiltration,
+being particularly adept at blending into their surroundings.  As such, they
+prefer not to don anything more bulky than leather armor as to ensure that
+their speed is maintained in order to deliver strikes that are deadly and
+accurate.  This also allows for the ninja to be able to slip away just as
+quickly.
+
+{cWho can be a Ninja?{x
+
+    {yCLASS:{x  Thieves Only
+     {yRACE:{x  All but Arboren
+{yALIGNMENT:{x  Any Alignment
+     {yCLAN:{x  Any Clan and Kingdom
+
+
+{DSEE ALSO:{x  RECLASS

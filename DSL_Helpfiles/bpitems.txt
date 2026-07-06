@@ -1,0 +1,16 @@
+
+bpitems
+BP (Bounty Point) Items are purchased by clanners with their bounty
+points.  (bounty points are gotten by killing other clanners)
+
+Currently, the following items are available by typing bp list at a bounty
+merchant.
+
+Stormwhisper (whip)
+Nightwhisp (dagger)
+Revelation (polearm)
+Stoneshatter (axe)
+Evenstar (flail)
+Moondancer (staff)
+Truestrike (mace)
+Skyrender (spear)

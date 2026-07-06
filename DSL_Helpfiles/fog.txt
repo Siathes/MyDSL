@@ -1,0 +1,9 @@
+FOG
+'FOG'
+
+Syntax: cast 'fog'
+
+This spell fills the room you are in with a dense fog, obscuring the view of
+all but the most acute of visions.
+
+See also - WEATHER

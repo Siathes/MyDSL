@@ -1,0 +1,43 @@
+doubles donation donate
+DOUBLES DONATION
+
+Syntax: donate <donation type> <eggs>
+
+ donate double-exp 10
+ donate - without any other syntax will show the donation board
+
+This command will allow any player(s) to control when the double experience
+boost is turned on, for a cost.  There is no multiplay concern with using
+this command between alts, just don't be blatant with it please :)
+
+The cost to turn on double experience is 25 eggs, for a 24 hour period, for
+a global impact.  One player or multiple players can contribute to the
+donation offering provided there are eggs in their bank account to
+contribute.  Once your funding contributions (individual or collective)
+reaches a total of 25 eggs, the double experience boost will turn on and
+remain on for all players, for a 24 hour period.
+
+Every increment of 25 eggs will either turn on the experience boost for 24
+hours or extend the boost for an additional 24 hours.
+
+Any player can offer a 'donation' at any point in time, even if the boost is
+already active.  Once 25 eggs has been accumulated and the boost is
+activated, an automatic thank you OOCN will generate to all, noting the
+player(s) that made this possible!
+
+Examples:
+
+Player 1 donates 3 eggs, Player 2 donates 15 eggs, Player 3 donates 20 eggs -
+
+Double experience will turn on for 24 hours with 13 eggs remaining in the
+'donation pot' that will go toward the next 24 hour boost, once it reaches
+25 eggs total.
+
+Player 1 donates 75 eggs -
+
+Double experience will turn on for 72 hours.
+
+
+SEE ALSO: GAME STATUS
+
+Created 08.04.2023

@@ -1,0 +1,35 @@
+COLOUR COLOR
+COLOR COLOUR
+Syntax: color    Toggles color on/off
+You may use color anywhere in the game.  To use color you must put the
+escape code '{' and append the letter of the color you wish to add.  Make
+sure that at the end of your string you put a '{x' to terminate color and
+eliminate annoying bleed over.
+Current color codes:
+  {r     red     {R     Lt Red
+  {y     yellow  {Y     Lt Yellow
+  {b     blue    {B     Lt Blue
+  {c     cyan    {C     Lt Cyan
+  {m     magenta {M     Lt Magenta
+  {g     green   {G     Lt Green
+  {D     black   {W     Lt White
+ *{o     orange  {p     pink
+ *{n     brown   {u     purple
+  {w     Grey    {x     Reset Colors
+
+  {!       A beep (immortals only)
+  {-       A tilde ~
+  {&       Reverse color (Immortal Only)
+  {_       underlines text
+
+* denotes extended 256 color, not implemented by some mud clients.
+
+Example:
+input  : gos {Rhello{B!{x
+output : You gossip 'Hello!'
+Example of color bleeding:
+input  : gos {RHello{B! <---- No {x!!!!
+output : You gossip 'Hello!'
+output : <120hp 100m 100mv> <--- Normally this is light grey!
+
+Syntax: Color256 - Toggles extended 256 color ON and OFF.

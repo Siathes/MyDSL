@@ -1,0 +1,21 @@
+holiday
+Each holiday will consist of a week of celebration. Double XP will be on
+ the last sunday of the month (so marking the beginning of the holiday week).
+
+EVERY holiday will be the FIRST SUNDAY of each month.
+
+Note: This doesn't mean that kingdoms or whoever can't start their own
+holidays, because you certainly can.
+
+JANUARY  : Creation Day (celebration of the gods, especially Cliath)
+FEBRUARY : Kadiya Day (The day of Love and remembrance)
+MARCH    : Planting Festival (Like a Spring Festival)
+APRIL    : Fools Day (NOT on our April 1st, the IC world will have its own day to play tricks)
+MAY      : Head on a Pike Day (Goblins & Ogre, cause putting heads on a pike is FUN!)
+JUNE     : Raijefest (COMBAT, COMBAT, COMBAT!)
+JULY     : Festival of the Stars (Elves doing well elvish stuff)
+AUGUST   : The High Magic Festival (Conclave puts on quite a show I hear)
+SEPTEMBER: Dwarven Keg Week (Dwarves... do we need to say more?)
+OCTOBER  : Day of the Dead (Like Halloween, sort of, except evil crap really does happen)
+NOVEMBER : Harvest Festival (Celebration of farmers not working for a few months, woot!)
+DECEMBER : Gift Day (Our very own Christmas! And no Virginia there is NO Santa Claus in this one!)

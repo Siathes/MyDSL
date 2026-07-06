@@ -1,0 +1,5 @@
+STORY
+STORY
+Syntax:  story
+This command will show the storyline and history of Algoron, the world on
+which Dark and Shattered Lands mud exists.

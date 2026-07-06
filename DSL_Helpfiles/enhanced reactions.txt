@@ -1,0 +1,7 @@
+ENHANCED REACTIONS
+
+Syntax: Passive
+
+Owing to keen reflexes and innate ability, armsmen are often more
+proficient at dodging and parrying attacks due to their enhanced
+reactions.

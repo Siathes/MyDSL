@@ -1,0 +1,17 @@
+disgrace
+Disgrace Points are points given out to clans during the Clan Wars season
+for various offenses.  The Clan with the most (and the least) at the end of
+the season will earn prizes or lose clan regen/healer levels.  Obviously,
+the one with the most will be the one losing the regen levels.
+
+How Disgrace Points are distributed:
+Clan caught cheating in Clan Wars - 50 points
+Clan caught throwing a match - 35 points
+Clan disqualified for breaking a Clan Wars Rule - 20 points
+Clan doesn't produce any members of a bracket - 10 points
+Team having less than 5 people on it - 1 Point per person missing
+note: all 5 missing is 10, not 5
+
+A clan must have at least 10 points to be eligible for the regen decrease.
+A clan must have broken a 10 point rule broken to be eligible for the healer decrease.
+In the event of a tie, all winners will win the prize and all losers.

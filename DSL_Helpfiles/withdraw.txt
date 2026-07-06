@@ -1,0 +1,9 @@
+WITHDRAW
+Syntax:  withdraw <number>
+         withdraw <number> blue    -to witdraw blue diaminds instead of eggs
+
+This command allows you to withdraw a number of jeweled eggs
+from a bank.  You can not withdraw more jeweled eggs than you
+have deposited.  To find out the number of eggs you have in your
+account, look closely at your score.
+See also:  DEPOSIT, BANK, MONEY, SCORE

@@ -1,0 +1,15 @@
+PHASES
+PHASES
+The three moons have 8 distinct phases.  These are:
+Full Moon
+Three-Quarter Moon, Waning
+Half Moon, Waning
+Crescent Moon, Waning
+Empty Moon
+Crescent Moon, Waxing
+Half Moon, Waxing
+Three-Quarter Moon, Waxing
+The three moons also rise and set.  Each moon will rise and set once
+per day (24 ticks) on average.  During rising, setting, and high sanction,
+mages and dragons may notice an increase in regeneration of mana.
+see also: ASTROLOGY MOONS

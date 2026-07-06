@@ -1,0 +1,9 @@
+ELDRITCH STAFF
+�ELDRITCH STAFF�
+Syntax: cast eldritch  (please note this is NOT a spell so you just type 'cast eldritch')
+
+Wielding only a staff created from an ancient Vallenwood, this stave is
+used to harness their magic and is a necessary weapon for the Eldritch
+in order to defend their home and people from annihilation.
+
+Groups containing this skill: ELDRITCH DEFAULT

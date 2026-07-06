@@ -1,0 +1,5 @@
+TORNADO
+Syntax:  cast 'tornado' <target>
+This spell summons a deadly tornado.  These powerful weather phenomena
+have been known to carry away objects lying around the room, as well as
+people!

@@ -1,0 +1,14 @@
+'CALL WILD'
+'CALL WILD'
+
+Syntax:  cast 'call wild' bear
+         cast 'call wild' wolf
+         cast 'call wild' wolverine
+         cast 'call wild' cougar
+         cast 'call wild' panther
+
+This spell, available only to rangers and druids, enables them to call
+wild animals to their aid.  Once these creatures have served their
+purpose, they may be dismissed.
+
+See also - NATURE RANGER DRUID DISMISS

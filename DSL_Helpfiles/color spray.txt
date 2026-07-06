@@ -1,0 +1,13 @@
+COLOR SPRAY 'COLOR SPRAY'
+'COLOR SPRAY'
+
+Syntax: cast 'color spray' <target>
+
+An odd spell, in its own way, though useful for the caster at times, the
+color spray offers an advanced level of offensive damage against opponents
+in battle.
+
+Additionally, it is possible that the effects of the myriad of color spread
+forth from the spell may blind an opponent.
+
+See also - COMBAT

@@ -1,0 +1,17 @@
+siegeaim
+SIEGEAIM
+
+Siegeaim will allow you to aim a seige weapon in a specific direciton and at an
+optional target.
+
+While target is optional, some weapons will REQUIRE a target to work properly.
+Especially ones that do not do AOE damage (area of effect).
+
+Usage of the siegeaim command:
+Siegeaim <weapon> <number of rooms> <direction> <optional target>
+Example: siegeaim cannon 2 north Kyri
+Example: siegeaim catapult 5 east Bioteq
+
+Weapon will have a (AIMED) flag when loaded.
+
+See also: SIEGECRAFT, SIEGELOAD, SIEGEFIRE

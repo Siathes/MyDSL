@@ -1,0 +1,29 @@
+NOTES CHANGES NEWS OOCNOTES QNOTES STORYNOTES OOCNOTES IDEA UNREAD
+NOTES NEWS CHANGES OOCNOTES QNOTES STORYNOTES OOCNOTES IDEAS UNREAD
+The notes on DSL replace the bulletin boards and mail systems found on
+many other muds.  The following options are usable:
+reading notes:
+note list       : show all notes (unread notes are marked with an N)
+note ulist : shows all notes unread to you
+note read       : either by number, or read next to read unread notes
+note remove     : removes a note that you wrote or are the target of
+note catchup    : markes all notes as read
+writing new notes:
+note to         : sets the to line (playername, clanname, kingdomname immortal, or all)
+note subject    : sets the subject for a new note
+note +          : adds a line to a new note (i.e. note + hi guys!)
+note ++         : enters multi-line editor.
+note -          : remove a line from a note in progress
+note clear      : erase a note in progress
+note show       : shows the note you are working on
+note format         : formats the note
+note post       : posts a new note. This MUST be done to post a note.
+note forward    : forwards notes to other people and other spools. See help forward.
+When you log in, you will be informed if there are unread notes waiting. Type
+note read to scroll through them one at a time.
+Other note directories exist, these are ideas, news, changes, qnotes, oocnotes,
+and storynotes.  They are used the exact same way, for example
+idea read 5 will read idea #5.  Posting to the news and changes boards is
+restricted. The UNREAD command can be used to show your unread notes on
+all the note spools.
+See also: 'NOTE SEARCH' 'FORWARD'

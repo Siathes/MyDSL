@@ -1,0 +1,3 @@
+QMOVEMENT 'QUIET MOVEMENT'
+Syntax:  qmovement
+This is the rangers way of moving quietly through hills and forests.

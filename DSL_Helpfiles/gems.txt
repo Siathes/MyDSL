@@ -1,0 +1,31 @@
+GEMS
+
+There are eight types of spellcrafting gemstones and each will each hold a
+certain number of spellcraft points.  As a spellcrafter improves thier skill
+they gain access to more powerful gems.  Diamond gems are always capable of
+holding eight spellcraft points.  In addition, depending on the level of
+the crafted item that gems are being fused into, there are a certain amount
+of slots that can be used to place gems in to create a variety of effects.
+
+                                            Standard Equipment Available
+  Gem Type    Points Available                 Level   Slots   Points
+                                     |
+  Obsidian       1 Point             |          1-9      1       2
+  Moonstone      2 Points            |         10-19     1       4
+  Opal           3 Points            |         20-24     2       6
+  Amethyst       4 Points            |         25-29     2       8
+  Emerald        5 Points            |         30-34     2       12
+  Sapphire       6 Points            |         35-39     3       16
+  Ruby           7 Points            |         40-44     4       20
+  Diamond        8 Points            |         45-49     5       24
+                                               50-51     6       28
+
+Example- For a spellcrafter to create a level 51 helmet with +3 dam,
+    +25 mana and -1 saves, this will take up all 28 points - 12 points
+    for the damage (overcharged diamond), 8 for the mana (regular diamond)
+    and 8 for the saves (regular diamond).  However, only 4 slots would be
+    used of the 6 slots available as the diamond of the magi uses 2 slots.
+
+
+SEE ALSO:
+CRAFT CRAFTING CRAFTLIST ESSENCES OVERCHARGE

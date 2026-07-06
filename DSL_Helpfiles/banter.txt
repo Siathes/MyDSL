@@ -1,0 +1,15 @@
+banter
+BANTER
+
+Syntax:  Banter
+
+Once this has been set, it is a passive skill.
+
+The ever flashy and frustrating swashbuckler has learned that battles are
+fought not just with the blade, but with the mind.  In a bid to turn this
+against their enemy, the swashbuckler will stoop so low as to tease their
+enemy in an attempt to throw off their concentration.  Every time they do
+so, their foe will find their ability to hit lessened, building up each
+time so long as they stays in the fight.
+
+Groups containing this skill: SWASHBUCKLER DEFAULT

@@ -1,0 +1,5 @@
+All new character names must now be approved by immortals.  When you
+create a new character, you will find yourself in a room with a rope hanging
+from the ceiling.  Pulling the rope will ring a bell, and send a message to
+the immortals.  If the immortals deem your name worthy, they will authorize
+you to proceed, and you will re-enter the creation process as a citizen.

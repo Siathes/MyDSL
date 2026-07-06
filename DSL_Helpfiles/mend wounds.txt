@@ -1,0 +1,6 @@
+mend wounds
+Syntax: c 'mend wounds' <target>
+
+Mend wounds is a very powerful heal spell handed down by the gods to a
+priest.  This healing spell not only heals health, but also ones ability to
+move about.

@@ -1,0 +1,18 @@
+TRANSMUTER
+
+Transmuters are a special reclass only available to mages of the Conclave.
+
+These highly specialized mages are able to call upon special magics which
+make them quite powerful.  They have access to spells which allow them to
+alter their appearance, make side effects permanent, and reduce or enlarge
+characters.
+
+Who can be a Transmuter?
+
+CLASS:     MAGES only
+RACE:      ANY EXCEPT KENDER, HILL/MOUNTAIN DWARVES, GIANT OGRES, BUGBEARS
+           WEMICS
+ALIGNMENT: Any alignment
+CLAN:      CONCLAVE only
+
+See also - RECLASS CONCLAVE ALTERATION

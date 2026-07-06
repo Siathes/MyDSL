@@ -1,0 +1,9 @@
+MAP MAPS
+MAP MAPS
+Syntax: map <numerical value>
+This creates a small map of the terrain around you. The * indicates
+your position. Larger the value the larger the map.
+Thanks to Ezra for drawing the originals of several maps.
+Thanks to Deracs for installing a limited number of maps of Algoron on
+the web pages of DSL:
+http://www.dsl-mud.org

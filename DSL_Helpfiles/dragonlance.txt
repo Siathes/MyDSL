@@ -1,0 +1,15 @@
+dragonlance
+DRAGONLANCE
+
+Syntax: dragonlance
+
+A dragon slayer knows best the type of weapon needed for fighting dragons
+and is able to transform or enhance a polearm into a dragonlance.  This
+destroys the existing polearm and creates a new one.  Do not use this skill
+if you are wielding a polearm you care about.
+
+
+SEE ALSO:  DRAGON SLAYER, DRAGON STRIKE, JAWBIND, RECLASS, SLAYER,
+           SUMMON SLAYER GRYFFON, SUPERVOUCHER
+
+Updated 06.18.2024

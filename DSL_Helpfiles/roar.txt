@@ -1,0 +1,5 @@
+ROAR
+ROAR
+Roar is a dragon only skill, which is currently used only to enhance
+roleplaying.  It has no game effect other than the dragon and players nearby
+hearing the dragon roar.

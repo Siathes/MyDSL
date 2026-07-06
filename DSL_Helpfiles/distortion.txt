@@ -1,0 +1,9 @@
+distortion
+DISTORTION
+
+Casting this spell the Mentalist will distort the vision of their enemy,
+causing a massively difficult time for their enemy.  It is rumored that some
+lose their eyesight intermittently and that it can potentially be very
+difficult to cure.
+
+Syntax :  cast 'distortion' target

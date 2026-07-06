@@ -1,0 +1,9 @@
+SPLINTER
+SPLINTER
+
+Syntax: cast 'splinter' <item>
+
+This witchcraft spell focuses the will of the caster into any object of
+wood, splintering it into fragments which may be of use to the caster.
+
+See also - WITCHCRAFT

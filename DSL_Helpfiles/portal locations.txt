@@ -1,0 +1,19 @@
+portal locations
+PORTAL LOCATIONS -
+
+Kingdoms and clans have the option of expanding their magical portals
+within their respective halls, that open to different areas around the
+realm, at a cost.  The following locations are the current areas that can be
+requested for portal transportation.
+
+Althainia Port
+Arkane Port
+Haon Dor
+Icewall Port
+Northwest Coast of Icewall
+Tropica Port
+
+
+SEE ALSO:  Pricing
+
+Updated 01.10.2024

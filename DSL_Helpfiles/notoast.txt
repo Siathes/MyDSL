@@ -1,0 +1,3 @@
+notoast
+Syntax:  notoast
+This command toggles whether or not you will receive pk toast messages.

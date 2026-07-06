@@ -1,0 +1,4 @@
+enhance seed
+syntax: c 'enhance seed' <object>
+
+This spell will enhance the growing capability of a seed.

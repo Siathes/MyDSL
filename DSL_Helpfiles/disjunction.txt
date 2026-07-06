@@ -1,0 +1,10 @@
+DISJUNCTION
+DISJUNCTION
+
+Syntax: c 'disjunction' <target>
+
+Disjunction is a spell available to transmuters.  It causes significant
+damage, while at the same time attempting to dispel your opponent's magical
+protection.
+
+See also - ALTERATION TRANSMUTER

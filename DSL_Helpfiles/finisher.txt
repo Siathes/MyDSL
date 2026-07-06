@@ -1,0 +1,23 @@
+finisher
+FINISHER FSET
+
+Finishers are your characters finishing moves when defeating someone or
+something in combat.  The default messages are random, but you do have the
+ability to set your own custom message.
+
+Cost is 1 blue diamond.  Pray for an immortal when you have it ready.
+
+Note:  These messages are seen by all in the room.
+Note:  Do not use words like 'you' or 'yours' in the message.
+Note:  No excessive color and messages must be appropriate.
+
+Please have your message ready before praying for a fset.
+
+Code Key:
+
+See help restring for message key codes.
+
+
+SEE ALSO:  FLEESET, RESTRING
+
+Updated 07.31.2025

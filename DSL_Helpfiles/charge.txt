@@ -1,0 +1,12 @@
+CHARGE
+Syntax:  charge <direction> <target>
+         charge <target>
+         charge
+Charge is an attack skill used when riding a mount and wielding a
+polearm.  It therefore requires that you know both the riding and polearm
+skills before you can use it.  Only Warriors, Paladins, Barbarians and
+Crusaders have what it takes to learn this skill.  You may charge a target
+to initiate combat.  You may charge without a target if combat is already
+underway.  You can also charge from a adjacent room.
+
+See also:  RIDING, POLEARM

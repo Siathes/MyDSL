@@ -1,0 +1,49 @@
+siegecraft cannon catapult ballista
+SIEGECRAFT
+
+There are two parts to siegecrafting.
+
+First part is the creation of the base components of the siege weapons theirself.
+With the second part being the creation of the weapon.
+
+Tanners, Smelters and Millers may create the base components for each siege weapon
+and are the only ones allowed to create the required components. Each must be
+level 51 and have the rank of LGM crafter (1001 craftskill)
+
+Tanner: May create the Arm Cushion for the Catapult, the Cartridge Bag
+        for the cannon and the Torsion Cable for the Ballista. Each one of
+        these requires one (1) bull elephant skin to create.
+
+Miller: May create the Ballista Base for the ballista, the Catapult Base for
+        the Catapult and the Cannon Base for the cannon. Each of these requires
+        one dreadwood tree.
+
+Smelter: May create the Cannon Barrel for the cannon, Counterweight for the
+         Catapult and the Gimbal for the ballista. Each of these requiring the
+         use of one arcane ore.
+
+Any crafter, who has reached the rank of LGM (1001) may create a weapon with one of
+each required part. The required parts for each weapon are:
+
+Cannon:   Cannon Base, Barrel and Cartridge bag.
+Ballista: Ballista Base, Gimbal and Torsion cable.
+Catapult: Catapult Base, Arm Cushion and Counterweight.
+
+The command to siegecraft is as follows:
+
+siegecraft <component OR weapon>.
+Example: siegecraft 'ballista base'
+Example: siegecraft catapult
+
+
+Weapons cannot be moved except in the case of a cannon, which may only be moved
+by the person who created the weapon.
+
+Weapons may also be attacked by players and will not fight back in the process. If
+a weapon is being attacked, it will become unusable for anyone attempting to fire,
+load or aim such a weapon.
+
+Once a weapon has been created by a crafter, anyone may fire, load or aim the
+weapon. Do note: AOE type weapons WILL cause, and allow, FRIENDLY FIRE!
+
+See also: SIEGEAIM, SIEGELOAD, SIEGEFIRE.

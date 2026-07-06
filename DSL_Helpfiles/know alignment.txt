@@ -1,0 +1,4 @@
+'KNOW ALIGNMENT'
+'KNOW ALIGNMENT'
+Syntax: cast 'know alignment' <character>
+This spell reveals the alignment of the target character.

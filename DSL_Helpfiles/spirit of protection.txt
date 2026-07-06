@@ -1,0 +1,10 @@
+SPIRIT OF PROTECTION
+
+Syntax: cast 'spirit of protection'
+
+The shukenja is able to conjure a swirling mist to cover himself and all
+those formed with him for a short time.  This mist protects he and his
+allies from all forms of magical spell damage.  It is not effective against
+weapons.
+
+Groups containing this skill: SHUKENJA

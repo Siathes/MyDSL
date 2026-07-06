@@ -1,0 +1,24 @@
+grenade castiron glass pistolball stinkball gignite gtoss
+GRENADE CASTIRON GLASS PISTOLBALL STINKBALL GIGNITE GTOSS
+
+Syntax: gignite <grenadetype>
+
+Syntax: gtoss <direction> <target>
+
+Only pirates can use grenades. There are four types of grenade a pirate can
+carry in his or her arsenal, and each kind provides a different type of area
+effect.
+
+Cast Iron: These grenades do a small amount of explosive damage, followed by
+shrapnel damage.
+
+ Glass: Glass grenades cause concussive damage, stunning and deafening your
+opponent for a short amount of time.
+
+ Pistolball: Pistolball grenades are packed with shot, so they do a large amount
+of damage in one short burst.
+
+ Stinkball: The gases emitted from the stinkball are enough to drive an opponent
+out of the room. The eye-watering effect also makes it more difficult
+for him or her to accurately hit in a fight. Goblins, hobgoblins and
+bugbears enjoy the stench, so the stinkball has no effect on them.

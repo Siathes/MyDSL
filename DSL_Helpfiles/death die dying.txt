@@ -1,0 +1,47 @@
+DEATH DIE DYING
+DEATH DIE DYING
+
+When your character dies, you are reincarnated as a ghost at the altar of
+the temple of your chosen home town, or within your own clan hall.  Your
+corpse is left behind in the room in which you were killed, along with all
+of your equipment.
+
+Any spells which were affecting you are cancelled by death.  Also, if you
+were killed by another player, you will be affected by a form of death
+illness after death.  Following and groups are not affected by death.
+
+You lose experience points when you die.  The amount lost is on average
+about two-thirds of the way back to the beginning of your level.
+
+Corpses decay after time, and the objects upon the corpse fall onto the
+floor of the room the corpse was in, where anyone may take them.  Typing
+'get all corpse' will allow you to retrieve the items within your own
+corpse.  If the player has noloot off, then the corpse is fair game for
+others that may seek items from it.  When a corpse decays, mob items decay
+with it.  Corpses last for about 30 hours of game time (approximately 15
+minutes of real time) before decaying.
+
+For an in character explanation about death:
+
+Death is avoided in character by ghosting, which is a system the Gods set up
+to protect mortals.  Besides, most Gods like combat and see it as sport and
+would not want to run out of souls quickly due to it.
+
+However, there are many ways one's protection is waived.
+
+Self Permissible Death.  When a mortal agrees to a battle to true death, the
+laws of ghosting will not protect them.  War.  In large scale battles, the
+laws of ghosting will not protect the participants.  This was done long ago
+in order to help sustain law and order.
+
+Extreme cases of contempt.  This is said to be something many Assassin
+guilds teach their advanced pupils, which is to kill with such contempt that
+their target never ghost and thus end up int he afterlife.
+
+Penalties of the Incarcerated.  This means that when a person has been
+imprisoned by the highest of high mortal courts, the laws of ghosting will
+sometimes "look the other way" when their executions are carried out.
+
+Like most things the Gods have created and actually agreed upon, the system
+is not entirely understandable by mortals.  But it is accepted.  After all,
+what choice do they have?

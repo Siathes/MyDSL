@@ -1,0 +1,13 @@
+'CREATE RANGER STAFF'
+'CREATE RANGER STAFF'
+
+Syntax: cast 'create ranger staff'
+
+While rangers tend to favor the staff over other possible weapons, the best
+of all staves for a ranger to use is one of his or her own making.  With
+nature skills and the use of this spell, powerful weapons may be made.
+
+The value of weapons produced by rangers does, of course, vary with the
+level and skill of the ranger who creates it.
+
+See also - NATURE RANGER

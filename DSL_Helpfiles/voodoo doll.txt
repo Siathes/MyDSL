@@ -1,0 +1,13 @@
+VOODOO DOLL
+
+Syntax: c 'voodoo doll' <target>
+Syntax: Dollshake
+Syntax: Stabdoll
+
+Create Voodoo Doll - By creating a personalized voodoo doll of an opponent,
+you can then use that same doll to damage or even stun your foe with either
+a vicious shake or even a more sinister stab of the voodoo doll.  Due to the
+focused concentration with voodoo magic, the doll cannot be used in the
+thick of battle.
+
+Groups containing this skill: SHAMAN DEFAULT

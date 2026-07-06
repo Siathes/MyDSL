@@ -1,0 +1,22 @@
+format
+FORMAT
+
+As a simple request please format your notes.  To do this the following
+needs to be done.  <spoolname> ++ eg note ++ or storyn ++ Now if you have
+zmud either click both the gun and the pc to disable triggers if you have
+disabled triggers use .f If you have not use ~.f then use @ on a blank
+line.
+
+So your command entries should look like this if you want to format a
+storynote:
+
+storyn ++
+.f or ~.f
+@
+storyn post
+
+The other option is to type <spool> format:
+
+Example:  note format or oocn format
+
+SEE ALSO: BOOK, NOTE, PARCHMENT, READ, RULES, WRITE

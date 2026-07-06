@@ -1,0 +1,12 @@
+influence confidence
+INFLUENCE CONFIDENCE
+
+As with allowing their friends to focus their aggression, the mentalist is
+able to instill confidence within their friends and their self.  This
+increased confidence allows the person being cast upon to become more
+confident in their weapon, allowing them to swing with more precise
+striking.
+
+This spell gains power as the mentalist gains level.
+
+Syntax :  cast 'influence confidence' target

@@ -1,0 +1,14 @@
+OGRE
+
+Ogres are of the largest of the races, ranging from 9-10 feet in height.
+They are stronger than any other race, and almost as durable as the dwarves.
+They aren't too bright, however, and their huge size makes them more clumsy
+than the other races.  Ogres make the best warriors of any race, but are
+ill-suited for any other profession.
+
+Ogres resist the cold with nary a mark, due to their huge mass.  However,
+their slow minds make them extremely vulnerable to mental attacks.  Ogres,
+due to their size and stamina, receive the fast healing and bash skills for
+free.  (Only ogre warriors receive bash).
+
+For more information on subraces of ogres see: 'HALF OGRE' 'GIANT OGRE'

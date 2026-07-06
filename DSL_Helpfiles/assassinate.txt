@@ -1,0 +1,9 @@
+ASSASSINATE
+ASSASSINATE
+Syntax:  assassinate <name>
+This skill can be used by assassins to initiate combat.  For the attempt
+to be successful, the assassin must be hiding when the attack is made.
+This type of attack may only be made on reasonably healthy targets and
+does damage similar to the thieves backstab skill but with a small chance
+of killing the victim with a single blow.  There is a stiff time delay
+penalty if the attempt is unsuccessful.

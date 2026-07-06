@@ -1,0 +1,9 @@
+
+focused aggression
+FOCUSED AGGRESSION
+
+This spell will allow the mentalist to make his or her friends (or their self)
+much more focused upon the battle field, resulting in much stronger and
+precise hits. This spell gains power as the mentalist gains levels.
+
+Syntax :  cast 'focused aggression' target

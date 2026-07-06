@@ -1,0 +1,16 @@
+VAULT
+The mystic vault is a great discovery.  You can access this vault from many
+locations.  You can use it to store large amounts of items.  The vault can
+tell who is who and only allows you access to your own items.  The vault
+acts like any other container but you can't take it with you.  There is no
+need to open the vault just put in or take out you need.
+
+The vault rules are as follows:
+- It costs 1 egg to open your account. That account will remain open
+  indefinately.  To open your account type register in the vault room.
+- You may put up to 20 types of items in the vault.
+- You may put up to 1000 of each type of item in the vault.
+- You may put items above your level in the vault but you will not be
+  able to retreive them until you reach that level.
+- You may not put any money or gems in the vault.
+- You may not put containers in the vault if they contain other items.

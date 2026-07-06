@@ -1,0 +1,20 @@
+AGGRESSOR
+
+An 'aggressor' flag is a rare flag that will be flagged on any player who is
+attempting to attack a giant.  This flag is similar to the Hostile flag in
+the sense that it allows the giant to defend themselves against Kingdomers
+who have attacked them.  The rules with kingdom/clan interference still
+apply.
+
+Please note this is also a flag that can be set by the Immortals, at their
+discretion, and can be used in a variety of situations such as with taunting
+between kingdomers and clanner and/or remorts where things become heated,
+annoying or twinkish.  Any player marked with the aggressor flag is on their
+own and can be killed.  Be wary of this flag and know any abuse will NOT be
+tolerated.
+
+The ability for players to 'pour' to activate this flag, is no longer
+active.
+
+
+SEE ALSO:  RULES

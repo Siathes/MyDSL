@@ -1,0 +1,35 @@
+{YMALEDICTION SPELLS{x
+
+Maledictions are a group of curses and other baneful spells, designed to
+cripple, inconvenience, or torture, rather than kill outright.  These spells
+may be cast by any class.  Please note that for info purposes, this is
+currently spelled maladictions.
+
+More information on individual spells may be found by typing help (spellname).
+The malediction spell group consists of the following spells:
+
+     {yblindness{x       strikes the target blind
+     {ychange sex{x      changes the sex of the target
+     {ycurse{x           prevents recalling and weakens the target in combat
+     {yenergy drain{x    drains experience and mana, while strengthening the caster
+     {yheart blight{x    afflicts the target with a damaging disease
+     {yplague{x          causes the target to suffer a slow, painful death from plague
+     {ypoison{x          weaker than plague, and a constant, waking irritation
+     {yslow}x           slows your enemies down, reducing their rate of attack
+     {yweaken{x          drains the strength of the target
+
+{cThis group is available to the following classes -{x
+
+    ASSASSIN BATTLERAGER BLADESINGER CLERIC CRUSADER DRAGON
+    DRUID GIANT ILLUSIONIST INVOKER MAGE NECROMANCER PALADIN
+    PRIEST RANGER SHADOWKNIGHT SHAMAN THIEF TRANSMUTER WARRIOR
+    WITCH/WARLOCK
+
+
+{DSEE ALSO:{x  ASSASSIN, BATTLERAGER, BLADESINGER, BLINDNESS, CHANGE SEX, CLERIC,
+           CRUSADER, CURSE, DRAGON, DRUID, ENERGY DRAIN, GIANT, HEART BLIGHT,
+           ILLUSIONIST, INVOKER, MAGE, NECROMANCER, PALADIN, PLAGUE, POISON,
+           PRIEST, RANGER, SHADOWKNIGHT, SHAMAN, SLOW, THIEF, TRANSMUTER, WARRIOR,
+           WARRIOR, WEAKEN, WITH/WARLOCK
+
+UPDATED:  09.09.2023

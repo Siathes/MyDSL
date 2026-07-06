@@ -1,0 +1,13 @@
+'BARK SKIN'
+BARK SKIN
+
+Syntax: cast 'bark skin'
+
+This spell is used by rangers to thicken their skin, offering protection
+much like the bark of a tree.  This has the effect of improving the ranger's
+armor class a bit more than the armor spell.
+
+As tree bark is not as effective for armor as stone is, the spell is not
+quite as effective as the stone skin spell.
+
+See also - NATURE RANGER ARMOR STONE SKIN

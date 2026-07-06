@@ -1,0 +1,4 @@
+terrain
+Syntax: terrain
+
+This command shows you the terrain of the land which lays about you.

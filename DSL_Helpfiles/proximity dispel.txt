@@ -1,0 +1,5 @@
+proximity dispel
+Syntax: cast 'proximity dispel'
+
+Proximity dispel is a protection spell used to attempt to remove magics that
+are cast on an area instead of a person.

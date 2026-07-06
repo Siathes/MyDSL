@@ -1,0 +1,15 @@
+'LIGHTNING BOLT'
+'LIGHTNING BOLT'
+
+Syntax: cast 'lightning bolt' <target>
+        cast 'lightning bolt' <direction> <target>
+
+As is evidenced by its name, the casting of this spell calls down a massive
+lightning bolt from the skies.  This bolt of lightning can cause a great
+deal of damage, and much like any other lightning, has potential side
+effects.
+
+The caster can also direct this spell toward opponents standing in distant
+rooms.
+
+See also - WEATHER

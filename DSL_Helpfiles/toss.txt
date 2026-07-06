@@ -1,0 +1,9 @@
+toss
+Syntax: toss gourd <target>
+Syntax: toss stake <target>
+The toss skill allows a witch to throw a gourd potion through the air
+and into the face of an opponent. If successful the gourd shatters on
+the enemy and delivers its effects. A witch may also toss special
+sharpened stakes, which are made with the splinter spell.
+These can pierce the target with devastating effect if thrown
+accurately.  Toss is always an aggressive action, regardless of gourd.

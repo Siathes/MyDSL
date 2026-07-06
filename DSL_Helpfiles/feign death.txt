@@ -1,0 +1,12 @@
+'FEIGN DEATH'
+'FEIGN DEATH'
+
+Syntax: cast 'feign death'
+
+This spell gives the caster the look of his own corpse.  When remaining
+still, the Necromancer appears to be his own corpse.
+
+This spell has no specific use, it is a beginner's spell, which aspiring
+Necromancers use to hone their skill in the Art.
+
+See also - NECROMANCY NECROMANCER

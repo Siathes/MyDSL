@@ -1,0 +1,8 @@
+haze
+HAZE
+
+As Masters of the Mind, the Mentalist can cast a haze over their enemy
+causing them to become horribly confused, affecting their cognitive
+thinking.  This spell gains power as the mentalist rises in levels.
+
+Syntax : cast 'haze' target

@@ -1,0 +1,7 @@
+ENCHANT GEM
+ENCHANT GEM
+
+Syntax: cast 'enchant gem' <object>
+
+Enchant gem allows the enchantor to magically enhance an ordinary jewel so
+that it has the properties of a warp stone.

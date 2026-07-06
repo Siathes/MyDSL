@@ -1,0 +1,22 @@
+VOODOO
+'VOODOO SPELLS'
+
+This batch of ancient chants and spirit magic is the stock in trade of the
+witch-doctor, or shaman.  These spells are of a realm that no other class
+can make use of.
+
+More information on individual spells may be found by typing help
+(spellname).  The voodoo spell group consists of the following spells:
+
+leprosy         inflicts target with a flesh eating disease
+wither          reduces target to a doddering old fool
+soulsight       allows shaman to see magicaly cloaked people
+spiritwalk      allows the shaman to become a spirit and walk the lands
+beastform       the shaman dons the form of a beast
+thunderclap     creates a large deafening thunderclap in the area
+snakebite       creates a hightly venomous snake which bites the target
+poultice        basic form of healing
+shrink head     allows shaman to shrink the head of a fallen enemy
+
+This group is available to the following classes -
+    SHAMAN

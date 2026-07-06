@@ -1,0 +1,14 @@
+DISGUISE
+DISGUISE
+
+Syntax:  Disguise <mobname>
+Syntax:  Revert
+
+The Ninja, being a master of stealth and fading into any environment, may
+disguise itself, taking the form of a humanoid creature (MOB) of which they
+are in the same area as.  Any damage or attack will break this disguise,
+though the Ninja is able to speak (but not use channels) while disguised.
+
+Revert will pull you out of your disguise.
+
+SEE ALSO:  NINJA

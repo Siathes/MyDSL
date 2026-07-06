@@ -1,0 +1,33 @@
+<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>
+<html>
+ <head>
+  <meta http-equiv='content-type' content='text/html; charset=utf-8'>  <meta name='generator' content='Mudlet MUD Client version: 4.19.1'>
+  <title>Mudlet, main console extract from Dark & Shattered Lands - PNP profile</title>
+  <style type='text/css'>
+   <!-- body { font-family: 'Liberation Mono', 'Courier New', 'Monospace', 'Courier'; font-size: 100%; line-height: 1.125em; white-space: nowrap; color:rgb(255,255,255); background-color:rgb(0,0,0);}
+        span { white-space: pre-wrap; } -->
+  </style>
+  </head>
+  <body><div><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">vermmerch</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">The </span><span style="color: rgb(170,0,0); background: rgb(0,0,0); ">Verminasia</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); "> Merchant District</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); "> </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">Directions from Guillotine Square:  2s,3w,1n</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">Directions from </span><span style="color: rgb(0,85,127); background: rgb(0,0,0); ">Arkanian</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); "> Docks: 14e,12n,open east,e,8n,3w,1n</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); "> </span><br>
+<span style="color: rgb(255,255,0); background: rgb(0,0,0); ">       #1    #3    #5    #7    #9  </span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     </span><br>
+<span style="color: rgb(255,0,255); background: rgb(0,0,0); ">G            </span><span style="color: rgb(143,143,0); background: rgb(0,0,0); ">Cracklespark</span><span style="color: rgb(255,255,0); background: rgb(0,0,0); "> Row        </span><span style="color: rgb(0,0,255); background: rgb(0,0,0); ">S</span><br>
+<span style="color: rgb(255,0,255); background: rgb(0,0,0); ">y      </span><span style="color: rgb(255,255,0); background: rgb(0,0,0); ">#2    #4    #6    #8   #10    </span><span style="color: rgb(0,0,255); background: rgb(0,0,0); ">c </span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">                                 </span><br>
+<span style="color: rgb(255,0,255); background: rgb(0,0,0); ">g                                    </span><span style="color: rgb(0,0,255); background: rgb(0,0,0); ">h</span><br>
+<span style="color: rgb(255,0,255); background: rgb(0,0,0); ">a      </span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">#1    #3    #5    #7    #9    </span><span style="color: rgb(0,0,255); background: rgb(0,0,0); ">w</span><br>
+<span style="color: rgb(255,0,255); background: rgb(0,0,0); ">x        </span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">    Chasey Lane             </span><span style="color: rgb(0,0,255); background: rgb(0,0,0); ">a</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">       </span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">#2    #4    #6    #8   #10    </span><span style="color: rgb(0,0,255); background: rgb(0,0,0); ">r </span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  </span><br>
+<span style="color: rgb(255,0,255); background: rgb(0,0,0); ">W                                    </span><span style="color: rgb(0,0,255); background: rgb(0,0,0); ">t</span><br>
+<span style="color: rgb(255,0,255); background: rgb(0,0,0); ">a      </span><span style="color: rgb(0,255,0); background: rgb(0,0,0); ">#1    #3    #5    #7    #9    </span><span style="color: rgb(0,0,255); background: rgb(0,0,0); ">z </span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">                            </span><br>
+<span style="color: rgb(255,0,255); background: rgb(0,0,0); ">y        </span><span style="color: rgb(0,255,0); background: rgb(0,0,0); ">   Fel-Madaur Boulevard     </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">        </span><span style="color: rgb(0,255,0); background: rgb(0,0,0); ">#2    #4    #6    #8   #10   </span><span style="color: rgb(0,0,255); background: rgb(0,0,0); ">A</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">                                     </span><span style="color: rgb(0,0,255); background: rgb(0,0,0); ">v</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">       </span><span style="color: rgb(0,255,255); background: rgb(0,0,0); ">#1    #3    #5    #7    #9    </span><span style="color: rgb(0,0,255); background: rgb(0,0,0); ">e</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">         </span><span style="color: rgb(0,255,255); background: rgb(0,0,0); ">   Fel Avenue</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">       </span><span style="color: rgb(0,255,255); background: rgb(0,0,0); ">#2    #4    #6    #8   #10  </span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">    </span><br>
+ </div></body>
+</html>

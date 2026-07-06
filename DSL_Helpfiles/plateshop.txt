@@ -1,0 +1,41 @@
+PLATESHOP
+PLATESHOP
+
+Directions to the plate mail shops in the realm -
+
+Plate Mail    Nordmaar    (8 - 15)
+
+Icewall Dock to Nordmaar's Flag
+-    6n,u,4n
+Celtic Metal Works Platemail from Nordmaar's Flag
+-    4n,w,s,w
+Plate Mail    Thaxanos    (18 - 24)
+Althainia Market Square to Thaxanos Gates
+-    3e,4n,2w,8n,u,n,ne,3nw,w,2n
+Althainia Dock to Thaxanos Gates
+-    w,2s,27w,nw,2n,2w,6n,u,n,ne,3nw,w,2n
+Master Iron Works from the Thaxanos Gates
+-    e,n
+
+Plate Mail    Ganth    (28 - 34)
+
+Icewall Dock to Ganth Entrance
+-    5n,w
+Three Horn Armory from the Ganth Entrance
+-    n,e
+
+Plate Mail    Verminasia    (38 - 44)
+
+Guillotine Square from Arkania Dock
+-    14e,12n,open e,e,10n
+Redbeard Dwarven Imports from Guillotine Square
+-    4e,n
+
+Plate Mail    Nordmaar    (48 - 51)
+
+Icewall Dock to Nordmaar's Flag
+-    6n,u,4n
+Highland Talisman Armory from Nordmaar's Flag
+-    4n,w,2s,e
+
+See also - HELP ARMOR SHOPS

@@ -1,0 +1,33 @@
+Equipment Most items later on will have additional attributes, or
+"flags," added to them.  The DSL Equipment List can be found on the DSL
+website at http://www.dsl-mud.org/algoron/equipment.asp.  You may also
+use the identify command You can check your current equipment with
+equipment.  Look at other peoples uipment by using look (person).
+
+Hit - This stat adds to your hitroll, which decides how accurate your hits
+will be.  Very important to melee classes like warrior, ranger, or thief.
+
+Dam - This stat adds to your damroll.  Also very important for melee
+classes.
+
+Saves - Magical resistence.  The lower your saves, the more likely you are
+to resist a spell.
+
+AC - Armor Class.  Reduces damage taken very slightly.  The lower your AC,
+the better.
+
+Vampiric - Weapon flag that absorbs health with each strike.
+
+Flaming, Freezing, Shocking - Weapon flags that add additional elemental
+attacks to each strike.
+
+Bless and Curse - The item is permanently blessed or cursed.  Curses can be
+removed by the "remove curse" spell, but will come back unless a priest
+casts "dispel curse" on it.  Also, all weapons have "nouns" like slash,
+crush, stab, and flaming bite.  Some MOBs and races have vulnerabilities to
+certain nouns.  For example, yinn are vulnerable to fire and resistant to
+cold, so a weapon that has a "flaming bite" will do more damage to them
+while "freezing bite" would do less.  Also, shocking weapons will do more
+damage to anything when fighting underwater.
+
+Type HELP NEWBIE to return to the table of contents.

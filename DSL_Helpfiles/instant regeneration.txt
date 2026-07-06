@@ -1,0 +1,12 @@
+INSTANT REGENERATION
+
+Syntax: cast 'instant regeneration'
+
+The battlemages most basic form of self-healing, casting this spell allows
+for some life regeneration over a short time.  It can only be cast once and
+awhile.
+
+Groups containing this spell: Battlemagic
+
+
+SEE ALSO:  BATTLEMAGE, BATTLEMAGIC

@@ -1,0 +1,8 @@
+disenchant
+DISENCHANT
+
+Syntax: cast 'disenchant' <item>
+
+A disenchantment allows the enchantor to fade any magical effects that have
+been placed on the weapon or armor.  It has been rumoured that this effect
+is similiar to the effects of enchantment fading.

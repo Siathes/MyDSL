@@ -1,0 +1,24 @@
+LOOT LOOTING
+LOOT LOOTING
+
+When an enemy clanner (or individual in the clanned system) is killed, it is
+possible to loot one or more items from them.  The number of items that can
+be looted is dependent upon how many bounty points you have.  Please note,
+containers are considered one item, regardless of whether they have many
+things within them.
+
+There are rules that need to be followed when you kill an enemy, regardless
+of whether you are clanned are not.  They are as follows.
+
+DO NOT sac any of the enemy's gear.
+DO NOT sac their floating items.
+DO NOT drag gear away (whether you're on their side or not).
+DO NOT drag an enemy corpse away.
+DO NOT bury an enemy's gear.
+DO NOT tornado an enemy's gear.
+DO NOT guard the corpse so that you can kill the newly unghosted enemy.
+
+YOU MUST tell the person where they died if they do not know.
+              (help rules, 2b)
+
+See also - DEATH RULES

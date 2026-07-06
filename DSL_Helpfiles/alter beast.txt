@@ -1,0 +1,16 @@
+ALTER BEAST
+
+Syntax: cast 'alter beast'
+
+This spell requires the battlemage having charmed and controlled one of many
+kinds of weak animals found around Algoron.  The casting of this spell will
+then transform the creature into a charmed gnarth for the battlemage's use.
+There are many different gnarth creations, each one unique to the race of
+the animal used.
+
+Groups containing this spell: Battlemagic
+
+
+SEE ALSO:  BATTLEMAGE, BATTLEMAGIC
+
+Updated 03.19.2021

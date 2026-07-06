@@ -1,0 +1,9 @@
+ENHANCED RECOVERY
+
+Syntax: c 'enhanced recovery' <target>
+
+Enhanced recovery is a powerful tool of the priest which allows him/her to
+increase the rate at which a individual recovers their health, movement and
+mana.
+
+Groups containing this spell: BATTLEMAGIC

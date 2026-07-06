@@ -1,0 +1,8 @@
+smite
+Smite is a holy skill that paladins have learned, using their faith to
+focus their strength into a powerful attack against their enemies.
+
+It hits somewhat hard, and also has a chance to blind them when the blood
+from the wound runs into their eyes.  You need to use staffs, maces, or
+spears.  Maces have the best chance to hit, then staffs, then spears.
+Spears do the most damage when the attack lands, then staffs, then maces.

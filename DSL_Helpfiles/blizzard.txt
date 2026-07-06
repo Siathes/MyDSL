@@ -1,0 +1,7 @@
+BLIZZARD
+BLIZZARD
+Syntax: cast 'blizzard'
+A large snowstorm is conjured up by the elemental cleric, inflicting damage
+on all opposed to him.  The conjured blizzard is so powerful that damage
+continues to afflict the victims of the storm for several rounds.
+See also: FIRESTORM

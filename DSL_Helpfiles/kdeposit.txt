@@ -1,0 +1,7 @@
+kdeposit
+Syntax:  kdeposit <number>
+This command may be used at a bank to deposit a number of jeweled eggs
+directly from your inventory into your kingdom's bank account.  You may
+only deposit jeweled eggs, and they must be directly in your inventory,
+not in a container.
+See also: 'BANK' 'MONEY' 'WITHDRAW' 'DEPOSIT' 'CDEPOSIT'

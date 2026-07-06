@@ -1,0 +1,42 @@
+  -----------------------------------------------------------------------
+
+        Common Status Affects
+
+    As previously mentioned, typing affects will bring up a list of
+      active spells on your character. Here's a brief list of a few of
+      the most common spells in the game. Spells can be cast by players,
+      or you can type quaff (potion) if you have a potion with spell
+      affects in them.
+
+    Random - Very slight variations to your stats. Sometimes you might
+      feel more energetic, sometimes you may have a dumb moment. This
+      affect rarely has any significant impact.
+    Sanctuary - A protective spell that halves all damage taken.
+    Haste - An enhancement spell that increases speed. It makes backstabs
+      do double attacks, and also makes characters attack more often. It
+      boosts the DEX stat, but stats can never go over their maximum
+      limit.
+    Giant Strength - An enhancement spell that boosts strength. This is a
+      good spell if your STR is below the maximum.
+    Detect Hidden - Detection spell that allows you to see people who are
+      sneaking.
+    Detect Invis - Detection spell that allows you to see invisible
+      people.
+    Invisible - Makes you undetectable by some MOBs and players who do not
+      have the detection spell active.
+    Bless - A benediction that improves your spell resistence and improves
+      accuracy.
+    Sneak - A skill that randomly hides you and also makes it so that
+      people do not see you enter or leave rooms.
+    Berserk - A skill that increases your hitting accuracy and physical
+      damage. It also regenerates a bit of health when used.
+    Frenzy - Benediction spell that mimics the affects of Berserk, but
+      not as potent as the real thing.
+    Blind, Plague, Poison, Weaken, Slow - Maladictions that hinder your
+      character. Most can be cancelled with the cancellation spell or
+      cleanse skill, but some need to be removed by a cleric. The healer
+      of Althainia is north of recall.
+
+        Type HELP NEWBIE to return to the table of contents.
+
+  -----------------------------------------------------------------------

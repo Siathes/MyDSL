@@ -1,0 +1,22 @@
+PIRATES
+PIRATES
+
+Pirates are the scourge of the sea, living from battle to battle in their
+search for treasure.  Pirates are unique in their ability to wield firearms
+and incendiary devices. Because of the havoc they wreak on land and sea, the
+longer a pirate stalks the realm, the bigger his reputation.
+
+There are six levels of pirate reputation:
+Cabin Person
+Pirate
+Renown Pirate
+Dread Pirate
+Notorious Pirate
+Captain
+
+The following races may not be pirates:
+
+Shalonesti Elves, Pixie, Giant Ogres,
+Mountain & Hill Dwarves, Centaurs and Ariel.
+
+You can only become a Pirate by reclassing from the thief class.

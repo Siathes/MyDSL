@@ -1,0 +1,5 @@
+cure deafness
+Syntax: c 'cure deafness' <target>
+
+Cure deafness allows a priest to cure those that are temporarily deaf
+(generally through magic).

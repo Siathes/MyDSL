@@ -1,0 +1,9 @@
+lay on hands
+syntax: cast 'lay on hands' <target>
+The Paladin has the ability to pray that his deity intercede in the life
+of another.  This intercession calls forth healing powers directly from the
+deity which go beyond the scope of all known healing powers known in the
+lands.  This healing power completely restores the health of a single
+person.  Given the tremendous power and favor called forth from the deity,
+the Paladin can not request such power frequently.
+see also:  PALADIN, KNIGHTHOOD

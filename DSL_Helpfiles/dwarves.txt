@@ -1,0 +1,28 @@
+DWARVES
+
+Hill and Mountain Dwarves -
+
+Dwarves are short, stocky demi-humans, known for foul temper and great
+stamina.  Dwarves have high strength and constitution, but poor dexterity.
+They are not as smart as humans, but are usually wiser due to their long
+lifespans.  Dwarves make excellent fighters and priests, but are very poor
+mages or thieves.
+
+Hill-dwarves reside in the hills of course, and are bit more nimble than
+mountain-dwarves.  Mountain-dwarves make their homes in large mountains.
+They are a bit stronger than the hill-dwarves.
+
+Dwarves are very resistant to poison and disease, but cannot swim, and so
+are very vulnerable to drowning.  They receive the berserk skill for free
+(if warriors), and can see in the dark with infravision.
+
+Dark Dwarves -
+
+These dwarves dwell deep in the mountains of Thaxonos.  They are cruel and
+vicious.  They worship the dark gods and are known to carry out cruel and
+nasty acts.  They despise all races especially elves and dont necessarily
+trust other Dwarves.  The Dark Dwarves are the only Dwarven race that
+meddles in magic, though it is of a dark kind.
+
+
+SEE ALSO:  GULLY, MULS, RACES, RECLASS, THAXANOS, WARGAR

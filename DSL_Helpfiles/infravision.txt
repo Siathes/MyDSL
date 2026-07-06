@@ -1,0 +1,9 @@
+INFRAVISION
+INFRAVISION
+
+Syntax: cast infravision <character>
+
+This spell enables the target character to see warm-blooded creatures even
+while in the dark, and exits of a room as well.
+
+See also - ENHANCEMENT

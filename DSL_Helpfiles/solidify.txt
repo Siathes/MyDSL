@@ -1,0 +1,3 @@
+solidify
+A conclave only spell that solidifies the body and makes one harder to
+get stunned.

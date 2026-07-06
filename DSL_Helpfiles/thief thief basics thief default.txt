@@ -1,0 +1,21 @@
+THIEF 'THIEF BASICS' 'THIEF DEFAULT'
+Thieves are a marginal class. They do few things better than any other class,
+but have the widest range of skills available.  Thieves are specialists at
+thievery and covert actions, being capable of entering areas undetected where
+more powerful adventurers would fear to tread.  They are better fighters than
+clerics, but lack the wide weapon selection of warriors.
+All thieves begin with the dagger combat skill, and are learned in steal as
+well.  Any other weapon skills must be purchased, unless the default selection
+is chosen.  This default skill package includes:
+skills:
+mace            the use of maces and other blunt weapons
+sword           swordplay and fencing
+backstab        the art of hitting your opponent by surprise
+disarm          used to deprive your opponent of his weapon
+dodge           the best way to take a punch is not to be there
+second attack   with training, the skilled thief can hit twice as fast
+trip            a good way to introduce an opponent to the floor
+hide            the art of remaining undetected in a room
+peek            used to look into a person's belongings
+pick lock       a useful skill for breaking and entering
+sneak           with this skill, a thief can walk into a room undetected

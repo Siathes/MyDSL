@@ -1,0 +1,12 @@
+polevault kick
+POLEVAULT KICK
+
+Syntax:  Polevault
+         Polevault target
+
+Planting their staff to the ground, the jongleur leaps up with a quick but
+firm kick toward the enemy's sternum.  So forceful is the blow that it not
+only hurts the foe but even has a chance to even knock them off their feet.
+Mounted foes run the risk of being knocked from their steed.
+
+Groups containing this skill: JONGLEUR DEFAULT

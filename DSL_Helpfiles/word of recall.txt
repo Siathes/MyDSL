@@ -1,0 +1,6 @@
+'WORD OF RECALL'
+'WORD OF RECALL'
+Syntax: cast 'word of recall'
+This spell duplicates the built-in RECALL ability.  It is provided solely for
+Merc-based muds which wish to eliminate the built-in ability while still
+providing the spell. This spell circumvents the pkill no-recall lag.

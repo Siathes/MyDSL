@@ -1,0 +1,8 @@
+HARVEST
+Syntax: harvest <part> <corpse>
+Example: harvest heart 2.corpse
+            This command would remove the heart from the second corpse
+listed in the room.  Brains, heads, hearts, arms, legs, feet, hands, and
+eyes can all be harvested from corpses.  Necromancers with the Anatomy
+skill are the only individuals with sufficient knowledge and skill to be
+able to perform this task.

@@ -1,0 +1,59 @@
+wanted
+The new Wanted System is in.  It's a lot to get used to for all of you
+and us as well, but it's going to be a much better system overall.  Before I
+explain the details, everyone should give a huge thanks to Curumo for all
+his hard work on this.  (even though I am much smarter than he is) Also a
+big thanks to Rhien for helping us trouble shoot random big problems we
+came across.  He was patient and gave really good massages...  Err...
+Nevermind about that.  Thank Vivienne, Joules, Kat, Belly, and Nazca for
+spending 12 hours on 8k with me today getting things done.
+
+First of all, forget everything you know about the old wanted system.
+
+There are 4 ways to become Wanted now in a Kingdom.  1) Attack one of their
+guards.  2) Attack another clanner in a Kingdom.  3) Their leader requests
+imms set you wanted for whatever reason.  4) Being of an unwelcome clan or
+race.  (kingdom leader decides) *Kingdom leaders can also make clans welcome
+to PK in their city without getting a wanted.  Type <welcome (cityname)> to
+see what's up with any given city before trying your luck.
+
+Yes, Kingdomers can get wants.  No, people can not attack wanteds anymore
+because they are wanted.  (See hostile comments later)
+
+When you are wanted, you are ONLY wanted in the kingdom where you earned it,
+unless you're in another kingdom that has an extradiction treaty with the
+one you got wanted in.  Then they export you back there for trial.
+
+Trial you say?  Yup.  When a guard catches you and you are wanted there,
+they ask you to surrender under arrest.  If you say no, they attack you and
+call the other guards to come help, and they come quick and pissed.  Better
+run, you interrupted their donut time.  If you do surrender, you'll go to
+jail for 5 ticks where your homies have that amount of time to come bust you
+out by killing the prison warden.  If they don't succeed or if no one likes
+you, you'll go to trial.
+
+At trial you'll be read your charges and asked to enter a guilty or a not
+guilty plea.  From there you'll be sentenced.  Several outcomes can come
+about such as: A Fine.  Prison Time.  A Fine and Prison Time.  You can be
+publically executed!  (it's fun, try it) Or if the judge likes you for some
+reason, you may be let go.
+
+After you serve your time or whatever, your wanted flag will be gone.
+Hopefully you will have been reabilitated and learned the error of your ways
+and maybe your peers will forgive you as well.  Remember not to lie about
+doing time on your job applications.
+
+Now, what if a clanner attacks another clanner OUTSIDE of city limits?  They
+do not get a wanted, they get a 10 tick hostile flag.  The hostile flag
+works like the old wanteds except they go away after 10 ticks.  During this
+time, any clanners of any level can attack you.
+
+This is a very large change and as you can imagine, the code and work done
+is rather large.  Be sure to send Scorn any possible bugs so he can check
+them before cursing out Curumo.
+
+We will be adding several features to this, so thank you all for your
+patience.
+
+Other changes will be clan halls, recall points, wanted points, and more.
+Stay tuned.

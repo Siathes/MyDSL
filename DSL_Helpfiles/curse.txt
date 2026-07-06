@@ -1,0 +1,8 @@
+CURSE
+CURSE
+Syntax: cast 'curse' <character>
+This spell reduces the character's to-hit roll and save versus spells.
+It also renders the character unclean in the eyes of the Gods and
+unable to RECALL. Curse may be used to fill equipment with evil power,
+allowing (for example) weapons to do more damage to particularly holy
+opponents.

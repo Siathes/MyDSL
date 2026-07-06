@@ -1,0 +1,11 @@
+BASICS
+The basic skills:
+Every character starts with two skill groups, one for their class and a default
+set that all characters receive.  The default skills are:
+recall          essential escape skill (see help recall)
+scrolls         reading of scrolls and other magical volumes
+staves          use of magical staves
+wands           use of magical wands
+swim            swimming in water sectors
+for class defaults, check the classes themselves.
+

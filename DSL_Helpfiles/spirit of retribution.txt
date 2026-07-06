@@ -1,0 +1,11 @@
+SPIRIT OF RETRIBUTION
+
+Syntax: cast 'spirit of retribution' <character>
+
+The shukenja calls on the spirits of the dead to assail his enemies.  All
+those in the room not formed with the shukenja will feel this spell's wrath.
+Along with its painful strike, the spell has a chance to curse all those it
+touches.  Once afflicted by the curse, the shukenja will find casting it no
+longer harms them.
+
+Groups containing this skill: SHUKENJA

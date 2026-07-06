@@ -1,0 +1,5 @@
+'FLASH BOMB'
+Syntax:  flash bomb <target>
+This is the knowledge of making and using bombs.  The bombs are thrown at
+the feet of your opponent, enraging them and doing a little damage.  There
+is a chance that the bomb will not go off.

@@ -1,0 +1,5 @@
+'DETECT EVIL'
+'DETECT EVIL'
+Syntax: cast 'detect evil'
+This spell enables the caster to detect evil characters, which will
+reveal a characteristic red aura.

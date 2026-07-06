@@ -1,0 +1,9 @@
+SWARM
+SWARM
+
+This spell allows a druid to summon forth a large group of biting insects
+which gnaw through all armor and attack all who oppose the caster.  The
+insects continue to follow the inflicted opponents for a couple of rounds
+before dissipating.
+
+See also - NATURE

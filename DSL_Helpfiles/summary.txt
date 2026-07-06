@@ -1,0 +1,20 @@
+SUMMARY
+MOVEMENT                            GROUP
+north south east west up down       follow group gtell split
+northeast northwest southeast
+southwest exits recall
+sleep wake rest stand
+OBJECTS                             INFORMATION / COMMUNICATION
+get put drop give sacrifice         help credits commands areas
+wear wield hold                     report score time weather where who
+recite quaff zap brandish           description password title
+lock unlock open close pick         bug idea typo note
+inventory equipment look compare    gossip cgossip say shout tell yell
+eat drink fill                      emote pmote
+list buy sell value
+COMBAT                              OTHER
+kill flee kick rescue disarm        ! save quit
+backstab cast wimpy bash            practice train gain
+(see help skills)
+For more help, type 'help <topic>' for any command, skill, or spell.
+Also help on: DAMAGE DEATH EXPERIENCE NEWS STORY TICK WIZLIST

@@ -1,0 +1,14 @@
+'WITHSTAND DEATH'
+WITHSTAND DEATH
+
+Syntax: cast 'withstand death'
+
+The ability to defy death itself lies solely in the hands of the
+Necromancers of the Conclave.  This spell extends the life of the
+Necromancer, staving off his death as long as possible.
+
+Necromancers who are "killed" while this spell is in effect will indeed die
+and suffer the regular penalties of death.  To all outward appearances,
+however, they simply do not die.
+
+See also - NECROMANCY NECROMANCER

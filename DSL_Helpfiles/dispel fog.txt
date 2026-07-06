@@ -1,0 +1,9 @@
+'DISPEL FOG'
+'DISPEL FOG'
+
+Syntax: cast 'dispel fog'
+
+This spell is used to disperse walls of fog that may be present in any given
+room.
+
+See also - WEATHER

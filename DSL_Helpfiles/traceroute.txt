@@ -1,0 +1,16 @@
+traceroute
+To run a traceroute in windows 95 you need to
+get to a command prompt. To do this click start, programs,
+Command Prompt, or click on start, then run and type the word
+command in the blank then click okay.
+
+Now, in the black window, type tracert dsl-mud.org to SEE
+the traceroute or to make a file you can email do
+tracert dsl-mud.org > traceroute.txt
+
+The traceroute.txt should be in the same directory your
+sitting in, most likly c:\windows\desktop or c:\windows
+
+Email the traceroute.txt to billy@nxs.net please include
+the time (EST please), date, and tell me if this was a laggy
+traceroute or a clean one (Would help one of each to compare)

@@ -1,0 +1,9 @@
+SUMMON STONELORD
+
+Syntax:  cast 'summon stonelord'
+
+Through the teachings of Zandreya, an Eldritch may summon forth a large
+Stonelord to fight by their side, using its great power to crush any foe
+before them.
+
+Groups containing this spell: ELDRITCH

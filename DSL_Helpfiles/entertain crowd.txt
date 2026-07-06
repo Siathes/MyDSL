@@ -1,0 +1,11 @@
+entertain crowd
+ENTERTAIN CROWD
+
+Syntax:  Entertain crowd
+
+Jongleurs more than any know that a happy fighter is a good fighter.  By
+performing a short but grand display of athleticism, the jongleur will
+entertain their audience of friend and foe alike, increasing their accuracy
+in combat as a result.
+
+Groups containing this skill: JONGLEUR DEFAULT

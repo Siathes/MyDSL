@@ -1,0 +1,2 @@
+stealth
+The bandit has the unique ability to quickly sneak and hide at the same time.

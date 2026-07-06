@@ -1,0 +1,4 @@
+NERVE
+Syntax: nerve <target>
+This is a quick accupressure jab to the neck of your opponent.  The
+resulting damage to your opponent's nerves temporarily weakens them.

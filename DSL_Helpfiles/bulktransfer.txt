@@ -1,0 +1,8 @@
+BULKTRANSFER
+This command allows you to give items to a persomore that one at a time.
+It will allow you to give them up to thier item capacity or twice thier
+weight capacity whichever is reached first.  This can only be used in the
+vault room.  Once your are over your weight capacity you willnot be able to
+move until you get back under it.
+
+Syntax: bulktransfer <item count> <object name> <character name>

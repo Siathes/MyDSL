@@ -1,0 +1,11 @@
+'BURNING HANDS'
+'BURNING HANDS'
+
+Syntax: cast 'burning hands' <target>
+
+Adding to the growing list of spells which one learning the combat arts
+shall receive, burning hands helps to broaden the knowledge offered by the
+lesser spell of chill touch.  This spell as well, offers a slightly
+increased potential for damage than that of chill touch.
+
+See also - COMBAT

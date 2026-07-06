@@ -1,0 +1,50 @@
+'HYMNS OF LIFE' SONGS
+{YHYMNS OF LIFE SONGS{x
+
+{cSyntax:{x Sing <'Name of Song'>
+
+The bard's hymns of life is also common knowledge, however, the effects of
+the magical songs are not.
+
+{yThe Torch Burns{x - Singing this simple song will allow those who are
+musically inclined to make a temporary flaming torch out of midair and
+place it in their inventory.
+
+{yTravel Tune{x - By singing this upbeat and catchy tune, the Skald will
+motivate their group to get their second wind and refresh them in order to
+continue on their journey.
+
+{y99 Bottles of Beer{x - A fun and lively tune that summons forth a frosty
+mug of beer for any and all to drink.
+
+{yStone Fountain{x - When the Skald sings this song, they will summon a
+stone fountain that you may drink from to quench your thirst.
+
+{yReveal All{x - As they are sung, the high pitched notes of this song will
+force any that hear its tune to twitch, causing any that are hidden nearby
+to reveal themselves.
+
+{ySong of Healing{x - The soft melody of this song allows the Skald to mend
+all their groupmates wounds and helps them to prepare for battle once more.
+
+{ySong of Peace{x - A very powerful and useful song, this allows bards
+to cease all combat in a room regardless of who is fighting who.
+
+{yThe Marriage Song{x - This unique bard song enables the bard to create
+a wedding band for the target, with the name of the target on the ring.
+
+{yShield of Words{x - A beautiful song that adds an additioanl armor
+barrier around the bard's entire group, making them more difficult to hit
+in combat and increasing their damage resistance.
+
+{yThe Rooster's Crow{x - The tune of this song resembles that of the
+rooster's crow marking the sunrise, enabling the bard to wake up anyone in
+sleep spell.
+
+{yWake the Dead{x - A harsh calling tune that summons forth the bard's only
+charmed being, a spirit that will follow the bard and assist in battle.
+Unlike others classes that have the ability to can call upon charmed beings
+to assist them, this song can be sung in the thick of combat.
+
+
+{DSEE ALSO:{x BARD, BARDSONG, BREWMASTER, CHARLATAN, JONGLEUR, SKALD

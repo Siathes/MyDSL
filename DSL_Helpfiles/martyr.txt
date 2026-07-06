@@ -1,0 +1,10 @@
+martyr
+MARTYR
+
+Syntax:  Martyr <target>
+
+Ever fighting for the noble cause, the Crusader can cast themselves as the
+martyr against an enemy in order to sacrifice themselves to save another.  In
+doing so, this does leave the Crusader open for the opponent to slay them.
+
+Groups containing this skill: CRUSADER DEFAULT

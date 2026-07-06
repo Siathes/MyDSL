@@ -1,0 +1,13 @@
+ENTANGLE
+ENTANGLE
+
+Syntax: cast entangle <target>
+
+This is a ranger's and druid's means of trapping a target in vines,
+spiderwebs, and other naturally occurring things.  The victim is stopped in
+his tracks and is unable to perform any action.
+
+Because the ranger or druid must be able to find something to use to
+entangle a victim, the spell will only be successful in certain sectors.
+
+See also - NATURE RANGER DRUID

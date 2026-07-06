@@ -1,0 +1,6 @@
+NOSUMMON
+NOSUMMON
+Syntax:  nosummon
+This command toggles whether or not you can be summoned by other characters
+who might be using the summon spell.
+See also:  SUMMON, AUTO

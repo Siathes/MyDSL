@@ -1,0 +1,6 @@
+endurance
+c 'endurance' <target>
+
+Endurance allows the priest to put a blessing on a person that increases
+their natural health ability.  The amount of increase varies from cast to
+cast.

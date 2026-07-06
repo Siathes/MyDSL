@@ -1,0 +1,21 @@
+  -----------------------------------------------------------------------
+
+        Help Files and Other Assistance
+
+    If this guide doesn't answer your question, you can try checking for
+      helpfiles. You can check the helpfiles by typing help (keywords).
+    If you wanted to know about the combat spell "Burning Hands," you'd
+      type help burning hands. Helpfiles can cover anything from
+      races, classes, spells, skills, clans, kingdoms, AGL, and most
+      importantly, rules.
+    If you can't find a helpfile on what you're seeking, you can ask the
+      players. Type ask (question) and your question will be
+      broadcasted to all players who have the Q/A channel open.
+    If you need help finding an item or performing a task you cannot do,
+      type who gray to get a list of the Gray Church members currently
+      online. Send one of them a private message by typing
+      tell (person) (message). Ask politely, they're volunteers.
+
+        Type HELP NEWBIE to return to the table of contents.
+
+  -----------------------------------------------------------------------

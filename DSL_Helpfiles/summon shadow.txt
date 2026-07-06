@@ -1,0 +1,5 @@
+SUMMON SHADOW
+SUMMON SHADOW
+syntax: cast 'summon shadow'
+Your very own shadow will come to life as a powerful and mystical
+protector.  This spell is a favorite of the illusionists.

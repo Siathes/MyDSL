@@ -1,0 +1,5 @@
+SANCTUARY
+SANCTUARY
+Syntax: cast sanctuary  <character>
+The SANCTUARY spell reduces the damage taken by the character from any attack
+by one half.

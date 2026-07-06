@@ -1,0 +1,5 @@
+STATS
+STATS
+Syntax:  stats
+The STATS command will show a one line summary of your stats including
+strength, wisdom, intelligence, dexterity and constitution.

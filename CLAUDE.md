@@ -48,6 +48,16 @@ into wrong regex instead of PNP's tested source being copied directly).
   pre-distilled combat-message shapes, fast first pass only. Confirmed to
   have real gaps (missing entire message categories) — absence there is not
   evidence a phrase doesn't occur; raw-grep `log/` to confirm.
+- `DSL_Helpfiles/` (this directory) — 919 official in-game help texts,
+  vendored 2026-07-05 from Steven's Claude.ai `/mnt` uploads. Documents
+  command *usage/syntax* (e.g. `who <level-range>`), not raw output format —
+  good for confirming a command exists or its argument shape, but `log/`
+  is still authoritative for exact output text/regex patterns.
+- `docs/DSL_CommandRef.md` — the confirmed-pattern reference: ground-truth
+  output + working Lua/PCRE patterns per command, so a pattern is derived
+  from `log/`/PNP once and reused, not rediscovered on every pass. Add to
+  this file (don't create a parallel one) whenever a pattern is confirmed
+  during testing/auditing — the "STILL NEEDED" section tracks what's missing.
 - Sibling Mudlet profiles (e.g. `../Dark & Shattered Lands - PNP`, `../PNP1`,
   `../PNP2`, `../DSL1`, `../DSL - Kien`) and `~/Downloads/` — read access to
   these is already granted via `.claude/settings.local.json`'s

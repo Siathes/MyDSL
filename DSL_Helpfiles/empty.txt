@@ -1,0 +1,5 @@
+EMPTY
+Syntax: empty <object>
+Syntax: empty <object> into <object>
+Empties the contents of a container onto the floor.
+Empties the contents of a container into another.

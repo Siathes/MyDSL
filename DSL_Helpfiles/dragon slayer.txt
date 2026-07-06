@@ -1,0 +1,26 @@
+dragon slayer
+DRAGON SLAYER
+
+The Dragon Slayer class is a warrior-like class designed specifically, over
+decades of trial and error, to combat Dragons.  Dragon Slayers detest
+Dragons and would rather kill one than to exchange two words with one.  They
+hate dragons of all alignments and tend to adorn their own armor with the
+skin of defeated dragons.  It is said that a Dragon Slayer never quite
+quenches his thirst for dragon blood, but rather grows in strength and
+determination with each dragon they slay.
+
+This class is limited to that of the Slayer clan and can only be obtained
+there.
+
+Who can be a Dragon Slayer?
+
+    CLASS: Any Class
+     RACE: Any Race
+ALIGNMENT: Any Alignment
+     CLAN: SLAYERS only
+
+
+SEE ALSO:  DRAGONLANCE, DRAGON NET, DRAGON STRIKE, JAWBIND, RECLASS,
+           SCALE LEECH, SLAYERS, SUMMON SLAYER, SUPERVOUCHER, WINGSTALL
+
+Updated 06.17.2024

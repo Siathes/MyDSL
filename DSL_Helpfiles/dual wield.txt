@@ -1,0 +1,19 @@
+dual wield
+DUAL WIELD
+syntax: hold <primary weapon>
+        secondary <secondary weapon>
+Under the tutelage of a weapons expert, a combatant may learn how to wield a
+weapon in each hand during combat to increase the overall amount of attacks
+each round of attack.  Obviously, with a weapon in each hand, there is no
+possibility of holding a shield.  Since most people favor one hand more than
+the other, the combatant typically finds that he can hold a heavy weapon
+with his proficient hand and a lighter weapon with the other.  Rangers,
+however, have the single ability to dual wield weapons of the same weight.
+Note:  If the primary weapon is somehow removed, the secondary weapon
+automatically switches to the the primary hand.
+
+To dual wield, one must type second <weapon>. The only restriction is
+that the secondary weapon must weigh less than the primary weapon. However,
+there are some known classes out there that might be able to wield two
+weapons of the same weight as well as be able to dual wield two handed
+weapons.

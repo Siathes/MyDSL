@@ -1,0 +1,7 @@
+WITHERING ENCHANT
+WITHERING ENCHANT
+
+Syntax: cast 'withering enchant' <object>
+
+This spell allows an enchantor to magically wither an item so that it will
+disintegrate when its bearer perishes.

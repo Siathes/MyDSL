@@ -1,0 +1,8 @@
+INVOLUNTARY WIZARDRY
+INVOLUNTARY WIZARDRY
+
+Syntax: cast 'involuntary wizardry' <victim>
+
+Involuntary wizardry allows the caster to cause the victim to cast a random
+spell upon themselves.  If the victim cannot cast spells, then the
+involuntary wizardry will be ineffective.

@@ -1,0 +1,56 @@
+PRIVATE HOME
+{YPRIVATE HOME{x
+
+Any mortal may purchase a private home in a housing district.  Race
+restrictions on kingdoms also apply to the housing district of the
+kingdom. You may not buy in a district you do not reside in, without
+leadership approval.
+
+Lairs can be built in most locations but MUST be outside of a kingdom's
+city limits.  Remorts have lairs and cannot also have a private house.
+
+No more than 4 rooms build maximum for your house or lair.
+
+{cPrivate House Room Prices:{x
+
+      {C1st - 4th Room{x ............. {y15 Eggs{x each
+
+{cLair Room Prices:{x
+
+      {C1st - 4th Room{x ............ {y100 Eggs{x per room - Remort Only
+
+{cOther Home and Lair Upgrades:{x
+
+Regen rates for houses and lairs only go to 200% maximum regen.  Boosts can be
+applied for either HP or Mana PER boost.  Stock items are available for
+purchase at a lesser cost and consist of a bed, chair, couch and/or fountain.
+Lair stock items do not include a couch.  Remodel prices are per day/night/room.
+
+      {CRegen Rate Increase{x ........ {y20 Eggs{x per 10% boost hp or mana
+      {CRegen Rate Example{x ........ {y400 Eggs{x for max regen - 200 for Hp / 200 for Mana
+      {CNighttime Description{x ...... {y10 Eggs{x per room house - New or Remodel
+      {CNighttime Description{x ...... {y20 Eggs{x per room lair - New or Remodel
+      {CLair Room Remodel{x ...........{y25 Eggs{x per room - Remodel Only - Location change is full cost
+      {CFurniture{x .................. {y10 Eggs{x per item
+      {CStock Items{x ................. {y5 Eggs{x per item
+      {CExtended Descriptions{x ....... {y5 Eggs{x per description
+
+{cAdditional Owners - Private Housing Only:{x
+
+      {C2nd person{x - {yNo Charge{x
+      {C3rd person{x - {y2 Eggs{x
+      {C4th person{x - {y4 Eggs{x
+      {C5th person{x - {y8 Eggs{x
+      {C6th person and up{x - {y10 Eggs each{x
+
+Please remember that owners must be related to your character by blood or
+marriage (cross-race adoptions don't count!).  Only immediate family (brother,
+sister, mother, father, child) will be allowed (no 2nd cousins-twice removed!)
+
+{RPLEASE NOTE{x - The person who submits the house becomes primary owner and has
+              total say over the house.
+
+
+{DSEE ALSO:{x  HOUSING AND LAIRS, PRICES
+
+Updated 04.10.2022

@@ -1,0 +1,39 @@
+PQUEST QUESTTYPE
+PQUEST QUESTTYPE
+
+syntax:  pquest request find
+         pquest request hunt
+         pquest info
+         pquest complete
+         pquest clear
+
+         questtype points
+         questtype experience
+
+There are certain mobs in Algoron who are able to assign and oversee
+personal quests for characters.  When in the presence of these mobs, you can
+request a personal quest using the syntax shown.  You may request two
+different types of quests.  Pquest request find will send you to find an
+item.  Pquest request hunt will send you to hunt and kill a beast.
+
+While on a quest, you may use the "info" syntax to get a reminder of what
+the goal of your quest is.
+
+When you have completed the assigned quest, you must return to the mob that
+assigned the quest and use the "complete" syntax to obtain your reward.
+
+If you feel that you are unable to complete a quest in the time allocated or
+feel that it is beyond your ability to complete use the "clear" syntax to
+clear the quest.  Of course, the questor will not be to pleased with you.
+
+Personal quest rewards come in the form of gold and quest points.  Quest
+points are shown in your score and may be saved up and used to purchase
+special items from the quest mob.
+
+There is a time delay between quests, and the quest mob resets when the game
+does so that until the quest mob code is changed most characters will have
+time delays following crashes and reboots.
+
+You may also select whether you wish to quest for a quest points reward, or
+an exprerience reward.  At the questmaster, select a questtype of experience
+or points.

@@ -1,0 +1,26 @@
+MOON MOONS LUNAR
+MOON MOONS LUNAR
+Syntax: lunar  look moons
+The three moons, commonly known for their colors, are the sources of magic
+for all mages.  Rumors persist that the moons are actually gods of magic,
+but what matters is that these three heavenly bodies have lasting and notable
+effects on spellcasters.
+Mages alone seem to be affected by the moons.  Clerics, who divine their
+powers from their deities, are unaffected by the waxing, waning, rising,
+and setting of the three moons.  Dragons, being creatures of magic, are
+also slightly affected by the moons, regardless of their class before
+remorting.
+The waxing and waning of the moons has a most noticable effect on magic.
+Spellcasters increase and decrease in power as their patron moon changes
+phases.  Evil mages draw their dark magicks from the Black Moon, mages of
+Goodness tap the White Moon for power, and those of Neutrality rely upon
+the Red Moon.  Structural alignments, such as Law and Chaos, have no bearing
+upon a mage's patron moon.
+Mages can expect their powers to peak during full moons, and bottom out
+during empty moons.  As moons approach these phases, mages can also expect
+to grow and decrease in power a bit.  The only phases in which a mage is
+NOT affected by his/her patron moon are the half-waxing and half-waning
+phases.
+Astrology can be used to give the mage more information about the moons
+and how they are currently affecting him or her.
+see also: ASTROLOGY PHASES

@@ -1,0 +1,6 @@
+PKILLING PKILLER 'PLAYER KILLING' PSTEALING 'PLAYER STEALING'
+Player killing and player stealing are allowed to all clan members
+(including loners and renegades), provided the victim is within 8 levels of
+the character and is also in a clan.  This will flag you as WANTED, allowing
+any character to attack without level restrictions, and also provoking
+action from various guards in the cities of Algoron.

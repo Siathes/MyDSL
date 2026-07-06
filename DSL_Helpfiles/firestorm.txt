@@ -1,0 +1,8 @@
+FIRESTORM
+FIRESTORM
+Syntax: cast 'firestorm'
+A large firestorm is conjured up by the elemental cleric, inflicting damage
+on all opposed to him.  The conjured storm is so powerful that the fire
+continues to afflict the victims for several rounds after the spell has been
+cast.
+See also: BLIZZARD

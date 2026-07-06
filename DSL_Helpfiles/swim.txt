@@ -1,0 +1,8 @@
+swim
+SWIM
+
+The swim skill determines your ability to swim underwater or in the ocean.
+Being unable to swim will result in you attempting to breathe water, which
+will hurt you.  Everyone can swim, though some have more trouble with it
+than others.  This skill is passive, and does not need to be invoked in
+order to function.

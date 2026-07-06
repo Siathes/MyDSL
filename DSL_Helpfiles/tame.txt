@@ -1,0 +1,10 @@
+TAME
+Syntax:  tame <mob>
+         tame
+Tame is a skill known only to Rangers and Druids.  It allows them to calm wild beasts
+to prevent them from attacking players or to make the fighting in a room stop.
+It may be used with an argument to specify the beast to be tamed, if more than one beast is present
+in the room and/or there is no combat taking place.
+It is not possible for a ranger to remain calm enough himself while in combat
+to tame other creatures.
+See also:  RANGERS DRUID

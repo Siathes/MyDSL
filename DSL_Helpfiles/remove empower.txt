@@ -1,0 +1,5 @@
+remove empower
+Syntax: c 'remove empower' <weapon>
+
+This spell of the holy spell group allows paladins to remove holy
+empowerments upon weapons.

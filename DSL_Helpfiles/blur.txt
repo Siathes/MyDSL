@@ -1,0 +1,5 @@
+blur
+syntax: cast blur
+The blur spell blurs your image, making you very hard to see and hit.
+There are many rumors that say that being blurred has some other advantages
+as well.

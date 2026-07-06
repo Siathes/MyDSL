@@ -1,0 +1,7 @@
+DEPOSIT
+DEPOSIT
+Syntax:  deposit <number>
+This command may be used at a bank to deposit a number of jeweled eggs
+directly from your inventory into the bank.  You may only deposit jeweled
+eggs, and they must be directly in your inventory, not in a container.
+See Also: 'WITHDRAW' 'MONEY' 'SCORE' 'CDEPOSIT' 'KDEPOSIT' 'CDEPOSIT'

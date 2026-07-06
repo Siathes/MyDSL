@@ -1,0 +1,14 @@
+leprosy
+{YLEPROSY{x
+
+{cSyntax:{x cast 'leprosy' <target>
+
+The shaman may opt to inflict an enemy with the loathsome disease of
+leprosy, which causes the skin of the victim to begin to rot.  The afflicted
+will also be weakened as the flesh-eating bacteria begins to break down his
+or her muscle tissue.
+
+{yGroups containing this spell:{x Voodoo
+
+
+{DSEE ALSO:{x  SHAMAN, VOODOO

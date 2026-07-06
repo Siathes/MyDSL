@@ -1,0 +1,13 @@
+DIRECT >
+DIRECT >
+Syntax:  direct <name> <message>
+         > <name> <message>
+This command is for use when in a room with several people, and you wish
+to say something, but have it directed to a particular person.  If someone
+directs something they say towards you, you will see:  Scorn says (to you)
+'message'.  If something is directed towards another character you will see
+Scorn says (to Jinx) 'message'.
+WARNING:  The DIRT KICKING command loads before the DIRECT command.  If you
+abbreviate this to "dir" and have the dirt kicking skill, you will be
+attacking the person to whom you wish to direct a communication.  If you
+don't want to start a fight, use the > form or type at least "dire".

@@ -1,0 +1,7 @@
+'POISON DAGGER' 'POISONDAGGER'
+POISON DAGGER, POISONDAGGER
+Syntax:  poisondagger <target>
+This is a skill of assassins which enables them to permanently poison any
+dagger type weapon that doesn't already have certain permanent effects
+flags. The drawback is that the poison damages the weapon and will
+eventually corrode it completely.

@@ -1,0 +1,53 @@
+NONSTANDARD
+NONSTANDARD
+
+NOTE : The following classes can ONLY be played by these races -
+
+    Bladesingers : Shalonesti Elf, Wild Elf, Sea Elf, Half Elf
+    Battleragers : Mountain Dwarf, Hill Dwarf, Dark Dwarf
+    Paladin      : Human
+    Shadowknight : Human
+
+The following races CANNOT play the folowing classes:
+
+Sea Elf, Dark Elf, and Wild Elf : No restrictions except as listed above
+
+Shalonesti Elf : Necromancer, Barbarian, Shaman, Witch, Warlock
+
+Hill Dwarf : Swashbuckler, Mage (and Mage reclasses)
+
+Dark Dwarf : Druid, Ranger, Barbarian, Swashbuckler, Jongleur
+
+Mountain Dwarf : Druid, Swashbuckler, Mage (and Mage reclasses)
+
+Ogre       : Bard (and Bard reclasses), Swashbuckler
+
+Giant Ogre : Mage (and Mage reclasses), Monk, Swashbuckler,
+                 Bard (and Bard reclasses)
+
+Goblin     : Monk, Druid, Ranger, Swashbuckler
+
+Bugbear    : Mage (and Mage reclasses), Thief (and Thief reclasses),
+                 Bard (and Bard reclasses), Swashbuckler, Crusader,
+                 Druid, Priest, Monk
+
+Hobgoblin  : Enchantor, Bard (and Bard reclasses), Swashbuckler,
+                 Crusader, Druid, Monk
+
+Deep Gnome : Swashbuckler
+
+Tinker Gnome : Necromancer, Barbarian, Shaman, Warlock, Witch
+
+Minotaur   : Shaman, Warlock, Witch, Swashbuckler, Jongleur, Charlatan
+
+Kender     : Mage (and Mage reclasses), Monk, Assassin, Barbarian,
+                 Shaman, Bandit
+
+Yinn       : Shaman, Warlock, Witch, Swashbuckler, Charlatan
+
+Felar      : Swashbuckler
+
+Wemic      : Mage (and Mage reclasses), Bard (and Bard reclasses),
+                 Swashbuckler
+
+See also - help reclass (for information on auto-reclass)

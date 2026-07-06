@@ -1,0 +1,23 @@
+GAIN
+GAIN
+
+The gain command is used to learn new skills, once the proper trainer has
+been found.  The following options can be used with gain:
+
+     gain list:  list all groups and skills that can be learned
+   gain points:  lower your creation points by 1 (costs four training sessions)
+    gain trade:  can only gain a trade in skills - not spells
+     gain name:  add a skill or skill group, at the listed cost
+ gain practice:  turns in 1 train for 5 practices
+gain alignment:  changes a characters alignment, ethos, and deity
+
+Gain uses training sessions, not practices. (see 'help train') Gained
+skills and groups do NOT increase your experience per level or total
+number of creation points and you can only trade in skills for other
+skills not yet gained.
+
+Skills from the rom basic/weaponsmaster and basic/default groups of your class
+will not be tradable nor are skills that are inherent to your race.
+
+The skill being traded in must be equal or less than the skill being traded
+for.  You will NOT be reimbursed practices or trains.

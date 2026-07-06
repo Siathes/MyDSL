@@ -1,0 +1,5 @@
+INSPECTROOM
+The bandit, though not trained in acute vision has some ability to survey
+the area and determine if people might be hiding by looking at signs in the
+room.  The bandit is generally very good at determining the number of people
+that might be hiding.

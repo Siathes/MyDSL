@@ -1,0 +1,7 @@
+DISMISS
+DISMISS
+Syntax:  dismiss
+This command may be used by Clerics, Necromancers, and Rangers to dismiss
+elementals, zombies, and animal friends, respectively.
+See also:  'SUMMON ELEMENTAL', 'ANIMATE DEAD', 'CALL WILD', CLERICS,
+NECROMANCERS, RANGERS

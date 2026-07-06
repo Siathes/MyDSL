@@ -1,0 +1,9 @@
+'CURE FATIGUE'
+'CURE FATIGUE'
+
+Syntax: cast 'cure fatigue' <character>
+
+This spell restores vitality to a character afflicted by the poison of the
+hobgoblin.
+
+See also - CURATIVE

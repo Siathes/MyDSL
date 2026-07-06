@@ -1,0 +1,10 @@
+tumbling
+TUMBLING
+
+Quick reactions, high dexterity and a steadiness on ones feet are all
+traits of the successful jongleur.  As such, when they finds themselves
+being bashed by their enemies, they knows well enough to duck and roll into
+it so as to jump straight back on their feet, with no loss in momentum or
+thought.  This is a passive skill.
+
+Groups containing this skill: JONGLEUR DEFAULT

@@ -1,0 +1,20 @@
+{YMILL MILLER{x
+
+This is a 2nd tier craft that requires the miller to get their logs from
+another player after it has been harvested.  Pricing in acquiring the logs
+can vary as this is set by the individual crafters. Milling requires you be
+in a room with an enchanted sawmill.  These are quite expensive and likely
+only found in kingdom halls or clan halls.  You will also require the
+correct type of log to cut the boards you wish to make.
+
+      {cSyntax:{x mill <wood type>
+
+{yWood Types{x - Cedar, Fir, Pine, Elm, Oak, Maple, Hickory, Stonewood,
+            Ironwood, Dreadwood
+
+{rNote:{x that if you have an alt that is a lumberjack and mills, you cannot
+use material gained from one in order to benefit the other.  See
+multiplaying rules.
+
+
+{DSEE ALSO:{x} HARVESTWOOD LUMBERJACK CRAFT CRAFTING

@@ -1,0 +1,45 @@
+newmerch
+The New Thalos Southwest Merchant District
+
+Directions from NT recall:              3s,4e,sw
+Direction from the Crossroads:          15e,sw
+Direction from the Althainia Port:      w,2s,12w,sw
+Directions from Central Market Square:  sw
+T      #1    #3    #5    #7    #9    D
+a         Al-Tarik Wahat Khesb       a
+r      #2    #4    #6    #8   #10    r
+i                                    b
+k      #1    #3    #5    #7    #9
+          Al-Darb Thuban Abyad       a
+a      #2    #4    #6    #8   #10    l
+l                                    -
+-      #1    #3    #5    #7    #9    I
+            Tarik al-Tujjar          s
+i      #2    #4    #6    #8   #10    h
+m                                    t
+o      #1    #3    #5    #7    #9    a
+o           Al-Tarik Sahraa'         r
+m      #2    #4    #6    #8   #10
+
+The New Thalos Southeast Merchant District
+
+Directions from NT recall:              3s,4e,se
+Direction from the Crossroads:          15e,se
+Direction from the Althainia Port:      w,2s,12w,se
+Directions from Central Market Square:  se
+
+#1    #3    #5    #7    #9
+        Dra'lok Way
+#2    #4    #6    #8   #10
+
+#1    #3    #5    #7    #9
+       k'Sultra Lane
+#2    #4    #6    #8   #10
+
+#1    #3    #5    #7    #9
+        Steel Drive
+#2    #4    #6    #8   #10
+
+#1    #3    #5    #7    #9
+      Tideweaver Walk
+#2    #4    #6    #8   #10

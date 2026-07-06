@@ -1,0 +1,6 @@
+mental drain
+Syntax: c 'mental drain' <target>
+
+When a victim is inflicted with a priests mental drain...  All spells they
+attempt to cast will cause strain on their magical ability causing it to
+cost more mana.

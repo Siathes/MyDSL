@@ -1,0 +1,11 @@
+'CONE OF LIGHTNING'
+CONE OF LIGHTNING
+
+Syntax: cast 'cone of lightning'
+
+By drawing on enormous amounts of energy, the Invoker calls into being a
+cone of lightning from the skies above.  The strikes of lightning affect all
+that are in the same room as the Invoker, save for those the invoker is
+grouped with.
+
+See also: INVOKER

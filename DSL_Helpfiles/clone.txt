@@ -1,0 +1,7 @@
+CLONE
+CLONE
+Syntax:  cast clone <object>
+The invoker drains his own energies to create a duplicate of an item.
+Containers may not be cloned, and the drain of cloning subtracts one
+perma-stat point.
+See also:  INVOKERS

@@ -1,0 +1,20 @@
+makejewelry
+Syntax: makejewelry ear (or scalp, eyeball, nose or hand)
+
+Makejewelry is known only to those of the barbarian guild.
+
+The barbarian takes a recently butchered body part and makes a special
+ornament blessed by their gods to impartment favors on to them.  The
+barbarian's faith in their work creates items with various properties,
+experiment with eyeballs, hands, scalps, noses and ears to see what you can
+do!
+
+In order for a barbarian to create such macabre pieces of wearable art, the
+barbarian must first properly butcher a corpse and take the necessary item
+from it.
+
+Syntax: butcher corpse ear (or scalp, eyeball, nose or hand), only a
+barbarian can prepare such items and wear bits of their recently slain
+enemies as a trophy of their conquest.
+
+See also: "BARBARIAN" and "BUTCHER"

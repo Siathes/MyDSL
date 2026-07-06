@@ -1,0 +1,11 @@
+SECOND WIND
+
+Syntax: passive
+
+This is a passive skill that upon practicing it, has the chance to randomly
+work or not.  In battle, when the Barbarian loses 90% of their hit points,
+second wind, if successful, can allow the Barbarian to heal up to half their
+maximum hit points.  Even when fully practiced, the chance of success on
+gaining a second wind is minimal.
+
+Groups containing this skill: BARBARIAN DEFAULT

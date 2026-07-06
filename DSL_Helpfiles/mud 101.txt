@@ -1,0 +1,23 @@
+MUD 101
+As with most hobbyists, folks who mud often have terms that are common
+only amongst others who engage in the same hobby.  For mudders, some of
+their special vocabulary is common to computer users, some common to role-players
+and some common only to muds.  Some common mud-related words and common
+abbreviations are listed below:
+
+     Areas        Collections of interconnected rooms with a common theme
+     Argument     Variable which follow a command
+     IC           In character
+     IP           Internet protocol, the numerical address of an internet  site
+     IRL          In real life
+     Lowbie       A low level character of an experienced player
+     Newbie       A player who�s relatively new to the game or specific mud
+     OLC          On Line Creation program for creating objects, mobs, and areas
+     OOC          Out of character
+     Roll         Generate a random number, derived from rolling dice in
+                  early rp games
+     Rooms        Locations in a mud, you can see what happens in the room
+                  you are in
+     RP           Role play
+     THAC0        Your characters ability To Hit Armor Class zero
+     Toggle       Repeating an action to turn something on and off

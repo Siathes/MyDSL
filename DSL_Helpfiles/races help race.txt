@@ -1,0 +1,82 @@
+RACE RACES RACE HELP
+
+
+DSL has the following races for player characters:
+
+--------------------------------------------------------------------------
+Human             |  the standard race, good in all classes        |  0 cp
+Elf               |                                                |
+  Shalonesti Elf  |  good mages and thieves                        |  5 cp
+  Dark Elf        |  evil elves, great mages and thieves           |  9 cp
+  Wild Elf        |  good warriors and thieves                     | 10 cp
+  Sea Elf         |  can morph into dolphins, good for any class   |  5 cp
+  Half Elf        |  cross of elf and human, good in any class     |  5 cp
+Dwarf             |                                                |
+  Mountain Dwarf  |  great warriors and good clerics               |  8 cp
+  Hill Dwarf      |  great warriors and good clerics               |  8 cp
+  Dark Dwarf      |  evil dwarves, good mages and thieves          | 10 cp
+  Mul             |  half human/dwarves, good rouges and warriors  | 17 cp
+Minotaur          |  awesome warriors and lousy thieves            | 15 cp
+Ogre              |                                                |
+  Ogre            |  big, brutal warriors                          |  8 cp
+  Giant Ogre      |  HUGE breed of ogre, great warriors            |  8 cp
+  Half Ogre       |  half ogre and human                           |  8 cp
+Yinn              |  good warriors, decent mages                   | 30 cp
+Goblin            |                                                |
+  Goblin          |  good thieves and warriors, decent clerics     |  5 cp
+  Hobgoblin       |  excellent warriors, decent assassins          |  8 cp
+  Bugbear         |  excellent warriors and barbarians             |  8 cp
+Gnome             |                                                |
+  Tinker Gnome    |  very smart, good mages and thieves            |  5 cp
+  Deep Gnome      |  have very powerful mental spells, good mages  |  5 cp
+Kender            |  amazing thieves                               |  5 cp
+Leonine           |                                                |
+  Wemic           |  excellent barbarians, horrible with magic     | 15 cp
+  Felar           |  excellent thieves, respectable otherwise      | 15 cp
+--------------------------------------------------------------------------
+
+Limited Races -
+
+            Trolls            Gully Dwarves           Ariels
+            Pixies            Centaurs                Orcs
+
+Different races have different starting statistics, and also different
+stat maximums for magic items and training.
+
+Creation points increase the amount of experience it takes to gain a level.
+
+For more information, see the help files for each race (i.e. 'help Ogre').
+
+Other races you may see on DSL are remorts.  Remorts are given to players
+by Scorn through different means and are 100% IC AT ALL TIMES.  The only
+exception to this is when you are alone with a member of the Imm staff to
+discuss any issue or to ask questions.  The currently available remorts are:
+
+--------------------------------------------------------------------------
+Metallic Dragons
+    Gold Dragon        Silver Dragon      Brass Dragon
+    Bronze Dragon      Copper Dragon      Steel Dragon
+
+Chromatic Dragons
+    Red Dragon         Black Dragon       Blue Dragon
+    Green Dragon       White Dragon       Brown Dragon
+
+Angels
+    Archangel          Lesser Angel
+
+Balanx
+    Head Balanx        Lesser Balanx
+
+Demons
+    Demon Lord         Lesser Demon
+
+Giants
+    Frost Giant        Cloud Giant        Fire Giant
+--------------------------------------------------------------------------
+
+
+SEE ALSO:  DRAGON, REMORT, ANGEL, DEMON, GIANT, TROLLS, PIXIES, CENTAURS
+           GULLY DWARVES, ARIELS, ORCS, PROCREATION, BREEDING, BABIES,
+           INTERRACIAL
+
+Updated:  12.07.21

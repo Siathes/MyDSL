@@ -36,7 +36,7 @@ from this repository — no separate design-chat relay or upload/download step.
 ### Reference — Don't Change Unless Adding Data
 | File | What it is |
 |---|---|
-| `DSL_CommandRef.md` | Actual DSL in-game output with confirmed Lua parse patterns |
+| `DSL_CommandRef.md` | Actual DSL in-game output with confirmed Lua parse patterns — the "don't rediscover a regex twice" file; add to it whenever a pattern is confirmed during testing, don't create a parallel patterns file |
 | `DSL_UI_Philosophy.md` | Design principles and "why" |
 | `MyDSL_MudletWindowManagement.md` | Mudlet window API — corrected June 28 |
 | `MyDSL_MudletAPIReference.md` | Mudlet API reference Part 1 — PCRE-vs-Lua-pattern rules, Lua 5.1 gotchas, "read PNP source directly" and "templates files aren't authoritative" lessons |
@@ -46,6 +46,7 @@ from this repository — no separate design-chat relay or upload/download step.
 | `Contract_Addendum_2026-06-21.md` | Addendum superseding parts of several contracts |
 | `templates_by_freq.txt` / `templates_with_examples.txt` | Pre-distilled combat-message shapes from the `log/` archive — fast first pass only, confirmed gaps exist |
 | `MyDSL_IdeaBacklog.md` | Raw, unscoped feature/research idea dump, categorized. Absorbed from Steven's `~/Downloads/aistuff.txt` 2026-07-05 (now deleted — this is the only copy). Add new ideas here directly; nothing here is started unless it also appears in `TODO.md` |
+| `../DSL_Helpfiles/` | 919 official in-game help texts, vendored 2026-07-05 from Steven's Claude.ai `/mnt` uploads — profile root, not docs/. Command usage/syntax only, not raw output format — `log/` is still authoritative for exact trigger text |
 
 ### Contracts — Written From Actual Code, Spot-Checked 2026-07-05
 | File | Module | Status |

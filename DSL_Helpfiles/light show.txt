@@ -1,0 +1,9 @@
+LIGHT SHOW
+Syntax: cast 'light show'
+
+In the Jongleur's bag of tricks there is an illumination spellbook called
+light show.  Only able to be cast at night, this spell makes it so no one
+can see anything within the room where it was cast for a short duration of
+time.
+
+Groups containing this skill: JONGLEUR DEFAULT

@@ -1,0 +1,7 @@
+SHIELD 'STONE SKIN'
+SHIELD 'STONE SKIN'
+Syntax: cast shield
+Syntax: cast 'stone skin'
+These spells protect the caster by decreasing (improving) the caster's armor
+class.  SHIELD provides 20 points off armor.  STONE SKIN provides 40 points off
+armor.

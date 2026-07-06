@@ -1,0 +1,8 @@
+SPEAK
+Syntax:  speak
+         speak <language>
+The speak command, when used without an argument, will show the languages you
+are currently speaking as well as a list of other languages in which you are
+capable of speaking.  Speak, used with an argument, switches the language you
+are currently speaking.
+See also:  LANGUAGES

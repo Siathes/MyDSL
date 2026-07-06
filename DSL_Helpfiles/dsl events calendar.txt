@@ -1,0 +1,67 @@
+dsl event calendar
+DSL EVENTS CALENDAR
+
+A calendar of DSL events has been set up for both Imm planned and Player
+planned events.  This is for all DSL events.
+
+All leaders are granted editing permissions upon request.  Other players may
+be granted editing permissions as well on a case by case situation.
+
+For view only and editing permissions, you can add this calendar to your
+'list' of calendars within Google and you can select to recieve
+notifications for events.  Notifications default to email settings and for
+new, changed and deleted/removed/canceled events.
+
+NOTE: If other people have shared their calendars with you, you might see
+more than your own name and the DSL Events Calendar.  The boxes next to each
+name in your list will toggle a calendar on and off.  The more that you have
+checked off, the more information you will see blended together on one
+calendar.
+
+Please send a note to Imm requesting calendar editing permissions.  Also
+include your leadership role or if you are not a leader, the reason for your
+request as well as your full email address.
+
+
+Link to view and edit the DSL Event calendar:
+
+https://calendar.google.com/calendar/u/0?cid=cm5jMDh0cXJtdWYxYmZ0YWhuMDY3NWpwODBAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvb
+Q
+
+
+To set up an event in the calendar:
+
+Open google calendars at calendar.google.com to put in your event or click
+on the link above as your permissions allow.  Make sure the DSL Events
+Calendar is selected and that you have editing permissions and not view
+only permissions.
+
+Select the month and day you want to hold the event on.  Click on this to
+open a small pop-up window that asks for title and time.
+
+Mark it as an 'Event' - not task.
+
+Click on 'Find a Time' to pick what time you want your event to start on and
+when to end it.  Always make sure to check the time in game so that you are
+setting up the correct time for your event.  It is easier to go with the
+
+NOTE: The DSL Events calendar is default set to CST/System Time.  It is also
+a good DSL Events calendar is default set to CST/System Time.  It is also a
+good best practice to include the time in the title of your event.  IE: AGL
+8:00 PM System.
+
+On 'Add Description' - Add any need for Imm assistance or if you have
+already spoken to an Imm about your event (recommended) then please include
+the Imm name who is overseeing.  If you don't plan with an Imm prior to your
+event and want Imm assistance and have it marked, we will try to accommodate
+though it is not guaranteed.
+
+Next to the 'Calendar Icon', make sure this is set to the DSL Events
+Calendar and not your own private calendar.  This will add it to the DSL
+Event calendar for everyone to see.  You can leave the rest as is.
+Notifications default to 1 day prior to the event and 1 hour prior to the
+event.  These can be adjusted as you set up an event.
+
+Click 'Save' to save your event to the calendar.
+
+Updated 04.10.2022

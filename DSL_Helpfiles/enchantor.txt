@@ -1,0 +1,11 @@
+enchantor
+Enchantors are masters of manipulating not only weapons and armor but
+also items in general and have even been rumored to be able to enchant
+people's souls.
+
+Who can be an Enchantor?
+
+CLASS:      MAGES only
+RACE:       All
+ALIGNMENT:  Any
+CLAN:       Any

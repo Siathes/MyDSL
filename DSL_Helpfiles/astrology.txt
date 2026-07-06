@@ -1,0 +1,12 @@
+ASTROLOGY
+ASTROLOGY
+Syntax: automatic use
+     Astrology can be used in conjunction with the 'lunar' or 'look moons'
+command to derive more information about the moons.  Those who are very
+proficient with astrology can discern the phase of moons that are not
+visible, predict the rising of a given moon, and even predict solar and
+lunar eclipses.  High level astrologers can also see the specific game
+effects of the moons when using the 'lunar' command.
+     Being a purely scholarly discipline, astrology is available only
+to mages and clerics.  Dragons may eventually learn it.
+see also: MOONS PHASES

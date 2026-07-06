@@ -1,0 +1,4 @@
+'LOCATE OBJECT'
+'LOCATE OBJECT'
+Syntax: cast 'locate object' <name>
+This spell reveals the location of all objects with the given name.

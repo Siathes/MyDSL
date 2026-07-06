@@ -1,0 +1,8 @@
+beastform
+Syntax: cast beastform <bear, moose, coyote>
+Syntax: revert
+By ingesting large quantities of the sacred mushroom and donning - [10] continual light
+the hide of a beast, the shaman may commune with the animal spirits.
+With the proper chants, the spirit of a wild animal may infuse the
+shaman and allow him to change his form into that of the beast.
+Revert returns the shaman to his/her normal form.

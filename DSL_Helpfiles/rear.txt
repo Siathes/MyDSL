@@ -1,0 +1,9 @@
+rear
+REAR
+
+The seasoned crusader has learned over time how to pull back on their
+mount's reigns causing their mount to rear and lash out with its front
+hooves at its opponent. If successful, the attack has a chance of
+stunning the target as well as causing mild damage.
+
+syntax: rear <target> or just rear during combat

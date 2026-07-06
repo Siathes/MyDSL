@@ -1,0 +1,14 @@
+mastery mace backhand drum boneshatter
+Mastery of the Mace
+
+Armsmen that specialize in the mastery of the mace are experts in dealing
+massive damage through blunt attacks. These armsmen are capable of the
+following:
+
+backhand       A fast, cruel backhand with a mace to inflict damage upon
+               an opponent.
+drum           The armsman moves his maces in a rhythmic fashion, allowing
+               for increased attacks for a brief time.
+boneshatter    A powerful mace attack intended to hamper an opponent's agility.
+
+This group is available to the following classes: ARMSMAN

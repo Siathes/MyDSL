@@ -1,0 +1,10 @@
+kiai
+KIAI
+
+Syntax: Kiai <target>
+
+The Samurai musters his inner strength and lets out a guttural shout as he
+charges his enemy.  The raw power a Samurai puts into this technique can
+stun enemies as well as fortify their own strength, however it's exhausting
+and once successful cannot be done again until the Samurai has had time to
+regained his strength.

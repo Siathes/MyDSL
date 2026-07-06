@@ -1,0 +1,17 @@
+'ACID BREATH' 'FIRE BREATH' 'FROST BREATH' 'GAS BREATH' 'LIGHTNING BREATH'
+'ACID BREATH' 'FIRE BREATH' 'FROST BREATH' 'GAS BREATH' 'LIGHTNING BREATH'
+
+These spells are for the use of dragons.  Acid and lightning damage one
+victim, whereas gas, fire, and frost damage every creature/PC in the room.
+Fire and frost can break objects, lightning can melt jewelry, gas poisons
+food and drink, and acid can impact how well your armor offers protection.
+
+Syntax:  cast 'lightning breath'  <victim>
+Syntax:  cast 'acid breath'       <victim>
+Syntax:  cast 'fire breath'       <victim>
+Syntax:  cast 'frost breath'      <victim>
+Syntax:  cast 'gas breath'        <victim>
+
+SEE ALSO:  DRAGON
+
+Updated:  10.26.2023

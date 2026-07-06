@@ -1,0 +1,6 @@
+CREATE FOOD
+Syntax: cast 'create food'
+
+This spell creates a Magic Mushroom, which you or anyone else can eat.
+
+See also - CREATION

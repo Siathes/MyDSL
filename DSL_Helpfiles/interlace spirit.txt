@@ -1,0 +1,9 @@
+INTERLACE SPIRIT
+INTERLACE SPIRIT
+
+Syntax: cast 'interlace spirit' <object>
+
+Interlace spirit allows an enchantor to interlace his/her own spirit into
+the given weapon or piece of armor.  Interlace spirit does not remove
+anything from the current object, but _does_ interlace your own spirit with
+any other aura it already has.

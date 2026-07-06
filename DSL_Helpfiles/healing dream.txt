@@ -1,0 +1,12 @@
+healing dream
+HEALING DREAM
+
+ Being a master of the mind, mentalist are able to cast a spell upon a
+sleeping individual that will allow them to heal much faster while sleeping
+so they may resume their tasks much more quickly.
+
+This spell may only be cast on someone who is sleeping.  Casting upon
+someone who is not asleep may result in some strange brain tingling.
+
+
+Syntax :  cast 'healing dream' target

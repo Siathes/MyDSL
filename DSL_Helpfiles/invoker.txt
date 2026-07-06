@@ -1,0 +1,19 @@
+INVOKER
+
+Invokers are a special reclass only available to mages of the Conclave.
+These highly specialized mages are able to call upon special magics which
+make them quite powerful.
+
+These mages also have the ability to stop other characters from taking any
+action by surrounding them in a web, and have perfected the art of hiding
+themselves from detection.
+
+Who can be an Invoker?
+
+CLASS:     MAGES only
+RACE:      ANY EXCEPT KENDER, HILL/MOUNTAIN DWARVES, GIANT OGRES, BUGBEARS
+           WEMICS
+ALIGNMENT: Any alignment
+CLAN:      CONCLAVE only
+
+See also - RECLASS CONCLAVE INVOCATION

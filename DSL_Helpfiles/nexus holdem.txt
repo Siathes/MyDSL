@@ -1,0 +1,20 @@
+NEXUS HOLDEM
+Nexus Holdem is a poker game where each player gambles for the best five
+card hand out of seven total cards.  Before cards are dealt the blinds must
+be paid.  This ensures there is always money to gamble for.  They are called
+blinds because you have to pay them before you see your cards.  The player
+to the left of the dealer pays the small blind.  The player to the left of
+the small blind pays the big blind.  Once the blinds are paid each player
+gets to cards face down.  Then each person gets the option to call or raise
+the big blind or fold.  Once that round of betting has finished three cards
+are dealt face up in the middle of the table.  These are community cards,
+everyone gets to use them along with thier two hole cards to make a hand.
+Those three cards are called the flop.  After the flop there is a betting
+round.  Then another community card is dealt face up.  This is the turn
+card.  After the turn card there is a round of betting.  Then the final
+community card is dealt face up.  This is the river card.  After the river
+card there is a round of betting.  Then everyone left shows thier hand.  The
+best hand wins the pot.  Only five cards can be used so if two or more hands
+are identical the pot is split between them.
+
+See also: 'CARDGAME'

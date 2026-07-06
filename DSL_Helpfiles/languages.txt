@@ -1,0 +1,8 @@
+LANGUAGES
+Every race has its own language that is widely spoken among members of
+that race.  The names of the languages are similar, if not identical, to the
+race that speaks it.  Since the break-up of the world, languages have
+evolved in different directions as people are forced to live further apart.
+Common is the language of the humans, and is considered a universal
+language.
+See also:  'SPEAK'

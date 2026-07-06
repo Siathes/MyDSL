@@ -1,0 +1,8 @@
+EQUIPMENT INVENTORY
+EQUIPMENT INVENTORY
+Syntax: equipment
+Syntax: inventory
+EQUIPMENT lists the equipment you are wearing (armor, weapons, and held items).
+INVENTORY lists your inventory.
+See also:  COMBINE
+

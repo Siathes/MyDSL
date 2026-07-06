@@ -1,0 +1,25 @@
+mentalist
+MENTALIST
+
+Mentalists are unique in their abilities.  They can essentially be called
+the true Masters of the Mind and are known to cause fear in their opponents.
+
+
+All races can be a mentalist, however the higher intelligent races will be
+the best at it.
+
+All alignments can be a mentalist, however they CAN NOT be a member of Chaos
+or join Chaos.
+
+You can only become a Mentalist by reclassing from the Mage class.
+
+When the mentalist has gained enough power (longevity of learning time),
+they are granted a new path to choose from.  They are given three options
+but can only ever choose one, so the mentalist must choose wisely.
+
+1.  Eidetic Memory - castable only upon yourself, making the caster immune
+to mental and psychological attacks.
+
+2.  Slippery Mind - castable upon anyone, removes all negative spells.
+
+3.  Analytical Mind - a chance to cast without lag in combat

@@ -1,0 +1,7 @@
+'FAST HEALING'
+The fast healing skill improves wound healing rates, whether walking, resting,
+or sleeping. It represents knowledge of healing herbs or just general
+toughness and stamina.  Fast healing is checked every tick, and it is
+possible for it to fail.  All class may learn this skill, but mages find it
+very difficult to master, due to their bookish lifestyle.  The skill occurs
+automatically, so there is no command syntax.

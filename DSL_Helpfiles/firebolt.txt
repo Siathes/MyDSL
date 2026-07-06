@@ -1,0 +1,9 @@
+FIREBOLT
+
+Syntax: cast 'firebolt' <target>
+
+Drawing on Zandreyas teachings, the Eldritch is able to channel their energy
+in order to direct a long lance of fire at their enemy.  While painful upon
+any foe, it is moreso against those sensitive to fire.
+
+Groups containing this spell: ELDRITCH

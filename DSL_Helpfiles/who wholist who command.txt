@@ -1,0 +1,21 @@
+WHO WHOLIST 'WHO COMMAND'
+WHO WHOLIST 'WHO COMMAND'
+Syntax: who
+Syntax: who <level-range>
+Syntax: who <class or race>
+Syntax: who <clan name>
+Syntax: who <class or race> <level-range> <clan name>
+WHO shows the people currently in the game.  Some people may choose to
+remain unseen and won't appear on the WHO
+WHO without any arguments shows all of the (visible) people currently playing.
+With arguments, WHO can show players of certain classes or levels.
+For example:
+who 10          lists all players of level 10 or above
+who 15 20       lists all players between level 15 and 20
+who cleric      lists all clerics playing
+who immortal    lists all immortals playing
+who cleric 1 5  lists all clerics between levels 1 and 5
+who elf cleric  lists all elven clerics
+who malice e m  lists all elven mages in Malice
+Classes and races may be abbreviated.
+See also:  WHOIS WHOISOOC WHOC

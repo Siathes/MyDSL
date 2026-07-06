@@ -1,0 +1,17 @@
+mastery axe shield cleave scleave whirl disembowel
+Mastery of the Axe
+
+Few combatants are so skilled in combat with an axe as an armsman. Having
+devoted themselves to mastery of the axe, they may use the following skills:
+
+shield cleave   Damages an opponent's shield with a mighty blow splitting it,
+                causing the wielder of the shield to wait until repairs can
+                be made before being able to wear it again. <scleave victim>
+
+whirl           A spin move with an axe to slice the tip of the blade through
+                an opponent damaging them.
+
+disembowel      A massive gut shot to an opponent, usable when an opponent is too
+                hurt to block it.
+
+This group is available to the following classes: ARMSMAN

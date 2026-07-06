@@ -1,0 +1,22 @@
+'DEATH SHROUD'
+DEATH SHROUD
+
+Syntax: cast 'death shroud'
+
+The Death Shroud is perhaps the most powerful spell under the Necromancy
+flag.  It creates an icy black aura around the Necromancer, which stifles
+life and causes fear in most creatures.  The shroud can be used both
+actively and passively.
+
+Anybody whom the Necromancer touches with hostile intent will be struck with
+the Shroud, and suffer an immediate loss of life, and a temporary system
+shock.  Those who attempt to harm the Necromancer will find their weapons
+passing cleanly through the aura, and never touching the Necromancer.
+Furthermore, those who attempt to magick or touch the Necromancer without
+his or her permission will be struck with the Shroud as though the
+Necromancer actively cursed them with it.
+
+The Shroud is an incredibly powerful tool, and requires a series of
+conditions to be true before it can be successfully cast.
+
+See also - NECROMANCY NECROMANCER

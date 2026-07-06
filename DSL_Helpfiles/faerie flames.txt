@@ -1,0 +1,8 @@
+'FAERIE FLAMES'
+FAERIE FLAMES
+
+Syntax: cast 'faerie flames'
+
+Faerie flames is a priest spell that is a combination of faerie fire and
+faerie fog.  A priest can create a fog which seeks to draw out those hiding
+and then surround them by a glowing outline.

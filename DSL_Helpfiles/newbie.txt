@@ -1,0 +1,26 @@
+  -----------------------------------------------------------------------
+
+    Type help name for the name associated with the given topic
+    to see more information on that topic.
+
+        Table of Contents
+
+    Navigation and Status. . . . . . . . . . . . . . Movement
+    How to Level . . . . . . . . . . . . . . . . . . Leveling
+    How to Train and Practice. . . . . . . . . . . . Training
+    Common Status Affects. . . . . . . . . . . . . . Status
+    Shopping and Shop Locations. . . . . . . . . . . Shopping
+    Equipment. . . . . . . . . . . . . . . . . . . . Equipping
+    Player Questing. . . . . . . . . . . . . . . . . Questing
+    Searching For Players. . . . . . . . . . . . . . Players
+    Recommended Skills and Spells. . . . . . . . . . Specialties
+    Help Files and Other Assistance. . . . . . . . . Helps
+    Roleplay . . . . . . . . . . . . . . . . . . . . Roleplay
+    Channels and Communication . . . . . . . . . . . Communication
+    Notespools . . . . . . . . . . . . . . . . . . . Spools
+    Approaching Recruiters . . . . . . . . . . . . . Recruiting
+    Rules. . . . . . . . . . . . . . . . . . . . . . Rules
+
+        Typing HELP NEWBIE will return you to this table of contents.
+
+  -----------------------------------------------------------------------

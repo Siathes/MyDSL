@@ -1,0 +1,4 @@
+FARSIGHT Syntax: cast 'farsight'
+
+Farsight allows a caster to see the presence of other mortals within the
+surrounding area's of the one that individual is in.

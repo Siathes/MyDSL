@@ -1,0 +1,9 @@
+SUN BLAST
+
+Syntax: cast 'sun blast' <target>
+
+The Eldritch learns to channel sunlight into devastating blasts of fire
+toward their enemies.  While this can inflict injury onto any targeted foe,
+it is more powerful against those who are sensitive to sunlight and fire.
+
+Groups containing this spell: ELDRITCH

@@ -1,0 +1,11 @@
+FORGET
+FORGET
+
+Syntax:  cast 'forget' <target>
+         cast 'forget'
+
+The transmuter causes knowledge of critical skills and spells to slip
+elusively from his enemy.  The enemy may be named as a target, or the spell
+will default to the current foe if the caster is engaged in combat.
+
+See also - ALTERATION TRANSMUTER

@@ -1,0 +1,4 @@
+PANIC ENEMY
+Panic enemy allows the bandit to attempt to send the enemy into a panic
+which causes them to have trouble when fleeing and also might affect their
+ability to hit.

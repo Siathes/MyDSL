@@ -1,0 +1,9 @@
+imbue mount
+IMBUE MOUNT
+
+Through extensive training in the art of mounted combat, the crusader has
+learned how to infuse holy energy into their mount, healing and making it
+tougher.  Imbue Mount is part of the Worship spellgroup and is only
+accessible to the Crusader class.
+
+cast 'imbue' <mount>

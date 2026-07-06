@@ -1,0 +1,14 @@
+NIGHTCLOAK 'NIGHT CLOAK'
+{YNIGHT CLOAK{x
+
+{cSyntax:{x Nightcloak
+
+Stealth is of paramount importance to those who practice the ninja's arts,
+the refinements made through the ages culminating in an ability known as
+Night Cloak.  By shedding their light source, a ninja may become entirely
+unseen within a dark room, becoming one with the shadows to better ambush
+their target.  This skill requires both ample darkness within a room and a
+ninja to forego their light source in order to succeed.
+
+
+{DSEE ALSO:{x  NINJA

@@ -1,0 +1,36 @@
+SHIP BOAT SAIL BOARD STEER LOWER RAISE DOCK DISEMBARK FIRE CANNON ABANDON JUMP TRIM
+SHIP BOAT SAIL BOARD STEER LOWER RAISE DOCK DISEMBARK FIRE CANNON ABANDON JUMP TRIM
+BOARD <ship name>    - must be in same room as ship, and ship must be docked
+STAND WHEEL          - must be in same room as the ship's wheel
+STEER <hard/full/no argument> <port(left)/starboard(right)>
+LOWER <anchor/sails> - must be in same room as anchor or sails,
+                       whichever is appropriate
+RAISE <anchor/sails> - must be in same room as anchor or sails,
+                       whichever is appropriate
+DOCK                 - Must be in same room as plank, Ship must be at a dock
+                       and Ship must be anchored.
+DISEMBARK            - To leave the ship, Ship must be docked!
+ABANDON                  - Abandon ship! (For use in open sea.)
+PEER <dir/no arg>    - Use from the crows nest, lets you around the ship like
+                       scan for players.
+JUMP <ship name>     - Jump from one ship to anouther, target ship must be in
+                       same room.
+LOOK SHIP            - This will report the same information as if you were
+                       to look at the ship from shore. (Use for damage info)
+TRIM <quarter/half/full>   - Adjusts speed of ship. Must be done at
+                                     main sails.
+FIRE <weapon> <direction> <target> - Use for long range attacks
+FIRE <weapon> <target>               - Use for same room combat
+For STEER command, no argument in the middle will steer the boat 45 degrees to
+port (left) or starboard (right) of the current direction.  The arguments hard
+and full both have the same effect, which is to turn the boat 90 degrees.
+Example:  if current direction is north, "steer port" would change the boat's
+direction to northwest, but "steer hard port" would change the boat's direction
+to west.
+CANNONS: Requires cannonballs and "magic dust", its rumored that there is a  - [20] detect invis
+merchant in New Thalos who sales these items.  The ammuntion must be loaded
+in proper sequence for the cannon to work! To load a cannon type the following.
+put dust cannon
+put cannonball cannon
+
+SEE ALSO HELP 'SHIP RULES'

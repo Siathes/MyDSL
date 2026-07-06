@@ -270,6 +270,13 @@ local level, race, class_ = line:match("%[%s*(%d+)%s+([%w%-]+)%s+(%w+)%]")
 - Complex: `(New Thalos)` — multi-word in parens
 - `[ IMPLEMENTOR ]` — immortal/staff, NO level/race/class, skip this line
 
+**Confirmed 2026-07-05 (parseWhoLine rewrite):** the old parser only ever looked for org/clan in
+`[brackets]` — real clan/org codes are in `(parens)`, brackets are kingdom-only, matching this table.
+Also confirmed **AFK is inconsistent about its own delimiter** — real `log/` examples show all three
+of bare `AFK`, `[AFK]`, and `(AFK)`; the parser now checks for all three rather than assuming one.
+Example that broke the old parser: `"[27 Goblin Bnd] (WANTED) (VR) Vrokt."` parsed as
+`kingdom="()" name="(VR)"` instead of `org="VR" name="Vrokt"` (see `CHANGELOG.md` 2026-07-05).
+
 ### Footer line:
 ```
 Players found: 45
@@ -408,6 +415,9 @@ during Phase B but never checked off here.** Corrected:
 - [x] Weather description lines — trigger wired in DataLayer (`MyDSL._triggers.weather`);
       no display row consumes it yet (MoonWeather Gap, low priority)
 - [x] `improve` — parser exists (`MyDSL.parseImproveLine`)
+- [x] Combat (damage/evasion/condition/death/procs) — see "COMBAT" section
+      this file, added 2026-07-05 (was worked on all session but never
+      consolidated here until now)
 - [ ] `inventory` / `inv` — item list format — still genuinely not captured
 - [ ] `equipment` / `eq` — equipped items format — still genuinely not captured, no parser exists
 - [ ] `affects` — spell list (text fallback format) — GMCP path works; text-fallback format still uncaptured
@@ -566,6 +576,130 @@ You are affected by the following spells:
 Spell: detect hidden     : modifies none by 0 for 32 cycles, (16 hours)
 Spell: detect invis      : modifies none by 0 for 32 cycles, (16 hours)
 ```
+
+---
+
+## COMBAT (confirmed patterns — added 2026-07-05, gap this file had all session)
+
+*Full 2026-07-05 combat-hardening pass produced all of this; it was never
+consolidated here even though this file exists exactly to prevent
+re-deriving patterns. Live triggers: `MyDSL_DataLayer.lua`, Section 10,
+"Combat triggers" block. All patterns below are PCRE (double-backslash Lua
+string convention), verified against `log/` and/or `PNP files/DSL_PNP_Battle.lua`.*
+
+### Damage (one unified trigger for all severity tiers)
+```
+Your pierce misses a gnome student.
+Your pierce hits a gnome student.
+Your pierce *** DEVASTATES *** a gnome student!
+A wild bear's slash MASSACRES a gnome student!
+```
+Pattern (PNP-derived, `combatDamage`):
+```
+^(You|[\w\-\s,']+?)(?:(?<=You)r|'s)?(?:\s?((?<=Your )[\w\s]+?|(?<='s )[\w\s]+?|))(?: do[es]*| [\>\<\=\*]+|) (VERB)[esES]*(?: things to| [\>\<\=\*]+|) ([\w\-\s,']+)([\.\.!]+)$
+```
+`VERB` = `miss|scratch|graze|hit|injure|wound|maul|decimate|devastate|maim|MUTILATE|DISEMBOWEL|DISMEMBER|MASSACRE|MANGLE|DEMOLISH|DEVASTATE|OBLITERATE|ANNIHILATE|ERADICATE|GHASTLY|HORRID|DREADFUL|HIDEOUS|INDESCRIBABLE|UNSPEAKABLE`
+— 26-entry severity ladder (relative units, not real HP), see `Contract_CombatWindow.md`.
+
+### Evasion — 5 confirmed forms (all direct ports of PNP's tested regex)
+```
+You dodge a gnome student's attack.
+A gnome student dodges your attack.
+You parry a gnome student's attack.
+A gnome student parries your attack.
+You block a gnome student's attack with your shield.
+A gnome student senses they're about to be hit and deflects the blow.
+A gnome student senses your attack coming and avoids its blow.
+```
+- `(You|[\w\-\,\s']+) (dodge)s? (your|[\w\-\,\s']+) attack\.$`
+- `(You|[\w\-\,\s']+) (parry|parries) (your|[\w\-\,\s']+) attack\.$`
+- `(You|[\w\-\,\s']+) (block)[s]? (your|[\w\-\,\s']+) attack .*\.$`
+- `^[\w\-\s,']+ senses they.?re about to be hit and deflects the blow\.` (third-party form only, live — see gap below)
+- `^[\w\-\s,']+ senses [\w\-\s,']+'s attack coming and avoids its blow\.` (third-party form only, live — see gap below)
+
+**Confirmed gap, NOT fixed:** the two `senses` (sense-evade) triggers only match third-person phrasing
+(`"A gnome student senses..."`), same historical bug class as dodge/parry/block had before the
+2026-07-05 fix — unconfirmed whether DSL phrases a you-as-subject sense-evade differently; needs
+checking against `log/` for a `"You sense..."` form before porting the same you-as-subject fix here.
+
+### Condition ladder — 7 stages, confirmed THIRD-PERSON ONLY (self-condition gap, NOT fixed)
+```
+<mob> is in excellent condition.
+<mob> has a few scratches.
+<mob> has some small wounds and bruises.
+<mob> has quite a few wounds.
+<mob> has some big nasty wounds and scratches.
+<mob> looks pretty hurt.
+<mob> is in awful condition.
+```
+**Confirmed live in `log/` — self-condition uses second person, a different verb than every entry
+above**, and neither our trigger nor PNP's own has ever matched it:
+```
+You are in excellent condition.
+You have a few scratches.
+You have some small wounds and bruises.
+You have quite a few wounds.
+You look pretty hurt.
+```
+(third-person `has`/`is`/`looks` → second-person `have`/`are`/`look`; not yet fixed, tracked in `TODO.md`)
+
+### Death — 2 confirmed forms, BOTH now handled (as of 2026-07-05)
+```
+a gnome student is DEAD!!
+A gnome student hits the ground ... DEAD.
+```
+Both fire `parseCombatDeathLine()` → `MyDSL.combat.ended`. Confirmed live: some sessions use only one
+form for an entire session, others use both for the same kill (redundant, harmless —
+`snapshotFight()` no-ops if the target's accumulator is already cleared).
+- `^(.+) is DEAD!!$` (Lua pattern, inside `parseCombatDeathLine`)
+- `^(.+) hits the ground %.%.%. DEAD%.$` (Lua pattern, inside `parseCombatDeathLine`)
+- Triggers: `" is DEAD!!$"` / `" hits the ground \\.\\.\\. DEAD\\.$"` (PCRE)
+
+### Weapon-flag procs — 14 PNP-confirmed + 3 our own (Poison)
+
+**Confirmed gotcha, applies to Frost/Flame/Shock/Vamp/Stun:** the "attacker" side of these lines is
+frequently the **weapon's own name**, not the wielder — DSL's text never names the wielder here:
+```
+A grand arcanium hoopak draws life from Rylae.
+A fine alloy great sword draws life from an office worker.
+is knocked to the ground by a runehammer.
+is knocked to the ground by "Nadrik's Honor".
+```
+Quoted weapon names (`"Nadrik's Honor"`) are real — Frost/Vampiric/Stunning trigger char classes
+include `"` and strip it via `stripQuotes()` before normalizing.
+
+| Code | Flag | Pattern(s) |
+|---|---|---|
+| C | Frost | `([\w\-\s,'"]+) freezes ([\w\-\s,'"]+)\.$` / `^The cold touch of ([\w\-\s,']+) surrounds you with ice` |
+| F | Flaming | `([\w\-\s,']+) is burned by ([\w\-\s,']+)\.$` / `([\w\-\s,']+) sears your flesh` |
+| L | Shocking | `([\w\-\s,']+) is struck by lightning from ([\w\-\s,']+)\.$` / `([\w\-\s,']+) is shocked by a` |
+| H | Vampiric | `([\w\-\s,'"]+) draws life from ([\w\-\s,'"]+)\.$` / `^You feel ([\w\-\s,']+) drawing your life away` |
+| S | Stunning | `([\w\-\s,'"]+) is knocked to the ground by ([\w\-\s,'"]+)\.$` |
+| M | Mana drain | `^You feel something drawing your energy away` / `([\w\-\s,']+) draws energy from ([\w\-\s,']+)\.$` |
+| O | Holy | `^You feel a surge of ([\w\-\s,']+)'s holy wrath race through your body` / `^A flash of holy power erupts from ([\w\-\s,']+) and hits ([\w\-\s,']+)!$` |
+| U | Unholy | `^You feel a surge of ([\w\-\s,']+)'s unholy wrath race through your body` |
+| P | Poison (our own addition, no PNP equivalent) | setup: `([\w\-\s,']+) coats ([\w\-\s,']+) with deadly lifebane poison\.$` — onset: `([\w\-\s,']+) is poisoned by the venom on ([\w\-\s,']+)\.$` — tick (~40s): `([\w\-\s,']+) shivers and suffers\.$` |
+
+**Sharp**: no confirmed trigger text found in any log to date. **Vorpal**: confirmed non-functional,
+produces no echo at all (Steven confirmed directly) — deliberately not wired.
+
+### Combat-end (beyond death)
+```
+You flee from combat!
+You cannot escape from combat!!!
+<name> rescues you!
+<name> has fled!
+```
+- `^You flee from combat!$` → snapshot + clear your own combat state
+- `^You cannot escape from combat!!!$` → **not** an end condition, combat continues
+- `rescues you!$` → snapshot + clear
+- `^[\w\-\s,']+ has fled!$` → snapshot + clear that target's accumulator only
+
+### Scope note — no relevance filter (as of 2026-07-05, deliberate)
+Combat tracking has **no** filter on who's fighting whom — every combat line DSL shows you gets
+tracked, matching PNP's own `handle_damage()` (which never filters either). Known tradeoff: ambient
+bystander fights you happen to see (`"A boar's charge misses a liger cub."`) get tracked too. See
+`Contract_CombatWindow.md`'s "Scope filter" section for the full reasoning.
 
 ### Corrected text parse pattern (Lua):
 ```lua

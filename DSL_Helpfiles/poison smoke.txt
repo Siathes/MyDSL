@@ -1,0 +1,4 @@
+'POISON SMOKE' 'POISONSMOKE'
+This skill is similar to flash bomb.  The skilled assassin can mix the
+proper ingredients to release a cloud of poisonous gas when their bomb
+explodes.

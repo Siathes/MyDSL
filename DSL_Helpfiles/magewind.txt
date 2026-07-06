@@ -1,0 +1,5 @@
+MAGEWIND
+syntax:  cast magewind
+It is rumored that there is a sentient wind which lives above the ocean.
+It has also been said that those who are magically inclined can summon this
+wind, to aid their ship.

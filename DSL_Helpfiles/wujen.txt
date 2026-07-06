@@ -1,0 +1,132 @@
+WU JEN WUJEN
+WU JEN WuJen
+
+Hailing from the eastern continent of Shokono, the Wu Jen are an oddity
+among mages.  Rather than deriving their power solely from the moons, the
+eastern sorcerers have derived their power through means not fully
+understood to outsiders.  Some claim that their magics stem through
+contracts with nature spirits, while others believe that it is through
+harmony with nature and Algoron itself that gives these practitioners the
+ability to harness the elements to smite their enemies.  Whatever the case,
+their power is one to be reckoned with.
+
+Each Wu Jen may choose to specialize in two of the classical Five Elements
+of Shokonese lore: EARTH, FIRE, WATER, WIND, METAL.  Due to this unique
+trait, it is rare to see two Wu Jen of identical disciplines, as each
+complements the others in different ways.  They select the two elements of
+their craft at reclass.  Because of the obscure nature of their magecraft,
+they do not receive magical benefits from the moons.
+
+Flaming Soul:
+
+Held up as a forbidden technique among the Wu Jen, it is believed that at
+the core of every being is an untapped source of power that is rarely called
+upon.  The potential of such a thing carries the potential for greatness,
+but also carries the risk of certain death.  A practiced Wu Jen may channel
+that power for a short time, becoming immune to all damage for the duration.
+However, this comes at a price.  If the Wu Jen is not slain outright by the
+attempt to cast this spell, they will surely be at death's door when it
+expires.  All Wu Jen have the ability to cast this, should they choose.
+
+
+DISCIPLINES:
+
+Element of Fire:
+
+The fire discipline of the Wu Jen is as tumultuous and chaotic as a
+wildfire, dangerous when controlled, but capable of breaking loose and
+wreaking havoc when unattended.
+
+Ignite - The Wu Jen conjures an overpowering heat to wash over their enemy.
+If they fail a save, they will begin stripping off their armor and throwing
+it on the ground in an attempt to escape the infernal warmth.
+
+Flame Wall - The Wu Jen conjures a wall of flame in the room, blinding all
+enemies who witness its creation for a time.  The flame wall lingers in the
+room for awhile after, and the smoke from the burning barrier can
+occasionally cause spellcasters to choke and fail the spells they are
+casting.
+
+Searing Winds - Much like the chaotic and wild chain lightning spell,
+searing winds is a multi-target spell that bounces between targets, dealing
+fire damage to each.  If there are not enough targets for its use, however,
+the winds will rebound upon the caster and hurt them as well.
+
+
+Element of Earth:
+
+Unyielding as stone and treacherous as quicksand, the earth discipline of
+the Wu Jen offer many opportunities and powers in return for dedication to
+the art.
+
+Summon Monster - The Wu Jen calls forth either a Rock or a Mud monster,
+which will do their bidding until destroyed.  The rock monster is made for
+attacking, and will collapse when destroyed to deal damage to its killer.
+The mud monster is a defensive creature, made to absorb a great deal of
+punishment before it is vanquished.
+
+Stalagmite - The Wu Jen hurls a spike of rock into their enemy, dealing
+damage and having a chance to knock them off-balance, stunning them.
+
+Chasm - The Wu Jen splits open the earth and uses the altered terrain to
+their advantage, attempting to force enemy groups to break and scatter so as
+to not fall into the abyss.
+
+
+Element of Water:
+
+The water Wu Jen discipline carries the rage of storms and the crushing
+weight of the ocean, relentless and powerful.
+
+Wave - The Wu Jen conjures a wave of water that carries them out of the
+room, continuing for up to two rooms in a direction of their choosing.
+
+Monsoon - The Wu Jen summons a localized tempest that hammers rain down upon
+their enemies, dealing damage to everyone that is not grouped with them.
+
+Drown - The Wu Jen forces water into the lungs of their enemies, affected
+everyone not currently grouped with them.  For a short time after, anyone
+affected may panic at the sensation of drowning, failing any spells they are
+casting or finding themselves unable to flee from combat.
+
+
+Element of Wind:
+
+Flighty and versatile, the wind Wu Jen discipline offers a measure of
+control over their surroundings, stripping the advantage from their foes and
+giving it to themselves.
+
+Engulf Wind - Drawing a great deal of air into their bodies, a Wu Jen is
+able to harness the power of wind to grow to a greater size, pushing
+themselves to their limits.  While enlarged, they are more resistant to
+being bashed and other forms of stunning.
+
+Gust - Invoking a localized vortex, the Wu Jen casts a billowing wind that
+kicks up a great deal of dust and debris.  This dust can blind anyone in the
+room not grouped with the Wu Jen, and the powerful winds can knock them off
+balance.
+
+Suffocate - Drawing all of the room in the air into themselves, a Wu Jen can
+create a temporary vacuum, stifling the breath of anyone not grouped with
+them.  Affected foes begin to take damage similar to drowning underwater for
+a short time, the amount of harm done proportional to their health.
+
+
+Element of Metal:
+
+The least conventional (to traditional thought) element, the metal Wu Jen's
+practice of magic is unyielding and powerful, offering a great deal of
+control over their surroundings.
+
+Force Field - Utilizing their mastery over metal, the Wu Jen creates a field
+that neutralizes melee attacks for a brief time, warding away blows
+temporarily.
+
+Metal Storm - Pulling shards of metal from their surroundings, the Wu Jen
+creates a cloud of jagged metal that slice into their enemies, pelting
+anyone not grouped with them with splinters that cut and damage them for a
+short time after.
+
+Control Metal - Demonstrating their mastery over the elements, the Wu Jen
+focuses upon their enemy's weapons and shield, attempting to rip them from
+unwilling hands and tossing them aside to gain the advantage.

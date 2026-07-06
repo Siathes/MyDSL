@@ -1,0 +1,3 @@
+misdirection
+Misdirection allows the Nightshade to flee while making their opponent
+think that they fled into a different direction.

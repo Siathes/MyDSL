@@ -1,0 +1,6 @@
+divorce
+This command will allow a priest to divorce two individuals.
+
+Syntax: divorce <player 1> <player 2>
+
+Both players being divorced must INVITE the priest.

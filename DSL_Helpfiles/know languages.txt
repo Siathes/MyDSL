@@ -1,0 +1,8 @@
+'KNOW LANGUAGES'
+'KNOW LANGUAGES'
+Syntax: cast 'know languages'
+This spell enables the transmuter to be able to both speak and understand
+all of the known languages of Algoron.  The languages planned include:
+common, elvish, dwarvish, goblin, gnomish, ogre, minotaur, yinnish, and
+kender.  Dragon will not be understandable.
+see also:  'SPEAK'  'TRANSMUTER'

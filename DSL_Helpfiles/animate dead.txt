@@ -1,0 +1,11 @@
+'ANIMATE DEAD'
+ANIMATE DEAD
+
+Syntax: cast 'animate dead'
+
+Animate Dead simply raises a corpse from the ground, creating a zombie under
+the command of the Necromancer.  The corpse loses most of its abilities from
+its former life, becoming a mindless zombie which will follow the orders of
+the Necromancer until it is dismissed, dispelled, turned, or destroyed.
+
+See also - NECROMANCY NECROMANCER DISMISS

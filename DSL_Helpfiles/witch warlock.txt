@@ -1,0 +1,15 @@
+WITCH WARLOCK
+
+Much like the witches of fairy-tale fame, their magical talents
+are less controllable than that of traditional mages, yet formidable
+nonetheless.  They are rather more talented at physical combat than most
+mage classes, despite being unable to use combat spells.
+The main characteristic of the witch class is its ability to tap into
+the magical secrets of others, attempting to 'steal' their magic
+by experimenting with the brewing of strange and wonderful
+(and terrible) potions.
+
+Who can be a witch/warlock?
+
+CLASS:        MAGE only
+RACE:         Humans and half-humans, dark elf, dark dwarf

@@ -1,0 +1,7 @@
+REPLAY
+REPLAY
+Syntax:  replay
+This command allow you to see tells that have been stored in a tell buffer
+during periods that you have been AFK or link dead.  When you return to the
+game, you will be reminded that you can use this command to see tells you
+might have missed while away from the game.

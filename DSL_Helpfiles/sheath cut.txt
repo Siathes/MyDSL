@@ -1,0 +1,2 @@
+sheath cut
+A nightshade may disarm the sheathed weapon using this command.

@@ -1,0 +1,9 @@
+fake illness
+FAKE ILLNESS
+
+A spell to make Devion envy, fake illness allows the mentalist to cause an assault
+on the mind in such a way that his or her enemy will believe they are suffering
+from some sort of illness or injury and, in general, resulting in a weaker and
+slower opponent. This spell gains power as the mentalist gains level.
+
+Syntax :  cast 'fake illness' <target>

@@ -1,0 +1,30 @@
+PALADINS
+PALADINS
+
+The Paladin serves the Knighthood of Gareth as the holiest of champions.
+They are the epitome of the Knighthood's virtues and teachings, and are
+charged with serving simultaneously as the Shield for the righteous, the
+Lance to smite the wicked, and the Crown to guide the faithful.  The Paladin
+is well equipped to stand toe-to-toe with the fiercest of foes, and granted
+the ability to seek out even the most cunning of evils.  They can destroy
+undead with a touch, and heal even the most grievous of wounds.  It is no
+wonder that when one of these rare champions take the field, the faithful
+find the heart to stand against the Darkness.
+
+The path of the Holy Warrior is not for everyone, and only a select few are
+accepted by the Generals of the Knighthood, but once given approval by the
+Generals and the Gods of Good to represent as one of their Champions, the
+Paladin is rewarded in their faith with a celestial warhorse from Nadrik.
+The Paladin's ability to smite the wicked is greatly enhanced when mounted,
+and they are likewise gifted with spiritual power, granting their prayers
+equal potency to even the most skilled of magi.
+
+Who can be a Paladin?
+
+    CLASS:  Any Class
+     RACE:  Humans Only
+ALIGNMENT:  Lawful Good Only
+     CLAN:  KNIGHTHOOD Only
+
+
+SEE ALSO:  KNIGHTHOOD, RECLASS, SUPERVOUCHER

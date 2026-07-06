@@ -1,0 +1,17 @@
+'BEGUILING SPELLS'
+
+This insidious spell group is used to invade the minds of others.  It
+consists of various charming magics, well suited for turning your foes to
+your cause.  Generally, only mages and thieves have access to these spells.
+
+More information on individual spells may be found by typing help
+(spellname).  The beguiling spell group consists of the following spells:
+
+calm            if successful, stops all fighting in the room
+charm person    turns an enemy into a trusted friend
+sleep           puts a foe into enchanted slumber
+restore mind    causes a foe to regain its free will
+betray          causes a charmed enemy to betray thier master and join you
+
+This group is available to the following classes:
+    DRAGON MAGE THIEF TRANSMUTER

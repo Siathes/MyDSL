@@ -1,0 +1,14 @@
+mastery spear spin impale legsweep
+Mastery of the Spear
+
+None are more adept in combat with a spear than an armsman versed in the
+mastery of the spear. These armsmen can employ the following skills:
+
+spin           An instinctive method of keeping distance between the armsman
+               and their opponent while using spears.
+impale         This savage attack pierces the opponent and impales them
+               for massive damage.
+legsweep       A knock-down attack with a spear to damage and take the legs
+               out from under a foe.
+
+This group is available to the following classes: ARMSMAN

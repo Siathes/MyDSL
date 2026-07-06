@@ -1,0 +1,5 @@
+COUNT
+COUNT
+The count command displays the number of people logged onto the mud.  It
+also displays the highest number observed that reboot, if it is higher.
+It also displayes the highest ever number of players on.

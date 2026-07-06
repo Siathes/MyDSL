@@ -1,0 +1,39 @@
+CHANNELS
+CHANNELS
+
+Syntax: Channels
+
+This command results in a listing of all the channels of
+communication and the status of each (i.e. whether they are
+turned on or off).  The channels for public communication on DSL include:
+
+OOC - ooc (for Out Of Character discussions)
+Newbie - ooc (for newbie related questions)
+Ask/Answer - ooc (for game related questions)
+BB - ooc (any out of character discussions relating to the bloodbath)
+Oking - ooc (for out of character discussions in the kingdom)
+Oclan - ooc (for out of character discussions in the clan)
+Grats - ooc (to cheer on and congratulate others for levelling)
+Radio - ooc (for radio program related discussions)
+Kingdom - In Character (for kingdom only related discussions)
+Clan - In Character (for clan only related discussions)
+Gossip - In Character (strictly for IN CHARACTER discussions)
+Auction - In Character, the only allowable ooc is stats and item level
+Cgos - In Character discussions concerning clan or pkill matters
+Thaxanos - In Character (for discussions between the clan and kingdom)
+Shalonesti - In Character (for discussions between the clan and kingdom)
+Quest - Dependent on what is being run at the time, whether it is IC or OOC
+
+Spamming, or repeating things multiple times, on a public channel,
+using foul offensive or abusive language, making threats,
+or otherwise abusing channels may result in your use of them being revoked.
+
+* You may use color to advertise your shop and shop only on auction channel
+Be tasteful and not color obtrusive (ie using every color you can)
+If you abuse this, you will be penalized and you may not make it appear
+like another channel that exists.
+
+See also:  RULES GOSSIP CGOSSIP QUEST ASK ANSWER OOC
+
+Other, less public, forms of communication are also available.  For more help
+on those see:  YELL SHOUT TELL GTELL SAY DIRECT EMOTE PRAY

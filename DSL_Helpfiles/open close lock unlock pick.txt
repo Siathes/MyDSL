@@ -1,0 +1,23 @@
+OPEN CLOSE LOCK UNLOCK PICK
+{YOPEN CLOSE LOCK UNLOCK PICK{x
+
+{cSyntax:{x Open   <object|direction>
+{cSyntax:{x Close  <object|direction>
+{cSyntax:{x Lock   <object|direction>
+{cSyntax:{x Unlock <object|direction>
+{cSyntax:{x Pick   <object|direction>
+
+
+OPEN and CLOSE open and close an object or a door.  To use the syntax with
+direction, you must type out the full word for the direction.
+
+   {yExample:{x  Open West (do not use open w)
+
+LOCK and UNLOCK lock and unlock a closed object or door.  You must have
+the requisite key to LOCK or UNLOCK.
+
+PICK can open a lock without having the key.  In order to PICK successfully,
+you must practice the appropriate skill.
+
+
+{DSEE ALSO:{x  DIRECTIONS, MOVEMENT, NEWBIE

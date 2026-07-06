@@ -1,0 +1,18 @@
+game status
+GAME STATUS
+
+Syntax: Game or Game Status
+
+Typing Game or Game Status will show you all the current conditions that are
+affecting the game.  The different affects include various doubles that
+offer specific player boosts, the different viewers for game arenas, global
+conditions that span the entire realm of play and locks that prevent
+creation of new characters or limits mortal game play.
+
+Most of these settings are set by the Immortal or Admin staff though some
+can be player set.
+
+
+SEE ALSO:  ACFL, AGL, CWARS, DOUBLES, LEGIONVIEWER, NEWLOCK, WIZLOCK
+
+Created 08.04.2023

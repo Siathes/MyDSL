@@ -1,0 +1,15 @@
+HILT HILTTHRUST 'HILT THRUST'
+{YHILT THRUST{x
+
+{cSyntax:{x hiltthrust
+        hiltthrust target
+
+Hilt thrusting is a skill that allows warcry'd barbarians to shove the
+hilt of their weapon into a victim's stomach causing them to lose their
+breath for a bit as well as leaving a bit of pain on them.  Generally
+after someone has felt that blow they are very cautious for it afterwards.
+
+{yGroups containing this skill:{x Barbarian
+
+
+{DSEE ALSO:{x  BARBARIAN

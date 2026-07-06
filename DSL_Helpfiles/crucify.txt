@@ -1,0 +1,13 @@
+CRUCIFY
+CRUCIFY
+
+Syntax: c 'crucify' <target>
+
+Crucification is the dedication of your enemy's corpse to your god. The
+corpse must be emptied of all its worldly possessions before it can be
+crucified. In return for your offering, energy of your deity flows through the
+crucified corpse to enhance your weapons.
+
+Crucified corpses cannot currently be taken down by any normal means.
+
+See also - WORSHIP

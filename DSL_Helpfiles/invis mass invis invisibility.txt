@@ -1,0 +1,15 @@
+INVIS 'MASS INVIS' INVISIBILITY
+INVIS 'MASS INVIS' INVISIBILITY
+
+Syntax: cast 'invisibility' <character>
+        cast 'invisibility' <object>
+        cast 'mass invis'
+
+The invisibility spell makes the target character invisible.  Invisible
+characters will become visible when they attack.  It may also be cast on an
+object to render the object invisible.
+
+The mass invisibility spell makes all characters in the caster's group
+invisible, including the caster.
+
+See also - ILLUSION

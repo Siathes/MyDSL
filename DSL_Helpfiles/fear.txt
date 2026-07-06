@@ -1,0 +1,11 @@
+FEAR
+FEAR
+
+By putting this hex on an opponent, the witch or warlock instills an
+incredible and unreasoning panic in them.  One affected with the fear spell
+will find it very difficult to fight, as the slightest touch sends them
+running away, screaming with fright.
+
+NOTE: After the effects of fear wear off, one must reset the wimpy setting.
+
+See also - WITCHCRAFT

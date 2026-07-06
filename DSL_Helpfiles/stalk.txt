@@ -1,0 +1,3 @@
+stalk
+Stalk is a player vs player skill that allows the Nightshade to follow a
+victim, even when their no-follow flag is on.

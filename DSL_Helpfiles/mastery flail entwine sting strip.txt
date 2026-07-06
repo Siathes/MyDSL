@@ -1,0 +1,14 @@
+mastery flail entwine sting strip
+Mastery of the Flail
+
+None upon the battlefield wield a flail with such deadly acumen as an armsman.
+Their specialization in flails yields the following abilities:
+
+entwine         A difficult attack utilizing two flails that prevents the
+                victim from fleeing.
+sting           A vicious lashing attack upon an opponent, resulting in
+                an ensuing weakness.
+strip           Owing to innate skill with a flail, an armsman may have a
+                chance of disarming their opponent in combat.
+
+This group is available to the following classes: ARMSMAN

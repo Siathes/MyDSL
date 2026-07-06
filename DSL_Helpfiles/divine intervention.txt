@@ -1,0 +1,5 @@
+divine intervention
+Syntax: c 'divine intervention' <target>
+
+Divine intervention allows a priest to lower the magical ability of it's
+victim causing their casting to to be of less power than normal.

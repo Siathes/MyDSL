@@ -1,0 +1,9 @@
+intimidate
+INTIMIDATE
+
+Syntax: intimidate <target>
+
+A pirate can learn to stare down an opponent, reducing the opponent's ability
+to hit accurately.
+
+The bigger a pirate's reputation, the more intimidating he or she can be.

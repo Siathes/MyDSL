@@ -1,0 +1,13 @@
+FIX CARDS
+FIX CARDS
+
+A charlatan wouldn't be a charlatan without cards.  A day doesn't go by that
+a charlatan would turn down a card game.  So good are they at playing, that
+many have learned how to fix the cards themselves while playing, quite
+possibly forcing the deck so that they are able to draw exactly the card
+they are seeking.
+
+Syntax :  draw <card #> <suit>
+Example : draw queen hearts
+
+See also : Help Charlatan

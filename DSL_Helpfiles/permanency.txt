@@ -1,0 +1,11 @@
+PERMANENCY
+PERMANENCY
+
+Syntax: cast 'permanency' <object>
+
+This spell allows the transmuter to infuse his essence into the object,
+making any temporary affects permanent.  Unfortunately, the exertion is
+extremely draining to the caster, and requires a great deal of time for rest
+and regeneration before the spell may be cast again.
+
+See also - ALTERATION TRANSMUTER

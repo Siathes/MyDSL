@@ -1,0 +1,12 @@
+MURDER
+MURDER
+Syntax:  murder <player>
+         murder <mob>
+The MURDER command is used to begin combat against other players or mobiles.
+Once combat has been initiated, your character will automatically continue to
+fight using automatic skills which include offensive use of weapons and
+defenses such as parry, shield block and dodge.  Other means of attack may also
+be used, but will not happen automatically.
+You must join the pkill system and use the MURDER command to attack other
+players.
+See also:  PKILL, KILL, FLEE, HIT

@@ -1,0 +1,7 @@
+divine power
+syntax:  cast 'divine protection'
+By praying for divine protection, the Paladin asks for the favor of his
+deity in shielding him from harmful weapons and magics of his enemies.  The
+Paladin finds that his protection (AC) has been lowered to assist in the
+dodging of harmful attacks.  This spell can be used for the protection of
+the Paladin only.

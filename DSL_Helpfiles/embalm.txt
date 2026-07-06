@@ -1,0 +1,12 @@
+EMBALM
+EMBALM
+
+Syntax: cast embalm <object>
+
+Embalm is a low level spell, used to preserve pieces of flesh and organs
+that are harvested off of corpses for later use by necromancers.
+
+The embalm spell halts rot and decay on the item, ensuring that it will
+remain freshly harvested when the Necromancer is ready to put it to use.
+
+See also - NECROMANCY NECROMANCER

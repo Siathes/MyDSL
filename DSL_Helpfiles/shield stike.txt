@@ -1,0 +1,9 @@
+shield strike
+SHIELD STRIKE
+syntax:  shield strike <target>
+A trained paladin or barbarian can learn to use his shield as well as weapons
+effectively in combat.  By using his momentum and physical strength, the
+paladin or barbarian can learn to swing a shield with great force into the body
+of an opponent causing damage from the crush.  Shield strike may be used to
+initiate combat or used without indicating a target while in battle to attack
+the opponent engaged with.

@@ -1,0 +1,13 @@
+'ABANDON HOPE'
+ABANDON HOPE
+
+Syntax: cast 'abandon hope' target
+
+The hardest spell for a mentalist to cast and the most damaging in the long
+run, Abandon hope will cause their enemy to lose their hope within the
+battle field which can be detrimental to the enemy.
+
+Groups containing this spell: Mentalism
+
+
+SEE ALSO:  MENTALIST, MENTALISM

@@ -1,0 +1,30 @@
+keeps
+There are 3 keeps in which clanners may claim and own.
+
+Thorn Keep - located upon Shokono
+
+Clanners may enter the Keep and if they can kill the Lord, the keep will
+belong to them until taken by another clan.  Owning the Keep means that the
+clan gets portal access to Thorn Keep on Shokono for quick defending and a
+Thorn Aura spell from their clans healer that returns slight damage when
+hit.
+
+Misery Keep - located upon Tropica
+
+This Keep is similar to Thorn Keep, with the exception that the clan who
+holds this Keep will get to cast a Vale of Misery spell on an enemy clan,
+giving everyone in that clan an AC penalty.
+
+Syntax: Setmisery <clan>/none (only a Leader may set this)
+
+* WARNING: setting it to none will take away ownership of the Keep
+
+The Citadel Keep - located on Icewall
+
+This Keep is similar to the others with the exception that it gives the
+owning clan a Saves bonus.
+
+There is nothing illegal about killing the mobs within the Keeps once you
+own them, but it is to your own clan's detriment if; you do, as the guards
+are there to aide in its defense for you.  If you own the Keep and kill the
+Lord again, ownership will revert to being unowned.

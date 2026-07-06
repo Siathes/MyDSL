@@ -1,0 +1,7 @@
+Syntax: cast 'nurishment' <target>
+
+Nourishment allows a priest to relieve all hunger and thirst from a
+individual leaving them fully nourished.
+
+
+SEE ALSO: PRIEST, DIVINE BLESSING

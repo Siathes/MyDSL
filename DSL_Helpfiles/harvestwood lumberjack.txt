@@ -1,0 +1,30 @@
+HARVESTWOOD LUMBERJACK
+
+This is a 1st tier craft that requires the apprentice only to work with
+an appropriate saw and the lay of the land. You should find a shop with all
+of the saws in any major city. Any of the higher level saws will work for
+lower level wood but low level saws won't work for high level wood.  Also
+your saws get weak as you use them and only last so long.  The higher
+level saws wear out very quickly so it is best not to use them on low level
+wood.  Also, the higher level saws may not yield the same amount of wood as
+you search the thick forests.  Different types of trees are found in
+different forests all around Algoron.
+
+     Syntax: harvestwood <wood type>
+
+           Wood/Saw Types            Location
+
+  1 - 120  cedar/cedar saw         - Coven & Shi'ku Noria (Thieve's Forest)
+120 - 240  fir/fir saw             - Forbidden Forest & Blood Sea
+240 - 360  pine/pine saw           - Forbidden Forest & Yotanoko Trail
+360 - 480  elm/elm saw             - Great Forest & White Moon Isle
+480 - 600  oak/oak saw             - Yotanoko Trail & Shalonesti Forest
+600 - 720  maple/maple saw         - Rainforest & Shalonesti Forest
+720 - 840  hickory/hickory saw     - Shi'ku Noria & White Moon Isle
+840 - 960  stonewood/stonewood saw - Great Forest & Rainforest
+960 - 1000 ironwood/ironwood saw   - Shi'ku Noria & Rainforest
+1000+      dreadwood/dreadwood saw - Great Forest & White Moon Isle
+
+
+SEE ALSO:
+MILL MILLER CRAFT CRAFTING

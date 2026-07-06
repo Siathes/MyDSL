@@ -1,0 +1,19 @@
+'BENEDICTIONS SPELLS'
+
+Benedictions are priestly spells, used to bestow divine favor upon your
+allies.  They are often restricted to those of like alignment.  Only
+clerical and warrior types may use these spells.
+
+More information on individual spells may be found by typing help
+(spellname).  The benedictions spell group consists of the following spells:
+
+bless           bestows divine favor upon the target or target item
+calm            if successful, stops all fighting in the room
+frenzy          places the recipient into a berserker rage
+holy word       aids your allies while calling divine wrath upon your foes
+remove curse    removes malevolent magic from players and items
+know religion   finds one's spiritual deity
+
+This group is available to the following classes -
+    BATTLERAGER CLERIC CRUSADER DRAGON DRUID GIANT
+    PALADIN PRIEST SHADOWKNIGHT SHAMAN WARRIOR

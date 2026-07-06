@@ -1,0 +1,53 @@
+LEVELING
+
+How to Level -
+
+
+MOB's (aka Monsters/Creatures):
+
+You gain experience for killing monsters and NPCs, also referred to as
+MOB's.  To check the relative strength of the MOB, type consider <target>.
+
+If you think you can defeat the MOB, type kill <target> to engage  it.  If
+there are multiple targets in the room with the same name,  type kill #
+<target> instead.  So if you want to kill the third man listed in the room,
+you would type kill 3.man.
+
+You can cast a spell by typing cast <'spell'> <target>.  If you wanted to
+cast 'shocking grasp' on a fish, it would be cast 'shocking grasp' fish.
+
+Experience:
+
+The experience rewarded after defeating a MOB depends on three things: the
+relative level of the MOB compared to your own, the  alignment of the MOB
+compared to yours, and the amount of hours you have.
+
+If you kill MOB's of the same-alignment, you'll receive less experience.
+However, if you kill MOB's of the opposing alignment, you will receive more
+experience.  If you are neutral,  then you will receive average experience
+from all MOB's, as as would a good/evil-aligned character killing neutral
+MOBs.
+
+Hours:
+
+Hours affect your experience in multiples of your level.  If you are level
+10 and have 10 hours, you will receive the normal amount of experience.  If
+you are level 10 and have 20 hours, you will receive  double experience.
+Finally, at level 10 with 30 hours, you will  receive the maximum amount of
+experience.  If you have less than 10  hours at level 10, you will receive
+less experience.
+
+Don't try to rush your way through levels.  Spend some time exploring the
+areas and meeting people instead.
+
+Training:
+
+The first area you should try to train in is the MUD School's cage room
+
+From Althainia's recall, walk 2s, 6e, u.  Go all north, then  down, then
+type scan to check the surrounding rooms for MOB's.
+
+Type HELP NEWBIE to return to the table of contents.
+
+
+SEE ALSO:  DIRECTIONS, EQUIPMENT, EXPERIENCE, NEWBIE, RULES, TRAIN

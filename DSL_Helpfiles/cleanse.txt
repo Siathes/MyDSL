@@ -1,0 +1,15 @@
+CLEANSE
+CLEANSE
+
+Syntax: cleanse
+
+First learned by the barbarian tribes of the southern plains of Arkania, the
+ability to purge all magic from one�s own body quickly passed from one tribe
+to the next.  Soon barbarians throughout the entire realm of Algoron had
+knowledge of how to strip all magic from themselves through sheer force of
+will.  This ability is similar to the spell of cancellation, not
+distinguishing between harmful or benign spells though the mental strength
+it takes to apply this skill, if overburdened with concentration, the
+barbarian may find themselves too exhausted to even move.
+
+Groups containing this skill: BARBARIAN DEFAULT

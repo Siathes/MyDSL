@@ -1,0 +1,9 @@
+turn undead
+syntax: cast 'turn undead' <target>
+Staying in close proximity with the divine powers of Good grants the
+Paladin an advantage over the dark forces of Evil.  One such power involves
+the ability to turn creatures of the undead from their unholy existance.
+Praying to his deity and uttering the words of power granted from the
+divine, the Paladin can destroy those creatures who walk with the living and
+yet are not.
+see also:  PALADIN, KNIGHTHOOD

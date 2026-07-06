@@ -1,0 +1,13 @@
+SELF PROJECTION
+SELF PROJECTION
+
+Syntax: c 'self projection'
+
+Self projection is a spell of the illusion spell group that puts a slightly
+distorted image of yourself in front of you, at times causing an enemy to
+miss you.
+
+Many different casters can cast this spell, though illusionists are said to
+have better chances with it.
+
+See also - ILLUSION

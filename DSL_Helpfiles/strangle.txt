@@ -1,0 +1,8 @@
+STRANGLE
+STRANGLE
+Syntax:  strangle <target>
+Strangle is a skill which can only be learned by assassins.  An assassin
+must be sneaking in order to strangle successfully.  When successful,
+the target is rendered unconscious for the remainder of the tick in which
+they were strangled plus one additional tick.  If a strangle attempt is
+unsuccessful, it initiates combat with the victim.

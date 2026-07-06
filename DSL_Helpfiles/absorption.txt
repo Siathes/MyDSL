@@ -1,0 +1,13 @@
+ABSORPTION
+
+Syntax: cast 'absorption'
+
+When the battlemage casts this spell, a magical shield is placed around
+their body, reducing any and all kinds of damage intended for the caster.
+
+Groups containing this spell: Battlemagic
+
+
+SEE ALSO:  BATTLEMAGE, BATTLEMAGIC
+
+Updated 03.19.2021

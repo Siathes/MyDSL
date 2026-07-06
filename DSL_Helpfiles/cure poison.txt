@@ -1,0 +1,8 @@
+'CURE POISON'
+'CURE POISON'
+
+Syntax: cast 'cure poison' <character>
+
+This spell cures general poisons that have afficted a given character.
+
+See also - CURATIVE

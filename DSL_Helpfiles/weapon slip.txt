@@ -1,0 +1,4 @@
+weapon slip
+Weapon Slip is a 10 tick buff that gives the Nightshade a 20% chance to
+counter any parry.  However, the Nightshade also takes a 25% penalty to
+their own ability to parry.

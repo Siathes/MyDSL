@@ -1,0 +1,26 @@
+AGLBET
+AGLBET
+
+The AGL Betting system is for the AGL fans to place bets during the Algoron
+Gladiator League matches.  After the match is announced, the person running
+the match (typically Randorf or any of his drunken offspring) will announce
+who is favored.  After that, you may go to the betting window and place your
+bet.  You must be between 1 egg and 5, and based on the odds is how your
+money will be returned upon winning.
+
+Those of you with bad links, may not wish to bet.  If you drop link, your
+bet is lost.
+
+Syntax:  aglbet status
+
+This will show you who is fighting and the odds once it has been announced.
+
+Syntax: aglbet (contender) (amount in eggs)
+
+     Example #1 - aglbet Scorn 3 (You bet 3 eggs on Scorn)
+     Example #2 - aglbet 2 5 (You bet 5 eggs on Contender #2)
+
+The eggs MUST be in your account to place a bet.
+
+
+SEE ALSO:  ALGORON GLADIATOR LEAGUE (AGL)

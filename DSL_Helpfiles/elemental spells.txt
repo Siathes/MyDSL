@@ -1,0 +1,15 @@
+'ELEMENTAL SPELLS'
+
+The elemental spells allow the caster to control various aspects of the
+elements around them.  This spell group is limited though, to those classes
+of a more clerical nature.
+
+More information on individual spells may be found by typing help
+(spellname).  The elemental spell group consists of the following spells:
+
+blizzard            creates a blizzard, doing cold damage to everyone present
+firestorm           creates a firestorm, doing heat damage to everyone present
+summon elemental    summons an element of one of four forms to aid the caster
+
+This group is available to the following classes -
+    CLERIC DRUID PRIEST

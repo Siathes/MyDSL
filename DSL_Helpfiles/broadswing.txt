@@ -1,0 +1,11 @@
+broadswing
+BROADSWING
+
+Syntax: broadswing <target>
+
+The proud order of Shadowknights have in their repertoire the dangerous
+skill known as broadswinging.  A mounted knight may, when armed with a
+sword, attempt to charge into battle to deal a devastating blow with their
+blade.  However, this attack depends upon surprise, as a wary opponent may
+simply move out of the way or, worse yet, the knight may find himself in the
+dirt looking the fool.

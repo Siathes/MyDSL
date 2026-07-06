@@ -1,0 +1,16 @@
+BOUNTYPOINTS
+The amount of loots you get for killing a player depend on the amount of
+bountypoints you have.
+
+  1 -  49bp: 1 loot
+ 50 -  99bp: 2 loots
+100 - 199bp: 3 loots
+199 - 299bp: 4 loots
+299 - 399bp: 5 loots
+399 - 499bp: 6 loots
+499 - 599bp: 7 loots
+599 - 699bp: 8 loots
+699 - 799bp: 9 loots
+799 - 899bp: 10 loots
+899 - 999bp: 11 loots
+1000+      : full loot

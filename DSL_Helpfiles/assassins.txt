@@ -1,0 +1,19 @@
+ASSASSINS
+ASSASSINS
+
+The skills of assassins include a specialized backstab, with the ability to
+kill in a single hit.  Assassins are experts with poisons, and can concoct
+and deliver them with uncanny skill.  These rogues are also masters of
+working quietly and secretly, and can avoid the eyes of almost any creature.
+They can blend into the their surroundings with ease, and are experts at
+surviving.  Their profession makes them highly valued as mercenaries, and
+also necessitates that they maintain some distance from other people.
+
+Who can be an Assassin?
+
+CLASS:     THIEVES only
+RACE:      ALL EXCEPT BUGBEAR, KENDER
+ALIGNMENT: ANY
+CLAN:      ANY (EXCEPT KNIGHTHOOD), including non-clanned
+
+See also - RECLASS

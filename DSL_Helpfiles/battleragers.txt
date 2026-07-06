@@ -1,0 +1,14 @@
+Battleragers are a special reclass available only to dwarves who have learned
+their special art from clan Wargar.  They are very skilled warriors, with a
+preference for short handled weapons which allow them the control necessary
+for multiple attacks in battle.  Their major advantage is the ability to work
+themselves into an extreme state of rage during battle.  Perhaps it is the
+adrenaline from this enraged state that gives them the ability to do so much
+damage.
+Who can be a Battlerager?
+CLASS:     ANY
+RACE:      HILL and MOUNTAIN DWARVES
+ALIGNMENT: Any alignment
+CLAN:      WARGAR only
+see also: RECLASS BATTLERAGER WARGAR
+

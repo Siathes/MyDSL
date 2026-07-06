@@ -1,0 +1,47 @@
+CLASS
+
+A class is like a profession or career.  It is what you have trained to
+become in your younger years.  Your character is assumed to have some
+previous training before you start adventuring.
+
+The character classes currently available for starting characters are:
+
+ Warrior - The champion, swordsman, soldier and bar-room brawler.  The
+warrior lives and dies by his weapon.  They can be found on the front lines
+of the battle toe to toe with the enemy.  Strength and Constitution are the
+warrior's main attributes.
+
+For more help see: help warrior
+
+ Thief - Scouts, pick-pockets, and all around sneaks.  The thief lives by
+his quick wits and feet.  They can be found behind the enemy stabbing him in
+the back, or doing other sneaky things outside of combat.  Dexterity is the
+thief's main attribute.
+
+For more help see: help thief
+
+ Cleric - The protector and the healer.  The clerist lives by his faith to a
+god who grants the cleric magical spells.  While mostly defensive, the
+cleric can stand his ground on any battle field.  Wisdom is the clerist's
+main attribute.
+
+For more help see: help cleric
+
+ Mage - The master of magical energies.  The mage's power comes from arcane
+texts and years of study.  The mage, while weak in hand to hand combat, is
+able to call upon powerful magic to destroy or charm his foes.  Intelligence
+is the main attribute for mages.
+
+For more help see: help mage
+
+ Bard - Entertainers, singers, poets, and known bar room drunks.  Bards are
+a class of musicians that know some of the fighting skills, mostly the ones
+they would pick up in bar fights, and then they have their repertoire of
+songs which produce varying affects.
+
+For more help see: help bard
+
+After adventuring for a while, a character may specialize or broaden the
+scope of their skills.
+
+For more information on this option see: help reclass.

@@ -1,0 +1,14 @@
+lost
+If you lost your password to a character, there is only ONE way to get it
+back.
+
+First, you MUST have set your email address in the oocset command while
+logged in as that player.
+
+Second, you must email Scorn from that email address requesting the password
+be cut and paste from another character as yours.
+
+If your email addresses do not match, you will most likely not get your
+password fixed.
+
+You can email Scorn at scorn@dsl-mud.org.

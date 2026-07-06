@@ -1,0 +1,8 @@
+ROOT
+
+Syntax:  cast root <target>
+
+Similar to entangle, the Eldritch calls upon the forest to root their
+intended victim to the ground, leaving them little opportunity to flee.
+
+Groups containing this spell: ELDRITCH

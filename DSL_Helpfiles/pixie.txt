@@ -1,0 +1,12 @@
+pixie
+Pixies stand at only two feet tall and have fluttering wings.  These
+creatures are usually spotted flying rather than standing.  They have odd
+bright colored eyes and hair and tend to cause as much mischief as the
+Kender do.  Pixies generate a golden dust known as "pixie dust" which has
+very strong natural magical properties. It is said that getting pixie
+dust on you can have very weird and random effects.
+
+Pixies are native to the continent of Tropica and have been driven out of
+their wooden homelands by the forces of Chaos.
+
+Pixies cannot be Warriors, Bards or Clerics, Assassins, Bandits or Witches/Warlock.

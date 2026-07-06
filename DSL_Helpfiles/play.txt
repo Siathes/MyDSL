@@ -1,0 +1,15 @@
+PLAY
+PLAY
+Syntax:  play list
+         play <song>
+This is a command that can only be used with jukeboxes.  You may use the
+first form of the syntax to list the playable songs for a jukebox when you
+are in the same room with one.  Use the second form of the syntax with enough
+of the name of a song to be unique from the other playable songs to have the
+jukebox start "playing" the song for you.  The lyrics of the song will only
+be heard in the room that the jukebox is in.  The song will not be played over
+the music channel.
+So far, no attempt has been made to use Mud Sound Protocol with the jukeboxes
+on DSL, but that is a possibility for the future.  For help with sound, see
+SOUND.  For help with the music channel, see MUSIC.  Note that both SOUND and
+MUSIC are totally unrelated to PLAY at this time (March 1999)

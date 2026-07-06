@@ -1,0 +1,10 @@
+CAMP CAMPING
+Syntax:  camp
+Camping allows a ranger to make a comfortable place for themselves when in an
+appropriate place for camping.  Everyone in a ranger camp benefits from the
+comfortable setting and both mental and physical healing seem to occur at
+faster than normal rates.
+The camp skill is available only to rangers.  When used, it forces the ranger
+into a resting position, and the campsite loses its effectiveness when the
+ranger breaks camp by standing up.
+See also:  RANGER

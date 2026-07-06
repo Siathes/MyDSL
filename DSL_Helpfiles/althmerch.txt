@@ -1,0 +1,26 @@
+ALTHMERCH 'ALTHAINIAN MERCHANT DISTRICT'
+THE ALTHAINIAN MERCHANT DISTRICT
+
+Directions from Market Square:  3w,7s,1e
+
+Direction from the Althainian Port: 1w,2s,36w,7s,1e
+
+
+       #1    #3    #5    #7    #9
+I            S'a Vinitta Street      E
+m      #2    #4    #6    #8   #10    m
+p                                    p
+e      #1    #3    #5    #7    #9    r
+r            Regent Lane             e
+i      #2    #4    #6    #8   #10    s
+a                                    s
+l      #1    #3    #5    #7    #9
+             Knights Road            B
+W      #2    #4    #6    #8   #10    l
+a                                    v
+y      #1    #3    #5    #7    #9    d
+             Gareth Aveue
+       #2    #4    #6    #8   #10
+
+
+SEE ALSO:  ALTHAINIA, MERCHANT

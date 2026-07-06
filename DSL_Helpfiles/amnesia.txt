@@ -1,0 +1,21 @@
+amnesia
+AMNESIA
+
+Perhaps the most powerful and useful spell within the Mentalist arsenal,
+Amnesia will allow the caster of this powerful spell cause his or her's
+victim to completely forget how to cast a specific spell or perform a
+specific skill.
+
+This spell requires the the specific skill or spell to be added to the cast
+command.
+
+Example :
+
+ cast 'amnesia' bigbadbluedragon kick
+-- will cause the big bad blue dragon to forget how to use the kick skill
+
+cast 'amnesia' bigbadbluedragon 'blindness' <--- quotations are required
+-- will cause the big bad blue dragon to forget how to cast the blindness spell
+
+This spell is NOT stackable and CANNOT be used on skills that are automatic
+such as parry and dodge.

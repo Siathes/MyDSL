@@ -1,0 +1,21 @@
+darkmerch
+The Darkonin Merchant District
+
+Directions from recall:  9w,1n
+Direction from the Icewall Port: 1ne,1e,1ne,2n,7w,1u,3e,1u,2w,1u,6e,1n
+
+       #1    #3    #5    #7    #9    D
+               Death Row             o
+G      #2    #4    #6    #8   #10    l
+r                                    u
+u      #1    #3    #5    #7    #9    n
+n              False Path            d
+t      #2    #4    #6    #8   #10    '
+z                                    i
+       #1    #3    #5    #7    #9    r
+P               War Path
+a      #2    #4    #6    #8   #10    A
+t                                    l
+h      #1    #3    #5    #7    #9    l
+               Rotting Way           e
+       #2    #4    #6    #8   #10    y

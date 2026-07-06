@@ -1,0 +1,5 @@
+DIP
+Syntax:  dip <pen/quill> <ink-container>
+This command allows you to fill a pen or quill with ink so
+that you can write in books and on parchments.
+SEE ALSO: write, tear, read

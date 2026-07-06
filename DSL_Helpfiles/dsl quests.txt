@@ -1,0 +1,98 @@
+dsl quests
+DSL QUESTS
+
+There are a lot of different types of quests within DSL that players can
+participate in or be chosen to participate in.  Some quests are built into
+the game as ways to navigate the game and different areas or to gain gold
+and items, other quests are designed to be fun, quick interactions that
+create an assortment of give and take scenarios between the Imm staff and
+the players to include scavenger hunts, humorous storylines and 'kill the
+beast' conquests while other quests are designed to take you on an epic
+journey, either to help move the main storyline forward, as kingdom or clan
+specific quests, as religion promotional quests or on an individual basis
+for prestige.
+
+Built in Quests -
+
+These are quests that are built into the coding of DSL and include Quest
+Master quests of either retrieving or hunting and other 'gather' quests like
+the one that starts at Skarr.
+
+Short-Term Player/Imm Interactive Quests -
+
+These are quests that typically hold little to no consequence to involved
+players or to the overarching storyline.  These quests are typically short
+term in nature, averaging between an hour to many hours in length.  These
+can include quest channel quests, holiday events, scavenger hunts, different
+side storyline plots for atmosphere from intrigue to silly fun and 'kill 'em
+all!  ' invasive creatures that sometimes just need to be pushed back to
+where they came from!
+
+Long-Term Player/Imm Interactive Quests -
+
+While some of the quest types listed above can span for longer durations of
+time, these types of quests are epic in design and can carry a risk/reward
+factor.  Sometimes that risk/reward might be your player's life.  These
+quests ALL carry the potential for perma death outcomes and every action is
+weighed and measured to assist in determining the overall outcome.
+
+Each of these quest types require thought, research, question asking and
+common sense before you act.  You actions WILL carry consequences.
+Sometimes good.  Sometimes bad.  Sometimes in the moment and sometimes in
+the future or over time.  Some players will work toward their own end.  Some
+will work toward the group.  ALL interactions are considered and depending
+on the type of quest or design, there may be individual or group
+consequences.  It is recommended that you think before you act and that you
+look before you leap.  These are designed to challenge you as a player, to
+test your characters resolve, test your knowledge of the game and to see how
+you interact within the quest itself.
+
+They will not always be quests where you are explicitly told what to do.
+More often then not you will need to decipher different parts of the quest
+to move on to the next step.  Again, these quests are designed to TEST you.
+
+Main Storyline Quests:
+
+These quests have the ability to change the landscape and history of DSL and
+the land of Algoron.  These quests typically involve the Gods and Goddesses
+and drive the direction of the overall roleplay in DSL.
+
+Kingdom/Clan Quests:
+
+These quests are on a smaller scale and typically will include one or two
+kingdoms and/or clans to stir the pbase into action.  These quests can
+include skirmishes with surrounding areas, invasions, murder mystery! ,
+Wandering gypsies and so much more!  These can have consequences ranging
+from perma death and maiming to demolished sections of a kingdom or clan to
+removal of key mobs and items but can also include some fun rewards from
+area additional, cache of treasure and much more!
+
+Priest Promotions:
+
+Early on priest ranks are easier to achieve and typically do not involve a
+quest or would be a short-termed quest interaction.  The higher up in rank
+you go, the harder it is to achieve rank and the latter ones are built
+around pass/fail quests.  Priests can be demoted in rank or experience
+lasting consequences if their philosophies do not align with the God or
+Goddess they represent or if they fail too many promotional quests.
+Promotions are NOT a guarantee and each one needs to be earned.  See help
+priests for more information.
+
+Prestige Quests:
+
+These are individual quests designed to acknowledge someone with worldwide
+prestige for their roleplay and their holistic impact to Algoron.  Players
+can be nominated by any player or Imm based on their individual merit, their
+impact on a local and worldwide stage and prestige hours.  They are also
+players who have dedicated their time to a single organization of which they
+are still a resident of and in good standing.  Having 1000 or more
+prestige hours alone is not enough to earn you a quest and each name is
+carefully considered before approval.  These are pass/fail quests and are
+designed to challenge your character as an individual.  Loner, renegades
+or any type of remort, unless an alterform, do not qualify.
+
+
+SEE ALSO:  QUEST, PQUEST, QUESTTYPE, QUESTINFO, QUESTOPTIONS, ROLEPLAY,
+           PRIEST, PRESTIGE
+
+Updated 04.10.2022

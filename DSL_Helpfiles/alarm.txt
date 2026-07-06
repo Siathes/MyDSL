@@ -1,0 +1,13 @@
+'ALARM'
+ALARM
+
+Syntax: cast 'alarm'
+
+Alarm is an Invoker spell that can be used to detect when someone enters a
+room.  Alarm will detect the first person to enter the room, regardless of
+who that person is.
+
+Groups containing this spell: Invocation
+
+
+SEE ALSO:  INVOCATION, INVOKER

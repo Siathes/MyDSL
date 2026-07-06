@@ -1,0 +1,18 @@
+IMPOSTER
+{YIMPOSTER{x
+
+{cSyntax:{x cast 'imposter' <player name/mob name>
+
+Imposter is an Illusionist spell that allows the user to take the form of
+another player.  Use 'revert' to revert to your original self.  Caution is
+advised however, because the transition from a morphed form to your original
+form has been known to be tough to do.
+
+{rNOTE:{x It is illegal for clanners to imposter kingdomers to get around keep
+code rules.  Kingdomers cannot enter keeps so guard code does not recognize
+them and would be an example of bypassing code.
+
+
+{DSEE ALSO:{x  ILLUSIONIST
+
+Updated 12.11.2023

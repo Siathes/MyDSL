@@ -1,0 +1,10 @@
+RESTORE ARMOR
+RESTORE ARMOR
+
+Syntax: cast 'restore armor' <object>
+
+The restore armor spell allows the enchantor to return a piece of armor to
+its orginal state.  The only requirement to restore an item is that its
+current state has had an enchantment placed on it.  It has been rumoured
+that attempts to restore a piece of armor may not have the desired effects,
+so enchantors may wish to be wary.

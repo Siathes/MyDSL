@@ -1,0 +1,9 @@
+retainer
+RETAINER
+
+Syntax: retainer <target>
+
+For centuries the order of the Samurai were revered as the best bodyguards
+of the Royal Families of Shokono.  The training for this level of protection
+is evident in the retainer ability, allowing the Samurai to passively rescue
+the retained target each combat round.

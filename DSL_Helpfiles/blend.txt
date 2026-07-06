@@ -1,0 +1,5 @@
+blend
+The blend spell will blend you into the background of any room or area.
+As long as you don't move, you will remain perfectly undetectable.
+
+class: ILLUSIONIST

@@ -1,0 +1,21 @@
+ganthmerch
+The Ganth Merchant District
+
+Directions from recall:  1w,2n,2e,2s,2e,1n
+Direction from the Icewall Port: 5n,1w,1n
+
+       #1    #3    #5    #7    #9
+D              Circus Lane           R
+u      #2    #4    #6    #8   #10    a
+'                                    i
+B      #1    #3    #5    #7    #9    j
+r              Thaxx Lane            '
+o      #2    #4    #6    #8   #10    W
+t                                    i
+h      #1    #3    #5    #7    #9
+             Gloran'di Loop          A
+P      #2    #4    #6    #8   #10    l
+a                                    l
+t      #1    #3    #5    #7    #9    e
+h             Imperial Way           y
+       #2    #4    #6    #8   #10

@@ -1,0 +1,15 @@
+AIKIDO
+AIKIDO
+
+Syntax: Passive Skill
+
+The samurai is trained in martial arts, allowing them to use their opponents
+momentum to their advantage.  When an enemy strikes at the samurai, they
+use their arts to avoid the strike and turn that momentum into an extra
+attack during the next round of combat.
+
+It is rumored that proficiency with this skill improves as the Samurai rises
+in rank.
+
+
+SEE ALSO: SAMURAI

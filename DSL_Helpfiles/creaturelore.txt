@@ -1,0 +1,10 @@
+creaturelore
+CREATURELORE
+
+Syntax: Creaturelore <target>
+
+Creature is the ability to show information about a creature that is to
+be targeted.  Such information can include the creatures name, race,
+alignment, wealth, physical and magical health, level of training, weapon
+damage type, immunities and resistances, vulnerabilities and magical
+affects.

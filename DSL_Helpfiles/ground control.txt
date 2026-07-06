@@ -1,0 +1,5 @@
+'GROUND CONTROL'
+Syntax: gcon <target>
+Ground control is the act of throwing your opponent to the ground,
+temporarily stunning them.  Beware, it is possible to have your throw used
+against you.

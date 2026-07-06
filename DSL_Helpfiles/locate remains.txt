@@ -1,0 +1,15 @@
+'LOCATE REMAINS'
+LOCATE REMAINS
+
+Syntax: cast 'locate remains' <name>
+
+This low level Necromancy spell is surprisingly useful.  A successful
+casting of 'locate remains' will indicate where the corpse of a recently
+deceased individual can be found.  Whether this is on another creature, or
+merely laying on the ground, the 'locate remains' spell pinpoints the
+location of the victim's corpse.
+
+This spell, used in conjunction with 'embalm' can provide the Necromancer
+with a fresh, consistent supply of material for his Art.
+
+See also - NECROMANCY NECROMANCER

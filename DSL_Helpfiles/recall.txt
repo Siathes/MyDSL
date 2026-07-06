@@ -1,0 +1,12 @@
+RECALL /
+RECALL /
+Syntax: RECALL
+RECALL prays to the Gods for miraculous transportation from where you are
+back to the Temple of your home kingdom.  {c'/'{x is a synonym for RECALL.
+If you RECALL during combat, you will lose experience (more than for fleeing),
+and you will have a chance of failing (again, more than for fleeing).  This
+chance is based on your recall skill, although a 100% recall does not
+insure success.
+RECALL costs half of your movement points.
+RECALL doesn't work in certain god-forsaken rooms.  Characters afflicted by a
+curse may not recall at all.

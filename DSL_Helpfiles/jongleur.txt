@@ -1,0 +1,9 @@
+jongleur
+Jongleurs are loosely based upon the French entertainers of the same
+name.  They are masters at manipulating small items with their hands.  They
+can catch and juggle almost anything.  On top of this, they are skilled
+acrobats, able to traverse tightropes, turn flips, polevault, and perform a
+number of acrobatic feats.  Their agility provides them with great defensive
+resources.
+
+Any Bard class may reclass to a Jongleur.

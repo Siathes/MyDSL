@@ -1,0 +1,39 @@
+SHARPWEAPON BLUNTWEAPON ARMORCRAFT
+
+These third tier crafts require the use of all three types of refined
+materials to create the finished product.  Depending on the item you are
+trying to produce, it may take one board, bar and square of a particular
+material or it many require several of each.  The more advanced you
+become, the better your skill in working with the materials which will
+result in fewer failed attempts and ruined supplies. For those adept in
+their craft, it is rumored that on the rare occasion they can make
+materials come together in such a way as to create the perfect item.
+
+     Syntax: craft <skill> <item>
+
+Weaponsmiths ( Sharp ) have the ability to craft sharp weaponry such
+as swords, daggers, axes, spears and polearms.
+
+     Example: craft sharpweapon 'long bronze trinket'
+
+Weaponsmiths ( Blunt ) have the ability to craft blunt weaponry such
+as maces, staffs, flails, whips and other exotic type weapons.
+
+     Example: craft bluntweapon 'round bronze trinket'
+
+Armorcrafters have the ability to create some of the armor that can be
+worn though speciallizes in metal working to included studded leather,
+chainmail and platemail pieces.
+
+     Example: craft armorcraft 'bronze studs trinket'
+
+If you are not skilled enough to create a certain item, you should get
+a message that informs you of such as well as the needed skill level.
+
+     Example:
+              craft sharpweapon 'bronze dirk'
+              You are not skilled enough to craft that.  Requires 22.
+
+
+SEE ALSO:
+CRAFT CRAFTING CRAFTLIST TAILOR SPELLCRAFTING

@@ -1,0 +1,20 @@
+merchant district
+Merchant districts are neighborhoods located inside of cities which allow
+for players to purchase and run their own shops.  For more information on
+player run shops, please type help shop.
+
+Merchant Districts cost each kingdom 200 eggs to set up. They can buy as
+many as they require. There are 40 shops per merchant district.
+
+The following cities currently have merchant districts:
+Althainia (help althmerch for directions)
+Verminasia (help vermmerch for directions)
+Fort Ironclad (help fortmerch for directions)
+Nordmaar (help nordmerch for directions)
+Arkane (help arkmerch for directions)
+Darkonin (help darkmerch for directions)
+Ganth (help ganthmerch for directions)
+Shalonesti (help shalmerch for directions)
+New Thalos (help newmerch for directions)
+Thaxanos (help thaxmerch for directions)
+Abaddon (help abadmerch for directions)

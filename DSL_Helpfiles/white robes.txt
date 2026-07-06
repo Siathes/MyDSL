@@ -1,0 +1,13 @@
+'WHITE ROBES'
+[White Robes]
+
+The White Robes is a clan of mages that practice the art of magic whilst
+trying to retain a pure heart, untainted by the ever-present touch of evil.
+The mages of the White reside in the White Tower of Kantilles.
+
+These magi must rely on their magical aptitude in order to defend themselves
+from their enemies.  They also rely on such to further the teaching of magic
+within the realm, as one of the towers that make up the entirety that is the
+Conclave.
+
+See also - CONCLAVE

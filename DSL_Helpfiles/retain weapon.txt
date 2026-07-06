@@ -1,0 +1,7 @@
+retain weapon
+With unequaled skill in their chosen weapons swashbucklers become almost
+one with them after enough time and training.  Just because the weapon
+leaves their hand does not necessarily mean it is lost for the fight.  Lithe
+in their movement they are able to reposition themselves when disarmed so
+that they catch their weapon and continue the fight without it ever hitting
+the ground.

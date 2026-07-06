@@ -1,0 +1,16 @@
+charlatan
+Charlatans are generally known to be tricksters, though finding one who
+will admit to it is nearly impossible!  They are bardic trainees who have
+chosen to specialize in slight-of-hand and parlour tricks.  A charlatan
+thrives on city life, but finds him or herself often having to make a quick
+exit when a trick goes bad.  However, any Charlatan worth his "all-purpose"
+potion always has an escape route.
+Like bards, Charlatans have special magic in their songs though they prefer
+to find grander schemes than singing for their food in bars.  A Charlatan's
+fighting skills are also bar room brawl-type abilities.
+
+Who can be a Charlatan?
+CLASS:     Bard Only
+RACE:      Any that can be a Bard
+ALIGNMENT: Any
+Clan:      Any except Knighthood

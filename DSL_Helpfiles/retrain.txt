@@ -1,0 +1,23 @@
+RETRAIN
+RETRAIN
+
+syntax:  retrain <character password> <base class to retrain to>
+
+You may choose to retrain at any time, whether you are currently reclassed
+or not.  You will keep your race, sex, alignment, and merit or flaw if you
+have one.  You will also keep your description and background, as well as
+any title you have bestowed.  You will keep all questing points, eggs and
+other monies as well.  You will also keep all hours you currently have
+(thus, if you have 1000 hours when you retrain, you will still have 1000
+hours after you've retrained).
+
+The purpose of retraining is so that you may choose a new class.  When you
+retrain, you will be placed into creation mode, just as if you are creating
+a new character.  You will reroll your stats, and begin again at level 1.
+Rules on equipment do apply, so if you retrain, you will lose any equipment
+that you carry that is more than two levels above level 1.
+
+Remorts may not retrain.
+
+If you wish to retrain, seek out the guild master of your current class and
+type the required syntax to retrain.

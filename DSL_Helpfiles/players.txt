@@ -1,0 +1,22 @@
+  -----------------------------------------------------------------------
+
+        Searching For Players
+
+    There are several commands to use to search other players online.
+      These are who, whoc, whok, whois, and whoisic.
+    Who, WhoC, and WhoK all have similar criteria searches. Typing who
+      5 25 would search all players online between the levels of 5
+      and 25. whoc 5 25 would do the same, but it would only search
+      clanners and would display in an organized format that includes
+      their rank. Possible criterias for these commands are to search by
+      race, class, level, kingdom, and clan.
+    WhoIs and WhoIsIC commands don't have search criterias. Use these
+      commands to check on a certain player. Typing whois Bobby
+      would display his general information like level, race, class,
+      association, nobility, and title. Using whoisic Bobby would
+      display his detailed information, including his background and
+      description.
+
+        Type HELP NEWBIE to return to the table of contents.
+
+  -----------------------------------------------------------------------

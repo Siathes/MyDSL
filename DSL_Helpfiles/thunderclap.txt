@@ -1,0 +1,5 @@
+thunderclap
+Syntax: c thunderclap
+By communing with the storm spirits, an experienced shaman can cause
+a devastastingly loud thunderclap which damages all within a room with
+an earsplitting boom.

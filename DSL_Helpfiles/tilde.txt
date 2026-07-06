@@ -1,0 +1,9 @@
+TILDE
+TILDE
+
+With the tilde(~) character you send a command to DSL to disregard all
+earlier commands.  This allows you to send new commands without having to
+wait for the the old ones already sent to be executed.
+
+Observe that if you are using zMUD then you have to send two tildes (~~) for
+one to get through to DSL.

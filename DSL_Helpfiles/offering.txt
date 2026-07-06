@@ -1,0 +1,12 @@
+OFFERING
+
+Syntax:  Offering <target>
+
+Barbarians with their wilder demeanor and savage outlook, tend to look to
+their pray for sacrificial oblations.  The corpses of animals can be placed
+as an offering in a bone and hide shrine and get blessed by their God.
+
+Groups containing this skill:  Barbarian
+
+
+SEE ALSO:  BARBARIAN

@@ -1,0 +1,15 @@
+'BLIZZRA'
+'BLIZZRA'
+
+Syntax: cast 'blizzra' <direction> <target>
+        cast 'blizzra' <target>
+
+Provided as a counterpart to the fireball, the blizzra spell offers much the
+same potential for massive damage to an opponent.  And, just as the fireball
+finds particular effectiveness against those vulnerable to flame, so too
+does the blizzra to those vulnerable to cold.
+
+As well, it is possible to cast across distances, also allowing the caster
+to direct the damage over ranges against opponents.
+
+See also - COMBAT

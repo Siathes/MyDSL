@@ -1,0 +1,8 @@
+'DRACONIAN SPELLS'
+The Draconian spell group deals with the magic of dragons -- in this case,
+bringing forth the devastating power of their breath weapons upon your foes.
+acid breath      uses the black dragon's attack upon an enemy
+fire breath      calls forth the flames of a red dragon
+frost breath     drains the life from a foe with the power a white dragon
+gas breath       suffocates your enemies with poison gas
+lightning breath summons the electrical fury of a blue dragon

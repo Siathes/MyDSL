@@ -1,0 +1,38 @@
+CLAN
+CLAN
+
+A Clan is a collection of players, united to follow and further a common
+cause.  Each clan has rules and regulations.  To find out more about clans
+and their 'beliefs' type "help <clan name>".  Only Clan members can kill or
+steal from other players.  To join a Clan you must be level 5 or above and
+level 25 or below.  Speak to the Clan Leader about joining.  If you go Loner
+before level 25 you may join a Clan later.
+
+Joining a Clan is a dangerous step.  Many adventurers live to kill and
+torture others and chances are that your paths will cross.  Killing fellow
+clan members is legal, but clan leader may remove you from the clan if you
+do it to often or without reason.  Using nonclanners as gate posts or as
+scouts is also highly illegal.
+
+Existing Clans may buy special rooms and mobiles by acquiring diamonds as
+payment.  To see room prices, type "help prices".  New Clans may be formed
+by petitioning the immortals.  Please remember that their word is final on
+all matters not covered by this help.
+
+[ Knighthood ]                     [ Shadow ]
+[ Justice ]                        [ Bloodlust ]
+[ Shalonesti ]                     [ Wargar ]
+[ Conclave ]                       [ Slayers ]
+[ Chaos ]
+
+Note: [ White Robes ], [ Black Robes ], and [ Red Robes ] are all part of
+the [ Conclave ].
+
+Clan Specific Commands:
+
+    CINFO - Shows Clan leader, Imm watcher, statistics, wars and voucher information
+   TREATY - Syntax: treaty char
+      WAR - Declare a new war - Leader Only
+REMOVEWAR - Remove an existing war - Leader Only
+
+Type HELP CLAN NAME for more specific information about that clan.

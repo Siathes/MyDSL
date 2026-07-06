@@ -1,0 +1,36 @@
+BRANDISH QUAFF RECITE ZAP WAND STAFF SCROLL POTION
+BRANDISH QUAFF RECITE ZAP WAND STAFF SCROLL POTION
+
+These commands may require an item skill to be successful, see the help
+entries on the skills scrolls, staves, and wands for more information.
+
+Syntax: brandish <target>
+Syntax: quaff <potion>
+Syntax: recite <scroll><target>
+Syntax: zap <target>
+Syntax: zap
+
+Brandish: Brandishes a magical staff.  Staff or wand must be held before
+using.
+
+Quaff: Quaffs a magical potion (as opposed to DRINK, which drinks mundane
+liquids).
+
+Recite: Recites a magical scroll.  The <target> is optional, depending on
+the nature of the scroll.
+
+Zap: Zaps a magical wand at a target.  If the target is not specified, and
+you are fighting someone, then that character is used for the target.
+
+All of these commands will use up their objects.  Potions and scrolls have a
+single charge.  Wands and staves may have multiple charges.  When all
+charges have been used, the item will be consumed.
+
+These items may require an adeptness to the skill in order to be successful.
+
+
+NOTE: Using any consumable - wand, scroll, etc.  That can disarm, charm,
+enchant weapons or armor, etc.  And then using it to purposely destroy
+another players weapon/gear, in or out of their corpse, is illegal.
+
+SEE ALSO:  CHARM, ENCHANT, IMPROVE, RULES, SKILLS

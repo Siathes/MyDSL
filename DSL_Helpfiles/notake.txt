@@ -1,0 +1,5 @@
+notake
+Syntax: notake
+
+This command toggles whether or not you will accept people giving you
+things.

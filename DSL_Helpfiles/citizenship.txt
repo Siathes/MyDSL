@@ -1,0 +1,10 @@
+CITIZENSHIP
+CITIZENSHIP
+If you would like to become a citizen of one of the kingdoms, seek
+out anyone from that kingdom who has a royalty flag (KING, QUEEN, PRINCE,
+PRINCESS) and speak with them.  These people have functions much like
+those of clan recruiters and can make requests that the immortals flag
+you as a citizen of their kingdom.
+Citizenship currently is used to add to the roleplay on DSL and does not
+have any game effects yet.
+See also:  KINGDOMS

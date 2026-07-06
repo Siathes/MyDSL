@@ -1,0 +1,8 @@
+'HEART BLIGHT' HEARTBLIGHT
+HEARTBLIGHT 'HEART BLIGHT'
+Syntax:  cast 'heart blight' <target>
+         cast 'heart blight'
+This spell causes incredible damage, as the heart of the victim becomes
+diseased by the power of the caster.  Power such as this could only be
+granted by the gods; therefore, this spell is only available to clerics.
+See also:  CLERICS

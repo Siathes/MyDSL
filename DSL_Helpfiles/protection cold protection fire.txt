@@ -1,0 +1,11 @@
+'PROTECTION COLD' 'PROTECTION FIRE'
+'PROTECTION COLD' 'PROTECTION FIRE'
+
+Syntax: cast 'protection cold'
+        cast 'protection fire'
+
+These protection spells call forth powerful defensive magics to shield the
+wielder from attacks of either cold or flame respectively.  The protection
+spells reduce the damage taken from said attacks.
+
+See also - NATURE

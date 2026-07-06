@@ -1,0 +1,32 @@
+GROUPS INFO PREMISE
+The DSL skill system allows you to fully customize your new character, making
+him or her skilled in the skills you choose.  But beware, the skills you pick
+at character creation are the only skills you will ever learn.  Skills are
+paid for with creation points, and the more creation points you have, the
+harder it is to gain a level.  Furthermore, higher-cost skills are harder to
+practice.
+Skill groups are like package deals for characters -- sets of skills or spells
+that are closely related, and hence can be learned as a unit.  There is a
+default skill group for each class, which can be selected for a balanced
+selection of skills at a somewhat reduced cost.
+The experience breakdown (for humans of any class) is as follows:
+            points   exp/level     points   exp/level
+              40        1000          90       6000
+              50        1500         100       8000
+              60        2000         110      12000
+              70        3000         120      16000
+              80        4000         130      24000
+The table continues in a similar manner for higher point totals.
+Each race/class combination has a multiplier by which these values are
+multiplied to determine the characters exp/level.  The multipliers range
+from 1 to 2.5.  To find what yours is, make a character of the desired
+race/class combination and find out what the exp/level is when the creation
+points are at some multiple of 10 that's over 40.  Divide that exp/level by
+the exp/level for the same number of creation points shown in the table and
+you'll know what the multiplier is.  This should aid in your determination
+of the number of exp/level your character will be, even after adding 3 cp for
+a reclass.  It should be noted that for some race/class combinations, the
+race/reclass combination will actually have a lower multiplier.
+Use INFO to find out what is included in spell groups and defaults for races
+and classes.  Example:  info ranger. . . lists all the default spellgroups and
+skills for the ranger reclass.

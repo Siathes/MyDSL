@@ -1,0 +1,10 @@
+NOLOOT
+NOLOOT
+Syntax:  noloot
+This command toggles whether or not you will allow other characters to loot
+items from your corpse.  It can be helpful to allow your corpse to be looted
+if someone is helping to retrieve your gear, but if you are able to get back
+to your corpse yourself, it's best not to allow others to take things from
+your corpse so you can retrieve your own equipment without fear of it being
+stolen by the time you get back to your corpse.
+See also:  AUTO

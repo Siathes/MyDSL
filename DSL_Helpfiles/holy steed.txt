@@ -1,0 +1,13 @@
+HOLY STEED 'HOLY STEED'
+HOLY STEED
+
+Crusaders are granted a special blessing by the gods that allows them to
+call upon a steed of holy faith as their mount.  The steeds themselves are
+noticeably different than normal mounts, as they should be, because of the
+blessings which provided them.
+
+Steeds of the followers of good faiths tend to be white.
+Those of the neutral faiths tend to be grey.
+And those of the darker worship tend to be black.
+
+See also - WORSHIP

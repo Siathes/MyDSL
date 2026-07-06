@@ -1,0 +1,5 @@
+
+catchup
+Syntax:  catchup
+
+This command will catchup all of your note spools.

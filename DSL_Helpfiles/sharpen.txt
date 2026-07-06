@@ -1,0 +1,6 @@
+sharpen
+With the use of this skill, a dwarf can sharpen any bladed or piercing
+weapon to an acute edge, enabling it to penetrate deeper on blows.  To
+sharpen a weapon one requires a whetstone.
+
+See Also: 'DWARVES'

@@ -1,0 +1,27 @@
+DRINK EAT FILL POUR EMPTY
+DRINK EAT FILL POUR EMPTY
+
+Syntax: drink <object>
+Syntax: eat   <object>
+Syntax: fill  <object>
+Syntax: pour  <object> out
+Syntax: pour  <object> <object>
+Syntax: empty <object>
+Syntax: empty <object> <object>
+
+When you are thirsty, DRINK something.
+
+When you are hungry, EAT something.
+
+Players that are level 5 and below are not affected by the eat/drink code, however, any
+level over 5 that fails to eat/drink for a prolonged period of time when they become
+hungry/thirsty will begin to have fainting spells and continually fall asleep until
+they finally eat, drink and then rest.
+
+FILL fills a drink container with water or other liquid.
+
+POUR transfers a liquid to a container or empties one. You can also pour
+from an object into something a character is holding.
+
+EMPTY is used to either empty a container or transfer items to another
+container.

@@ -1,0 +1,21 @@
+'HARMFUL SPELLS'
+
+This spell group is the opposite of healing.  The harmful spells are
+designed to tear flesh from bone, rupture arteries, and generally turn the
+body against itself.  Only bards, clerical, and warrior types may use this
+spell group.
+
+More information on individual spells may be found by typing help
+(spellname).  The harmful spell group, in order of power, consists of the
+following spells:
+
+cause light     inflicts minor wounds on an enemy
+cause serious   inflicts wounds on a foe
+cause critical  causes major damage to the target
+cause decay     inflicts high damage, and possible maladictions
+harm            a very deadly harmful spell
+cause fatality  the most powerful harmful spell, possible instant death
+
+This group is available to the following classes -
+    BARD BATTLERAGER CLERIC CRUSADER DRAGON DRUID
+    GIANT PALADIN PRIEST RANGER SHADOWKNIGHT WARRIOR

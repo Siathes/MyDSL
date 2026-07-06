@@ -1,0 +1,52 @@
+slots
+command: armpull slotlock
+
+Pay Table for 'Metallic Dragon' slots
+Each pull costs 100 gold.
+
+Gold Dragon, Silver Dragon, Bronze Dragon       240000 Gold
+Gold Dragon, Gold Dragon, Gold Dragon           119900 Gold
+Silver Dragon, Silver Dragon, Silver Dragon      20000 Gold
+Bronze Dragon, Bronze Dragon, Bronze Dragon      15000 Gold
+Any 3 Dragons                                     8000 Gold
+1 Bronze Bar, 2 Silver Bars, 3 Gold Bars          5000 Gold
+3 Gold Bars, 3 Gold Bars, 3 Gold Bars             4000 Gold
+2 Silver Bars, 2 Silver Bars, 2 Silver Bars       2500 Gold
+Any Gold, Any Silver, Any Copper                  2000 Gold
+1 Bronze Bar, 1 Bronze Bar, 1 Bronze Bar          1000 Gold
+Any 3 Bars                                         500 Gold
+Any 3 Gold                                         200 Gold
+Any 3 Silver                                       200 Gold
+Any 3 Bronze                                       200 Gold
+Red X, Red X, Red X                                100 Gold
+
+Pay Table for 'Chromatic Dragon' slots
+Each game costs 200 gold.
+
+Three Red Flames                               1000000 Gold
+Three Blue Diamonds                              12000 Gold
+Three Blue Dragons                                8000 Gold
+Any Three Blue                                    6000 Gold
+Any Two Red Flames                                5000 Gold
+Three Black Dragons                               4000 Gold
+Three Green Dragons                               2000 Gold
+Three Royal Sceptres                              2000 Gold
+Three White Dragons                               1000 Gold
+Any Two Royal Sceptres                            1000 Gold
+Any Three Dragons                                  400 Gold
+
+Pay Table for 'Fruit' slots
+Each pull costs 10 gold.
+
+Three Blue Diamonds                               2000 Gold
+Three Dragons                                     1000 Gold
+Three Melons                                      1000 Gold
+Melon, Melon, Dragon                              1000 Gold
+Three Red Flames                                   180 Gold
+Red Flame, Red Flame, Dragon                       180 Gold
+Three Plums                                        140 Gold
+Plum, Plum, Dragon                                 140 Gold
+Three Oranges                                      100 Gold
+Orange, Orange, Dragon                             100 Gold
+Cherry, Cherry, Any                                 50 Gold
+Cherry, Any, Any

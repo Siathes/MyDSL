@@ -1,0 +1,15 @@
+SHURIKEN
+SHURIKEN
+
+Syntax: Craftshuriken
+
+Syntax: Toss Shuriken <target>
+
+Able to manufacture their own weapons, ninja may take any metal object and
+re-fashion it into a number of deadly throwing stars known as shuriken.
+These can then be hurled at a enemy for devastatingly strong amounts of
+damage.  Despite being thrown, they are short range weapons, targets must be
+in the same room as the ninja.
+
+
+SEE ALSO:  NINJA

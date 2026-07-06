@@ -1,0 +1,14 @@
+QUEST 'QUEST CHANNEL'
+QUEST, QUEST CHANNEL
+Syntax:  quest <message>
+Like other public channels, quest sends a message to all characters in
+the world who are listening to the channel.  This channel is used for
+running or participating in quests.  Anyone may run a quest, though it
+is most commonly done by immortals.  Quests often, but not always
+result in prizes for the successful completion of a quest.  Quests may
+be roleplaying in nature, in which case, all conversation on the
+channel should attempt to remain in character.  Trivia quests and
+occasional other quests will be out of character and at these times
+either in character or out of character conversation related to the
+quest is welcome on this channel.
+See Also:  PQUEST

@@ -1,0 +1,9 @@
+INVITE UNINVITE UN-INVITE
+Syntax: invite
+Syntax: invite <character>
+Syntax: uninvite <character>
+INVITE is used to invite a player (allow) into all the rooms that you own,
+I.E Town Homes. You MUST be the owner of the room.
+INVITE with nothing after give you a list of all the people you've invited.
+UNINVITE is used to uninvite a player (disallow) that you previously invited.
+Note, Invitation info is not saved.

@@ -1,0 +1,17 @@
+DAMAGE
+DAMAGE
+
+When you hit a MOB or another character depending on how much damage you do
+a different descriptive word is used.
+
+Here they are in order (least to most damage):
+
+miss        wound       MUTILATE    *** DEMOLISH ***    GHASTLY
+scratch     maul        DISEMBOWEL  *** DEVASTATE ***   HORRID
+graze       decimate    DISMEMBER   === OBLITERATE ===  DREADFUL
+hit         devastate   MASSACRE    >>> ANNIHILATE <<<  HIDEOUS
+injure      maim        MANGLE      <<< ERADICATE >>>
+
+There is rumored to be damage that is just so brutal that it can be -
+
+INDESCRIBABLE or UNSPEAKABLE.

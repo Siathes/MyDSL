@@ -1,0 +1,12 @@
+RIDING RIDE MOUNT DISMOUNT
+Syntax:  ride <mob>
+         ride <player>
+         dismount
+         mount
+RIDE is the command used to ride a mob or player (dragon) who are able and
+willing to transport you.  DISMOUNT will allow you to stop riding.  When you dismount, you resume a
+standing position.  You must have the riding skill to
+be able to ride.
+MOUNT is a dragon/beastformed shaman only command and toggles between allowing
+other players to ride you or not. At the moment there is no way to remove someone
+who is riding you.

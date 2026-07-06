@@ -1,0 +1,4 @@
+snakebite
+Syntax: c snakebite <target>
+This spell allows the shaman to conjure a deadly snake which strikes
+at the enemy, delivering a painful venomous bite.

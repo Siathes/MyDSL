@@ -1,0 +1,11 @@
+SUMMON MOUNTAINBEAST
+
+Syntax:  cast 'summon mountainbeast'
+
+Drawing upon the teachings of Zandreya, the Eldritch is able to summon
+forth a great mountainous beast, harnessing its ability to attack so it
+will fight by the casters side.  The affects of the summonable creature
+are random, sometimes appearing with claws for slashing, fangs for
+piercing or even fists for pounding.
+
+Groups containing this spell: ELDRITCH

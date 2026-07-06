@@ -1,0 +1,14 @@
+REGISTER REGISTRATION
+The Register command works during the creation process by allowing you to
+choose a guild (class).  When you first create a character, you may notice
+that your guild is set to citizen.  By entering the proper guildmaster's
+room and typing 'register', you will join one of the four basic guilds
+(warrior, mage, cleric, thief).  The Register command also works during play
+by allowing a non-grouped* character the ability to change his/her hometown.
+By going to the registration mob in the desired hometown and typing
+'register', this only changes the players recall town. This does not allow
+access to the kingdom rooms, notes and other ammenities. If you are in a
+kingdom, useing this command will strip you of all kingdom flags, even if
+you register in the same kingdom.
+*Non-grouped refers to any character who is not a part of the clan
+system, the Austinians, or the Marauders.

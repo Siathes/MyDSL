@@ -1,0 +1,17 @@
+ENHANCED CONSTITUTION
+
+Syntax: cast 'enhanced constitution'
+
+Learned only by the battlemage, this spell significantly enhances the
+overall life force of the mage while in any condition of health, allowing
+them to absorb additional physical or magical damage in battle before facing
+potential death.  The higher a mages casting level, the better the overall
+result.  There is a very considerable time lapse between each casting of
+this spell.
+
+Groups containing this spell: Battlemagic
+
+
+SEE ALSO:  BATTLEMAGE, BATTLEMAGIC
+
+Updated 03.19.2021

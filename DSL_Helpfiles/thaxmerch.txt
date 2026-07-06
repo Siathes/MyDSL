@@ -1,0 +1,21 @@
+thaxmerch
+The Thaxanos Merchant District
+
+Directions from Althainia's North Gate:  8n,u,nw
+Direction from the Althainian Port: 1w,2s,30w,4n,2w,8n,u,nw
+
+       #1    #3    #5    #7    #9
+H             Dimrock lane           A
+a      #2    #4    #6    #8   #10    n
+m                                    v
+m      #1    #3    #5    #7    #9    i
+e         Thislebeard Boulevard      l
+r      #2    #4    #6    #8   #10
+                                     A
+A      #1    #3    #5    #7    #9    v
+v           Kegbreaker Street        e
+e      #2    #4    #6    #8   #10    n
+n                                    u
+u      #1    #3    #5    #7    #9    e
+e              Hecate Way
+       #2    #4    #6    #8   #10

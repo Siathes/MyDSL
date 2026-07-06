@@ -1,0 +1,6 @@
+'RANGED COMBAT'
+Syntax: cast '<spell>' <direction> <target>
+Ranged combat allows you to cast spells on characters in another room.  You
+are allowed to cast spells in and out of clan halls and private homes.  If
+you are allowed to do something, assume it is legal.  Some things that are
+legal now will be removed.

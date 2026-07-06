@@ -1,0 +1,10 @@
+ghost
+When you die, you are turned into a ghost.  It is recommended that you
+go and find your corpse and collect your belongings, which will be where you
+last died.  Or you can wait for it to reappear after several moments at your
+recall point.
+
+IF you are a ghost you can NOT interfere in pk.  This means summoning
+people, dropping potions, telling people where others are, closing/opening
+doors.  Or anything else you can think of.  The only thing you should be
+doing is getting your belongings, going home and waiting it out.

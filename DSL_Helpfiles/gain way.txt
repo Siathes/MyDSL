@@ -1,0 +1,10 @@
+gain way
+GAIN WAY
+
+Syntax:  gain way of the <path>
+Syntax:  info way of the <path>
+
+In order for the Eldritch to select their chosen path in the sun, the moon
+or the stars, they need to seek out their trainer and request to gain the
+way of that specific path.  Information on what spellbooks are taught
+within each pathway can also be requested.

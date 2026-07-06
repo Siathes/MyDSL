@@ -1,0 +1,25 @@
+OVERCHARGE
+
+Once a spellcrafter fills a gem with essence it can sometimes be
+overcharged by imparting the spellcrafters essence into the gem as well.
+There is a decent chance of success but only superior quality diamond gems
+will be able to endure the process.  Trying to overcharge a diamond of
+standard quality will result in destroying the diamond.  The perfect rare
+diamond, while able to provide the maximum effect upon an item, can also
+create an unstable impact so that the item will rot upon the owners death.
+For any diamond. regular or overcharged, you will not be able to place them
+into an item until you reach legendary master status as a spellcrafter.
+
+   Type of Essenced Gems                Effect               Points
+---------------------------     ----------------------       ------
+Magi and Weapon Flag Gems       Cannot be overcharged          --
+Inertia/Life/Moon               Random +28 through +40        9-13
+Growth/Age/Mind/Wind/Muscle     Random +9 through +13         9-13
+Pain/Sight                      +3 Dam/Hit                     12
+
+ Syntax: overcharge gem <essenced gem> or overcharge diamond <essenced gem>
+ Example:  overcharge gem pain
+
+
+SEE ALSO:
+CRAFT CRAFTING CRAFTLIST SPELLCRAFTING GEMS ESSENCES

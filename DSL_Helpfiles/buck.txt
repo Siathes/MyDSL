@@ -1,0 +1,3 @@
+buck
+Syntax: buck
+This command allows a mount to buck off it's rider.

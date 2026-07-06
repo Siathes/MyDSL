@@ -1,0 +1,35 @@
+DIVINE BLESSINGS
+
+The spells of divine blessing are restricted to the priests of the realm.
+Only those truly devout are given the right to cast these blessings that are
+provided by the very gods.
+
+More information on individual spells may be found by typing help
+(spellname).  The divine blessings spell group consists of the following
+spells:
+
+prayer                  gives the priest the ability to use their blessings
+holy flame              reveals others, and affects their armor
+bind soul               weakens a target's ability to hit
+mend wounds             provides healing energy to the target
+cure deafness           cures the affliction of deafness
+dispel curse            permanently removes the curse from an item
+holy presence           boosts the target's armor defense
+endurance               provides the target with greater health
+mental drain            causes the target to find casting more difficult
+faerie flames           reveals all those present, and affects their armor
+displacement            returns the target involuntarily to their recall
+divine intervention     affects a target's physical and mental abilities
+enhanced recovery       increases the rate at which an individual recovers
+nourishment             provides the target with food and drink nourishment
+meteo                   calls down a wrath of meteors from the heavens
+
+This group is available to the following classes -
+
+     PRIEST
+
+
+SEE ALSO:  PRIEST, BIND SOUL, CURE DEAFNESS, DISPEL CURSE, DISPLACEMENT,
+           DIVINE, INTERVENTION, ENDURANCE, ENHANCED RECOVERY, FAERIE FLAMES,
+           HOLY FLAMES, HOLY PRESENCE, MEND WOUNDS, MENTAL DRAIN,
+           NOURISHMENT, METEO, PRAYER

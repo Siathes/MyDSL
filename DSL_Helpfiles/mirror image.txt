@@ -1,0 +1,5 @@
+mirror image
+syntax:  cast 'mirror image'
+Mirror image creates several images of yourself.  These images also mimic
+your look, even after it changes.  This spell is best used to throw off your
+opponents and prevent them from getting the first attack.

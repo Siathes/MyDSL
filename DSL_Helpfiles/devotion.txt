@@ -1,0 +1,11 @@
+devotion
+DEVOTION
+
+By showing your devotion to your deity, you vow to fight to the death.  By
+sacrificing your ability to flee from combat, the crusader is granted a
+significant increase to their fighting capabilities.  Devotion is part of
+the Worship spellgroup and is only accessible to the Crusader class.
+
+cast 'devotion'
+
+Please note this cannot be casted upon others.

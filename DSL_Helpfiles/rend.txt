@@ -1,0 +1,8 @@
+rend
+A passive Nightshade skill that is checked after each successful backstab.
+If the rend check is successful the nightshade twists the weapon and opens a
+large wound that bleeds for additional damage over the next three rounds
+with decreased damage each round.
+
+Since it is a passive skill, typing it does no good.  Simply backstab for
+rend to have a chance to work.

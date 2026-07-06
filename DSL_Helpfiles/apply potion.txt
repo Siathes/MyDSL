@@ -1,0 +1,9 @@
+apply potion
+Syntax: Apply <potion> item
+A warlock may choose to attempt to apply a gourd potion to an item
+he holds, possibly infusing it with magic.  Of course, cracking a
+potion over an item like an egg is a messy process, and the witch or
+warlock is likely to be affected by the brew as well, from spillage.
+
+
+

@@ -1,0 +1,7 @@
+SCORCH
+Syntax:  cast scorch <target>
+
+Drawing on the power of the sun, the Eldritch is able to learn early on
+how to harness its energy to shoot a scorching blast upon their enemy.
+
+Groups containing this spell: ELDRITCH

@@ -1,0 +1,8 @@
+GLANCE
+GLANCE
+Syntax:  glance <player>
+         glance <mob>
+Glance may be used to quickly determine the physical condition of a player or
+mob.  This will allow you to see how close a mob is to death or whether a
+friend is in need of healing.
+See also:  LOOK

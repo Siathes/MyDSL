@@ -1,0 +1,6 @@
+'DARKVISION' 'DARK VISION'
+DARKVISION, DARK VISION
+Darkvision is a skill which allows those who have it to see in the dark.
+This frees these characters from any need to carry a light source to
+see at night and in dark rooms.  (Skill currently only works when
+trained to 75%)

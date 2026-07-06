@@ -1,0 +1,6 @@
+WHOCRAFT
+This command lists all the crafters currently playing.  It will display the
+character name and rank and what type of craft they study.
+
+Syntax: whocraft
+        whocraft <crafttype>

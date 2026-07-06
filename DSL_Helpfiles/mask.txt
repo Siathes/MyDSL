@@ -1,0 +1,6 @@
+mask
+Upon reaching a higher proficiency of training the swashbuckler is able
+to don a mask to hide his true identity from those that would seek to
+destroy him.  The mask makes it so that he is only seen as "a masked
+swashbuckler" if someone is in the same area and he is unable to be found by
+name if someone tries to see if he walks the realm.

@@ -1,0 +1,81 @@
+SHOP SHOPS PLAYER MERCHANT
+SHOPS - PLAYER OWNED SHOPS
+
+Players can rent Merchants inside of a Kingdom's Merchant District.  There
+is a one time fee of 25 eggs and a 1 egg per 30 days rental fee.
+
+On these Merchants, players can sell in games items such as crafted items or
+anything they get off of mobs.  A few items are restricted such as quest
+items.
+
+To purchase a merchant, please email Cayenna and include the kingdom and
+open shop address you wish to purchase in.  Also have your descriptions for
+your shop and shop keeper in the note.  You also require permission from the
+leader of the kingdom where you wish to purchase a shop.  This can be send
+as a note.
+
+Shop Keeper Requirements:
+
+For a proper shop keeper, we require a minimum of keywords (name), an
+interaction description (short), and an in room description (long).  You may
+also include sex, race, and a more detailed description (description).
+
+Examples:
+
+      Name(s) of Mob: Biff and/or Shopkeeper
+
+     Short Example 1: Biff
+     Short Example 2: a shopkeeper
+
+      Long Example 1: Biff stands here waiting on customers.
+      Long Example 2: A shopkeeper stands here.
+
+         Description: A broad muscular man is here admiring his muscles
+                      between helping customers.
+
+Things you may not include are special greetings or actions your shopkeeper
+will say or do when people enter the room.
+
+
+Pricing:
+
+To pay your rent on these merchants, type 'shopstatus pay'.  The merchant
+will note you 7 days before your payment is due and then again 1 day before.
+If you fail to make your rent, the merchant will quit and leave your items
+on the ground 7 days after payment is past due.
+
+     New Shop Cost -                         25 Eggs
+     Re-Open Shop Cost -                     25 Eggs
+     Shop Edit -                              5 Eggs Per Shop
+     Extendeds -                              5 Eggs Per Extended
+     Monthly Shop Cost -                      1 Egg  Per Shop
+
+Syntax for Multiple Shop Payments: Shopstatus pay 1, Shopstatus pay 2, etc.
+
+
+Transferring Bulk Items to Shop Keeper:
+
+To add items to your merchant, you simple give them items or use
+bulktransfer.  To set prices on items, setprice <item> <number>
+<blue/gold/silver>.  You may order your shop keepers to give you items or
+drop items by using the order command.
+
+     Syntax:  give <item> <shopkeeper name>
+     Syntax:  bulktransfer <quantity> <item> <shopkeeper name>
+     Syntax:  setprice <item> <amount> <blue/gold/silver>
+     Syntax:  order <shopkeeper name> drop <quantity> <item>
+     Syntax:  order <shopkeeper name> give <item> <your name>
+
+You can also order your merchant to give you any gold or silver he has on
+him.  DO NOT give your merchant gold or silver, you will lose it.  If gold
+or silver is left with your merchant, once they hold enough to equal an egg,
+the egg(s) will be auto-deposited into your bank account.
+
+Please send all shop building requests to Cayenna at cayenna.dsl@gmail.com
+
+NOTE: Items with different percentages may need setprice each time you
+      add merchandise.
+
+SEE ALSO: MERCHANT DISTRICT
+
+Updated 12.28.2023

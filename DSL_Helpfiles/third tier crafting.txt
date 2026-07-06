@@ -1,0 +1,35 @@
+THIRD TIER CRAFTING' '3rd TIER CRAFTING'
+
+Apprentices of the 3rd tier create finished items such as weapons, armor
+and other various equipment for player use.  Spellcrafting varies slightly
+from the others and all are covered in separate help files. You may craft
+anywhere but you are required to have all the items in your inventory
+needed for the item you are trying to create.
+
+All 3rd tier crafts require that you first master the making of a trinket
+of a particular material or in the case of spellcrafting, a gemstone,
+before you can create the weapons, armor or gems of that same material.
+Every craft has a skill level range that you need to achieve in order
+to created the items within that range.
+
+You can sell all crafted trinkets back to the merchants that sell the
+materials needed for any craft.  The price that you get for the trinkets
+on resale depends on the type of material used.
+
+Skills-
+
+sharpweapon  - makes sharp weapons axes, swords, daggers, spears, and polearms
+bluntweapon  - makes blunt weapons maces, flails, staffs, whips, and exotics
+armorcraft   - makes leather studded, chainmail, and platemail armor
+tailor       - makes cloth and leather armor
+spellcrafter - makes gems to imbue onto armor and weapons
+
+Note that if you have an alt that is a 1st or 2nd tier crafter and you
+use  materials created by them for your alt that is a 3rd tier crafter, it
+is illegal.  You cannot use material gained from one in order to benefit
+the other.  See multiplaying rules.
+
+
+SEE ALSO:
+CRAFT CRAFTING CRAFTLIST SHARPWEAPON BLUNTWEAPON ARMORCRAFT TAILOR
+SPELLCRAFTING

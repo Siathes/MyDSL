@@ -1,0 +1,5 @@
+SACRIFICE
+SACRIFICE
+Syntax: sacrifice <object>
+SACRIFICE offers an object to the Gods, who may reward you.
+The nature of the reward depends upon the type of object.

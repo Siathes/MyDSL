@@ -1,0 +1,38 @@
+GPRAY
+syntax: gpray <text>
+Syntax: Gpray ++
+
+Priests who have trained themselves to maximum benefit before their gods may
+utilize a priest specific ability to 'god' pray, or gpray.  By using gpray,
+a priest may send a prayer specifically to their god.  The gpray is much
+like a regular prayer, except that it is stored for whichever god the given
+priest prays to.
+
+If a priest wishes to write a longer prayer than what is allowed by the
+limit of the input, may type gpray ++ to enter a string editor. There
+they will be able to write fairly long prayers. When you wish to exit this
+editor, simply type '@' on an empty line and it will exit the string editor.
+Your prayer will be sent to the Gods automatically.
+
+Priests wishing to send a prayer to their god in this manner can send a
+gpray that is anywhere from one line to four lines long, and it is
+recommended that they do not spam their gods with the same prayers over and
+over.
+
+Be wary, there have been rumors that priests who are in the midst of
+composing notes of any kind that suddenly decide to gpray to their god may
+lose their concentration and find that their notes have been wiped clean.
+
+Example:
+
+Gpray I am your humble servant. Do with me as you will.
+-- will send a one line prayer to your God.
+
+gpray ++
+I am your humble servant.
+Do with me as you will.
+Love <name>
+@
+-- Will send a -multi-line prayer to your God, much like a normal note.
+
+See also - PRIEST PRAY

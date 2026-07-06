@@ -1,0 +1,33 @@
+GOLD SILVER MONEY
+
+Algoron's economy is based on gold and silver coinage (and the lowly copper,
+which you as an adventurer are far too proud to carry).  Gold coins are
+worth 100 silver coins, but are also four times as heavy (25 to the pound,
+as opposed to 100 to the pound for silver).
+
+Gems can be bought from different jewelers to alleviate weight problems,
+they charge a mere 10% more than they are worth.  10 gems weigh one pound,
+and they can be worth more than 100 gold pieces for the highest quality
+stones.
+
+Another means of preventing problems from the weight of your treasure is by
+exchanging silver for gold.  There is a money-changer in most kingdoms.
+
+The most valuable jewel in Algoron is a jeweled egg.  These may be bought
+from any shopkeeper with the purchase command, see help purchase.
+
+To prevent the loss of any treasure you have amassed, jeweled eggs may be
+deposited with the banker in different kingdoms.  They are so wealthy that
+they only deal in eggs, no other form of currency may be deposited.
+
+Various kingdoms about the realm charge a degree of tax that will change the
+exact price of exchange for diamonds that you may purchase.  It would
+beenefit you to pay attention to those taxes when making a purchase.  There
+are some areas about the realm that may be tax free.
+
+   100 silver =   1 gold  =  0 diamonds       = 0 eggs
+ 11000 silver = 110 gold  =  1 diamond        = 0 jeweled egg
+ 55000 silver = 550 gold  =  1 blue diamond   = 0.1 jeweled egg
+550000 silver = 5500 gold = 10 blue diamonds  = 1 jeweled egg
+
+See also - PURCHASE KINFO DEPOSIT KDEPOSIT CDEPOSIT BANK

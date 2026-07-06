@@ -1,0 +1,4 @@
+land
+Syntax: land
+This command is used to land when one is flying, so that one may rest and
+sleep or ride a mount.

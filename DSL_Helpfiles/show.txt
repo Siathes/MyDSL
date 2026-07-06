@@ -1,0 +1,6 @@
+SHOW
+SHOW
+Syntax:  show
+SHOW toggles between including or not including a list of the spells by which
+you are affected when you use the score command.
+See also:  SCORE AFFECTS

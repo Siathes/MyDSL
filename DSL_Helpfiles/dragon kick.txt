@@ -1,0 +1,14 @@
+DRAGON KICK
+
+Syntax: dragon kick <target>
+
+An especially powerful kicking skill, available only to dragons.  The
+command may be used without a target if combat is already in progress.
+
+NOTE: It is illegal for dragons to kick guards out of cities to avoid being
+attacked as this circumvents game code.
+
+
+SEE ALSO:  DRAGONS, HELP RULES, ROLEPLAY
+
+Updated:  07.30.2025

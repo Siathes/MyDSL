@@ -1,0 +1,9 @@
+spellcraft
+SPELLCRAFT
+An optional skill for the mage and mage reclasses is spellcraft.  Mages who
+choose to undertake the skill of spellcraft spend long hours researching the
+finer points of spell casting and power control.  The result of these
+extensive studies allows a mage to strengthen the power of his casting, most
+evident in his damage causing spells.  Another benefit of the spellcraft
+skill is that a mage learns the efficient use of mana during his practice of
+casting.

@@ -1,0 +1,14 @@
+WIND BREATH
+
+Syntax: cast 'wind breath' <target>
+
+When successfully cast by the battlemage, this spell sets a magical wind
+upon its target that is strong enough to potentially knock them backwards
+and stun them.
+
+Groups containing this spell: Battlemagic
+
+
+SEE ALSO:  BATTLEMAGE, BATTLEMAGIC
+
+Updated 03.19.2021

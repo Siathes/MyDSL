@@ -1,0 +1,26 @@
+GATE
+GATE
+
+Syntax: cast gate <target>
+
+The gate spell is a powerful transportation magic that opens up a portal
+between your character and another person or creature somewhere else in the
+world.  This portal will transport you and any pet you might have, but not
+other members of your group.
+
+Players and creatures more than three (3) levels higher than yours, cannot
+be gated to.  All.  God rooms, private rooms, and no recall rooms cannot be
+gated to, and Rooms flagged as imm, private rooms or no recall cannot be
+gated to, and Imms as well as players with no_summon set, are immune to
+gate.
+
+NOTE: Clan members may not be gated to except by their fellow clan members.
+Gating to a kingdomer is considered kingdom/clan interference and is
+illegal.
+
+Gate is not powerful enough to cross vast oceans to other continents.
+
+
+SEE ALSO:  NEXUS, PORTAL, RULES, TRANSPORTATION
+
+Updated 08.01.2025

@@ -1,0 +1,11 @@
+PYRO
+{YPYRO{x
+
+{cSyntax:{x Pyro
+
+Utilizing a small incendiary device, the Ninja can create a cloud of smoke
+and fire, burning all targets in the room while disappearing into the
+environs.
+
+
+{DSEE ALSO:{x  NINJA

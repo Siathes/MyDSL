@@ -1,0 +1,8 @@
+NONDETECTION
+NONDETECTION
+
+Syntax: cast 'nondetection'
+
+This spell works in conjunction with the spell of invisibility to mask the
+presence of the Invoker so much that normal spells of detection are useless
+against the invocation.

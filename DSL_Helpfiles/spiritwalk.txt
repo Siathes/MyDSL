@@ -1,0 +1,6 @@
+spiritwalk
+Syntax: c spiritwalk
+Syntax: incorporate
+By entering a trance, the shaman may elect to walk in the spirit world.
+During this time the soul leaves the body to walk alone, leaving the
+body behind. Naturally, the empty husk is quite vulnerable while uninhabited.

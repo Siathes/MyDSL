@@ -1,0 +1,17 @@
+{YHERBS{x
+
+{cSyntax:{x Herbs
+
+Herbs or Herbal is skill available to the classes of Ranger, Druid, and
+Shaman which allow them to look for herbs of healing and medicinal use to
+store them for later use for themselves or others.  Since herbs only grow in
+certain regions, after all, not every place has much plant life but for
+those who are in tune with nature, they know where to look for them.
+
+Due to their mastery of herbal seeds, Ovates are able to find some unique
+herbs across Algoron's different terrains, which when smoked in pipes, can
+produce unique some unique spell effects.
+
+{DSEE ALSO:{x DRUID, OVATE, RANGER, SHAMAN
+
+Updated 08.05.2024

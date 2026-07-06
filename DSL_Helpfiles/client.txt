@@ -1,0 +1,6 @@
+client
+A mud client is a program used to assist you with mudding.  Some offer
+many helpful features.
+
+We recommend the client: MudFix
+www.mudfix.com

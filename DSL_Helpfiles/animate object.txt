@@ -1,0 +1,10 @@
+ANIMATE OBJECT
+ANIMATE OBJECT
+
+Syntax: cast 'animate object' <object>
+
+Animate object allows the enchantor to bring ordinary objects to life in
+order to aid them along their ways.  There are many factors which determine
+the usefullness of an animation.
+
+When the enchantor is done with an animation he/she can DISMISS them.

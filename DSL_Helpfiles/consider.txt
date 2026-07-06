@@ -1,0 +1,5 @@
+CONSIDER
+CONSIDER
+Syntax: consider <character>
+CONSIDER tells you what your chances are of killing a character.
+Of course, it's only a rough estimate.

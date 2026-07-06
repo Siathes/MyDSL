@@ -1,0 +1,8 @@
+STEAL
+Syntax: STEAL coins <character>
+Syntax: STEAL <object> <character>
+Theft is the defining skill of the thief, and is only available to that class.
+It allows items to be stolen from the inventory of monsters and characters,
+and remain undetected!  But beware, most monsters guard their belongings
+carefully, and attempting to steal from a character earns you a WANTED flag
+if you are caught (making you free game for killing).

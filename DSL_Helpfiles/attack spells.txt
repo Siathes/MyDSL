@@ -1,0 +1,22 @@
+'ATTACK SPELLS'
+
+The attack spells are essentially powerful curses, fueled by divine energy
+rather than magical power (like the combat spells are).  They are less
+powerful than the combat spells, but can still deal out a stinging blow.
+Mages and thieves cannot use this group.
+
+More information on individual spells may be found by typing help
+(spellname).  The attack spell group consists of the following spells:
+
+demonfire       a powerful, but very evil, spell
+dispel evil     torments evil foes
+dispel neutral  inflicts pain upon those outside of neutral faith
+dispel good     calls down unholy power on good creatures
+earthquake      brings the power of earth to bear against your foes
+flamestrike     sends a column of flame from the heavens
+heat metal      heats metal equipment to searing temperatures
+ray of truth    sends forth a blinding ray of holy energy
+
+This group is available to the following classes -
+    BATTLERAGER CLERIC DRAGON DRUID GIANT
+    PALADIN PRIEST SHADOWKNIGHT RANGER WARRIOR

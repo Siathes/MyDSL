@@ -1,0 +1,17 @@
+'ENCHANTMENT SPELLS'
+
+The enchantment spell group is used to imbue items with magical properties.
+Currently, this spell group consists of enchant weapon and enchant armor,
+although more spells may be added in the future.  Only mages may enchant
+using this group of spells.
+
+More information on individual spells may be found by typing help
+(spellname).  The enchantment spell group consists of the following spells:
+
+enchant weapon  increases the hit and damage bonuses of a weapon
+enchant armor   increases the protective value of armor
+fireproof       shields items from the harmful effects of fire and acid
+recharge        restores power to a depleted wand or staff
+
+This group is available to the following classes -
+    ENCHANTOR INVOKER MAGE NECROMANCER TRANSMUTER

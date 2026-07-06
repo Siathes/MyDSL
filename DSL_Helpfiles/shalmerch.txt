@@ -1,0 +1,51 @@
+shadowmage
+Long ago, the warlocks and witches of Storm Keep claimed that the Gray
+Robes'  Magic did not stem from Drakkara, but from Necrucifer himself.
+Drakkara punished the Gray Robes, and made it known that She was the source
+of the magical power of all Evil, including that of Storm Keep.
+
+In the mists of time when Necrucifer fought with Austinian, the blood of
+Necrucifer tainted the rivers and oceans and its very essence permeated
+everywhere in the land.  In an effort to find his way back to Algoron,
+Necrucifer found a way awaken the presence of His fallen blood on Algoron by
+using it to harness the wild magic of warlocks and make it His own.
+
+Now Evil can claim that their hold on magic is stronger.
+
+The Gray Robes of Storm Keep have retained the ability to steal the magic
+of other professions through the wild magic of brewing, making them natural
+enemies of the Conclave as a renegade school of magic.
+<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>
+<html>
+ <head>
+  <meta http-equiv='content-type' content='text/html; charset=utf-8'>  <meta name='generator' content='Mudlet MUD Client version: 4.19.1'>
+  <title>Mudlet, main console extract from Dark & Shattered Lands - PNP profile</title>
+  <style type='text/css'>
+   <!-- body { font-family: 'Liberation Mono', 'Courier New', 'Monospace', 'Courier'; font-size: 100%; line-height: 1.125em; white-space: nowrap; color:rgb(255,255,255); background-color:rgb(0,0,0);}
+        span { white-space: pre-wrap; } -->
+  </style>
+  </head>
+  <body><div><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">shalmerch</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">The </span><span style="color: rgb(85,170,0); background: rgb(0,0,0); ">Shalonesti</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); "> Merchant District</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); "> </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">Directions from Southern Gates:  1n,1e,1s</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); "> </span><br>
+<span style="color: rgb(255,0,255); background: rgb(0,0,0); ">P                                    </span><span style="color: rgb(0,0,255); background: rgb(0,0,0); ">P</span><br>
+<span style="color: rgb(255,0,255); background: rgb(0,0,0); ">a      </span><span style="color: rgb(255,255,0); background: rgb(0,0,0); ">#1    #3    #5    #7    #9    </span><span style="color: rgb(0,0,255); background: rgb(0,0,0); ">a</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  </span><br>
+<span style="color: rgb(255,0,255); background: rgb(0,0,0); ">t            </span><span style="color: rgb(255,255,0); background: rgb(0,0,0); ">Sha'falas Way           </span><span style="color: rgb(0,0,255); background: rgb(0,0,0); ">t</span><br>
+<span style="color: rgb(255,0,255); background: rgb(0,0,0); ">h      </span><span style="color: rgb(255,255,0); background: rgb(0,0,0); ">#2    #4    #6    #8   #10    </span><span style="color: rgb(0,0,255); background: rgb(0,0,0); ">h</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">                                      </span><br>
+<span style="color: rgb(255,0,255); background: rgb(0,0,0); ">o      </span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">#1    #3    #5    #7    #9    </span><span style="color: rgb(0,0,255); background: rgb(0,0,0); ">o</span><br>
+<span style="color: rgb(255,0,255); background: rgb(0,0,0); ">f            </span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">Sha'relas Way           </span><span style="color: rgb(0,0,255); background: rgb(0,0,0); ">f</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">       </span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">#2    #4    #6    #8   #10</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">        </span><br>
+<span style="color: rgb(255,0,255); background: rgb(0,0,0); ">t                                    </span><span style="color: rgb(0,0,255); background: rgb(0,0,0); ">t</span><br>
+<span style="color: rgb(255,0,255); background: rgb(0,0,0); ">h      </span><span style="color: rgb(0,255,0); background: rgb(0,0,0); ">#1    #3    #5    #7    #9    </span><span style="color: rgb(0,0,255); background: rgb(0,0,0); ">h</span><br>
+<span style="color: rgb(255,0,255); background: rgb(0,0,0); ">e            </span><span style="color: rgb(0,255,0); background: rgb(0,0,0); ">Sha'tavas Way           </span><span style="color: rgb(0,0,255); background: rgb(0,0,0); ">e</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">       </span><span style="color: rgb(0,255,0); background: rgb(0,0,0); ">#2    #4    #6    #8   #10</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">    </span><br>
+<span style="color: rgb(255,0,255); background: rgb(0,0,0); ">M                                    </span><span style="color: rgb(0,0,255); background: rgb(0,0,0); ">S</span><br>
+<span style="color: rgb(255,0,255); background: rgb(0,0,0); ">o      </span><span style="color: rgb(0,255,255); background: rgb(0,0,0); ">#1    #3    #5    #7    #9    </span><span style="color: rgb(0,0,255); background: rgb(0,0,0); ">t</span><br>
+<span style="color: rgb(255,0,255); background: rgb(0,0,0); ">o            </span><span style="color: rgb(0,255,255); background: rgb(0,0,0); ">Sha'evlas Way           </span><span style="color: rgb(0,0,255); background: rgb(0,0,0); ">a</span><br>
+<span style="color: rgb(255,0,255); background: rgb(0,0,0); ">n      </span><span style="color: rgb(0,255,255); background: rgb(0,0,0); ">#2    #4    #6    #8   #10    </span><span style="color: rgb(0,0,255); background: rgb(0,0,0); ">r</span><br>
+<span style="color: rgb(255,0,255); background: rgb(0,0,0); ">s                                    </span><span style="color: rgb(0,0,255); background: rgb(0,0,0); ">s</span><br>
+ </div></body>
+</html>

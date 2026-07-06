@@ -1,0 +1,7 @@
+forward
+This command allows you to forward a note from someone to another and
+from one spool to another.
+Syntax: <spool> forward <number of note> <target spool> <to field>
+EG: note forward 123 oocn bob
+This will forward note 123 from the note spool to bob in the oocn spool.
+Please note that the word TO is not needed.

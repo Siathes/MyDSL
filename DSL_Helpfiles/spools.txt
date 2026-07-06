@@ -1,0 +1,37 @@
+  -----------------------------------------------------------------------
+
+        Notespools
+
+    Like channels, there are various notespools that serve different
+      purposes. This will be a short overview of each notespool's
+      function. If you want to learn how to compose notes, type help
+      note. Again, read help rules before composing notes.
+    Note - This is the IC notespool for generic notes. Anything from
+      wedding invitations to death warrants go here.
+    ANote - The auction note spool. This is for people who're selling or
+      looking for extremely rare items.
+    OOCN - This is the Out of Character notespool to post just about
+      anything that you want to share with fellow players.
+    QNote - The quest note spool is for topics relating to quests. This
+      is where future quests are announced or the results of past quests
+      are posted.
+    StoryN - Story notes are written by players about their characters.
+      These notes are usually OOC narrations of IC events, so don't use
+      knowledge gained from reading these notes in role-play.
+    History - History notes are accounts posted by the immortal staff of
+      large events. Take some time to read over a few of these to get an
+      understanding of Algoron's history and politics.
+    News - News notes are posted by the immortal staff to inform you of
+      upcoming events, game updates, server downtime, rules, etc.
+    Changes - Change notes are posted by the immortal staff to inform you
+      of gameplay changes.
+
+    List notes by typing (note type) list. List unread notes by
+      typing (note type) ulist. You can read notes by entering
+      (note type) read #. So,type storyn ulist to get a list of
+      unread story notes, then storyn read 125 to read the story note
+      labelled as number 125.
+
+        Type HELP NEWBIE to return to the table of contents.
+
+  -----------------------------------------------------------------------

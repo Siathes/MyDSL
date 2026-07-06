@@ -1,0 +1,24 @@
+AUTO
+AUTO
+The AUTO command results in a list of all the things that you can toggle to
+happen automatically.  For help with any of these toggle-able things, see the
+helpfiles for:
+AUTOLIST           AUTOEXIT              BRIEF             TICK
+AUTOLOOT           AUTOASSIST            COMPACT           NOSUMMON
+AUTOGOLD           AUTOSPLIT             SOUNDS            NOCANCEL
+AUTOSAC            BTELL                 COLOR
+
+============================================================
+
+AUTOLIST AUTOLOOT AUTOGOLD AUTOSAC AUTOEXIT AUTOASSIST AUTOSPLIT
+AUTOLIST AUTOLOOT AUTOGOLD AUTOSAC AUTOEXIT AUTOASSIST AUTOSPLIT
+DSL uses various automatic actions, to ease the boredom of always
+splitting gold and sacrificing corpses.  The commands are as follows:
+autolist  : list all automatic actions
+autoloot  : take all equipment from dead mobiles
+autogold  : take all gold from dead mobiles
+autosac   : sacrifice dead monsters (if autoloot is on, only empty corpes)
+autoexit  : display room exits upon entering a room
+autosplit : split up spoils from combat among your group members
+autoassist: makes you help group members in combat
+Typing a command sets the action, typing it again removes it.

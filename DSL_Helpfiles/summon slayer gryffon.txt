@@ -1,0 +1,13 @@
+summon slayer gryffon
+SUMMON SLAYER GRYFFON
+
+Syntax: c 'summon slayer gryffon'
+
+The elite of Greystoke, the dragonslayers, are able to summon a gryffon
+sentry that will guard the skies and attack trained player controlled
+dragons on sight.
+
+SEE ALSO:  DRAGON SLAYER, DRAGON STRIKE, DRAGOBLANCE, JAWBIND, RECLASS,
+           SLAYER, SUPERVOUCHER
+
+Updated 06.18.2024

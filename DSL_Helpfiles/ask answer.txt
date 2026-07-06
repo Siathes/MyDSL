@@ -1,0 +1,19 @@
+armsman armsmen armswoman armswomen
+The basic man of arms from the legends.  The Armsman can, and will, do
+anything necessary to win a fight.  He can use almost all weapons and armor.
+
+
+Almost all Armsman are trained since childhood to master almost all weapons
+and can use each weapon effectively even while wearing heavy armors.  The
+training of Armsmen is passed down from generation to generation and the
+races who most cherish the act of weapondry based combat seem to do the best
+at them, especially the Minotaur, the Ogre and the Hill and Mountain
+Dwarves.  Other races also make good Armsmen, such as Humans, Hobgoblins,
+Half Elves and Half Ogres.
+
+Who can be an Armsman?
+CLASS:     WARRIORS only
+RACE:      Any.
+ALIGNMENT: Any alignment
+CLAN:      ANY, including non-clanned
+see also: 'RECLASS'

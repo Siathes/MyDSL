@@ -1,0 +1,5 @@
+IGNORE
+Syntax: ignore <character>
+Syntax: ignore self
+This prevents someone from sending you tells, you can only ignore one person
+at a time, and you can remove the ignore by typing ignore self

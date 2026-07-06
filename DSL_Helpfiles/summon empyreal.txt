@@ -1,0 +1,16 @@
+summon empyreal
+SUMMON EMPYREAL
+
+Syntax: cast 'summon empyreal'
+
+LORE::
+
+Born of the immaculate powers of the Aurora, the empyreal warhorse answers
+the call of the Light's chosen, galloping into battle in service of a
+paladin true.  Mightier even than the gods-given white warhorse, these
+miraculous beasts serve as mounts for the holy warriors and are a resilient
+ally and dangerous foe for enemies of Good.
+
+SEE ALSO:  CSR, HOLY, KNIGHTHOOD, RECLASS, PALADIN
+
+Created: 12.  03.  2023

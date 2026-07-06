@@ -1,0 +1,10 @@
+'SUMMON ELEMENTAL'
+'SUMMON ELEMENTAL'
+Syntax:  cast 'summon elemental' fire
+         cast 'summon elemental' water
+         cast 'summon elemental' earth
+         cast 'summon elemental' air
+This spell allows clerics to summon the elemental forces of nature into
+the form of a creature which will aid the caster until dismissed, dispelled,
+or otherwise destroyed.
+See also:  DISMISS CLERICS

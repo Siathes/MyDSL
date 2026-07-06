@@ -1,0 +1,11 @@
+NATURE GROWTH
+Syntax: cast �nature growth� <target>
+
+Nature growth is one of the earliest spells in a druid's or ranger�s cache
+of magical texts, able to cast the spell not only upon oneself but on to
+other targets as well.  As the caster calls upon Nature�s elements, all its
+forces gather within the directed target, giving a temporary boost to their
+constitution.  The magic is not powerful enough to manipulate a person�s
+constitution to go beyond what is intended upon their creation.
+
+Groups containing this skill: �NATURE� �DRUID DEFAULT� �RANGER DEFAULT�

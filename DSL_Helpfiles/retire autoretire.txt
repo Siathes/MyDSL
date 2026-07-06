@@ -1,0 +1,7 @@
+RETIRE AUTORETIRE
+Once a clanned soul has reached his/her pennacle of training he or she
+can retire from clanned life... to do so find the nearest trainer and
+speak with him for help.
+
+Syntax: retire <your name>
+

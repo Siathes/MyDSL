@@ -1,0 +1,6 @@
+wither
+Syntax: c wither
+This powerful maladictive magik saps the vital spirit energy of the
+target, effectively causing them to age hundreds of years in a single
+moment and reducing their physical attributes to that of a doddering
+old fool.

@@ -1,0 +1,33 @@
+BB BLOODBATH
+BLOODBATH (BB) RULES
+
+Bloodbaths, more commonly known as BB's are quests run by immortals.
+Players are transferred into an arena and after preparing are let out to
+fight each other. The arenas are set up so that you do not lose eq
+rot_death items, or any such things affected by death except for experience.
+
+Dragons, Alterforms, Divines and Giants are not allowed to participate.
+
+Type bbsetup for further instructions on how to make one.
+
+1  No tornado
+2  No teleport
+3  No vanish
+4  No heat metal
+5  No steal
+6  No violent disposition
+7  No following (To group you must follow, so no grouping)
+8  No shockers
+9  No excessive use of non-detects
+10 No brewing in the prep area
+11 Any additional rules the imm running it may apply.
+12 All Charmies are only gotten once inside the arena not the prep room.
+
+The same rules apply to ANY BB, that includes the automated one.
+The ONLY exception is an imm run one where they are there and they
+make it non-standardized (ie no spells, no weapons, etc.)
+
+
+SEE ALSO:  HELP RULES
+
+Updated 08.25.2025

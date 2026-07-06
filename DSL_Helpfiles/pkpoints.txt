@@ -1,0 +1,157 @@
+pkpoints
+PKP - PLAYER KILL POINTS
+
+Clanners get PK Points for every kill obtained in their group as long as
+its in the same room as the person making the kill and they have not killed
+that character in the last 4 kills.  You also get one for dying to another
+player.
+
+Syntax:  PKP - Will show you your stat allocation information
+Syntax:  PkpTrain <stat> - Will train the specified stat
+Syntax:  Pkptrain reset - Will reset your pkp - Must type it twice
+         Cost to reset PKP: 10 Eggs
+
+With each PK level, you can train 1 pkstat.  PKStr, PKInt, PKWis, PKDex,
+PKCon.  These work as bonues on top of their regular stats.  These DO NOT
+work in any room flagged ARENA.  That keeps the AGL, ACFL and other things
+fair between clanners and non clanners.
+
+Each stat can be trained up to +12 (three brackets for everyone regardless
+of how your race/classes stats are allocated.)  After the 12th stat,
+if will cost 4 times as much.  So if you want to go from 12 to 13 STR,
+it will cost 4 pkp trains (or you could go +4 into a different uncapped stat)
+
+For races that already have more than the 300 total stat, they will need to
+reach a furthur level to be able to train.
+
+For example: Trolls have a total max stat of 320.  They will have to reach
+PK-Level 21 to train their first stat.  Kender have a total max stat of 273,
+so they will get trains starting at PK level 1.  (As would any race 300 or
+below)
+
+BRACKETS:
+
+PK Rank 1
+PK Level 0 (Default)
+PK Level 1  - 10 PK Points
+PK Level 2  - 20 PK Points
+PK Level 3  - 45 PK Points
+PK Level 4  - 60 PK Points
+PK Level 5  - 80 PK Points
+PK Level 6  - 100 PK Points
+PK Level 7  - 125 PK Points
+PK Level 8  - 150 PK Points
+PK Level 9  - 175 PK Points
+
+PK Rank 2
+PK Level 10 - 200 PK Points
+PK Level 11 - 250 PK Points
+PK Level 12 - 300 PK Points
+PK Level 13 - 350 PK Points
+PK Level 14 - 400 PK Points
+PK Level 15 - 450 PK Points
+PK Level 16 - 500 PK Points
+PK Level 17 - 550 PK Points
+PK Level 18 - 600 PK Points
+PK Level 19 - 650 PK Points
+
+PK Rank 3
+PK Level 20 - 700 PK Points
+PK Level 21 - 775 PK Points
+PK Level 22 - 850 PK Points
+PK Level 23 - 925 PK Points
+PK Level 24 - 1000 PK Points
+PK Level 25 - 1075 PK Points
+PK Level 26 - 1150 PK Points
+PK Level 27 - 1225 PK Points
+PK Level 28 - 1300 PK Points
+PK Level 29 - 1375 PK Points
+
+PK Rank 4
+PK Level 30 - 1450 PK Points
+PK Level 31 - 1550 PK Points
+PK Level 32 - 1650 PK Points
+PK Level 33 - 1750 PK Points
+PK Level 34 - 1850 PK Points
+PK Level 35 - 1950 PK Points
+PK Level 36 - 2050 PK Points
+PK Level 37 - 2150 PK Points
+PK Level 38 - 2250 PK Points
+PK Level 39 - 2350 PK Points
+
+PK Rank 5
+PK Level 40 - 2450 PK Points
+PK Level 41 - 2600 PK Points
+PK Level 42 - 2750 PK Points
+PK Level 43 - 2900 PK Points
+PK Level 44 - 3050 PK Points
+PK Level 45 - 3200 PK Points
+PK Level 46 - 3350 PK Points
+PK Level 47 - 3500 PK Points
+PK Level 48 - 3650 PK Points
+PK Level 49 - 3800 PK Points
+
+PK Rank 6
+PK Level 50 - 3950 PK Points
+PK Level 51 - 4150 PK Points
+PK Level 52 - 4350 PK Points
+PK Level 53 - 4550 PK Points
+PK Level 54 - 4750 PK Points
+PK Level 55 - 4950 PK Points
+PK Level 56 - 5150 PK Points
+PK Level 57 - 5350 PK Points
+PK Level 58 - 5550 PK Points
+PK Level 59 - 5750 PK Points
+
+PK Rank 7
+PK Level 60 - 6000 PK Points
+PK Level 61 - 6500 PK Points
+PK Level 62 - 7000 PK Points
+PK Level 63 - 7500 PK Points
+PK Level 64 - 8000 PK Points
+PK Level 65 - 8500 PK Points
+PK Level 66 - 9000 PK Points
+PK Level 67 - 9500 PK Points
+PK Level 68 - 10000 PK Points
+PK Level 69 - 10500 PK Points
+
+PK Rank 8
+PK Level 70 - 11000 PK Points
+PK Level 71 - 12000 PK Points
+PK Level 72 - 13000 PK Points
+PK Level 73 - 14000 PK Points
+PK Level 74 - 15000 PK Points
+PK Level 75 - 16000 PK Points
+PK Level 76 - 17000 PK Points
+PK Level 77 - 18000 PK Points
+PK Level 78 - 19000 PK Points
+PK Level 79 - 20000 PK Points
+
+PK Rank 9
+PK Level 80 - 22000 PK Points
+PK Level 81 - 24000 PK Points
+PK Level 82 - 26000 PK Points
+PK Level 83 - 28000 PK Points
+PK Level 84 - 30000 PK Points
+PK Level 85 - 32000 PK Points
+PK Level 86 - 34000 PK Points
+PK Level 87 - 36000 PK Points
+PK Level 88 - 38000 PK Points
+PK Level 89 - 40000 PK Points
+
+PK Rank 10
+PK Level 90 - 45000 PK Points
+PK Level 91 - 50000 PK Points
+PK Level 92 - 55000 PK Points
+PK Level 93 - 60000 PK Points
+PK Level 94 - 65000 PK Points
+PK Level 95 - 70000 PK Points
+PK Level 96 - 75000 PK Points
+PK Level 97 - 80000 PK Points
+PK Level 98 - 85000 PK Points
+PK Level 99 - 90000 PK Points
+
+PK Rank OMG
+PK Level 100 - 100000 PK Points
+
+Updated:  08.19.2023

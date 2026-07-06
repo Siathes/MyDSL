@@ -1,0 +1,8 @@
+DARKNESS
+DARKNESS
+
+Syntax: cast 'darkness'
+
+Casting darkness in a room plunges everybody in that room into a sphere of
+darkness.  The sphere will stay with the people in the room for a limited
+time, even if they go their separate ways.

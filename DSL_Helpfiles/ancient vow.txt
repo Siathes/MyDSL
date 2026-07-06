@@ -1,0 +1,14 @@
+ANCIENT VOW
+
+Syntax: cast 'ancient vow' <clan name>
+
+This spell allows the battlemage to call upon a group of undead sentinels to
+aid the caster against any specific clan.  While they are highly fragile
+against attack, they are powerful in delivering their own.
+
+Groups containing this spell: Battlemagic
+
+
+SEE ALSO:  BATTLEMAGE, BATTLEMAGIC
+
+Updated 03.21.2021

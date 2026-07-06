@@ -1,0 +1,7 @@
+double parry
+DOUBLE PARRY
+
+Passive Skill
+
+A pirate who wields a sword has a chance to return an extra hit upon
+successfully parrying an opponent's attack.

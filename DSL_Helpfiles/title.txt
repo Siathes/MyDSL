@@ -1,0 +1,12 @@
+TITLE
+TITLE
+
+Syntax: title <string>
+
+Sets your title to a given string.
+
+The game supplies a title when your character is created.  This is what is
+seen beside your name on the wholist.
+
+You can use TITLE to set your title to something else.  Please remember that
+titles should be IC (In Character) at ALL times.

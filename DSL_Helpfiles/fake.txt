@@ -1,0 +1,9 @@
+FAKE
+FAKE
+
+A useful trick that charlatans have available to them is the ability to
+'fake out' an opponent.  In this manner, a charlatan, at times, may attempt
+to fool an opponent into believing that they are casting a spell, or using a
+skill, that they may not actually have available to them.
+
+See also : Help Charlatan

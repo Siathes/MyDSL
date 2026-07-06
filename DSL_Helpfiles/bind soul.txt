@@ -1,0 +1,7 @@
+bind soul
+Syntax: c 'bind soul' <target>
+
+Bind soul is a curious priest spell in that in landing, it may have one, or
+multiple affects of which the priest has no choice in.  It is said that it
+can make a warrior less sure with his/her sword, weaker on the attack and/or
+much slower than usual.

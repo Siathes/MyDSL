@@ -1,0 +1,20 @@
+CRUSADERS 'CRUSADER BASICS' 'CRUSADER DEFAULT'
+Crusaders are fanatics of their religions.  They believe in purifying the
+world through combat.  They believe that they are the righteous and all
+others are the wicked.  Crusaders are a cleric-only reclass, available to
+all.  Crusaders are combat-oriented, receiving a number of warrior skills,
+such as dual wield, as well as better hit point gains, and slightly worse
+mana gains.  Crusaders lose access to a few cleric groups, such as Attack
+and Elemental.
+
+Who can be a Crusader?
+
+CLASS:  CLERIC only
+
+RACE:  Any EXCEPT Leonine
+
+ALIGNMENT:  ANY
+
+CLAN:  ANY
+
+see also: 'RECLASS'

@@ -1,0 +1,8 @@
+SEQUESTOR
+SEQUESTOR
+
+Syntax: cast 'sequestor' <object>
+
+The spell of sequestor allows an enchantor to magically hide and make
+objects invisible to other forms of magic.  This spell, however, can only be
+cast from time to time, as the strain on the enchantor is very intense.

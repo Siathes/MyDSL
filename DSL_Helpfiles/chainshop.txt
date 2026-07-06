@@ -1,0 +1,44 @@
+CHAINSHOP
+CHAINSHOP
+
+Directions to the chain mail shops in the realm -
+
+Chain Mail    Verminasia    (8 - 15)
+
+Guillotine Square from Arkania Dock
+-    14e,12n,open e,e,10n
+Dark Forge Armory from Guillotine Square
+-    n,e
+
+Chain Mail    Ganth    (18 - 24)
+
+Icewall Dock to Ganth Entrance
+-    5n,w
+RuKaarg's Armory from the Ganth Entrance
+-    n,w
+
+Chain Mail    Shalonesti    (28 - 34)
+
+Althainia Market Square to Shalonesti Gates
+-    3e,4n,2w,7n,e,n,nw,2n,7w
+Althainia Dock to Shalonesti Gates
+-    w,2s,27w,nw,2n,2w,5n,e,n,nw,2n,7w
+Fallen Branch Armory from the Shalonesti Gates
+-    2n,e
+
+Chain Mail    Thaxanos    (38 - 44)
+
+Althainia Market Square to Thaxanos Gates
+-    3e,4n,2w,8n,u,n,ne,3nw,w,2n
+Althainia Dock to Thaxanos Gates
+-    w,2s,27w,nw,2n,2w,6n,u,n,ne,3nw,w,2n
+Axe Bent Armory from the Thaxanos Gates
+-    2w,n,e
+Chain Mail    Verminasia    (48 - 51)
+
+Guillotine Square from Arkania Dock
+-    14e,12n,open e,e,10n
+Raije & Fury Metal Works from Guillotine Square
+-    5w,s,e
+
+See also - HELP ARMOR SHOPS

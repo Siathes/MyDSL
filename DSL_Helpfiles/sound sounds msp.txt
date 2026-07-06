@@ -1,0 +1,16 @@
+SOUND SOUNDS MSP
+SOUND SOUNDS MSP
+Toggles Sounds On and Off.
+To use sounds you must have an MSP compatible client.  (zMud v4.  62, for
+Windows is available from the DSL website), and you need to download the
+sound files from our website at http://www.dsl-mud.org/
+Next you need to make a sound directory under your zMud directory (sound
+would be a good choice, I.  E.  C:\zMud32\sound).  Next, you need to
+configure zMud to look in that directory for the sounds.  (Click on view-->
+preferences--> directories) Now click the Radio Button marked other (Located
+in the file locations frame) Now, put in your path for the sounds
+directory..  I.  E c:\zMud32\sound Now, Click on the sounds button, then
+click on the MSP tab, click the radio button marked Enable Mud Sound
+Protocol.  That's it!  You are now ready to hear the sounds!  Please keep
+watch for new sounds that we add.  (We'll post messages in the news and
+notes when you need to download new sounds)

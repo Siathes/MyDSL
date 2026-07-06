@@ -1,0 +1,29 @@
+'NECROMANCY SPELLS'
+'NECROMANCY SPELLS'
+
+The necromancy school of magic consists of all spells dealing with death,
+the dead, and the undead.  It not a study of how to kill, merely what to do
+with the powers surrounding the termination of life.
+
+More information on individual spells may be found by typing help
+(spellname).  The necromancy spell group consists of the following spells:
+
+embalm             mummifies corpses and body parts
+locate remains     locates the corpse of player or mob
+graft flesh        grafts multiple corpse parts into an animated beast
+corpse host        caster becomes hosted in the corpse of an undead body
+death shroud       extremely powerful protection spell
+empath             transfers the wounds of someone else onto the caster
+feign death        caster assumes the appearance of a corpse
+scourge            a lethal disease....permanent until cured or death occurs
+bone blight        a disease inflicting a weakness apon the target's bones
+shadowform         caster become undetectable in all but brightest light
+animate dead       raises a corpse into an undead servant of varying power
+detect undead      detects the presence of undead creatures
+energy drain       drains mana and movement from target
+withstand death    caster is able to withstand death
+
+This group is available to the following classes -
+    NECROMANCER
+
+See also - ANATOMY HARVEST NECROMANCER

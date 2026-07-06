@@ -1,0 +1,14 @@
+'BETS'
+You can now bet on clan wars matches by traveling to Verminasia (sin city)
+and seeking out a guy named Mario.  He will handle your betting needs.
+Bets must be between 1 egg and 5 eggs.  Wins get you a x5 return, meaning if
+you bet 5 eggs and win, you'll get a 25 egg return, a 400% profit.  You must
+bet on all 4 matches before 9pm system time the day of the 1st match of the
+week.  You may only place one bet per character.
+
+Syntax: Bet <#eggs> <clan#1> <clan#2> <clan#3> <clan#4>
+
+You can only place one bet per week (so if you screw up, we'll count your
+last one) and there will never be any refunds for mistakes made.
+
+(See help schedule and help cwars)

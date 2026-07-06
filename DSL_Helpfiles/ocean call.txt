@@ -1,0 +1,13 @@
+'OCEAN CALL'
+OCEAN CALL
+
+Syntax:  Ocean
+
+Legends tell of the close ties between the ocean and those close to it.  A
+swashbuckler can call to the ocean for aid in providing him transportation.
+Perhaps it will answer ....
+
+Groups containing this skill:  Swashbuckler
+
+
+SEE ALSO:  SWASHBUCKLER

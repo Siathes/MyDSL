@@ -1,0 +1,18 @@
+'CURATIVE SPELLS'
+
+The curative spells are used to heal various unpleasant conditions that can
+befall an adventurer.   For healing of damage, see the healing spell group.
+Curative spells cannot be used by mages or thieves.
+
+More information on individual spells may be found by typing help (spellname).
+The curative spell group consists of the following spells:
+
+cure blindness  restores sight to the blind
+cure disease    heals the plague
+cure poison     removes the harmful effects of poison
+cure fatigue    restores vitality to the affected individual
+cure bugbite    removes the toxic effects of the bugbear bite
+
+This group is available to the following classes -
+    BATTLERAGER CLERIC CRUSADER DRAGON DRUID GIANT
+    PALADIN PRIEST SHADOWKNIGHT RANGER SHAMAN WARRIOR

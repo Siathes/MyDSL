@@ -1,0 +1,7 @@
+bloodthirst
+BLOODTHIRST
+
+Passive Skill
+
+When pirates group together, especially those with a higher reputation, the
+damage they can cause is greatly increased.

@@ -1,0 +1,38 @@
+'ARMOR CLASS'
+ARMOR CLASS
+
+Armor Class is a measure of how well you are protected from various types of
+attacks.  Lower (more negative) numbers indicate that you are better
+protected from attack, though you won't see numerical values for your armor
+class until you reach a certain level.
+
+Each character has 4 armor classes which relate to how well he/she is
+protected against: Bashing, Slashing, Piercing, and Magical attacks.
+
+The following classes of armor are restricted to the following classes:
+
+Cloth:
+
+Mage, Illusionist, Enchantor, Priest, Necromancer, Invoker, Transmuter,
+Monk, Runesmith, Eldritch, Battlemage, Shadowmage, WuJen
+
+Leather:
+
+Jongleur, Witch/Warlock, Shaman, Druid, Cleric, Nightshade, Pirate,
+Confessor, Ninja
+
+Studded Leather:
+
+Ranger, Swashbuckler, Assassin, Charlatan, Thief, Bard, Bandit,
+Brewmaster
+
+Chain Mail:
+
+Crusader, Bladesinger, Anti-Paladin, Skald, Shukenja
+
+Plate Mail:
+
+Warrior, Barbarian, Battlerager, Shadow Knight, Paladin, Dragon Slayer,
+Samurai
+
+SEE ALSO:  CLASS, RECLASS

@@ -1,0 +1,18 @@
+RANGERS 'RANGER BASICS' 'RANGER DEFAULT'
+Master woodsmen, and often solitary wanderers, the rangers of the
+realm are a quiet and mysterious lot.  They harness the powers of nature
+through their innate affinity with the forests, and have access to a small
+sphere of nature spells.  Rangers are limited to warriors and thieves,
+but have no clan limitations.  Only humans, elves, and hill dwarves may
+become rangers.  Rangers share some skills with assassins, including the
+ability to remain unseen.  Rangers have good hit points, and an average THAC0.
+They get warrior-level mana gains, but are more skilled than the average
+warrior.  Rangers may use the 'dual wield' skill with any combination of
+weapons, even those with the same weight, though they must pay for this skill
+with creation points.
+Who can be a Ranger?
+CLASS:     WARRIORS only
+RACE:      HUMANS, ELVES CEPT SEA, HILL DWARVES, YINN, AND HALF OGRES
+ALIGNMENT: Any alignment
+CLAN:      ANY, including non-clanned
+see also: 'RECLASS'

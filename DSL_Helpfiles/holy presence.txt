@@ -1,0 +1,5 @@
+holy presence
+Syntax: c 'holy presence' <target>
+
+A priest can bestow a holy presence upon a worthy individual which helps to
+protect that person from physical harm.

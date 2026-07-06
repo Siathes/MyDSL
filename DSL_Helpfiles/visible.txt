@@ -1,0 +1,4 @@
+VISIBLE
+VISIBLE
+VISIBLE cancels your hiding and sneaking, as well as any invisibility,
+making you visible again.

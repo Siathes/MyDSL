@@ -1,0 +1,13 @@
+ALCHEMY
+ALCHEMY
+
+The alchemist attempts to change one thing to another, and when applied
+to magical potions, he is able to modify the very tendrils of magic emanating
+from the potion, to suit his own ends.  Of course, the alchemist must be
+quite familiar with the spell he wishes to place upon a potion, and some
+spells are simply incapable of having such a feat performed upon them.
+When one wishes to change a potion to another, they must hold the initial
+potion to be changed.  The more potent the original potion, the more potent
+the resulting one.
+
+Syntax: Alchemy <spellname>

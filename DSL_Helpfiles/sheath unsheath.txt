@@ -1,0 +1,10 @@
+SHEATH UNSHEATH
+Syntax:  sheath <weapon>
+         unsheath <weapon>
+Sheath allows you to carry a spare weapon in a 'sheath'.  You are so
+familiar with the location of the sheath, that you can even access it while
+blinded.
+Wield <weapon> will take a weapon from the sheath or your inventory, and wield
+it as a primary weapon.
+Second <weapon> will take a weapon from your sheath or inventory, and wield it
+as a secondary weapon (if you have dual wield).

@@ -1,0 +1,33 @@
+MERIT FLAW 'MERIT LEVEL'
+
+Characters can elect to receive a merit or a flaw at the end of their
+creation period.  Choosing a merit or flaw will add or deduct creation
+points from your character at the time of creation.
+
+If you choose a specific merit, it will add 10 creation points to your
+character.  If you choose to take a random merit, it will add 8 creation
+points to your character.  If you choose to take a specific flaw, it will
+subtract 3 creation points from your character.  If you choose to take a
+random flaw, it will subtract 5 creation points from your character.
+
+PLEASE NOTE - Certain flaws have a DRASTIC effect on your character's
+abilities.  An example is the mute flaw.  If you are mute, you CAN'T talk,
+which means you can't cast spells, send tells, and potential other things.
+
+Characters that have not chosen a merit or flaw at creation can choose to
+'quest' for a merit level once they have completed their training.  You can
+only quest for a merit.  You cannot quest for a flaw.  This is called
+questing for a 'merit level'.
+
+To begin work on a merit level, go to your guildmaster and type 'merit'.
+You will now have a notification in your score that you have 30000
+experience points to achieve before you receive your merit (understand, the
+merit is completely random).
+
+You will find that you get much less experience per kill for a merit level
+than for a regular level.  If you reclass, you will not be able to continue
+gathering experience for a merit level until you have again reached level
+51.  Also, if you die while working toward your merit level, you will lose
+ALL experience gained toward that merit level.
+
+See also - PROMPT

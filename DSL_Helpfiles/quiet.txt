@@ -1,0 +1,8 @@
+QUIET
+QUIET
+Syntax:  quiet
+The QUIET command, toggles all of the public channels on or off at one time.
+This is useful for having private conversations in which you wish to hear
+only things said or emoted by characters in the room you are in.
+Channels affected by going quiet include:  GOSSIP, CLAN GOSSIP, OOC, MUSIC,
+QUEST

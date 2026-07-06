@@ -1,0 +1,9 @@
+'PROTECTION GOOD' 'PROTECTION EVIL' 'PROTECTION NEUTRAL'
+'PROTECTION GOOD' 'PROTECTION EVIL' 'PROTECTION NEUTRAL'
+Syntax: cast 'protection evil'
+        cast 'protection good'
+          cast 'protection neutral'
+The protection spells reduce damage taken from attackers of the appropriate
+ethos, and improve saving throws against all forms of magic. They may not
+be cast on others, and one person cannot carry both defenses at the same
+time.

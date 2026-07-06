@@ -1,0 +1,32 @@
+CLAN LEADER COMMANDS
+The following commands are for all Clan Leaders.
+
+War - Allows the clan leader to declare war on another clan.
+Syntax war <clan name>
+
+Toggleooc - Allows a clan leader to toggle oclan on and off.
+Syntax toggleooc
+
+Treaty - Allows a clan leader to declare peace with another clan.
+Both clans must declare peace for this to work.
+One leader must invite the other. Then the invited leader types the following
+Syntax treaty <leader name>
+
+Rank - Allows a clan leader to set the rank on a clan member. Also works to
+set leader ranks, but cannot demote leaders.
+Syntax: rank <character name> <rank name>
+
+Exile - Allows a clan leader to exile a memer of their clan.
+Syntax exile <character name>
+Note that to un-exile them, the leader just uses the same Syntax again,
+to toggle it.
+
+Renegade - Allows a clan leader to renegade another clan member.
+Syntax: renegade <character name>
+
+Cmotd - Shows the clan's current Cmotd.
+Syntax - Cmotd edit (to edit the cmotd)
+
+Reclass - Allows a clan leader to reclass specified person to a specified
+reclass.
+Syntax - reclass <person> <reclass>

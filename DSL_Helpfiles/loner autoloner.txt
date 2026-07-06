@@ -1,0 +1,22 @@
+LONER AUTOLONER
+{YLONER{x
+
+[ Loner ]
+
+Loners are part of the clan system, able to kill and steal from other
+players, but have not decided to make close associations with an organized
+clan.  Loners can go loner for free from levels 5 - 25 but must have a
+voucher (which can be purchased) to clan after level 25.  Loners have no
+safehavens, unless they were wealthy enough to purchase a private home.  If
+one wishes to go loner, they can do so by finding the nearest trainer and
+seeking his aid in doing so:
+
+{rNOTE:{x} All characters MUST have an adequate description before they loner,
+regardless of level.
+
+{cSyntax:{x Loner <your name>
+
+
+{DSEE ALSO:{x VOUCHERS, CLANS, KINGDOMS, SUPERVOUCHERS
+
+Updated 06.22.2022

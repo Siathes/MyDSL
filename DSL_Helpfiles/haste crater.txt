@@ -1,0 +1,11 @@
+HASTE CRATER
+
+Syntax:  cast 'haste crater' <target>
+
+This spell, when cast successfully, allows the Eldritch to slow their
+victims attack, decreasing the number of attacks per round the target
+can make. Though it differs slightly from the slow spellbook, it also
+allows the  caster to take advantage of the slowed movement of their
+victim, making them easier to hit.
+
+Groups containing this spell: ELDRITCH

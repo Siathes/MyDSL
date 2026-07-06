@@ -1,0 +1,39 @@
+SCRIPTING TRIGGERS
+Scripting or running triggers is a series of programmed instructions that
+is interpreted and carried out by the game rather than the player.  They can
+be as simplistic as an eat/drink/anti-void trigger or they can be as complex
+as a full leveling script.
+
+You are allowed to run triggers or scripts as long as you are at your
+keyboard AND attentive to the game.  This does not mean just to the imm
+staff but to the entire game and the other people that may be trying to
+interact with you.  If you are found to be away from your keyboard (AFK) for
+a length of time and have any script or trigger running, EVEN IF YOU HAVE
+THE AFK FLAG UP or you are found to not be paying attention to the game
+after many attempts to get your attention have been ignored (and yes, that
+includes you ignoring just to be an ass) you can and most likely will be
+penalized.
+
+Even the most basic trigger/script penalties are deliberately harsh to
+discourage players from scripting as certain in game rewards evolve around
+hours played.  The penalty may vary depending on the severity of the
+incident though typically they will involve removal of hours as well as
+other impacts to your character.  The more grevious offenses are outlined
+below, will result in either a character dork or denial.  We also reserve
+the right for imms to totally jack up your leveling scripts and send you to
+your deaths.
+
+If you are running a questing or leveling script and unresponsive - DENIAL
+
+If you are script farming for gear, money or items for money - DENIAL
+
+If you are craft scripting and unresponsive (1st offense) - CRAFT SKILL SET
+TO 0
+
+If you are craft scripting and unresponsive (2nd offense) - DORK
+
+If you are penalized and wish to appeal your penalty, please send an email
+of explanation to scorn@dsl-mud.  Org and to kyri@dsl-mud.  Org.  Be sure to
+include the name of the character and DSL in the subject line.
+
+Also see HELP RULES

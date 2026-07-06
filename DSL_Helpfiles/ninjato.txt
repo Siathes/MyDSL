@@ -1,0 +1,14 @@
+NINJATO
+{YNINJATO{x
+
+{cSyntax:{x Passive Skill
+
+The path of a ninja is a dedicated one, focused upon the nuances of their
+trade.  One of the primary tools of a ninja is the sword, a weapon that they
+train to wield with singular intensity.  When wielding a single sword, a
+ninja can seize opportunities in the heat of battle to make additional
+attacks, taking advantage of every opening to slay their foe.  This is a
+passive skill, born of diligent training and keen awareness.
+
+
+{DSEE ALSO:{x  NINJA

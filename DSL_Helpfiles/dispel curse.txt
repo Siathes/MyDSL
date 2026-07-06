@@ -1,0 +1,5 @@
+dispel curse
+Syntax: c 'dispel curse' <object>
+
+Dispel curse allows the priest to permenatly remove a curse from a given
+object.

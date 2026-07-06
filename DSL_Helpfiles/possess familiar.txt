@@ -1,0 +1,16 @@
+POSSESS FAMILIAR
+POSSESS FAMILIAR
+
+Syntax: cast 'possess familiar' cat
+        cast 'possess familiar' raven
+        incorporate
+
+This spell allows a witch or a warlock to take control of their pet,
+inhabiting its body and seeing through its eyes.  While possessing a
+familiar the caster is free to roam, but must take care that their actual
+body not be damaged while left unattended.
+
+Naturally, the witch or warlock must have a familiar already for this spell
+to work.
+
+See also - WITCHCRAFT

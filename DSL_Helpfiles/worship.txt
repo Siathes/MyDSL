@@ -1,0 +1,15 @@
+WORSHIP
+'WORSHIP SPELLS'
+
+The worship spell group is meant only for those of clerical types.  The
+spells contained within are used by those zealots that wish to display their
+own views of their gods.
+
+More information on individual spells may be found by typing help
+(spellname).  The worship spell group consists of the following spells:
+
+crucify                 creates a crucifix and applies the corpse to it
+holy steed              creates a steed blessed by the gods
+
+This group is available to the following classes -
+    CLERICS CRUSADERS DRAGONS PALADINS

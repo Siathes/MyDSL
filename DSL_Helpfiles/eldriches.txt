@@ -1,0 +1,22 @@
+ELDRITCHES
+
+With the impending threat of Chaos and the coming Wars, Zandreya bestowed
+upon her chosen race the teachings needed to defend themselves against the
+incoming onslaught.  It was through this cultivation that the Eldritch came
+to be.  Borrowing a handful of spellbooks from both the cleric and the mage,
+they are able to cast debilitating maledictions as well as summon
+mountainous beasts.
+
+Once fully trained in the basic arts, the Eldritch is able to choose from
+one of three exclusive paths, the sun, the moon or the stars in which they
+can draw energy from in order to inflict a more focused and powerful magic
+upon their enemy.  Only after an abundance of time and mass training through
+loyalty and dedication, may the Eldritch be able to seek a second path.
+
+Who can be an Eldritch?
+
+CLASS:     Any class
+RACE:      Elves only
+ALIGNMENT: Any alignment
+CLAN:      SHALONESTI only
+See also:  RECLASS WAY ELDRITCH STAFF 'SHALONESTI'

@@ -1,0 +1,21 @@
+DIRECTIONS NORTH SOUTH EAST WEST UP DOWN NORTHEAST NORTHWEST SOUTHEAST SOUTHWEST
+DIRECTIONS
+
+Syntax: North  or  N          Syntax: Northeast   or   NE
+Syntax: South  or  S          Syntax: Northwest   or   NW
+Syntax: East   or  E          Syntax: Southeast   or   SE
+Syntax: West   or  W          Syntax: Southwest   or   SW
+Syntax: Up     or  U
+Syntax: Down   or  D
+
+Use these commands to walk in a particular direction.  If you see an exit
+but the mud will not allow you to walk in that direction there are many
+possible reasons.  Some of the reasons include: you're exhausted (out of
+movement), you can't fly or swim, you don't have permission to enter the
+room in that direction (it's a clan hall and you're not a member, or it might
+be a privately owned home), the room may be restricted to certain races or
+levels of characters, or the entrance might be to small for you to squeeze
+through with all your gear.
+
+
+SEE ALSO:  MOVEMENT, NEWBIE

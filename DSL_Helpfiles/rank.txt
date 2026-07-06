@@ -1,0 +1,9 @@
+RANK
+RANK
+Syntax:  rank <character name> <rank name>
+This command may be used by those characters who are ranked as leaders of a
+clan.  The following conditions must be met for this command to work:
+    +  The character issuing the command must be ranked as a leader
+    +  The character to be ranked must be a member of the leader's clan
+    +  The rank name must be on the list of approved rank names for the clan
+See also:  WHOC CLANS

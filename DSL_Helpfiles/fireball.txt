@@ -1,0 +1,14 @@
+'FIREBALL'
+'FIREBALL'
+
+Syntax: cast 'fireball' <direction> <target>
+        cast 'fireball' <target>
+
+The first of the truly offensive combat spells, the fireball can deal
+massive damage against an opponent, and is particularly effective against
+those that are vulnerable to flame.
+
+Additionally, it is the first of the combat spells that a caster may cast
+across a distance, allowing foes at farther ranges to be affected.
+
+See also - COMBAT

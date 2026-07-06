@@ -1,0 +1,13 @@
+pistol ignite
+PISTOL IGNITE
+
+Syntax: ignite <target>
+
+A pirate must have powder and pistol balls to fire a pistol at his or her
+opponent. To use the pistol,the pirate must first 'put powder pistol' then
+'put ball pistol'. The pistol must then be wielded before the pirate can ignite.
+
+If a pistol is misloaded, the ammunition will be consumed and the pirate may
+take damage. The pistol may also be destroyed. If the pirate attempts to switch
+to a weapon before the pistol fully ignites, the ammunition will be consumed
+and the pirate may take damage.

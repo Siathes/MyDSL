@@ -1,0 +1,8 @@
+QUESTOPTIONS
+You can use this command to review what your options are for answers one
+of the mobiles may have asked you.  The QUESTINFO command will give you the
+title for each quest you have.
+
+Syntax: questoptions <quest title>
+
+See also: QUESTINFO

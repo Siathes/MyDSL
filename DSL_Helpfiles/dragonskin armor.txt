@@ -1,0 +1,38 @@
+DRAGONSKIN ARMOR
+DRAGONSKIN ARMOR
+
+Legendary Grand Master Armorcrafters and Tailors are able to craft any
+kind of armor from a dragonskin.  In addition to superb armor class this
+armor also retains some of its increased affectiveness against certain types
+of attacks.  Note that one piece of armor will not protecte your entire
+body.  It will only give the additional damage resistance for the body part
+that it protects.  When choosing dragon armor it is important to remember
+that some armor obviously gets hit more often.
+
+Metallic Skin Resists
+--------------------
+Gold     - Fire, Poison
+Silver   - Cold
+Copper   - Acid
+Bronze   - Lightning
+Brass    - Charm, Fire
+Steel    - Physical
+
+Chromatic Skin Resists
+--------------------
+Red      - Fire
+Blue     - Lightning
+Green    - Poison
+Black    - Acid
+White    - Cold
+Brown    - Fire
+
+Gem Skin Resists
+--------------------
+Crystal  - Light/Harm
+Topaz    - Drain
+
+
+SEE ALSO:  ARMORCRAFTING, CRAFTING, DRAGONS, TAILORING
+
+Updated 07.30.2025

@@ -1,0 +1,4 @@
+'PASS DOOR'
+'PASS DOOR'
+Syntax: cast 'pass door'
+This spell enables the caster to pass through closed doors.

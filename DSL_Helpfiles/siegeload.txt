@@ -1,0 +1,18 @@
+siegeload
+SIEGELOAD
+
+Siegeload will allow you to load your weapon with ammunition that has either been
+crafted or purchased in several stores around Algoron. Each weapon type has a
+specific type of ammunition it will accept -- and it will only accept this type.
+
+It has been rumored that some types will cause more damage or other interesting
+affects when used.
+
+Syntax for command:
+siegeload <weapon> <ammunition>
+Example: siegeload cannon 'flaming ball'
+Example: siegeload catapult 'granite rock'
+
+Once a siege weapon has been loaded, it will have a (LOADED) flag next to it.
+
+See also: SIEGECRAFT, SIEGEAIM, SIEGEFIRE

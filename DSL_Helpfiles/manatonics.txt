@@ -1,0 +1,9 @@
+MANATONICS
+MANATONICS
+Manatonics are characters with very advanced mental abilities.  Every
+character has a very slight chance of being given these abilities
+when they create, but no one can tell until the character reaches a
+much higher level whether or not these abilities will be developed
+into full manatonicism.
+
+commands:  power, telepath and mdrop

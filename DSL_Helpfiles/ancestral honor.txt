@@ -1,0 +1,8 @@
+ANCESTRAL HONOR
+
+Syntax: cast 'ancestral honor' <character>
+
+The shukenja calls upon their ancestral spirits for extra protection.  They
+may share this protection to their allies as well to bolster their armor.
+
+Groups containing this skill: SHUKENJA

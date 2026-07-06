@@ -1,0 +1,4 @@
+pugil
+Using a staff, the attempt is made to do a quick combination hit with
+alternate ends of the staff.  The is done with a quick punching movement
+from each hand.

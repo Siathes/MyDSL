@@ -1,0 +1,36 @@
+  -----------------------------------------------------------------------
+
+        Recommended Skills and Spells
+
+    There are several spellgroups and skills that are worth taking on any
+      character. Here is a brief overview on these skills.
+    As a melee class, it is imperative that you take Second and Third
+      Attack, Dual Wield, and Enhanced Damage. As a casting class, these
+      skills wane in usefulness.
+    Mage classes must take Combat and Beguiling spells. They don't hit
+      very well, so they rely on charmed monsters and combat spells to do
+      damage for them.
+    Bards need to take Pugil, Second Attack, and Enhanced Damage in
+      conjunction with War Hymns and Hymns of Life. These are all supplied
+      in Bard Default, so just take that.
+    All classes should take Dodge and Parry. Shield block is equally
+      useful, but is not required if you are a melee class who plans on
+      dual wielding.
+    The Protective spellgroup is a necessity. Luckily, most classes have
+      access to it. It provides the sanctuary spell and also protection
+      vs. alignment.
+    The Enhancement spellgroups offers the Haste spell, which is
+      incredibly useful for melee classes. For mages, transmuters, and
+      enchantors, it provides the Water Breath spell. Not as necessary as
+      Protective, but it'll save you much money in the long run.
+    The Detection spellgroup is a must if it is accessible. Many players
+      have access to invis and sneak, so trying to communicate with
+      people you cannot see will become annoying. Also, there are some
+      MOBs that have invis and sneak.
+    Finally, it is almost always fruitful to take your class's Default
+      group. They provide most of your useful skills and spellgroups for
+      a reduced price.
+
+        Type HELP NEWBIE to return to the table of contents.
+
+  -----------------------------------------------------------------------

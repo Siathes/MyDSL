@@ -1,0 +1,29 @@
+  -----------------------------------------------------------------------
+
+        Shopping and Shop Locations
+
+    If you're at a vendor, you can take a look at his wares by typing
+      list. Buy a listed item by typing buy (item name). You can
+      attempt to sell your items by typing sell (item). If you want
+      to buy multiples of an item, you can type buy #*(item). So if
+      you wanted to buy 20 pot pies, type buy 20*pie.
+
+    All of these directions are from Althainia recall. Keep in mind there
+      are many shops in Algoron, but these are a key few that will be
+      helpful for now.
+        Bakery - 2s, w, n
+        Grunting Boar - s, 2e
+        General Store - 2s, e, n
+        Armorsmith - 2s, w, s
+        Weaponsmith - 2s, 2e, n
+        Leather Shop - 3s, 2w, n
+        Magic Shop - 2s, 2w, n
+        Myth and Magic - 2s, 3w, 1n, w
+        Blue Pixie Stable - 2s, 3e, s, e, n
+        Mercenaries - 3s, 2e, n
+        Melancholy's Maps - 3s, w, n
+
+        Type HELP NEWBIE to return to the table of contents.
+
+  -----------------------------------------------------------------------
+

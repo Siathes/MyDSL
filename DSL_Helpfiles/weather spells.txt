@@ -1,0 +1,6 @@
+WEAKEN
+WEAKEN
+Syntax: cast weaken <victim>
+The weaken spell reduces the physical power of the caster's target by
+reducing his strength.  The amount of the strength reduced by a caster
+depends on the level of the caster.

@@ -1,0 +1,13 @@
+KAKUTE
+{YKAKUTE{x
+
+{cSyntax:{x Kakute <target>
+
+Of the many subtle arts of the ninja, prominent among them is the art of
+poisoning.  Ninjas, having learned the poisoner's trade, possess a set of
+poisoned knuckle-rings, which can be used to inject a target with a
+weakening poison that saps the strength of its victim.  This technique is a
+swift one, meant to be used in the heat of battle to gain the upper hand.
+
+
+{DSEE ALSO:{x  NINJA

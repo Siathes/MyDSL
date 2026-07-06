@@ -1,0 +1,33 @@
+BARBARIANS
+BARBARIANS
+
+Barbarian is actually a rather broad generalization, and probably not quite
+accurate in all cases.  Some choose to ignore the teaching of magic and
+learn pure fighting, becoming a true warrior.  However, a large number are
+in fact barbarians - wild, uncivilized, and brutal.
+
+True barbarians have a natural distrust for magic, despising its use, and
+being unable to learn even the simplest of spells.  Instead they turn to
+weaponry, and become exceedingly dangerous with even the most common of
+weapons.  Strangely though, most barbarians find it difficult to resist the
+enhancements that magics from others can provide to them.
+
+Using a variety of unusual techniques, each barbarian has a different method
+of fighting.  Some prefer to wield a shield, and others prefer wielding a
+pair of weapons to deal destruction as quickly as possible.  Some, less
+civilized than most will wield a single hulking weapon, dealing unimaginable
+damage with their powerful swings, often knocking foes to the ground with
+each blow.
+
+The barbarian may be the most skilled master of weapons and fighting
+techniques in the land (although the dwarves would argue their so-called
+Battleragers hold that position, and the elves for their Bladesingers).
+
+Who can be a Barbarian?
+
+CLASS:     WARRIORS ONLY
+RACE:      ALL EXCEPT SHALONESTI ELF, DARK DWARF, TINKER GNOME, KENDER
+ALIGNMENT: ANY
+CLAN:      ANY, including non-clanned
+
+See also - RECLASS

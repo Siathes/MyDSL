@@ -1,0 +1,19 @@
+IMPROVE IMPROVEMENT
+IMPROVE IMPROVEMENT
+
+syntax:    improve <skillname>
+           improve none
+
+The improve command allows you to train your skills and spells after you
+have practiced them.  Normally, you would use this improvement from 75% to
+100% of a skill or spell's ability.  It is possible to improve a skill or
+spell if they are not practiced to 75%, but the improvement rate will be
+much slower than if the skill or spell is already at or beyond 75%.
+
+Skills and spells will continue to improve once you set them no matter what
+you are doing at the time.  They will also improve while you are offline
+(again, at a slower rate).  The overall rate of improvement is based upon
+your intelligence and the difficulty of the skill or spell.
+
+Typing improve by itself will show you what skill or spell you are currently
+training if you are in the process of training one.

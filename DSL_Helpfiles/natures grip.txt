@@ -1,0 +1,11 @@
+natures grip
+NATURES GRIP
+
+Syntax: cast 'natures grip'
+
+The Eldritch's staff is their tool for channelling the power Zandreya has
+bestowed upon them and without it; the Eldritch is rendered almost helpless.
+This spell ensures that the staff is held securely in hand making it more
+difficult for disarming while facing a determined enemy.
+
+Groups containing this spell: ELDRITCH

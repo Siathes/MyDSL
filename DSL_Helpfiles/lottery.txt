@@ -1,0 +1,45 @@
+lottery
+{YLOTTERY{x
+
+{cSyntax:{x Lotto Buy
+
+The Algoron Lottery, started by Randorf Del'nichi, gives anyone willing to
+buy a lottery ticket a chance at becoming a bit richer.
+
+The game is simple.  You purchase a ticket for 1 egg and choose 2 numbers
+between 1 and 100.  Every Tuesday and Saturday at noon system time the
+winning numbers will be drawn.  The winner(s) take home 75% of the jackpot.
+The kingdom(s) in which the winning ticket(s) were bought will get 15% of it
+and I will take 10% for an administration fee.  If there is no winner the
+jackpot rolls to the next drawing.  To clarify if more that one person wins
+the 75% is split.
+
+If you match only one number you will recieve 5 eggs.  This does not affect
+the main pot.
+
+Listed below are the current kingdoms where lottery tickets can be
+purchased.  For kingdoms wishing to purchase a lottery ticket stall, the
+Del'nichi family will extend licensing rights for 100 eggs per stall setup.
+
+{CKingdom Locations -{x
+
+Abaddon - The Abaddon Lottery
+Althainia - The Algoron Lottery Store
+Arkane - The Arkane Lottery Store
+Ganth - The Ganthian Lottery Office
+Marauders - Fort Ironclad Lottery Store
+New Thalos - The New Thalos Lottery Store
+Nordmaar - Nordmaar Lottery Stall
+Shalonesti - The Algoron Lottery Store in the Vallenwood Grove
+Thaxanos - Thaxanos Lottery Office
+Verminasia - Blood Money Lotto Store
+
+To purchase a ticket(s), journey to the kingdom of your choice and speak
+with the vendor located there.  You will need to reach out to kingdom
+officials or residents for locations if you are not familiar with the
+kingdom map.
+
+
+{DSEE ALSO:{x  HELP KINGDOM, HELP PRICING
+
+Updated 11.08.2021

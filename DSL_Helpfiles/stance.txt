@@ -1,0 +1,39 @@
+<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>
+<html>
+ <head>
+  <meta http-equiv='content-type' content='text/html; charset=utf-8'>  <meta name='generator' content='Mudlet MUD Client version: 4.19.1'>
+  <title>Mudlet, main console extract from Dark & Shattered Lands - PNP profile</title>
+  <style type='text/css'>
+   <!-- body { font-family: 'Liberation Mono', 'Courier New', 'Monospace', 'Courier'; font-size: 100%; line-height: 1.125em; white-space: nowrap; color:rgb(255,255,255); background-color:rgb(0,0,0);}
+        span { white-space: pre-wrap; } -->
+  </style>
+  </head>
+  <body><div><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">STANCE</span><br>
+<span style="color: rgb(255,255,0); background: rgb(0,0,0); ">STANCES</span><br>
+<br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">Your fighting stance is the style in which your character fights.  You can choose from</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">offensive, defensive, or normal.  The differences are explained below.</span><br>
+<br>
+<span style="color: rgb(0,128,128); background: rgb(0,0,0); ">Syntax:</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  Norm</span><br>
+<span style="color: rgb(0,128,128); background: rgb(0,0,0); ">Syntax:</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  Off</span><br>
+<span style="color: rgb(0,128,128); background: rgb(0,0,0); ">Syntax:</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  Def</span><br>
+<br>
+<span style="color: rgb(255,255,255); background: rgb(0,0,0); ">Normal:</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  This is your default stance.</span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">     Example:</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">You take a more average combat stance.</span><br>
+<br>
+<span style="color: rgb(255,255,255); background: rgb(0,0,0); ">Offensive:</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  You get a slightly better chance of getting an extra attack every round,</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">and an increased hitroll.  You also suffer a loss in your defensive skills such as dodge</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">and parry.</span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">     Example:</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">You take a more offensive stance.</span><br>
+<br>
+<span style="color: rgb(255,255,255); background: rgb(0,0,0); ">Defensive:</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  You have a slight chance of losing an attack every round and a decreased</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">hitroll.  But your defensive skills such as dodge and parry are increased.</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); "> </span><br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">     Example:</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">You take a more defensive stance.</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); "> </span><br>
+<br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">Updated:  10.30.2023</span><br>
+ </div></body>
+</html>

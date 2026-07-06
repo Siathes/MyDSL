@@ -1,0 +1,6 @@
+NOCANCEL
+NOCANCEL
+Syntax:  nocancel
+This command toggles whether or not you will allow other persons to use the
+cancellation spell on you.
+See also:  CANCELLATION, AUTO

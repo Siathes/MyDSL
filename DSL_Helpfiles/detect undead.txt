@@ -1,0 +1,8 @@
+'DETECT UNDEAD'
+DETECT UNDEAD
+
+A self-explanatory spell, the 'detect undead' spell reveals to the
+Necromancer all undead beings in his vicinity.  This is especially helpful
+in locating vampires, who otherwise can blend in easily with the living.
+
+See also - NECROMANCY NECROMANCER

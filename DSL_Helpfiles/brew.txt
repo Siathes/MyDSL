@@ -1,0 +1,10 @@
+brew
+Brew is the trademark skill of the witch, and entails standing
+around a bubbling cauldron stirring it until a magical potion
+is created.  Witches typically store their potions in eggshell-thin
+gourds which can be either quaffed or tossed. (see 'toss')
+Brewing a potion is not an exact process, and witches are known
+to experiment with a wide variety of materials in their cauldrons
+in order to try and control the resulting potion. Any materials
+within the cauldron are melted during the process, which will only
+work within a special cauldron.

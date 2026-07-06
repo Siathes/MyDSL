@@ -1,0 +1,7 @@
+CONCEALED DAGGER
+
+Passive Skill
+
+Pirates always carry a little extra security. If they are disarmed, they have a
+chance to land one hit with a 'hidden' weapon. You do not need to carry an extra
+dagger for this skill to work.

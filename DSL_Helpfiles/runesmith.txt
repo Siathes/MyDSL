@@ -1,0 +1,23 @@
+runesmith
+All Dwarfs have a strong mistrust towards magic, but this does not mean
+that over the centuries they have not learned how to use it in various ways.
+Although most are unable to cast proper incantations in the form of spells,
+the Dwarfs have mastered the art of endowing everyday items with arcane
+powers by means of magical runes.  Dwarven weaponsmiths and artificers have
+acquired unsurpassed skills when it comes to making magic weapons and
+armour, but the guild of the Runesmiths has brought the use of runes one
+step ahead, for they have managed to channel the power of runic magic into
+runestaffs, allowing them to actually cast spells in a similar way to
+wizards of other races.
+
+This form of magic was given to the Dwarves of Wargar by Cliath, whom was
+severly wounded by Deathmeer the Abhorrant.  Cliath wanted the Dwarves to
+lead the charge against Malachive and the Abhorrants and thus entrusted the
+power of runes to Hill and Mountain Dwarves.  Only clerics of Cliath may
+learn the ways of the Runesmith.
+
+{YCliath does not allow Runesmiths outside of Wargar, with the exception of
+retired Dwarves who restire to Thaxanos.  {x
+
+Who Can Be a Runesmith:  Hill or Mountain Dwarves only
+Must be a follower of Cliath and a Cleric

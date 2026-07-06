@@ -1,0 +1,8 @@
+autoreclass
+Syntax: reclass <your name> <reclass>
+
+An appropriate trainer can reclass you into your next class.  Clan leaders
+that have clan specific reclasses have the ability to reclass their members
+into those classes (example: wargar to battleragers, shalonesti to
+bladesingers, knighthood to paladins, conclave to
+invokers/necromancers/transmuters).

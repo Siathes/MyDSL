@@ -1,0 +1,57 @@
+  -----------------------------------------------------------------------
+
+        Channels and Communication
+
+    Think of channels as chat lines. You can speak to all people with the
+      channel active. You can get a list of channels by typing channels.
+      Type the name of the channel, then your message to speak over that
+      channel. For example, you would type gossip Hello! to say
+      "Hello!" over the gossip channel. You can turn a channel on or off
+      by typing the name of the channel. Be sure to read the rules and
+      know them well before using channels to prevent any trouble.
+
+    Gossip - This channel is for In-Character (IC) conversation. This
+      channel is for role-play (RP), so only speak on it as your character
+      would speak. Before using IC channels, try doing some research on
+      your race and class. This is extended in the roleplay section.
+    CGossip - Clan Gossip is like the gossip channel, but is mainly
+      reserved for clanners. This channel is IC.
+    OOC - This is the Out Of Character channel. You can talk about
+      anything that you, the player, want to talk about. Please use
+      discretion and be tactful when using this channel.
+    Auction - This channel is for auctioning off rare or hard-to-obtain
+      items to other players. This channel is IC, but okay to use OOC
+      stats.
+    Q/A - Use this channel by typing ask and answer. This channel
+      can be IC or OOC, depending on the nature of the question. Use it
+      if you have trouble in the game.
+    Quest - This channel serves various purposes. It can be used for
+      Blood Baths (BB), trivia games, player-run quests, or imm-run
+      quests. This channel can be IC or OOC.
+    Grats - This channel is mostly for congratulations. Just deal your
+      first red-damage attack? Gained a hard level? Finally hit level 51?
+      Won the Nobel Peace Prize? Go ahead, share the joy and grat it.
+      This channel is OOC or IC.
+    Kingdom/Clan - If you are in a kingdom or a clan, use this channel to
+      speak to your fellow kingdomers or clanners. This is an IC channel.
+    OKingdom/OClan - This is the OOC counterpart for Kingdom/Clan.
+    Say - Speak to the people in the same room as you.
+    Yell - Broadcast a message to everyone in the same area as you. Use
+      this channel sparingly as it can be obnoxious.
+    Shout - Shout a message to over a few rooms from where you are.
+    Tell - Send a private message to another player. Type tell (player)
+      (message) to send the message. You can reply to messages sent
+      to you by typing reply (message). Use this for all one-on-one
+      conversations. It's rude to use public channels for private
+      conversations.
+    GTell - Use this to talk to people in your group. Form a group by
+      typing follow (person) and asking them to group you. If someone
+      is following you, type group (person) to put them into your
+      group. The range for groups is 8 levels.
+    Pray - This channel is to contact the immortal staff. Immortals
+      (Imms) are the game operators. Read the rules on when to use this
+      channel.
+
+        Type HELP NEWBIE to return to the table of contents.
+
+  -----------------------------------------------------------------------

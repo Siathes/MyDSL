@@ -1,0 +1,10 @@
+SUMMON YAN LUO
+
+Syntax: cast 'summon yan luo'
+
+Harnessing their command of the spirit world, the shukenja can summon a
+creature known as the Yan Luo.  The deadly spirit enjoys torturing it's
+victims before killing them and fears not the strike of any magical weapon
+or spell.
+
+Groups containing this skill: SHUKENJA

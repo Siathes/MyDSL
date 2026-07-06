@@ -1,0 +1,68 @@
+TEMPLE TEMPLES
+TEMPLE TEMPLES
+
+Temples are buildings a priest can purchase and own and may eventually
+update with the proper priest rank and payment in eggs at the same location.
+The information for each rank, cost and perk by rank is provided below.
+
+When submitting your temple, please include the following:
+
+Full Name of your Priest
+Which God/Goddess you serve
+Name of the Temple (this will appear when you type area)
+Room Descriptions and Layout (if applicable)
+
+Temple requests should be sent via email to cayenna.dsl@gmail.com
+
+
+TEMPLE NAME - MINIMUM PRIEST RANK REQUIREMENT - COST IN EGGS - PERK(S)
+
+Shrine       Deacon - 10 Eggs - 1 Object
+Altar        Priest - 25 Eggs - 1 Room
+Mission      Bishop - 50 Eggs - Regen Room, 3 Rooms
+Temple       Cardinal - 100 Eggs - Regen Room, Healer, 5 Rooms
+Church       Abbott - 200 Eggs - Regen Room, Healer, Stable, 10 Rooms
+Monastery    Monsignor - 350 Eggs - Regen Room, Healer, Stable, Portal, 25 Rooms
+Cathedral    High Priest - 500 Eggs - Regen Room, Healer, Stable, Portal, Private
+             Office, Bell Tower with Ringing Bell, 25 Rooms
+
+-Objects and new buildings must be located in a Kingdom territory and MUST
+ be approved by the kingdom leader and the immortal staff.  Buildings and
+ rooms are limited to one per type per Priest.
+
+-Object cost for temples is 20 eggs each item (same cost as kingdom/clan)
+
+-Extended Description costs are 5 Eggs per extended
+
+-The location approved is final and temples may not be sold but may be
+ passed down to someone of the appropriate rank for the same fee it took to
+ build and upgrade it.
+
+-Shrines are decoration only, but becomes a room when upgraded to an Altar.
+
+-Regen can be upgraded at Kingdom Upgrade costs.
+
+-Only people of the same faith will be able to enter Temples.
+
+-Kingdoms may not demolish temples at this time.  (Future Kingdom Wars
+ feature).
+
+-There is a maximum of 3 mounts permitted with a stable.
+
+-Pits, mobs, progs of any kind are not permitted.
+
+-Giants are not permitted inside of the temples, other remorts are however.
+
+
+COMPOUNDED COST - Does not include objects or extras
+
+Shrine...............10 Eggs (Must be Deacon)
+Altar................35 Eggs (Must be minimum Priest)
+Mission..............85 Eggs (Must be minimum Bishop)
+Temple..............185 Eggs (Must be minimum Cardinal)
+Church..............385 Eggs (Must be minimum Abbott)
+Monestary...........735 Eggs (Must be minimum Monsignor)
+Cathedral..........1235 Eggs (Must be minimum High Priest)
+
+
+SEE ALSO:  PRICES, UPGRADES, HOUSING, RELIGION, GODS, PRIEST, CHURCHES

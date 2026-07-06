@@ -1,0 +1,7 @@
+SCAN
+SCAN
+Syntax:  scan
+Syntax:  scan <dir>
+Players may scan to determine what mobs and players are within one room of
+their current location. If used with a direction it scans a number of rooms
+in the direction.

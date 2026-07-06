@@ -1,0 +1,60 @@
+SPELLCRAFTING
+
+Spellcrafting is a top tier craft like weaponcrafting and armorcrafting
+though this craft is not supported by the lower tiers.  There are a set of
+shops where all items needed for this craft can be purchased.  Spellcrafting
+differs from the other third tied crafts in that you don't actually produce
+an item that can be used on its own. Spellcrafters add affects to items,
+like armor and weapons that have been crafted by other players.
+
+Spellcrafters take raw, uncut gemstones in which to work their craft,
+creating trinkets much like the other crafts to increase their skill levels.
+Once they have mastered working with one material and can create polished
+gems from the uncut rocks, they can fuse an essence to it to give a desired
+effect.  There are some essences that require a crafter to be at a
+certain skill level before they can create that effect as with saves,
+a crafter must reach legendary status and be able to create diamond gems
+before they can add this effect to an item.
+
+Once a crafter has added an essence to a gem, it is ready to be imbued
+or fused into another crafted item. Once gems and essences have been fused
+into an that crafted item, the finished gems are very difficult to remove.
+Additionally, once a spellcrafted begins working on an item, no other
+spellcrafter will be able to add to it nor can one spellcrafter use another
+spellcrafters created gems.
+
+There are eight types of gemstones that a spellcrafter can work with-
+Obsidian, Moon, Opal, Amethyst, Emerald, Sapphire, Ruby and Diamond.
+
+All crafted weapons and armor are able to hold gems within them to give the
+wearer different effects. All crafted equipment has a certain number of
+points and slots available for gems to be imbued. Once the slots of an item
+have been filled it can no longer be modified by spellcrafters. All gems
+take up one slots with the exception of gems of magi which take up two
+slots.
+
+Additionally, crafted items will sometimes be able to endure more points
+that the limit allowed though with one side affect.  The process weakens the
+item and it will from that point on require its owners life force to exist.
+
+        Step 1- Craft Gem Trinket to Raise Skill Levels
+
+                Syntax: craft <skill> <gemname> gemstone
+                Example: craft spellcraft 'amethyst gemstone'
+
+        Step 2- Craft Gem with Essense - Once Skill Level is Achieved
+
+                Syntax: craft <skill> <gemname> gem <essence>
+                Example: craft spellcraft 'amethyst gem pain'
+
+        Step 3- Imbue Essense into Crafted Item - Need Items in Inventory
+
+                Syntax: imbue <essence> <crafted item>
+                Example: imbue pain gossamer
+
+                To check the status of the item
+                Syntax:  imbue status <crafted item>
+
+
+SEE ALSO:
+CRAFT CRAFTING CRAFTLIST GEMS ESSENCES OVERCHARGE

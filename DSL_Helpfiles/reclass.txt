@@ -1,0 +1,90 @@
+RECLASS RECLASSES
+RECLASS RECLASSES
+
+ Reclassing is a somewhat unique option available to all players on DSL. A
+ reclass is simply that: A new class.  Often, adventurers find that they
+ wish to either narrow or broaden their profession.  The mage may wish to
+ focus on necromancy, the warrior may wish to broaden his skills.  To this
+ end, DSL has a number of reclasses.  To see which reclasses your character
+ qualifies for, see the individual help files.
+
+ Some common questions about reclasses:
+  Q. What is the minimum level to reclass?
+  {YA{x. 10.
+  Q. How will reclassing affect my chances of being a manatonic?
+  {YA{x. It has no bearing on your manatonic rolls or potential.
+  Q. What if I already *am* manatonic?  Do I lose it?
+  {YA{x. No, your powers will remain as they are.
+  Q. Do I have to be clanned?
+  {YA{x. That depends on the reclass.  Read up on the one of interest.
+  Q. When is the best time to reclass?
+  {YA{x. You will get the most benefit if you do it at level 51.
+  Q. I've got a neat idea for a new reclass.  Can we try it?
+  {YA{x. Maybe.  Email Scorn at scorn@dsl-mud.org and find out.
+  Q. How many times can I reclass?
+  {YA{x. Just once, so make sure you like what you picked.
+  Q. Can I reclass and remort?
+  {YA{x. Yep.  You may do each once, so long as you reclass first.
+  Q. What happens to my strength and other attributes?
+  {YA{x. They remain unchanged.
+
+ When you reclass, the following things happen:
+  * Your maximum hit points, mana, and moves are halved.
+  * Your level is halved.
+  * Your hours are halved.
+  * Any saved practices and trains are halved, then added to.
+  * You will gain practices:
+       The practices added will vary between 13 and 43 depending on level.
+  * You will be put back into the creation mode, on the skill selection
+    screen.  From here, you may select all new skills and groups for your
+    character.  Depending on the severity of the change, you may find that
+    some of your old skills cannot be re-selected, but new ones may also
+    be available.  You are free to pick and choose whatever is available.
+    Keep in mind that a 3 creation point penalty will applied once you are
+    done, and so your experience per level requirement will increase
+    somewhat when you are done.
+  * Once done, your character will be given his/her new class, and
+    transferred to his/her recall point (home town).
+  * Any skill that you _originally_ had, and took again when you
+    reclassed:
+        + will start at 1% if it's below 75% before you reclass.
+        + will start at your adept level (75% for most) if it's 75% or
+          higher.
+
+ DSL offers the following reclasses:
+
+ WARRIOR
+   Rangers          Barbarians        Swashbucklers        Armsman          Samurai
+ MAGE
+   Witches/Warlocks Illusionists      Enchantors           Mentalists       Wujen
+ CLERIC
+   Crusaders        Druids            Shaman               Priest           Shukenja
+ THIEF
+   Assassins        Bandits           Nightshades          Pirates          Ninjas
+ BARD
+   Jongleurs        Charlatans        Skalds               Brewmasters      Ovates
+
+ WARGAR/THAXANOS
+  Battleragers      Runesmiths
+ SHALONESTI
+  Bladesingers      Eldritches
+ CONCLAVE
+   Invokers         Necromancers      Transmuters          Battlemages
+ KNIGHTHOOD
+   Paladins         Confessors        (Anti-Paladins)
+ SHADOW
+   Shadowknights    Shadowmages       (Anti-Paladins)
+ SLAYERS
+   Dragonslayers
+ OTHER
+   Monks
+
+ Reclasses listed with an * next to the name are not yet available.
+
+ For more information on any specific reclass, including what base classes
+ and races a character must be for that reclass, type help <reclass name>.
+
+ To find out what skills and spells are included in the defaults for a
+ reclass use INFO <reclass name>.
+
+See also - AUTORECLASS (for information on auto-reclass) RETRAIN

@@ -1,0 +1,22 @@
+BARDS
+BARDS
+
+Bards are a class of musicians that know some of the fighting skills, mostly
+the ones they would pick up in bar fights, and then they have their
+repertoire of songs which produce varying affects.
+
+Bards are well known for being drunk and spending a lot of time in bars or
+taverns.
+
+Skills :
+
+war hymns         songs used preparing for and during combat
+hymns of life     songs used in healing and in creation
+second attack     allows the bard to strike an extra time in combat
+dodge             the ability to dodge attacks against you
+pugil             staff wielder strikes more often in combat
+parry             being able to deflect blows with one's weapon
+enhanced damage   blows are more effective and deal more damage
+roundhouse        a wild swing able to knock an opponent off their feet
+
+See also : BARDSONG SONGS HYMNS

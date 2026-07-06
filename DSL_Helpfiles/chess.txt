@@ -1,0 +1,28 @@
+chess
+"Chess" Is the command used to do ALL chess game commands, as well as
+watching.
+
+The game will NOT declare check mate.  This is INTENTIONAL.  It is up to the
+players to decide if a mate has occured and the losing person must type
+'chess resign' to end the game (since they will not be able to make any
+legal moves.)
+
+Chess watch allows someone to watch a chess game in progress.  They must be
+in the same room and cannot be playing a game their self.
+
+Chess start starts a game with someone else.
+
+Chess rejoin allows you to restart a game after quitting out, going LD,
+reboot, etc.
+
+Chess kcastle will allow you to castle king side
+
+Chess qcastle will allow you to castle queen side
+
+Chess history will show your movement history.
+
+Chess show will show the current boards lay out as well as taken, and took,
+pieces.
+
+Chess promote will allow you to promote a pawn to a ROOK, QUEEN, KNIGHt or
+BISHOP.

@@ -1,0 +1,21 @@
+CRAFTLIST
+CRAFTLIST
+This command is only useful for third tier crafters.  It will display
+what items you can craft, the skill required to craft that item, and
+the materials required to craft it.
+
+Syntax: craftlist
+        craftlist <item type>
+        craftlist <minimum level> <maximum level>
+        craftlist <minimum level> <maximum level> <item type>
+
+Examples: If you are a sharp weaponsmith...
+ craftlist          - lists everything you can craft. (Very long list.)
+ craftlist trinket  - lists all the trinkets used to advance your skills.
+ craftlist 1 10     - lists every item you can craft that is level 1 to 10.
+ craftlist 1 10 axe - lists every axe you can craft that is level 1 to 10.
+
+Valid <item types>:
+axe, sword, dagger, spear, polearm, mace, exotic, flail, whip, staff,
+cloth, leather, studded, chain, plate, obsidian, moonstone, opal,
+amethyst, emerald, sapphire, ruby, diamond, and trinket

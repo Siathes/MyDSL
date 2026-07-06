@@ -1,0 +1,14 @@
+
+ENTER
+ENTER
+Syntax:  enter portal
+         enter <portal name>
+         enter n.portal
+Enter is a means of entering magical portals between rooms.  These
+may be portals which are permanently part of an area or portals which
+have been created with the transportation spell group.
+If there is only one portal in the room, or you wish to enter the
+first portal in a room with more than one, the syntax enter portal
+can be used.  If there are two or more portals in a room, the portal
+name or a number should be used. Look in portal, may now be used to see
+the destination of the portal.

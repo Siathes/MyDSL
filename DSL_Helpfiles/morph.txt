@@ -1,0 +1,11 @@
+morph
+Syntax: morph
+Members of the sea elf race have their strongest ties to nature through the
+vast oceans of Algoron.  The close ties with the seas have required these
+elves to spend more time within the oceans and hence find a way to survive
+in them.  The sea elves have learned through their many years of close
+ties with the oceans how to change their elvish form into one of the most
+majestic sea creatures, the dolphin.  The dolphin form that the sea elves
+morph into are rumored to be quite adept at survival and obviously are
+unaffected by the affects of the rough seas which can take its toll on the
+strongest mortal. To return to elven form use the command revert.

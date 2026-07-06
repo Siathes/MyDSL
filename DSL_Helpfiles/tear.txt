@@ -1,0 +1,4 @@
+TEAR
+Syntax:  tear <book> page <#>
+This command allows you to tear a single page out of a book.
+SEE ALSO: write, dip, read

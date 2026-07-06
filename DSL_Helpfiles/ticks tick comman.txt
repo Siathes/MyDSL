@@ -1,0 +1,5 @@
+TICKS 'TICKS COMMAND'
+TICKS 'TICKS COMMAND'
+Syntax:  ticks
+TICKS when used as a command toggles whether the mud will send you a linefeed
+at the beginning of each new tick.

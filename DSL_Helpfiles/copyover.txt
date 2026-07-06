@@ -1,0 +1,4 @@
+COPYOVER
+A Copyover is a hot reboot in which you don't get disconected, corpses,
+disamred weapons, and items in pits get saved.  Mobs and loose objects get
+reset.

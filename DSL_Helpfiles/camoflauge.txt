@@ -1,0 +1,9 @@
+CALTRAPS
+CALTRAPS
+Caltraps is a specialized skill learned only by assassins.  The skill
+consists of throwing sharp spikes to the ground at an opponent's feet.
+Although the skill is not particularly damaging to the opponent, the
+surprise of stepping on sharp spikes where there was only clear space
+moments before does tend to make your opponent move a little more carefully,
+thus making him easier to hit.  Caltraps may be used during combat or as a
+means of initiating combat.

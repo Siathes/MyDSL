@@ -1,0 +1,5 @@
+potionsmash
+The bandit being a bit of a dirty fighter can try to snatch potions out
+of a victim's inventory and smash them on the ground.  Being an unexact
+science, you never know how many potions a bandit might nab from you though
+holding too many potions gets harder and harder.

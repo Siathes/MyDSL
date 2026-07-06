@@ -1,0 +1,21 @@
+TAILOR
+
+This third tier craft differs from weapons and armorcrafting as there are
+times that a crafter can work independantly and at other times, will need
+the refined materials from a tanner.  Tailors can purchase threads and
+cloth squares from a vendor found within most kingdoms.  The two alone can
+be sewn together to create various doll trinkets.  Though tailors also work
+with leather and will need to mix in various types of leather squares when
+they are creating their saddle leather trinkets in order to master their
+craft.  The more advanced you become, the better your skill in working with
+the materials which will result in fewer failed attempts and ruined
+supplies.
+
+      Syntax: craft <skill> <item>
+
+      Example: craft tailor 'woolen doll trinket'
+      Example: craft tailor 'deer leather saddle trinket'
+
+
+SEE ALSO:
+CRAFT CRAFTING CRAFTLIST SHARPWEAPON BLUNTWEAPON ARMORCRAFT SPELLCRAFTING

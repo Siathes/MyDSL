@@ -1,0 +1,13 @@
+HEX
+{YHEX{x
+
+{cSyntax:{x cast 'hex'
+
+This spell allows a Shaman to curse the inner soul of a victim, leaving
+their life capacity in a lower state.  There is a rumor that the Shaman's
+hex has different effects depending on the state of the Shaman.
+
+{yGroups containing this spell:{x Voodoo
+
+
+{DSEE ALSO:{x  SHAMAN, VOODOO

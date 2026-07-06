@@ -1,0 +1,9 @@
+empower weapon
+syntax:  cast 'empower weapon' <weapon>
+One of the strongest powers given to a Paladin is the ability to infuse
+a weapon with the power of divine strength.  The weapon is typically infused
+with power to resemble an enchanted weapon but is also blessed by the
+Paladin's deity.  Occasionally the deity of the Paladin chooses to imbue the
+weapon with holy power in order to help the Paladin on his divine mission to
+vanquish the evil forces opposing the ethos of Goodness.
+see also: PALADIN, KNIGHTHOOD

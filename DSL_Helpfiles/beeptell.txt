@@ -1,0 +1,7 @@
+BTELL BEEP BEEPTELL
+BTELL BEEP BEEPTELL
+Syntax:  btell
+
+This command may be used to toggle whether or not your computer will beep
+when you receive a tell.
+See also: �AUTO� �TELL�

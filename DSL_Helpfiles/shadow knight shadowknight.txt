@@ -1,0 +1,15 @@
+SHADOW KNIGHT SHADOWKNIGHT
+SHADOW KNIGHT
+
+These are the Chosen Knights of Necrucifer.  Only those with dedicated
+hearts and minds whom serve Necrucifer will be allowed to be blessed with
+His many unholy blessings.  Shadow Knights live only to serve Necrucifer,
+and bring the Prophecy to Algoron.
+
+Who can be a Shadow Knight?
+CLASS: ANY
+RACE: HUMAN ONLY
+ALIGNMENT: LAWFUL EVIL NECRUCIFER
+CLAN: SHADOW ONLY
+
+See also - RECLASS SHADOW

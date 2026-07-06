@@ -1,0 +1,12 @@
+'ALTER SELF'
+ALTER SELF
+
+Syntax: cast 'alter self' <mob>
+
+Alter self is useful for disguising yourself as a mob.  When cast
+successfully, you take on the appearance of the mob that you chose.
+
+Groups containing this spell: Alteration
+
+
+SEE ALSO:  ALTERATION, TRANSMUTER

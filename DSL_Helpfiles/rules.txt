@@ -1,0 +1,283 @@
+<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>
+<html>
+ <head>
+  <meta http-equiv='content-type' content='text/html; charset=utf-8'>  <meta name='generator' content='Mudlet MUD Client version: 4.19.1'>
+  <title>Mudlet, main console extract from Dark & Shattered Lands - PNP profile</title>
+  <style type='text/css'>
+   <!-- body { font-family: 'Liberation Mono', 'Courier New', 'Monospace', 'Courier'; font-size: 100%; line-height: 1.125em; white-space: nowrap; color:rgb(255,255,255); background-color:rgb(0,0,0);}
+        span { white-space: pre-wrap; } -->
+  </style>
+  </head>
+  <body><div><span style="color: rgb(255,255,0); background: rgb(0,0,0); ">RULES - </span><br>
+<br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">These are the rules of DSL.  For other matters, use common sense.  </span><br>
+<br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">Be prepared to back up the decisions you make and accept the punishment you</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">may receive.   A few of the major rules to follow are listed below, however</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">this is not an all inclusive list.  Please make sure that you read and</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">follow ALL rules and remember ignorance of the rules is not an excuse, and</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">yes we WILL penalize people for not using common sense in situations.  </span><br>
+<br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); "> -</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">DO NOT RUN SCRIPTS TO KEEP YOU IN GAME WHILE YOU ARE AWAY FROM COMPUTER</span><br>
+<br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); "> -</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">NO SWEARING OR LEWD BEHAVIOR ON ANY CHANNEL</span><br>
+<br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); "> -</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">NO MULTIPLAYING</span><br>
+<br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); "> -</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">NO CLAN/KINGDOM INTERFERENCE OF ANY KIND</span><br>
+<br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); "> -</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">NO MOB SOFTING OR GROUPING OUT OF RANGE (Refer to Rule 6a</span><br>
+<br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); "> -</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">APPROPRIATE ROLE PLAY IS REQUIRED</span><br>
+<br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); "> -</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">NO ADVERTISING OF OTHER MUDS</span><br>
+<br>
+<span style="color: rgb(0,128,128); background: rgb(0,0,0); ">1.  </span><span style="color: rgb(0,128,128); background: rgb(0,0,0);  text-decoration: underline">LEWD BEHAVIOR -</span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">1a.</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  Rude behavior in an out of character sense is not tolerated.  There </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     is no cursing on DSL of any kind.  This means words like sh*t, fuc*,  dic*,</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     puss*, god damnit, and anything else offensive.  Ass and Bitch may be used</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     if you do not use them to insult another  player.  Insulting anyone in an</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     out of character sense is also not tolerated.  This includes all channels</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     (in character or not) and all notes which may go to people who could</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     possible be offended by your actions.  </span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">1b.</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  Harassment of others or being a jerk in any possible way will bring</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     you harsh penalties.  Personal attacks on another player using ANY method </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     is grounds for banishment from the game. </span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">1c.</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  You may not use any out of character means to bash other players, non </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     clanned groups, or clans.  People can form their own opinions In Character</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     about such things and OOC bias will not be permitted.  This does include</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     using forums or any other means.</span><br>
+<br>
+<span style="color: rgb(0,128,128); background: rgb(0,0,0); ">2.  </span><span style="color: rgb(0,128,128); background: rgb(0,0,0);  text-decoration: underline">RULES FOR CLANNERS -</span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">2a.</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  Clanners may not get assistance from non-clanners in ANY way that</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     helps the clanners player kill.  See Rule 3b. </span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">2b.</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  A player is not allowed to do ANYTHING that prevents another player from</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     quick access to their </span><span style="color: rgb(134,0,0); background: rgb(17,17,17); ">corpse</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); "> and gear after death.  If someone is killed in</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     a private room, you have 2 ticks to make a way to give them entry into the</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     room to get their remaining possessions.  This includes private housing and</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     lairs.  Two ticks is easily and strictly enforced.  If they died in a private</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     room, you MUST tell them how to get to their </span><span style="color: rgb(134,0,0); background: rgb(17,17,17); ">corpse</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">.  See Help Looting for </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     additional rules and don't dos.  These are all deniable offenses.</span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">2c.</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  You must be wearing at least 10 pieces of clothes to level (within 8 </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     levels) or "quality" (defined as something useful to your character)</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     equipment to either player kill or players steal. </span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">2d.</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  You may not taunt nonclanned players or players out of your PK range.</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     If you insist on doing so, the immortals have the option to flag your</span><br>
+<br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">[ (</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">C</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">)ontinue, (</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">R</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">)efresh, (</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">B</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">)ack, (</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">H</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">)elp, (</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">E</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">)nd, (</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">T</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">)op, (</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">Q</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">)uit, or </span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">RETURN</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); "> ]: </span><br>
+<br>
+<br>
+<br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">[ (</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">C</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">)ontinue, (</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">R</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">)efresh, (</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">B</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">)ack, (</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">H</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">)elp, (</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">E</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">)nd, (</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">T</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">)op, (</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">Q</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">)uit, or </span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">RETURN</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); "> ]: </span><br>
+<br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     character aggressive and even transing all parties into a dueling arena if</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     you continue after that.  Taunting lower or higher level players excessively</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     will earn you a penalty.</span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">2e.</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  Do not attack nor steal from another player in the Arena Stands during</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     events, anytime after an event has been announced, or for at least 20 </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     minutes after an event ends.  Also, you may not kill or steal after a </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     reboot or shutdown has been announced.  It is legal to attack and steal</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     during copyovers unless an arena event is active.  </span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">2f.</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  You may NOT ask any Out Of Character questions when recruiting for</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     your clan.  Doing so will bring harsh punishment if not denial.  You should</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     also never offer any OOC related information when trying to join a clan. </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     (Example: Clan me, this is Joe's alt).</span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">2g.</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  Doing ANYTHING to another player in an intent to lag them will get you</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     DORKED (and yes, it's easy for us to decide the reason you did the </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     order).</span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">2h.</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  You may NOT spell down NOR kill any of the keep mobs that you own. </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     Killing a keep </span><span style="color: rgb(149,0,255); background: rgb(30,30,30); ">Lord</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); "> that you own in order to maintain a keep will get you</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     dorked and the Keep ownership transferred to the clan that was trying to</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     take it.</span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">2i.</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  You may NOT attack AFK players inside of a clan hall. </span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">2j.</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  Killing yourself to avoid getting killed by a another player is </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     illegal.  This includes committing suicide in keeps.</span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">2k.</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  Interferring in PK by whatever means as a ghost is illegal.  This</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     means the only thing you should be doing as a ghost is getting your </span><span style="color: rgb(134,0,0); background: rgb(17,17,17); ">corpse</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">.</span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">2l.</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  </span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">PKP</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); "> - Farming for PKP is illegal.  Meaning if you are going to duel</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     someone to get PKP (which you do), then you need to be wearing equipment</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     and have protections (like you would in any pk situation)  IE. Don't pk</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     having no protections, especially sanc, on.  It will look and be </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     suspicious.</span><br>
+<br>
+<span style="color: rgb(0,128,128); background: rgb(0,0,0); ">3.  </span><span style="color: rgb(0,128,128); background: rgb(0,0,0);  text-decoration: underline">RULES FOR NON-CLANNERS - </span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">3a.</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  Do not taunt clanners, or the immortals have the option of flagging </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     you aggressive and transporting you to them.</span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">3b.</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  You may not assist clanners in ANY way if it relates to player </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     killing (spell ups, heals, locating enemies, offering housing, etc).</span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">3c.</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  You may not ask or offer any OOC information when recruiting or </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     joining a kingdom or any other non-clanned group.</span><br>
+<br>
+<span style="color: rgb(0,128,128); background: rgb(0,0,0); ">4.  </span><span style="color: rgb(0,128,128); background: rgb(0,0,0);  text-decoration: underline">ROLE-PLAYING IS REQUIRED - </span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">4a.</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  Do not handle any in character event via out of character means.  The </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     two should be held separate at all times.  Some examples are if a player</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     kills your character and you send an OOC tell or get on an OOC channel to</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     call them a name or to discuss it - including PK.  All IC (in character) </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     events are to remain IC.  All OOC (out of character) events and information</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     must remain OOC.  This rule also applies to the note spool and to forums.</span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">4b.</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  Keep the names of your other characters and especially other players </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     alts to yourself.  Revealing these in any way, shape or form will bring a</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     harsh penalty to you and possibly all of your characters. </span><br>
+<br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">[ (</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">C</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">)ontinue, (</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">R</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">)efresh, (</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">B</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">)ack, (</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">H</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">)elp, (</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">E</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">)nd, (</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">T</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">)op, (</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">Q</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">)uit, or </span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">RETURN</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); "> ]: </span><br>
+<br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">4c.</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  All of your characters are completely separate.  You may not play two </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     characters at the same time, nor should any of your characters have any</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     interaction what-so-ever.  You can not be another member of your own</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     family, unless your other character is deceased (as in dead, denied). This</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     also means you may NOT transfer equipment from one of your characters to</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     the next in any way, nor aid them with spells. </span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">4d.</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  All players will have their characters on a master account.  You may </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     only have ONE master account and you may not log into anyone else's</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     master account for ANY reason.</span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">4e.</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  All players are required to have a suitable description for their</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     characters which should be in place by level 5.  Descriptions should not </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     be any less than four (4) lines of text in </span><span style="color: rgb(255,255,255); background: rgb(0,0,0); ">written</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">, paragraph form.</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     Recruiters should be checking this prior to recruiting.  See help </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     description for more information.</span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">4f.</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  You may NEVER share or give away a character.  This includes logging</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     in someone else's character for ANY reason.</span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">4g.</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  You may not assist characters who you should not assist In Character. </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     You may be real life friends with someone but if your characters  shouldn't</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     be friends for any reason (rival clan or whatever) then your Role-Play</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     should dictate your actions.</span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">4h.</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  It is illegal to RP any type of rape, incest, or forced situation.  </span><br>
+<br>
+<span style="color: rgb(0,128,128); background: rgb(0,0,0); ">5.  </span><span style="color: rgb(0,128,128); background: rgb(0,0,0);  text-decoration: underline">CHANNELS AND NOTE SPOOLS - </span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">5a.</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  Use appropriate channels and note spools.  Out of Character content</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     belongs in the OOCN spool or on the OOC channel.  In Character content </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     belongs on the Note spool or the Gossip channel.  You may not excuse using</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     the wrong channels by prefixing something to it (Example:  gossip ooc:</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     Sorry about that!).  Read help channels to get a description for each channel.</span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">5b.</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  Complaints to all about the game, owner and imms will not be tolerated as it's</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     considered griping or whining and ruining the atmosphere of the game.   If</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     you have a legitimate complaint, make sure it is directed to  immortals only</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     so that it may be looked into.</span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">5c.</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  Do not advertise other MUDS here in any way.  Discussing other MUDS or</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     ANY online games here (except those that Scorn has given his explicit</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     permission for) is also Illegal (and very rude).</span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">5d. </span><span style="color: rgb(192,192,192); background: rgb(0,0,0); "> Spamming the channels or spools with ANYTHING is illegal.  </span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">5e.</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  Read help pray.  It states what that channel is for how it should be</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     used.</span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">5f.</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  Do not include other players and especially Mob Gods in your</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     storynotes  without their permission UNLESS the event actually happened and</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     you are truthful in your story.  Storynotes should be </span><span style="color: rgb(255,255,255); background: rgb(0,0,0); ">written</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); "> as stories, </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     not as cut and paste logs.</span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">5g.</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  You may NOT discuss any In Character topics on an OOC channel.  If it</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     is determined you are discussing something that should be role-played or </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     even if you are relaying In Character information on an OOC channel, you</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     will be penalized.  However, you may assist new players with game  related</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     questions on the </span><span style="color: rgb(255,255,0); background: rgb(0,0,0); ">ASK/ANSWER</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); "> or </span><span style="color: rgb(255,255,0); background: rgb(0,0,0); ">NEWBIE</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); "> channel.</span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">5h.</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  Some topics should not be discussed on various channels.  Hot button topics </span><br>
+<br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">[ (</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">C</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">)ontinue, (</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">R</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">)efresh, (</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">B</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">)ack, (</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">H</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">)elp, (</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">E</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">)nd, (</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">T</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">)op, (</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">Q</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">)uit, or </span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">RETURN</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); "> ]: </span><br>
+<br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     like religion, politics, sexual or racist remarks/commentary, etc. should</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     remain off DSL.  Harassment in any form is not tolerated.  Any IC event, </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     such as AGL, should remain off OOC.  This is not a comprehensive list.  Be </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     mindful of other players before you speak.</span><br>
+<br>
+<span style="color: rgb(0,128,128); background: rgb(0,0,0); ">6.  </span><span style="color: rgb(0,128,128); background: rgb(0,0,0);  text-decoration: underline">TWINKISH ACTIONS OR BEHAVIOR - </span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">6a.</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  Mob softening is illegal.  This means you may not spell down or injure</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     mobs before allowing a lower level to kill it for all of the experience.</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     The lowest level and highest level in group must be within 8 levels of one</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     another.</span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">6b.</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  Moving aggressive mobs in any way is illegal.  And yes, Recall and</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     Guard mobs are aggressive towards players with wanted flags, so they are </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     considered aggressive as well.  Placing mobs that auto-assist other  mobs</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     near the mobs they auto-assist is also illegal.</span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">6c.</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  You may run scripts, but if you are found to NOT be at your computer </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     then you will receive harsh punishments.  You must be at the keyboard and</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     ready to respond at all times.  If you need a short break, turn your</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     scripts OFF and your AFK flag on.  Using AUTOMATION scripts to level,</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     generate money, stay on line or quest is ILLEGAL.  This game is meant to be</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     played by you, not your robots.</span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">6d.</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  Leave other peoples kills alone.  If a mob flees into the room, make</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     sure you give the other person plenty of time to finish the mob off  before</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     engaging.</span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">6e.</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  Do not cast ANY unwanted spells on other people without prior </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     permission. (This does not apply to combat :P) You may be trying to be</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     nice, but be sure to ask first so that you do not irritate anyone.</span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">6f.</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  Abusing any game BUG will get you denied pretty quickly.  Report all </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     bugs via an oocn to immortals.  Remember that just because you report a bug</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     has no bearing on your prior or future abuse of the bug. </span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">6g.</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  Asking an immortal for any illegal favors will get you denied,</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     including asking for a trans (even during a </span><span style="color: rgb(0,0,0); background: rgb(170,0,0); ">blood</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); "> bath) to get you out of</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     getting player killed. </span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">6h.</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  Renaming a parchment to anything other than a parchment or </span><span style="color: rgb(170,85,0); background: rgb(0,0,0); ">book</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); "> is </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     illegal.  This means you may not make a parchment any other game item.</span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">6i.</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  Do not protect dorked characters in any way including repetitive</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     killings to keep them ghosted.  As a dork if you do anything to keep</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     yourself ghosted, your dork length will be doubled and you may be denied. </span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">6j.  </span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">Having quest items that are not yours or multiple quest items is </span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">ILLEGAL.</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     The penalty for this is dorking.  If you are running a script that</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     picks up 'all' or all puppies or any other variation of quest items OR</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     if your script makes a collection of items that you then drop off anywhere</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">     else along the way, including at the quest mob, this is also </span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">ILLEGAL</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">.</span><br>
+<br>
+<span style="color: rgb(0,128,128); background: rgb(0,0,0); ">7.  </span><span style="color: rgb(0,128,128); background: rgb(0,0,0);  text-decoration: underline">FINAL RULE - </span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">7a.</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  HAVE FUN!! </span><br>
+<br>
+<span style="color: rgb(255,0,0); background: rgb(0,0,0); ">Notice:</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); "> if you feel you were mistreated or given a bad penalty, it is your</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">RIGHT to appeal the penalty with Scorn (scorn@dsl-mud.org) and Head Admin</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">(cayenna.dsl@gmail.com.</span><br>
+<br>
+<br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">[ (</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">C</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">)ontinue, (</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">R</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">)efresh, (</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">B</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">)ack, (</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">H</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">)elp, (</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">E</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">)nd, (</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">T</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">)op, (</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">Q</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">)uit, or </span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">RETURN</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); "> ]: </span><br>
+<br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">Also know that immortals are NOT allowed to be visible during a penalty, BUT</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">Scorn and Admin will know who did the penalty.  The Immortals on DSL are held</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">to a VERY high standard.  If they abuse their powers, they will be</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">terminated.  </span><br>
+<br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">Updated 4.10.2022</span><br>
+<br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); "> </span><br>
+<span style="color: rgb(128,128,128); background: rgb(0,0,0); ">SEE ALSO:</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  AFK, CHANNELS, CLAN, DESCRIPTION, KINGDOM, LOOTING, PKP, SCRIPTING</span><br>
+ </div></body>
+</html>

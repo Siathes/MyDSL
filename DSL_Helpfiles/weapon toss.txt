@@ -1,0 +1,5 @@
+weapon toss
+Syntax: wtoss
+
+Weapon toss is an advanced disarm that carries the possibility of throwing a
+disarmed weapon into the next room.

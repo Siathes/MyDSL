@@ -1,0 +1,8 @@
+'CURE DISEASE'
+'CURE DISEASE'
+
+Syntax: cast 'cure disease' <character>
+
+This spell may cure various diseases that have afflicted a character.
+
+See also - CURATIVE

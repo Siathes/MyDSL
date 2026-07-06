@@ -1,0 +1,48 @@
+IMBUE
+IMBUE SPELL
+Syntax:  cast imbue <target>
+         cast imbue
+This spell allows clerics to increase the magic-casting abilities of themselves
+(when used without a target) or any other target (when used with a target).
+See also:  CLERICS
+IMBUE FOR SPELLCRAFTERS
+Imbuing is the process that fuses spellcrafted gems into crafted equipment.
+All crafted equipment has a certain number of points and slots available
+for gems to be imbued.  Each gem imbued into an item will fill at least one
+slot sometimes more.  Once an items slots have been filled it can no longer
+be modified by spellcrafters.  As stated each piece of crafted equipment
+has a number of points to be imbues as well.  This differs form the number
+of slots in a significant way.  As often as not a crafted item will be able
+to endure more points that the limit listed here with one side affect.  The
+process weakens the item and it will from that point on require its owners
+life force to exist.
+
+Standard Equipment Limits
+-------------------------
+Level   Slots   Points
+-------------------------
+ 1-9      1       2
+10-19     1       4
+20-24     2       6
+25-29     2       8
+30-34     2       12
+35-39     3       16
+40-44     4       20
+45-49     5       24
+50-51     6       28
+
+Only Legendary Grand Masters can imbue the more picky gems.  Specifically
+the diamond gem of the magi is very fickle.  It cannot be placed next to
+any other gem therefore it always takes up two slots.  The only other case
+of specific gem placement occurs when two weapon enhancement gems are
+placed on the same weapon.  There is only a small chance of success in this
+case but it can happen.  The essences inside the gems conflict with each
+other and must be placed in such a manner the two gems take up four slots.
+When this does occur the weapon will suffer the same weakness as stated
+above and will require its owners life force to exist.
+
+Syntax: imbue <gem> <crafted item>
+Syntax: imbue status <crafted item>
+
+SEE ALSO:
+SPELLCRAFTING GEM ESSENCE OVERCHARGE

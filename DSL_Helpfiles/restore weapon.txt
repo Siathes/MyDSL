@@ -1,0 +1,10 @@
+RESTORE WEAPON
+RESTORE WEAPON
+
+Syntax: cast 'restore weapon' <object>
+
+The restore weapon spell allows the enchantor to return a weapon to its
+orginal state.  The only requirement to restore an item is that its current
+state has had an enchantment placed on it.  It has been rumoured that
+attempting to restore a weapon does not always work out as expected, so at
+times, enchantors may wish to be wary.

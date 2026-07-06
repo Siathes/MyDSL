@@ -1,0 +1,6 @@
+'DETECT MAGIC'
+Syntax: cast 'detect magic'
+
+This spell enables the caster to detect magical objects.  Additional, if cast
+in a room where magic resides it will allow the caster to know what that magic
+is and whom it originated from.

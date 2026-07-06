@@ -1,0 +1,5 @@
+WHOC
+WHOC
+Syntax:  whoc
+WHOC shows ranked clan players who are currently playing.  This allows
+recruiters and leaders to be spotted more easily when they're playing.

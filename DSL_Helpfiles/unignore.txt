@@ -1,0 +1,6 @@
+UNIGNORE
+Syntax: unignore <character>
+Syntax: unignore self
+
+This allows someone to send you a tell when your in deaf mode, you can remove the
+unignore by typing unignore self.

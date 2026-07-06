@@ -1,0 +1,5 @@
+kdonate
+Syntax: kdonate <amount of quest points>
+
+Kdonate will allow you to donate quest points to your kingdom's fund for kingdom
+wars.

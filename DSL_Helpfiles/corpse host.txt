@@ -1,0 +1,16 @@
+'CORPSE HOST'
+CORPSE HOST
+
+Syntax: c 'corpse host' corpse
+
+Using the preserved host of a recently deceased creature, the caster can
+transfer his life force into the corpse, and do his business through the
+animated body of the victim.
+
+The Necromancer's actual body remains wherever he left it, in a state of
+suspended animation, until the caster either returns voluntarily to his own
+body, or the host corpse is destroyed.
+
+To return from a corpse you are hosting, you must 'incorporate'.
+
+See also - NECROMANCY NECROMANCER

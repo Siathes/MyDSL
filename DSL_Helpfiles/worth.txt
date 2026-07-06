@@ -1,0 +1,6 @@
+WORTH
+WORTH
+Syntax:  worth
+This command shows you a summary of the amount of gold, silver and
+experience points you have amassed.  It also shows the number of experience
+points needed to attain the next level.

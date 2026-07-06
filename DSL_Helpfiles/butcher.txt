@@ -1,0 +1,9 @@
+BUTCHER
+BUTCHER
+Syntax: butcher corpse
+Butcher is a skill known only to rangers, barbarians and shamans.
+Butchering a corpse will turn the corpse into a number of edible steaks.  If
+there is more than one corpse in a room, you can use the second syntax
+(replacing "n" with a number.)  To specify which corpse is to be butchered.
+Corpses must be empty of all equipment before they can be butchered.
+see also:  'RANGER'  'BARBARIAN'  'SHAMAN'

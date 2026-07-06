@@ -1,0 +1,9 @@
+'CREATE SPRING'
+'CREATE SPRING'
+
+Syntax: cast 'create spring'
+
+This spell brings forth a magical spring from the ground, which has the same
+properties as a fountain.
+
+See also - CREATION

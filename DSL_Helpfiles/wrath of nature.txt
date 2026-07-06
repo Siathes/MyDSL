@@ -1,0 +1,8 @@
+WRATH OF NATURE
+Syntax:  cast 'wrath' <target>
+
+As the druid or ranger continues to learn how to draw power from their
+surroundings, the magic they produced grows stronger as a result.  This
+spell is one that strikes with the full force of the natural realm.
+
+Groups containing this skill: �NATURE� �DRUID DEFAULT� �RANGER DEFAULT�

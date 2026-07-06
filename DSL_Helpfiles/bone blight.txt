@@ -1,0 +1,12 @@
+'BONE BLIGHT'
+BONE BLIGHT
+
+Syntax: c 'bone blight' <target>
+
+The bone blight is a Necromancer's curse, a horrid affliction that turns the
+bones of the victim to soft, rubber tissue.  It is incredibly painful, and
+renders the victim particularly vulnerable to bludgeoning attacks.
+
+It can generally be cured via a standard 'remove curse' casting.
+
+See also - NECROMANCY NECROMANCER

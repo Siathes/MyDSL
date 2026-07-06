@@ -1,0 +1,6 @@
+MERCY SUBDUE
+Mercy and subdue are two commands that affect the outcome of a player
+battle.  If subdue is toggle on, when you are about to be pkilled, you will
+grovel for mercy.  If the victor of the fight has 'mercy' toggled on, he
+will grant the loser their life.  Either way, an embarassing message will be
+broadcast to all within the clan system that you begged for mercy.

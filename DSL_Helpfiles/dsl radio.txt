@@ -1,0 +1,13 @@
+dsl radio
+DSL Radio is a server which allows the immortals and playerbase of DSL to
+play music online as a radio station.  The DJ's can play everything from
+popular music to custom made commericials for clans/humor.  Here's how to
+connect to the site and begin listening.
+
+1.) Download the full version of winamp at http://www.winamp.com
+2.) Install Winamp
+3.) Run Winamp
+4.) hit control-L
+5.) type this address in - http://radio.dsl-mud.org:8080
+6.) Sit back, and either enjoy or cringe at whatever might be playing. :)
+

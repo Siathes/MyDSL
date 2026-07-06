@@ -1,0 +1,41 @@
+BUG TYPO
+Many people find bugs.  Some report them, some sit on them for their own
+personal (and wrong) needs.
+
+Regardless of the reasoning, we ask that you report all bugs you find.  This
+news is to help guide you in reporting a bug to help us better find, verify
+and fix things.
+
+First and foremost, you need to send a note to Coder Admin Scorn.  And only
+those three.  Your subject needs to be "Bug report" or something close to
+those lines so that we coders may tell which is which.
+
+Within the note, give a short description of the supposed bug, a short, but
+detailed, account of the bug and how to duplicate it and a copy-and-pasted
+log (short, only show relevant information.)  So that we can tell if it's a
+bug.
+
+After you have filled all this out, review your report.  Make sure the
+information is correct.  If it is, send it on it's way.
+
+Incorrect information can cause us to not mark something as a bug, even if
+it is indeed a bug.  And we can never have too much information in that
+case.  Also, remember that not everything you encounter is a bug, so do not
+feel shamed if a coder does not fix said bug or even report back about it.
+You will also, more than likely, not receive word that it has been fixed (or
+ignored).
+
+Above all else, please remember to use the NOTE SYSTEM for bug reporting.
+Tells, ooc, clan, oclan, king, oking, etc rarely catch our attention and are
+typically not seen.  Prays are often not seen as well.  This is why we
+recommend, and insist, you write a note.
+
+Remember, when in doubt, treat it as a bug.  Using a bug, even if you
+reported it, is a deniable offense.
+
+Typos should be treated in the same fashion as bug reporting.
+However, there are threads on the forums for these as well (typos)
+and may be used in its place.
+
+To report a typo, please send a note to "Imm" instead of "Coder admin scorn"
+and please give exact circumstances/locations of where the typo occurs.

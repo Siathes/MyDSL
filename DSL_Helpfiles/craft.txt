@@ -1,0 +1,21 @@
+CRAFT
+This is used by all top tier crafters to create items for player use.  You
+may do this anywhere but you are required to have all the items needed for
+the item you are trying to create.  For some crafts like weapon making you
+will have a list of trinkets that you can craft to hone your skills.  You
+can sell these trinkets to the merchants that sell knives, saws, and
+pickaxes to cut your costs.
+
+Syntax: craft <skill> <item>
+
+Example: craft sharpweapon 'long bronze trinket'
+
+Skills:
+sharpweapon  - makes sharp weapons axes, swords, daggers, spears, and polearms
+bluntweapon  - makes blunt weapons maces, flails, staffs, whips, and exotics
+armorcraft   - makes leather studded, chainmail, and platemail armor
+tailor       - makes cloth and leather armor
+spellcrafter - makes gems to imbue onto armor and weapons
+
+SEE ALSO:
+SMELT MILL TAN CRAFTING CRAFTLIST SPELLCRAFTING

@@ -1,0 +1,26 @@
+  -----------------------------------------------------------------------
+
+        How to Train and Practice
+
+    Type skill and spell to see a list of skills and spells you
+      currently have access to. Type stat or score to see
+      information on your stats.
+    If you are at a trainer, type train (stat) to use one of your
+      train points to increase a stat. Type practice (skill or spell
+      name) to use a practice point to increase that skill or spell's
+      efficiency. You can only practice a skill or spell to 75%. Skill's
+      and spell's efficiency increases the more you use them.
+
+    Stats:
+      Strength - Affects physical damage and maximum weight capacity.
+      Dexterity - Affects accuracy, evasion, and number of items carried.
+      Wisdom - Affects resistence to spells and the practice points gained
+        per level.
+      Intelligence - Affects effectiveness with spells.
+      Constitution - Affects how many hit points are gained per level.
+
+    The general trainer in Althainia is located north and up from recall.
+
+        Type HELP NEWBIE to return to the table of contents.
+
+  -----------------------------------------------------------------------

@@ -1,0 +1,62 @@
+PRIEST
+PRIESTS
+
+Priests serve the Gods and Goddesses like no other profession in Algoron.
+They devote their lives to service.  Teaching the holy (or unholy) gospel of
+their God is of the utmost importance, and sharing their gospelled tenets
+and converting others to their faith is the priority in life.  Within each
+pantheoned sphere, each God or Goddess has their own church and within each,
+there is organized rank.  As priests are active throughout Algoron and work
+within their congregations to strengthen the ties of faith, either in the
+church or outside of it, they can earn promotional rank and with rank,
+priests gain power.  All priests start with the rank of Novitiate.
+
+Seasoned priests of rank who actively promote their faith and offer their
+prayers to their God or Goddess may be imparted additional wisdom as they
+truly evolve as a conduit to their God.  Through divine clarity, three
+unique spells are added to the prayer books though only one may be brought
+into focus at any time and with a sizable monetary tithe of eggs, the priest
+may guide their focus to one of the other two specialized prayers.  Each one
+while unique in its divine magic, also requires a reagent to find success in
+casting the spells.
+
+PLEASE NOTE:
+
+    - This is a highly intensive role playing class.
+
+    - Progression through ranks is a self-driven process.  The Gods favor
+      those who are creative, impactful and dedicated.
+
+    - The use of divine prayer (gpray) allows a priest to convey their roleplay
+      efforts, thoughts and plans to their patron God.  Do this often.
+
+    - Each rank is earned through activity and role play and it is
+      recommended that each priest have an outside platform, such as a
+      webpage, google doc, forum thread, etc. where you can capture your
+      respective interactive logs.
+
+    - Earlier ranks are far easier to achieve than latter ones and the Immortal
+      discusses promotional opportunity on a regular basis.
+
+
+
+The different ranks and associated prayer books are outlined below.
+
+Prayer - Needed to cast any prayer book.  Different then the pray channel.
+    Syntax:  Prayer
+
+Novitiate: Can not pass this rank until you hit level 51
+    Holy Flames
+    Mend Wounds
+    Nourishment
+    Cure Deafness
+    Enhanced Recovery
+    Bind Soul
+    Dispel Curse
+
+Deacon:
+    Holy Presence
+
+Priest:
+    Endurance
+    Anoint thy Foe - Reagent

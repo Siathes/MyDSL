@@ -1,0 +1,11 @@
+marry
+Marry will marry two individuals.  This must be done by a priest.
+
+Syntax: marry <player 1> <player 2>
+
+Both players being married must INVITE the priest.
+
+BOTH PARTIES HAVE TO BE OF THE OPPOSITE SEX.
+
+This means 1 female, 1 male - this does not mean female/female or male/male
+or one of the parties being change sexed.

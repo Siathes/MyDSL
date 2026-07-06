@@ -1,0 +1,24 @@
+The Bladesinger is an elite fighter, skillfully combining magic and
+might to defeat his foes, and the foes of all elves.  The Bladesinger is a
+rarely multi-classed mixture of Mage and Warrior, effective using his spells
+to augment his swordarm.
+
+Bladesingers have more magical power than do pure warriors, but not
+quite as much as mages.  Bladesingers cast spells at close to their actual
+experience level, and don't suffer the CP costs that warriors do when selecting
+spells for themselves.  Bladesingers are proficient in many skills that pure
+mages cannot learn, such as disarm and bash.
+However, Bladesingers are restricted to the use of daggers and swords
+in their adventuring careers.  Their dedication to both combat and magic forces
+them to use a narrow range of weapons, and being that elves have a natural
+affinity to swordfighting, the Bladesingers drift towards short and long swords.
+Bladesingers also have the unique ability to use a dance-like combat
+style known as the Bladesong.  The Bladesong has been handed down from elven
+generation to generation, and is a graceful, deceptive combat style that only
+elves, with their natural agility, can master.
+Who can be a Bladesinger?
+CLASS:     Any Class
+RACE:      ELVES of any subrace
+ALIGNMENT: Any alignment
+CLAN:      SHALONESTI only
+see also: RECLASS BLADESONG SHALONESTI

@@ -1,0 +1,21 @@
+'NATURE SPELLS'
+
+Only Rangers and Druids may learn this spell group and most of the spells
+In it.  The nature spell group allows the caster to make use of the natural
+world, and all things contained within it.
+
+More information on individual spells may be found by typing help <spellname>.
+The nature spell group consists of the following spells:
+
+bark skin            this spell turns the caster's skin to bark
+call wild            calls wild animals to the aid of the ranger
+create ranger staff  creates a weapon for the ranger
+entangle             animates plants in the area to entangle a player
+protection cold      protection from the effects of icy attacks
+protection fire      protection from the effects of fiery attacks
+swarm                this spell summons forth hundreds of biting insects
+wrath of nature      an attack able to pierce through spell protection
+nature growth      boosts the caster or its target in constitution
+enhance seed         enhances the growing capability of a seed
+
+This group is available to the following classes:  �RANGER� �DRUID�

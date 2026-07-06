@@ -1,0 +1,18 @@
+WITCHCRAFT
+'WITCHCRAFT SPELLS'
+
+A collection of hexes and spells known only to witches and warlocks.  These
+spells can be devilish indeed, or simply entertaining in the right hands.
+
+More information on individual spells may be found by typing help
+(spellname).  The witchcraft spell group consists of the following spells:
+
+create cauldron         creates a cauldron for brewing
+find familiar           locates a familiar for the caster
+silence                 prevents spell casting and talking by target
+possess familiar        allows witch/warlock to posses their familiar
+fear                    causes enemy to flee in terror
+splinter                causes wooden items to splinter into stakes
+
+This group is available to the following classes -
+    WITCH/WARLOCK

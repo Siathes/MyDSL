@@ -1,0 +1,12 @@
+'ALTER ELEMENTS'
+ALTER ELEMENTS
+
+Syntax: cast 'alter elements'
+
+Alter elements allows a skilled transmuter to turn silver into gold.  No one
+is quite sure what the conversion rate is between the two elements.
+
+Groups containing this spell: Alteration
+
+
+SEE ALSO:  ALTERATION, TRANSMUTER

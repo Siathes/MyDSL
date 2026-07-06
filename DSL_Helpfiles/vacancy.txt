@@ -1,0 +1,5 @@
+vacancy
+syntax: cast 'vacancy' <target>
+The vacancy spells makes the person its cast upon think that he or she is
+all alone in the area.  Unless someone is in a very close proximity, they
+can not see or detect them at all.

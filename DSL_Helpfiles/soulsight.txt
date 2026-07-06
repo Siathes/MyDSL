@@ -1,0 +1,6 @@
+soulsight
+Syntax: c soulsight
+When properly attuned to the spirit world, soulsight allows a shaman
+to more clearly perceive the spirits which inhabit all things, and
+the souls which inhabit material bodies. Seeing the souls of people
+enables a shaman to pierce most forms of magical concealment.

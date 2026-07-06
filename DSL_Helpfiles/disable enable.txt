@@ -1,0 +1,16 @@
+DISABLE ENABLE
+DISABLE ENABLE
+Syntax:  disable <name>
+         enable <name>
+Disables the named person from sending you tells, though if you
+were the last person to send them a tell, they will still be able
+to reply.  You can not send tells to anyone whom you've disabled.
+Disabling only remains in effect for the current session, if you
+log out, or the system is rebooted, you will need to disable the
+player again if you still don't want to receive tells from them.
+You may receive tells from them again by typing enable <name>.
+This is currently broken.  At the time of writing this helpfile,
+disable did not disable receipt of tells, but did disable your
+ability to send them.  Enable was also not working, requiring you
+to quit and log back in if you wished to be able to send tells to
+the person whom you disabled.

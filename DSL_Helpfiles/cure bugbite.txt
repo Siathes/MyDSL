@@ -1,0 +1,9 @@
+'CURE BUGBITE'
+'CURE BUGBITE'
+
+Syntax: cast 'cure bugbite' <character>
+
+This spell helps to remove the toxic affects afflicting a character who has
+received a bugbear's bite.
+
+See also - CURATIVE

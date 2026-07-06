@@ -1,0 +1,14 @@
+SCOURGE
+SCOURGE
+
+Syntax: cast scourge <target>
+
+The most horrible of diseases, the Scourge is a highly contagious and lethal
+plague, spreading madly once cast, often devastating entire villages.  It is
+a permanent affliction, curable only through the ministrations of a Paladin
+or Clerical type.
+
+This is one of the most powerful spells in a Necromancer's command, and must
+be used responsibly.
+
+See also - NECROMANCY NECROMANCER

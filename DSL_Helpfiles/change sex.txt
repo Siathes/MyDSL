@@ -1,0 +1,4 @@
+'CHANGE SEX'
+'CHANGE SEX'
+Syntax: cast 'change sex' <victim>
+This spell changes the sex of the victim (temporarily).

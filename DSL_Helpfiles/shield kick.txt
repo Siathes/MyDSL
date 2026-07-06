@@ -1,0 +1,9 @@
+shield kick
+SHIELD KICK
+
+Syntax: skick <target>
+
+A martial skill requiring no small amount of skill, shield kicking is an art
+passed down among barbarians and battleragers alike.  If successful, a
+victim will have their shield flung away from them and their sensibilities
+rattled by the jarring blow.

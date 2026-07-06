@@ -1,0 +1,27 @@
+ABADMERCH 'ABADDON MERCHANT DISTRICT'
+THE ABADDON MERCHANT DISTRICT
+
+Directions from recall: 3n, w
+
+Direction from the Colossal Tree (9w of Althainia's west gate):
+s,2w,2s,w,4s,sw,se,s,sw,se,2s,4e,3s,w
+
+
+D      #1    #3    #5    #7    #9    P
+u            Mortality Lane          e
+p      #2    #4    #6    #8   #10    s
+l                                    t
+i      #1    #3    #5    #7    #9    i
+c            Darkness Path           l
+i      #2    #4    #6    #8   #10    e
+t                                    n
+y      #1    #3    #5    #7    #9    c
+            Black Moon Circle        e
+D      #2    #4    #6    #8   #10
+r                                    A
+i      #1    #3    #5    #7    #9    v
+v         Retribution Boulevard      e
+e      #2    #4    #6    #8   #10    .
+
+
+SEE ALSO:  ABADDON, MERCHANT

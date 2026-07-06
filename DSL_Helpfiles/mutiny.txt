@@ -1,0 +1,114 @@
+MUTINY
+MUTINY - CLANS
+
+These are the current mutiny rules for Clans.  Keep in mind after a mutiny,
+the leader typically can not be rechallenged for at least 30 days.  Also, to
+start an official mutiny, the mutinying member must FIRST get approval from
+the clans Watcher.  This applies to ALL clans and should be a mutinies very
+first step.  Without that, there can be no mutiny.  The Watcher will expect
+there to be a good RP reason for there to be a mutiny and the player behind
+the mutiny must be in good standing within the rules of DSL.  In other
+words, if you are constantly in trouble with the game's staff, we don't want
+you to lead a clan.
+
+All players participating in the mutiny, as either the one calling for or
+any player intending to cast a vote, must be ACTIVE and engaged in their
+clan and must have at least 150 hours.  Any vote ending in a tie, where
+votes are called for, is not sufficient enough to overturn leadership.
+
+
+[ Bloodlust ]
+
+Any ranked member of Bloodlust may call for new leadership.  The leader will
+either fight or elect a champion of his/her calling to fight the challenger
+for leadership.  The mutinying member may also elect a fighter to fight in
+his/her place.  The winner of this duel will lead Bloodlust.  AGL rules
+govern the duel.
+
+[ Justice ]
+
+Any of the four members of the Inner Circle may decide to call upon a new
+Executer.  If this vote occurs, the current Executer steps down and the four
+member council elect a new leader.  If no majority vote is reached on the
+new Executer, there will be a clan wide vote with everyone ranked Sergeant
+or higher being allowed a vote.  Only those nominated by members of the
+inner cirlce may run for this position and there may be only one nominee per
+member of the Inner Circle.
+
+[ Shadow ]
+
+The position of Dark Lord may be challenged is three of the five other
+leader roles (Sect leaders and Chancellor), call for removal from power.
+The leader and initial challenger will engage in the duel process.  Both may
+choose to fight or select another active clan member to fight in their
+stead.  The current leader will have first choice of supporter if they
+choose for another to fight and will determine if fights will be one on one,
+two on two, etc.  As long as both sides are equal.  All fights will follow
+the AGL rules.
+
+[ Black Robes ]
+
+The challenger must at least be the rank of mage to challenge the current
+Wizard.  Leadership is then decided by a one on one duel in the arena and
+will follow AGL rules.  The Arbiter will be present and to ensure fairness.
+Any leadership challenge, regardless of whether a new Wizard is voted in or
+the incumbent Wizard remains, a vote between all three Wizards will commence
+for the title of Master of the Conclave.
+
+[ Red Robes ]
+
+Any mage ranked mage or higher may challenge for leadership.  Leadership is
+granted by popular votes.  Only mages ranked mage or higher may vote.  Any
+leadership challenge, regardless of whether a new Wizard is voted in or the
+incumbent Wizard remains, a vote between all three Wizards will commence for
+the title of Master of the Conclave.
+
+[ White Robes ]
+
+Any mage ranked mage or higher may challenge for leadership.  Leadership is
+granted by popular votes.  Only mages ranked mage or higher may vote.  Any
+leadership challenge, regardless of whether a new Wizard is voted in or the
+incumbent Wizard remains, a vote between all three Wizards will commence for
+the title of Master of the Conclave.
+
+[ Shalonesti ]
+
+Anyone who is not nameless may call a vote to be the Senator of their house.
+All members of that house may vote.  A Senator may call a vote for a new
+speaker, but the new speaker MUST be of the Shalonost house.  Popular vote
+in senate can replace the speaker.  All Senators and Speakers MUST be
+Shalonesti Elves.
+
+[ Knighthood ]
+
+To initiate a mutiny, any soldier ranked Captain or higher, may call for a
+vote of no-confidence.  If both the General of the Shield or the Lance does
+not agree with the call, then no vote will be taken.  If either agree with
+the call for no-confidence, then a vote will take place and any soldier
+ranked Knight or higher can elect to cast their vote.  Following the vote, a
+separate vote will commence for a the title of Crown Knight to lead.
+
+[ Wargar ]
+
+Any member ranked Clansmen or above may call a mutiny for Thane.  The
+Warcouncil votes on the mutiny, majority decision wins.  To mutiny a Lord
+(or Lady), the Thane must approve the mutiny and then any member of the clan
+of the same race of the Lord being mutinied gets to vote.  Majority vote
+wins.
+
+[ Slayers ]
+
+And active Slayer ranked Dragoon or higher, may request a mutiny from their
+Watcher and call for a vote.  If approved, leadership will go to the winner
+of a popular clan wide vote.
+
+
+NOTE: All leadership changes and mutinies must have Admin knowledge and
+participation.  No one may be renegaded, exiled, promoted or demoted in time
+of mutinies.  Leaders can pass leadership to another qualified person at any
+time (through admin review) unless a mutiny is in effect.
+
+SEE ALSO: KMUTINY (KINGDOM MUTINY)
+
+
+Updated 10.09.2023

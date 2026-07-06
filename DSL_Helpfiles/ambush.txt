@@ -1,0 +1,7 @@
+AMBUSH
+Syntax:  ambush <target>
+The ambush skill is available only to rangers who are camouflaged.  It is a
+surprise attack which allows great damage in the first round of combat against
+a foe.  The target may be a mob or, for those who are allowed to pkill, the
+target may be a player.
+See also:  RANGER CAMOUFLAGE PKILL

@@ -1,0 +1,10 @@
+circle stab
+Syntax: circlestab <victim>
+
+The circle stab is an art of the bladesong which allows the bladesinger to
+stab the opponent after they have already disoriented them.  The circle stab
+is performed through a quick movement and the bladesinger uses their
+sheathed weapon and not their primary weapon.  The bladesinger has from time
+to time been able to knock loose a victim's shield, however, from time to
+time their sheathed weapon has also been known to get stuck in the victim's
+shield.

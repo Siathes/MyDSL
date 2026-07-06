@@ -1,0 +1,9 @@
+'CREATE ROSE'
+'CREATE ROSE'
+
+Syntax: cast 'create rose'
+
+A romantic spell that creates a fragrant red rose, with utterly no game use
+whatsoever.
+
+See also - CREATION

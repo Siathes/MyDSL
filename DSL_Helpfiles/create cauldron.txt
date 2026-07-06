@@ -1,0 +1,10 @@
+CREATE CAULDRON
+CREATE CAULDRON
+
+Syntax: cast 'create cauldron'
+
+The primary component for all potion brewing by warlock or witch is the
+great cauldron to brew the potion in.  The 'create cauldron' spell calls a
+huge iron cauldron into being from which gourds can be created.
+
+See also - WITCHCRAFT

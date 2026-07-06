@@ -1,0 +1,27 @@
+AFK
+AFK
+
+Syntax: AFK - Typing AFK again will remove the flag
+
+This command is used to signal other players that you are AFK (Away From
+your Keyboard).  Typing AFK will place the flag on your character and by
+typing it again, it will remove the flag.  Typing AFK puts your character in
+a tell-saving mode, placing any tell to your character in a special buffer
+that can be retrieved upon your return by removing the AFK flag and by
+typing This is useful when you need to leave your computer for 5 - 10
+minutes but do not want to miss any tell sent to you.  AFK will show in your
+prompt until it is turned off.
+
+Tells to link-dead players are stored in a similar fashion, and can also be
+seen by typing replay (unless, of course, the character logs off before
+reading them).  In the event of a reboot or crash while you are AFK, your
+tells will be lost.
+
+Please note: You will not gain hours or improve spells and/or skills while
+you are in AFK mode.  Further note that any running of scripts or doing
+anything that will keep you in the game when you are not at your keyboard
+(or paying attention to the game including being on tabbed screens), is
+ILLEGAL.
+
+
+SEE ALSO:  RULES, SCRIPTING

@@ -1,0 +1,9 @@
+'ENERGY DRAIN'
+ENERGY DRAIN
+
+Syntax: cast 'energy drain' <target>
+
+This spell saps the mana and movement points of its target.
+
+Necromancers get a special bonus when casting this spell and it is more
+difficult to save against when cast by necromancers.

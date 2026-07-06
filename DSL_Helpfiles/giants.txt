@@ -1,0 +1,9 @@
+giants
+Giants contain the lineage of the Gods themselves, but not full blooded.
+They are born to mortals and appear to be a normal race at birth.  However,
+they grow at a remarkable rate and almost always appear to be 14 feet tall
+humans at maturity.  Giants have 3 different races, dependant on alignment;
+Frost (good), Fire (evil), and Cloud (neutral).  Giants have the same
+benefit as Gods as they have unlimited mana.  However, they share a Gods
+fate in that if they die in the mortal world, their souls are dead and gone
+for good.

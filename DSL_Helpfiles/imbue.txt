@@ -1,0 +1,7 @@
+IMBUE
+IMBUE SPELL
+Syntax:  cast imbue <target>
+         cast imbue
+This spell allows clerics to increase the magic-casting abilities of themselves
+(when used without a target) or any other target (when used with a target).
+See also:  CLERICS

@@ -1,0 +1,24 @@
+'COMBAT SPELLS'
+
+These sorcerous spells are, in the words of one famous mage, just 'more ways
+to toss energy around'.  They are the most powerful of the damaging spells,
+and considered an essential part of most wizards' collections.  Clerics and
+thieves do not have access to these spells.
+
+More information on individual spells may be found by typing help
+(spellname).  In order of power, the combat spell group consists of the
+following spells:
+
+magic missile    sends a weak energy bolt into your foe.
+chill touch      weakens your enemy with a frigid grasp.
+burning hands    sends a blast of fire into your foe.
+shocking grasp   sends a powerful jolt into your foe.
+color spray      blasts your foe with a rainbow spray, which may blind them.
+fireball         a powerful spell, great for burning your enemy to ashes.
+blizzra          a chilling blizzard storms quickly over your foe.
+acid blast       sends forth a stream of acid to eradicate your foe.
+chain lightning  sends lightning bolts arcing through your foes.
+
+This group is available to the following classes -
+    ASSASSIN BATTLERAGER BLADESINGER DRAGON GIANT ILLUSIONIST
+    INVOKER MAGE NECROMANCER RANGER THIEF TRANSMUTER WARRIOR

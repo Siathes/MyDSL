@@ -1,0 +1,7 @@
+TAUNT
+TAUNT
+Syntax: taunt <target>
+This is a kender only skill that allows kender to force opponents into
+rages by throwing a string of insults at them. The opponents hitroll
+suffers greatly, but their dam roll increases (the madder you are, the
+harder you hit).

@@ -1,0 +1,19 @@
+SPELLGROUPS SPELLS
+
+There are many different types of spells that are available to various
+classes within DSL.  Most, if not all, may be grouped into various spell
+groups that are offered for those classes to choose from.
+
+Below is an index listing of the offered spell groups.  Typing HELP followed
+by (most) of these groups, will give you a listing of the individual spells
+within, and the classes they may be available to.
+
+alteration              attack                  beguiling
+benedictions            combat                  creation
+curative                detection               divine blessings
+elemental               enchantment             enhanced enchantment
+enhancement             greater illusions       harmful
+healing                 illusion                invocation
+maladictions            nature                  necromancy
+protective              transportation          voodoo
+weather                 witchcraft              worship

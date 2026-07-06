@@ -1,0 +1,8 @@
+'SLEEP SPELL'
+'SLEEP SPELL'
+
+Syntax: cast sleep <victim>
+
+This spell puts its victim to sleep.
+
+See also - BEGUILING

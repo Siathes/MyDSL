@@ -1,0 +1,3 @@
+halt
+Halt allows the bandit to cut the straps off of a saddled horse sending
+the rider to the ground.

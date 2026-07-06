@@ -1,0 +1,29 @@
+Original DikuMUD by: Hans Staerfelt, Katja Nyboe, Tom Madsen, Michael
+Seifert, Sebastian Hammer.
+Original MERC 2.1 by Hatchet, Furey, and Kahn.
+DSL Owned by Allen Games. (which is owned by Scorn)
+DSL Web Site: http://www.dsl-mud.org, Facebook: www.facebook.com/groups/dslmud/
+Various Snippets from SMAUG 1.4 (c) Derek Snider
+.
+                                   /   \
+ _                         )      ((   ))     (
+(@)                       /|\      ))_((     /|\                         _
+|-|`\                    / | \    (/\|/\)   / | \                       (@)
+| |---------------------/--|-voV---\`|'/--Vov-|--\----------------------|-|
+|-|                          '^`   (o o)  '^`                           | |
+| |                                `\Y/'                                |-|
+|-|                                                                     | |
+|-|                    DARK & SHATTERED LANDS (DSL)                     | |
+| |                                                                     |-|
+|-|                           [Implementor]                             | |
+| |                               Scorn                                 |-|
+|-|                        (scorn@dsl-mud.org)                          | |
+|_|_____________________________________________________________________|-|
+(@)                l   /\ /         ( (       \ /\   l                `\|_|
+                   l /   V           \ \       V   \ l                  (@)
+                   l/                _) )_          \I
+                                     `\ /'
+                                       ,
+             Code:  DSL 4.00 copyright (c) 1996 - 2022 Tony Allen
+           Based on ROM 2.4 beta, copyright 1993 - 1996 Russ Taylor
+[DSL] (Push Enter to Continue)

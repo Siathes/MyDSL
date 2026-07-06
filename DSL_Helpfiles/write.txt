@@ -1,0 +1,7 @@
+WRITE
+Syntax:  write <book> page <#>
+Syntax:  write <parchment>
+Syntax:  write <book/parchment> title <title>
+These commands allow you to write pages of information into
+book objects or onto pieces of parchment.
+SEE ALSO: tear, dip, read

@@ -1,0 +1,26 @@
+samurai
+SAMURAI
+
+Samurai are warriors hailing from the continent of Shokono.  They serve the
+noble lords of these lands as their military elite and retainers.  Sworn to
+the bushido code, Samurai are masters of various forms of combat, both
+mounted and on foot.  It is rumored that the Samurais affinity for swords is
+nearly unmatched, and that this is due to their devotion to their Code.
+These rumors also state that one would be lucky to encounter a samurai on
+foot, for their skill with bows upon a horse rarely leaves such an
+opportunity.
+
+Being noble retainers, The Samurai are sworn military leaders, and as such
+their devotion and service will gain them renown with their lords. This
+renown takes the form of a rank structure given specifically to the samurai.
+These ranks are Ronin, Samurai, and Shogun.  To the untrained eye, these
+ranks are nearly indistinguishable, but it is rumored that the Samurai grows
+in his abilities from this renown, and perhaps the best indicator of these
+rumors, are the pets they train.
+
+Who can be a Samurai?
+CLASS: WARRIORS only
+RACE: All Except Goblins
+ALIGNMENT: Any alignment
+CLAN: ANY, including non-clanned
+see also: 'RECLASS'

@@ -1,0 +1,21 @@
+BATTLEMAGE
+
+Battlemages are a special reclass only available to mages of the Conclave.
+The battlemage of the Conclave is the first line of defense for the Citadel
+of Magic.  First learned in ages before history, the knowledge was recently
+brought back from the past and re-taught to the Conclave by a mage
+travelling through time.  They have since become some of the toughest magi
+in throughout the realm, having perfected magic that lets them absorb
+incredible amounts of punishment before falling to death.  On the
+battlefield, they are able to take the brunt of the attack while having the
+ability to control their fearsome creations in both offensive and defensive
+attack.
+Who can be a Battlemage?
+
+CLASS:     MAGES only
+RACE:      ANY EXCEPT KENDER, HILL/MOUNTAIN DWARVES, GIANT OGRES, BUGBEARS
+           WEMICS
+ALIGNMENT: Any alignment
+CLAN:      CONCLAVE only
+ARMOR:     Studded Leather
+See also - RECLASS CONCLAVE BATTLEMAGIC

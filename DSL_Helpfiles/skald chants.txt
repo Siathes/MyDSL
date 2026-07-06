@@ -1,0 +1,72 @@
+<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>
+<html>
+ <head>
+  <meta http-equiv='content-type' content='text/html; charset=utf-8'>  <meta name='generator' content='Mudlet MUD Client version: 4.19.1'>
+  <title>Mudlet, main console extract from Dark & Shattered Lands - PNP profile</title>
+  <style type='text/css'>
+   <!-- body { font-family: 'Liberation Mono', 'Courier New', 'Monospace', 'Courier'; font-size: 100%; line-height: 1.125em; white-space: nowrap; color:rgb(255,255,255); background-color:rgb(0,0,0);}
+        span { white-space: pre-wrap; } -->
+  </style>
+  </head>
+  <body><div><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">'SKALD CHANTS' 'SKALD SONGS' CHANTS SONGS</span><br>
+<span style="color: rgb(255,255,0); background: rgb(0,0,0); ">SKALD CHANTS </span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">and </span><span style="color: rgb(255,255,0); background: rgb(0,0,0); ">SKALD SONGS</span><br>
+<br>
+<span style="color: rgb(0,128,128); background: rgb(0,0,0); ">Syntax:</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); "> Sing &lt;'Name of Song'&gt;</span><br>
+<span style="color: rgb(0,128,128); background: rgb(0,0,0); ">Syntax:</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); "> Chant &lt;'Name of Chant'&gt; or Chant Stop (stops the chant once sung)</span><br>
+<br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">In addition to the many bardic songs learned over time, the Skald is able </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">to learn additional songs as well as chants to aid both themselves and </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">their group in battle.  Unlike songs, which can be sung to cast a lasting </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">affect upon the singer and/or group, Chants are continuous and will slowly </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">drain the magical strength of the Skald during the entire time they are </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">engaged in the chanting performance.  Once started, the Skald is able to </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">stop the chant if they wish to.</span><br>
+<br>
+<span style="color: rgb(0,128,128); background: rgb(0,0,0); ">SKALD CHANTS -</span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">Chant of Accuracy</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); "> - This chant increases the hit roll of everyone in </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">the skald's group as long as they are also in the same room as the skald.</span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">Dirge of Detection</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); "> - When the skald chants this tune, it enables all in </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">the skald's group the ability to detect hidden and detect invisible.</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); "> </span><br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">Requiem of Wayfaring</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); "> - This skald's chant enables the skald's group to </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">take minimal or possibly no loss of movement when walking around.</span><br>
+<br>
+<br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">[ (</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">C</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">)ontinue, (</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">R</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">)efresh, (</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">B</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">)ack, (</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">H</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">)elp, (</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">E</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">)nd, (</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">T</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">)op, (</span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">Q</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">)uit, or </span><span style="color: rgb(255,0,0); background: rgb(0,0,0); ">RETURN</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); "> ]: </span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">Melody of Meditation</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); "> - The constant chant of this tune allows the </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">Skald and their party to continually regain substantial portions of their </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">magical strength over time.  </span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">Jubilee of Regeneration</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); "> - This jovial chant allows the physical </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">regeneration of everyone in the skald's group and within the same room,</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">however, there is a slight delay upon chanting this tune before it comes </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">into affect for the singer and group.</span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">Yelp of Aggression</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); "> - This skald's chant enables the skald to increase the</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">group's physical damage capabilities upon it's enemies.</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); "> </span><br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">Rousal of Resistance</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); "> - A lively tempoed chant that increases the groups </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">ability to resist various harmful spells that may be cast upon them.</span><br>
+<br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); "> </span><br>
+<span style="color: rgb(0,128,128); background: rgb(0,0,0); ">SKALD SONGS -</span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">Call to Arms</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); "> - A high pitched tune that when perfectly performed by </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">the Skald during battle, can deal physical damage upon its enemies and </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">potentially deafen a single target.</span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">War Howl</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); "> - The tune resembles a howl as signified by its name, allowing</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">the skald to physically injure a single target as well as have a chance </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">to also stun them.</span><br>
+<br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">Warble of Arrest</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); "> - When the Skald calls this song upon their lips to </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">sing, the warble can allow the Skald the ability to halt a person's </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">movement. </span><br>
+<br>
+<br>
+<span style="color: rgb(128,128,128); background: rgb(0,0,0); ">SEE ALSO:</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); "> SKALD</span><br>
+ </div></body>
+</html>

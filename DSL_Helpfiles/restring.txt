@@ -1,0 +1,97 @@
+RESTRING
+{YRESTRING STRING{x
+
+{cImm Syntax:{x  string char <name> <field> <string> - type string for field list
+
+A restring is the renaming of an object or feature.  This is done by an
+immortal, and it's validity is up to the immortal's discretion and restring
+guide.  Admin has the right to overrule an existing restring, at any time.
+
+{cTypes of Restrings:{x
+
+     {CObjects                                    {y1 blue per{x
+     {CDescription Features and Profession        {y1 blue for all{x
+     {CMounts                                     {y1 blue per{x
+     {CFleesets                                   {y1 blue{x
+     {CFinishers (Fsets)                          {y1 blue{x
+     {CRecall                                     {y1 blue{x
+     {CGates                                      {y1 blue{x
+     {CPortals                                    {y1 blue{x
+     {CPriest Prayer                              {y1 blue{x
+
+Description features must be appropriate for the race and gender you are
+playing.  Professions must fit DSLs Rp and time period.  All remorts and
+divines should have professions set automatically by Imms and will be
+changed at no charge.  Both can contain color syntax, if desired.
+
+{cRestring Guidelines:{x
+
+These are all the aspects of a restring that you will need to have ready,
+when you pray up. Short, long, and names are required for all restrings.
+Extended descriptions are optional.
+
+{C1. Short Description{x - What appears in inventory, when worn, or when striking.
+
+     {yExample:{x say short a silvery sword with an engraved hilt
+
+Note:  No capitals unless proper nouns.
+
+{C2. Long Description{x - What appears when the item is on the ground or examined.
+
+     {yExample:{x say long A silvery sword with an engraved hilt lies here.
+
+{C3. Names{x -  Keywords to reference the item.
+
+     {yExample:{x say names bright silvery sword hilt
+
+Note:  You may add extra names, but one must match the item type.
+
+{C4. Extended Descriptions{x - Additional details for specific parts.
+
+     {yExample:{x say extended engraving The hilt is engraved with the name Scorn.
+
+Note:  Restrings with over 5 extendeds will have an extra cost.
+
+{cOther rules:{x
+
+   - Descriptions should describe appearance only.
+   - No personal/god/family names without prior approval.
+   - Must fit DSL's RP and time period.
+   - Item type must remain consistent (dagger stays a dagger, etc.).
+   - Use limited color codes (no excessive "kender colors").
+   - Syntax for color codes: short a {{wsilver{{x handled {{Dsword{{x
+   - Use common sense - no intangible items )auras, energy, rotting flesh, etc.)
+
+   - {rFleesets{x must indicate a person leaving the area from battle.
+   - {rRecalls{x must indicate a person leaving for home/bind/recall.
+   - {rPortals{x must indicate moving through a portal.  Shows on opening side.
+
+{cProcess for Requesting Restrings:{x
+
+   - Pray for the number of restrings you need.
+   - Give the immortal 1 blue diamond per restring and for objects, 1 item
+     at a time to avoid errors.
+
+{cCode Key{x - Used for Fleesets, Fsets, Recall, Gates, Portals, Priest Prayer
+
+{C$n{x - name of player
+{C$e{x - he, she or it, depending on sex of player
+{C$m{x - him, her or it, depending on sex of player
+{C$s{x - his, her or its, depending on sex of player
+{C$p{x - portal
+
+For victims or targeting others, use the capital versions of above.
+
+{yFleeset Example:{x $n drops her staff on the ground as she turns and runs.
+{yFset Example:{x    $n pulls out $s staff and pugils $N to death!
+{yRecall Example:{x  $n murmurs a soft incantation before returning to the Mountain.
+{yGate Example:{x    $n strikes the ground with $s staff and disappears out of sight.
+{yPortal Example:{x  As the $p opens, $n slips through to the other side.
+{yPriest Example:{x  With a bow of $s head, $n offers a short prayer above.
+
+Note:  Fleesets only use the $n coding and no other.
+
+
+{DSEE ALSO:{x  FLEESET, FSET, GATE, PORTAL, PRIEST, RECALL
+
+Updated 07.31.2025

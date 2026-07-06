@@ -1,0 +1,10 @@
+
+'ANTIMAGIC SHELL'
+ANTIMAGIC SHELL
+
+Syntax: cast 'antimagic shell'
+
+This protective spell prevents magical attacks from damaging the wearer.  It
+should be noted that rumours indicate that certain magical attacks are still
+able to make it through the shell.  It does not protect the wearer's armor
+or equipment from being damaged by magical means.

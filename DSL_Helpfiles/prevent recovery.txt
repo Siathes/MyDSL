@@ -1,0 +1,7 @@
+prevent recovery
+Syntax: c 'prevent recovery' <victim>
+
+Prevent recovery allows a trained Necromancer to drain the life out of a
+victim, leaving them unable to recover health, movement and or magic.
+Prevent recovery has been found effective to counteraffect other spells in
+the realms...

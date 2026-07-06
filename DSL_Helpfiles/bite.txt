@@ -1,0 +1,8 @@
+BITE
+Syntax:  bite <target>
+         bite
+An attack skill used by dragons to bite a foe using their sharp teeth and
+powerful jaws.
+A dragon may bite a foe to initiate combat, or use bite without a target if
+already engaged with a foe.
+See Also:  DRAGONS

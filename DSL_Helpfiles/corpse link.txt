@@ -1,0 +1,6 @@
+'CORPSE LINK'
+'CORPSE LINK'
+This spell has not yet been coded and currently results in a stub function
+statement.  We'll try to add the helpfiles as the new spells are put into the
+game.
+See also:  STUB

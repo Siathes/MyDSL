@@ -1,0 +1,101 @@
+HOUSE HOUSING LAIRS
+HOUSING AND LAIRS
+
+The following information is needed for housing and lair construction:
+
+House and Lair Locations:
+
+Housing:
+
+Go to the housing district of the city you want the house in, and go choose
+an ADDRESS for the house to be placed.  At that address, choose the
+direction in which you want your house to be located.  If that lot happens
+to be taken, another spot nearby will be chosen.  Also be aware that race
+restrictions in kingdoms also apply to the kingdom's housing area.
+
+Lairs can be built in most locations but MUST be outside of a kingdom's
+city limits.  At the entrance location, choose the direction you want
+the lair opening to be.  If that is not a viable entrance, another
+location nearby will be selected.
+
+House and Lair Descriptions:
+
+This should include a room name, a room description, doors to include
+direction into the new room/area and if the door is open or closed as
+well as any extra owners you wish to share the house with (please include a
+detailed description of how the extra owners are related to your character.
+They cannot be the alt of your character as that is considered multiplay.
+
+In addition, you cannot be the primary owner of more than one house at a
+time.  If you marry another primary house owner, you will need to select
+which of the two houses you are both listed on, if that is your preference.
+
+For lairs, remorts can list their alterforms as an owner and no more than
+two (2) warders.  No other relationships, to the remort OR alterform, will
+be allowed as additional owners to the lair.
+
+Please note that houses cannot be moved to another kingdom location without
+doing a full re-build and providing full payment for the new house build.
+
+NOTE:  A map laying our your build is preferred for clarity.
+
+Object Information:
+
+You should include the same information that you include when purchasing a
+restring.  "Keyword" is the words you want to use in order to use your item.
+"Long Description" is what will show up in the room, when the object is on
+the floor.  "Short Description" is what you see when you interact with the
+object, such as "You sit on a couch" (a couch is the short description).
+
+Extended descriptions on objects are available at additional costs.
+
+Stock Objects ("Private Homes" only):
+
+For five (5) egg, you can have any of our stock housing items in the purchase
+of your house.  These items CANNOT be altered, they come as they are.  If
+you wish your own specially tailored item for which a new object must be
+created, the cost will still be ten (10) eggs.  Our stock items for housing
+as of now include: a chair, a fountain, a couch, and a bed.
+
+Stock items for lairs include a chair, a fountain and a bed.
+
+PLEASE NOTE: You cannot have objects that are containers or objects that can
+be removed from your house.  Also, the housing imm(s) reserve the right to
+modify an item in order to fit in with DSL's standards of appropriateness.
+Additionally, no mobs, shopekeepers, or portals will be allowed inside
+homes.
+
+After you have submitted this information, a housing imm will contact you to
+tell you how much the house will cost you.  Once you have received a note
+stating the amount of eggs you owe, pay the first Immortal of Senior rank or
+higher that is available to do so.  Housing will not begin until payment is
+made in full.  When you pay the immortal, be sure that they write a note to
+you and the current housing imm with the amount of eggs in the subject line.
+
+As soon as your house has been built, you should receive an email that
+states that the house has been completed.  This does not mean that the
+house is immediately available.  It will not be accessable until a special
+area port has been run, which will bring new houses, lairs, etc. online.
+
+ * The current Housing and Lair Imm is Cayenna.
+
+ * Housing/Lair requests should be submitted via email to Cayenna.dsl@gmail.com
+
+ * Subject line needs to include the following:
+
+          - DSL HOUSING or DSL LAIR
+          - NAME of the Character/Remort purchasing the home or lair.
+
+After submitting the email, send a note to the appropriate Imm to inform
+them that your request has been sent.  Further instructions from the
+Housing Imm(s) will follow.  (If you do not have access to email, you can
+contact Cayenna through notes instead).
+
+Please note, preferred method of contact for housing/lairs is by email to:
+
+Cayenna.dsl@gmail.com
+
+PLEASE DO NOT PAY ANY IMM FOR YOUR BUILD UNLESS A NOTE HAS BEEN LEFT IN
+GAME BY THE BUILDING IMM TO YOUR CHARACTER.
+
+SEE ALSO:  PRIVATE HOME, PRICES, UPGRADES

@@ -1,0 +1,10 @@
+COMBINE
+COMBINE
+Syntax:  combine
+This command is used to toggle between different forms of displaying inventory.
+The primary effect is to display multiple items of the same name on separate
+lines or to combine them, using a number to indicate how many of that item you
+have.  As a secondary effect, the "combined" form of listing inventory will
+list each item indented from the left margin and the "long form" will show each
+item beginning at the left margin.
+See also:  INVENTORY

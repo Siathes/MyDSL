@@ -1,0 +1,20 @@
+VOICE TYPE
+
+Syntax:  voicetype <number>
+
+Players have the option of selecting and/or toggling between different
+voice types in order to add ambience to their characters.
+
+Please enter the number corresponding to the voice type you wish.
+
+ 1. Normal             2. Squeaky
+ 3. Raspy              4. Low toned
+ 5. High Pitched       6. Deep Voice
+ 7. Soft               8. Booming
+ 9. Stressed          10. Evil
+11. Sweet             12. Demanding
+13. Growlingly        14. Cheer
+15. Sarcasm           16. Sad
+17. Musical           18. Gruff
+19. Breathy           20. Wheezy
+21. Mumbling          22. Husky

@@ -1,0 +1,10 @@
+
+'CURE LIGHT' 'CURE SERIOUS' 'CURE CRITICAL' HEAL
+'CURE LIGHT' 'CURE SERIOUS' 'CURE CRITICAL' HEAL
+Syntax: cast 'cure light'    <character>
+Syntax: cast 'cure serious'  <character>
+Syntax: cast 'cure critical' <character>
+Syntax: cast 'heal'          <character>
+These spells cure damage on the target character.  The higher-level spells
+heal more damage.
+(see 'help healer' for details on the heal command)

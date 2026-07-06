@@ -1,0 +1,25 @@
+flee setflee
+SETFLEE
+
+Setflee will allow you to set a custom flee message for a character.  This
+message must contain the character's name somewhere within this message.
+
+Syntax: setflee <name> <message>
+
+Please use the "$n" character to set the player's name within the message;
+this will correctly place their name (swash, hidden, imm, etc) as the name
+fleeing.
+
+Example: setflee Cayenna $n throws down some spice before ducking out of battle.
+
+NOTE:  DO NOT use any other type of $code within the setflee.
+NOTE:  Flee messages should indicate that the person has fled the area.
+
+Not Allowed:
+
+$n fades out of existence as a weapon passes through them.
+
+
+SEE ALSO:  FSET, RESTRING
+
+Updated 07.31.2025

@@ -1,0 +1,3 @@
+flare
+A single target blind skill.  A nightshade may temporarily blind an
+opponent with this skill.

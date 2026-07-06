@@ -1,0 +1,11 @@
+illusionist
+Illusionists are magic users who specialize in creating or altering
+appearances.  Here on Algoron, Illuionists are well known for their tricks
+and deceptions at getting themselves away from trouble.  One must first
+become a mage and then learn the ways of an Illusionist.
+Who can become an Illusionist?
+CLASS:     MAGES only
+RACE:      Human, Elf, Dwarf, Gnome, Minotaur, Yinn
+ALIGNMENT: Any
+CLAN:      Any
+see also: 'RECLASS'

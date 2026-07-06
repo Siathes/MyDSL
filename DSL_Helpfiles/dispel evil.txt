@@ -1,0 +1,9 @@
+'DISPEL EVIL'
+DISPEL EVIL
+
+Syntax: cast 'dispel evil' <victim>
+
+This spell invokes the wrath of the Gods on an evil victim.  It can be very
+dangerous for casters who are not pure of heart.
+
+See also - ATTACK

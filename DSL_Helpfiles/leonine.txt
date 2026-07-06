@@ -1,0 +1,12 @@
+leonine
+SEE Help Wemics, Help Felar
+Leonine are a race of cat-like people who live amongst Tropica in tribes
+known as "prides".  They live fairly primitive, hunting their food almost
+daily and defending their territory with great fury and pride.
+Classes and Reclasses: Wemics can be Warriors or Clerics with the following
+reclasses available.
+Barbarian, Ranger, Druid, Shaman.
+Felar can be Thieves, Warriors, Clerics or Mages with the following
+reclasses:
+Barbarian, Ranger, Assassin, Witch, Illusionists, Enchantors, Druid, or
+Shaman.  (Conclave reclasses if in Conclave as well)

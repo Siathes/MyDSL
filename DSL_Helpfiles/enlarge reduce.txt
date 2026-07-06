@@ -1,0 +1,9 @@
+ENLARGE REDUCE
+ENLARGE REDUCE
+
+Syntax:  cast 'enlarge'
+         cast 'reduce'
+
+These spells enlarge or reduce the size of the caster.
+
+See also - ALTERATION TRANSMUTER

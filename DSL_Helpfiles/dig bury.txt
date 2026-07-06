@@ -1,0 +1,12 @@
+DIG BURY
+Syntax: Dig
+Syntax: Dig <direction>
+Syntax: Bury <object name>
+Dig is a skill which allows you to dig up
+items that are buried OR dig out exits
+which may exist. Please note that a shovel
+will GREATLY improve your chances of finding
+buried items.
+Bury is a command which allows you to bury an
+object.  Be careful, You might not be able to
+dig up the object later on.

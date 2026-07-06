@@ -1,0 +1,27 @@
+SHAMAN
+SHAMAN
+
+Shamans are a unique and somewhat reclusive lot.  Some call
+them Witch Doctors or Medicine Man, relying on JuJu or VooDoo magic.
+Shamans are limited to using certain weapons, however, they have access to
+a unique spellgroup which gives them the ability to morph into wild beasts,
+and inflict diseases on their foes.
+
+Shaman Guidance:
+
+     - Aggressive mobs in game will be aggressive mobs in spirit.
+     - It is illegal to level while spirit walking.
+     - Using shaman spirits, charmies, creations to get around code or act
+       in ways that are illegal or twinkish.
+
+Who can be a Shaman?
+
+CLASS:     CLERICS only
+RACE:      HUMAN, OGRE, GOBLIN, DARK DWARF, WILD ELF
+ALIGNMENT: Any alignment
+CLAN:      ANY, including non-clanned
+
+
+SEE ALSO:  RECLASS
+
+Updated: 08.25.2025

@@ -1,0 +1,9 @@
+CONCLAVE
+[ Conclave ]
+
+The Conclave is the governing order of magic in Algoron.  Their purpose to
+protect and teach the magic from what many call the School of Philosophy.
+The Conclave consists of the White Robes, the Black Robes, and the Red
+Robes.
+
+See also - WHITE ROBES, RED ROBES, BLACK ROBES

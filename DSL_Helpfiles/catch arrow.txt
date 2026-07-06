@@ -1,0 +1,8 @@
+catch arrow
+CATCH ARROW
+
+With an impressive display of hand-eye coordination, the trained jongleur
+is able to not only see his enemy's shot heading toward him, but also grab
+it out of the air before it can strike him.  This is a passive skill.
+
+Groups containing this skill: JONGLEUR DEFAULT

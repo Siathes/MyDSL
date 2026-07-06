@@ -1,0 +1,24 @@
+CHURCHES
+
+The priests of Algoron are responsible for the leadership and management of
+the church of their chosen god or goddess.  While any class may be a part of
+their gods or goddesss church (clerics oftentimes serve as acolytes), only
+priests will be granted the authority of leadership within each church.
+
+Leadership is based on a hierarchical system.  Generally, the churchs leader
+is chosen from the highest ranking priests, although exceptions have
+occurred in rare instances when extenuating circumstances demand otherwise.
+Priests gain more responsibility within their church as their rank
+increases, showing the proper respect toward those of higher rank.
+
+The church leader is responsible for tracking the members of his church and
+ensuring his god or goddess is informed of their status at all times.  If a
+church leader believes a priest or priestess deserves a promotion, he is
+responsible for making his recommendation known.  The church leader must
+also ensure that those immediately beneath him are able to carry on this
+task should he be unable to do so.  Each church leader may organize his
+church at his own discretion, based on either his knowledge of his gods
+wishes or direct guidance from his god.  However, failure to perform ones
+duty can result in harsh penalties.
+
+See also - CHURCH LEADERS, MOBGOD INTERACTION

@@ -1,0 +1,38 @@
+  -----------------------------------------------------------------------
+
+        Navigation and Status
+
+    To move your character, type the direction you wish to move. A
+    list of exits is displayed in the room description. The possible
+    directions are up, down, north, south, west, east, northeast,
+    southeast, northwest, and southwest. Some MUD clients allow you
+    to use the number pad to move easily.
+
+    To open a door, type open (direction).
+    To see the room description again, type look.
+    To examine an object, type look (object) or examine (object).
+    To see who is currently in the same area as you, type where.
+    To see all visible players online, type who.
+    To return to your recall point, type recall.
+    To see detailed information about your character, type score.
+    To see spell affects actively effecting your character,
+      type affects.
+    If a character becomes hungry or thirsty, you can eat (food)
+      or drink (container). If you don't eat or drink for a while,
+      your character can become fatigued, in which you need to eat and
+      drink, then rest.
+    To fill a drink container, type fill (container) in a room
+      with a fountain.
+    You can empty the container by typing empty (container)
+    If you are injured or are low on mana, type rest or sleep.
+      Resting has better regeneration than standing, but prohibits you
+      from moving. Sleeping has better regeneration than resting, but
+      prohibits you from doing most commands.
+    (in Althainia --)
+    The water fountain is south of recall.
+    A vendor that sells barrels is south and east twice from recall.
+    The baker is south twice, west, and north from recall.
+
+        Type HELP NEWBIE to return to the table of contents.
+
+  -----------------------------------------------------------------------

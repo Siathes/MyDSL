@@ -1,0 +1,9 @@
+BRIEF COMPACT
+BRIEF COMPACT
+Syntax:  brief
+         compact
+Brief and compact help set your display options for the game. Typing brief
+toggles on and off the showing of room descriptions when you move around
+(considerably reducing the text to be processed), and typing compact
+removes the extra blank line before your prompt.
+See also:  AUTO

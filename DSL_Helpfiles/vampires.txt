@@ -1,0 +1,87 @@
+VAMPIRES
+Vampires are demons inside of a corpse, however they do retain the
+memories of the soulless corpse that they host.  They have no heartbeats or
+body temperature and they do not breathe.  They are therefore unseen in dark
+rooms by dark vision and infravision.  They are immune to strangle type
+attacks and gasses and will not drown in the ocean or underwater.  Since the
+body in which the demon lives is dead, vampires do not ever age once they
+are created.  They have a vampire face and a mortal face.  The vampire face
+is a more distinctive evil face that is a mixture of the demon and the
+mortal corpse.  They fight better in vampire face but if you allow the demon
+inside to control you for too long you wont be able to revert back to your
+mortal face.  ALL vampires are evil.  Their vulnerability to sunlight means
+they are restricted to indoor/underground locations in the daytime.
+
+Death
+Ways to perm die.
+1.Die to sunlight
+2.Get beheaded
+3.Die to the slayer
+4.Die to a master vampire
+
+Vamp Face
+To toggle between your normal face and your vamp face use the "demonguise" command.
+
+Your vamp face can be forced out in 4 ways.
+1.Casting the turn undead spell on you. (pk)
+2.Casting the detect undead spell on you. (pk)
+3.Exposure to sunlight.
+4.Bloodlust
+
+Feeding
+A vampire must feed approximately every 24 in game hours.  If they do not feed in
+that time period their blood % will dwindle to 0 and they will go into bloodlust.
+Once in bloodlust the demon takes over.  You will switch to vampire face and be
+unable to switch back until you feed.  While in bloodlust you will bite the first
+warm blooded thing you come across (except kingdomers).  Extreme prolonged
+bloodlust will kill the demon and therefore you as well.  You must be in vampire
+face to feed. Use the feed command to feed and to stop feeding.
+
+Feed <victim>
+
+To feed you must have one of the following:
+1.An invitation (anyone)
+2.A charmed victim (pk/mob)
+3.A sleeping victim (pk/mob)
+
+Feeding on someone will obviously weaken them.  The more you feed the weaker they will become.
+
+Sense
+As a vampire you can sense other vampires in the room even if they cannot be seen.  You can
+also sense the slayer.  And the slayer can sense all vampires.
+
+PK
+There are no pk restrictions for vampires and slayers.  As a vampire if you sense the slayer
+you will probably want to leave the area as quickly and stealthy as possible.
+
+Skills
+Vampire skills require blood points much like spells require mana.  A vampire starts with a
+pool of 100 blood points and that is as large as the pool gets.  As you use various skills
+the pool will be depleted.  The blood point pool will regenerate slowly on its own.  There
+one thing that will help in replenishing this pool faster.  You will have to discover that
+on your own.
+1.Soul sight (2 blood points):
+Aura detection, item identification (examine), detect hidden, and detect invisible all in one.
+2.Unseen Presence (3 blood points per tick):
+Allows a vampire to move unseen.  Combat as well as few other things will allow the vampire to
+be discovered.  The slayer and other vampires can still sense your presence while using this skill
+3.Mesmerize (5 blood points):
+Similar to Soul Whisper.  This skill works when you are in the same room with the victim and
+will work night or day.  This will give a lesser beings mind a notion to do whatever the vampire
+wishes.
+4.Soul Whisper (8 blood points):
+Forces visions or nightmares of the vampires will on a lesser being.  This only works at night
+and will stop at sunrise.
+5.Blood Shield (10 blood points):
+This summons some protection from all the lesser beings that you have fed from.  The amount
+of protection a vampire can summon increases with age.  The blood point cost of the skill
+also diminishes over time.
+6.Blood Boil (20 blood points):
+A vampires connection with blood allows them to use this attack to weaken their foes.  As a
+vampire ages their abilities to boil a victims blood increase as well.
+
+Maximum benefits for Blood Boil and Blood Shield skills are achieved at 2000 vampire hours.
+
+Misc
+%b will show your blood % in the prompt
+%p will show your blood points in the prompt

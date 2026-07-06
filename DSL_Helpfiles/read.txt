@@ -1,0 +1,7 @@
+READ
+READ
+Syntax:  read <target>
+Syntax:  read <target> page #
+This command works the same as look.  When used without an argument, it will
+show the room name and description.  When used with a target, it will show
+a description of the target.

@@ -1,0 +1,8 @@
+'TAIL THRASH'
+Syntax:  tail thrash
+         tail thrash <target>
+Tail thrash is a dragon only attack. (Of course, who else has a tail capable
+of doing damage? *grin*)  It may be used while in combat without an argument
+or with an argument to initiate combat.  The effects are similar to those of
+the bash skill used by warriors of other races.
+See also:  BASH DRAGON

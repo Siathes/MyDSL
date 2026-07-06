@@ -1,0 +1,11 @@
+SCRIBE SCRIBING
+The ability to write down what one knows is an important skill a mage learns
+early in her career.  Certain spells, especially those that have a target,
+lend well to the genre of the written word.  Others are more introspective,
+thus are not readily adaptable to parchment.
+
+When one wishes to magically imbue a parchment with a magic spell, they will
+require the use of a writing instrument as well as a sheet of parchment.
+
+Syntax:
+scribe <spellname>

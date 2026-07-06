@@ -1,0 +1,8 @@
+pretend
+PRETEND
+
+Pretend will allow a charlatan to assume the role of a base class and use
+specific skills and abilities of the given class.  Valid classes are Thief,
+Warrior, Mage and Cleric.
+
+Syntax: pretend <class>

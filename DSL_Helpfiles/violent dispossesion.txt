@@ -1,0 +1,4 @@
+violent dispossession
+Allows a swashbuckler to 'cut' the purse of a victim, spilling the
+victim's money.  It can also be used to cut containers spilling the contents
+to the ground.

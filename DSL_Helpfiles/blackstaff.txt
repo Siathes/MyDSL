@@ -1,0 +1,22 @@
+BLACKSTAFF
+BLACKSTAFF
+
+Syntax:  cast 'blackstaff'
+
+Blackstaff is a high level Transmuter spell in the alteration spellgroup.
+The spell requires a spell component which is made by only the highest level
+(an onyx gem) spellcrafters.
+
+The Transmuter must hold the gem in its hand while casting the spell.  The
+gem transforms into a one handed blackstaff of serious power.  The
+Blackstaff has the ability to mana leech from an opponent as well as has
+vamperic effects and it can stun.  The average damage for the blackstaff is
+also top of the line.
+
+The only drawback to the spell is that the staff only lasts for a short
+duration before fading away.
+
+Groups containing this spell: Alteration
+
+
+SEE ALSO:  ALTERATION, TRANSMUTER

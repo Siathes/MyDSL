@@ -1,0 +1,17 @@
+swashbuckler
+These care-free dashing warriors glide through life with grace, wit and
+charm.  Disdainful of most common weapons, they are extremely proficient at
+those of their choosing.
+
+Ever ready for adventure, swashbucklers have a multitude of skills at their
+disposal to help them on their way.  Once they have advanced far enough in
+their training it is rumored that they are able to don a mask to hide their
+true identities.
+
+Who can be a swashbuckler?
+
+CLASS: Warriors only
+RACE: Humans, half-elves and kender
+
+See Other Helps: MASK, BOARDING, EVASION, MIMIC, RETAIN WEAPON,
+VIOLENT DISPOSSESSION, TARGET, OCEAN CALL

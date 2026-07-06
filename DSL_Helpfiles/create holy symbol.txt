@@ -1,0 +1,7 @@
+'CREATE HOLY SYMBOL'
+'CREATE HOLY SYMBOL'
+Syntax:  cast 'create holy symbol'
+Clerics may use this spell to forge a symbol of their faith.  When worn, this
+symbol serves to strengthen the clerics abilities. The symbol may not be taken
+from the cleric in any fashion, nor may the cleric willingly give it to another
+character.

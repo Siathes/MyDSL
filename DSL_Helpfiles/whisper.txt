@@ -1,0 +1,5 @@
+WHISPER
+WHISPER
+Syntax:  whisper <message>
+Whisper is essentially the same as SAY, but may be used to enhance roleplaying.
+See also:  SAY

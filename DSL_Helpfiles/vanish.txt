@@ -1,0 +1,5 @@
+VANISH
+Syntax: vanish
+Vanish is an advanced assassin skill that lets the assassin disappear from a
+room, with the assistance of a smoke bomb.  The assassin has no control over
+which room he runs to under the smoke cover.

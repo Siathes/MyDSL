@@ -1,0 +1,74 @@
+ESSENCE
+
+ESSENCE
+There are many types of essence that can be used in spellcrafting.  Each
+is taken from a specific aspect of the world of Algoron.  Only the essence
+merchants know the exact process.  Each essence imparts a specific ability
+when merged with a spellcrafted gem.  The resulting gem can then be imbued
+into a crafted piece of equipment.  Some essences are more powerful than
+others while some have very little power at all.  Depending on the
+combination of essences put into an item, the process can sometimes weaken
+the item so that it requires the owner's life force to exist, if the item
+does not perish altogether.
+
+The Types of Essences are:
+
+ENHANCEMENT         ESSENCE EFFECT       DAMAGE              ESSENCE EFFECT
+----------------------------------       ----------------------------------
+essence of muscle     Strength           essence of flame        Flaming
+essence of wind       Dexterity          essence of frost        Frost
+essence of the mind   Intelligence       essence of blood        Vampiric
+essence of age        Wisdom             essence of steel        Sharp
+essence of growth     Constitution       essence of execution    Vorpal
+essence of moons      Mana               essence of energy       Shock
+essence of life       HP                 essence of venom        Poison
+essence of inertia    Moves              essence of confusion    Stun
+essence of sight**    Hit
+essence of pain**     Damage
+essence of the magi*  Saves
+
+MISCELLANEOUS        ESSENCE EFFECT
+----------------------------------
+essence of night       Dark
+essence of air         Invisible
+essence of evil        Evil_Only
+essence of good        Good_Only
+essence of neutrality  Neutral_Only
+essence of ownership   No_Drop
+essence of gods        Bless
+essence of death       Rot_Death
+
+**Gems of Pain and Sight can only be put into armor and not weapons.
+*Gems of the Magi take up two slots rather than one.
+
+      Syntax: craft <skill> <gemname> gem <essence>
+      Example: craft spellcraft 'amethyst gem pain'
+      Example: craft spellcraft 'diamond gem the magi
+
+Once an essence has been placed within a spellcrafted gem, the gem is
+then ready to be fused or imbued into a crafted item.  There is even
+rumor told of the rare finding of the fabled ferrite upon Algoron
+though its whereabouts remains unknown.
+
+      Syntax: imbue <essence> <crafted item>
+      Example: imbue pain gossamer
+
+Only Legendary Grand Masters can imbue the more picky gems.  Specifically
+the diamond gem of the magi is very fickle.  It cannot be placed next to
+any other gem therefore it always takes up two slots.  The only other case
+of specific gem placement occurs when two weapon essenced gems are
+placed on the same weapon.  There is only a small chance of success in this
+case but it can happen.  The essences inside the gems conflict with each
+other and must be placed in such a manner the two gems take up four slots.
+When this does occur the weapon will suffer the same weakness as stated
+above and will require its owners life force to exist (Becomes Rot_Death).
+
+Additionally, a spellcrafter can check the status of their spellcrafted
+item to see the number of slots and points remaining.
+
+      Syntax: imbue status <crafted item>
+      Example: imbue status adamantium shield
+      Example Line Feed: An adamantium shield has 3 slots and 16 points remaining.
+
+SEE ALSO:
+CRAFT CRAFTING CRAFTLIST SPELLCRAFTING GEMS OVERCHARGE

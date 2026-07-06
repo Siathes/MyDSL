@@ -1,0 +1,30 @@
+{YMINE MINER MINING{x
+
+This is a 1st tier craft that requires the apprentice only to work with
+an appropriate pickaxe and the lay of the land.  You should find a shop
+with all of the picks in any major city. Any of the higher level picks will
+work for lower level ore but low level picks won't work for high level ore.
+Also your picks get weak as you use them and only last so long.  The higher
+level picks wear out very quickly so it is best not to use them on low
+level ore.  Also, the higher level picks may not yield the same amount of
+ore as you search the rugged terrains.  Different ores are found in
+different locations mostly in the hills and mountains.
+
+     {cSyntax:{x mine <ore type>
+
+           {yOre Types      Location                 Recommended Pick{x
+
+  1 - 120  copper ore     Icewall Abandon Mines    Iron Pick
+120 - 240  iron ore       Elemental Canyon         Steel Pick
+240 - 360  coal ore       Dwarven Kingdom          Alloy Pick
+360 - 480  nickel ore     Thaxanos Upper Mines     Fine Alloy Pick
+480 - 600  titanium ore   Highland Trails          Mithril Pick
+600 - 720  mithril ore    Mount Axpvjib            Adamant Pick
+720 - 840  adamant ore    Moria                    Asterite Pick
+
+840 - 960  asterite ore   Ice Caverns              Netherium Pick
+960 - 1000 netherium ore  Southlands of Arkania    Arcanium Pick
+1000+      arcane ore     Kurotaka Mountain Range  Enchanted Arcanium Pick
+
+
+{DSEE ALSO:{x SMELT SMELTER CRAFT CRAFTING

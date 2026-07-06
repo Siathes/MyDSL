@@ -1,0 +1,11 @@
+ELF ELVES
+Elves are slightly taller than humans, but have a much lighter build.  They
+lack the strength and stamina of the other races, but are far more agile,
+both in body and mind.  Elves are superb mages and thieves, but have at
+best fair talent as warriors or priests.
+Elves resist charm spells most effectively, due to their magical nature.
+Elves are notoriously hard to spot, and so elven warriors and thieves
+receive the sneak and hiding automatically. They can see in the dark with
+infravision.
+For more information on elven subraces see: 'SHALONESTI ELF' 'DARK ELF'
+'WILD ELF' 'SEA ELF' and 'HALF ELF'

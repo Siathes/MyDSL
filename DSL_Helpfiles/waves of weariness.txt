@@ -1,0 +1,8 @@
+WAVES OF WEARINESS
+WAVES OF WEARINESS
+
+Syntax: cast 'waves of weariness' <victim>
+
+When a waves of weariness spell takes control over its victim it causes them
+to lose all energy to the point of sleep.  This in turn can cause the victim
+to drop anything that they are carrying in their hands.

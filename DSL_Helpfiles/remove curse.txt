@@ -1,0 +1,11 @@
+'REMOVE CURSE'
+'REMOVE CURSE'
+
+Syntax: cast 'remove curse' <character>
+        cast 'remove curse' <object>
+
+This spell removes a curse from a character, and might possibly uncurse a
+cursed object.  It may also be targeted on an object in the caster's
+inventory, in which case it's chance of success is significantly higher.
+
+See also - BENEDICTIONS

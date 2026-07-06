@@ -1,0 +1,12 @@
+KILL 'KILL COMMAND' HIT
+KILL 'KILL COMMAND' HIT
+Syntax:  kill <mob>
+Syntax:  hit <mob>
+The KILL/HIT command is used to begin combat against mobiles.  Once combat has been
+initiated, your character will automatically continue to fight using automatic
+skills which include offensive use of weapons and defenses such as parry,
+shield block and dodge.  Other means of attack may also be used, but will not
+happen automatically.
+You must join the pkill system and use the MURDER command to attack other
+players.
+See also:  PKILL, MURDER, FLEE

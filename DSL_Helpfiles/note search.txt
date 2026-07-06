@@ -1,0 +1,23 @@
+'NOTE SEARCH' SEARCH
+'NOTE SEARCH' SEARCH
+Syntax:  note search <all/read/unread> <to/from/subject> <keywords>
+The note search command allows you to list a narrow range of notes instead of
+having to list all notes in a directory.  You may choose to list all notes
+to or from a character, or only those that you've already read, or not yet
+read.  This works for all of the note directories, but you must replace the
+word "note" with the name of the note directory.
+Examples:
+'note search read from Scorn'     would list all the notes from Scorn that have
+                                  already been marked as read
+'oocn search unread subject con'  would list all the new oocnotes with con in
+                                  the subject
+You may also use "old" and "new" in place of "read" and "unread", respectively.
+
+Additionally, you may search the 'body' of all notes by using:
+
+<spool> search all body <search string>
+Ie: note search all body Bioteq - would return all notes that contain Bioteq
+in the text body.
+
+This works for all current spools and will only return the spool message that
+you are allowed to see (as in, to you, kingdom, etc)

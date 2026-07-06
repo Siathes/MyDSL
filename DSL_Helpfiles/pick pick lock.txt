@@ -1,0 +1,7 @@
+PICK 'PICK LOCK'
+Syntax: pick <object>
+Syntax: pick <door>
+Lock picking is one of the prime skills of thieves, allowing them to gain
+access to many secured areas.  Lock picking chances are improved by
+intelligence, and hindered by the difficulty of the lock. Other classes may
+learn to pick locks, but they will never find it easy.

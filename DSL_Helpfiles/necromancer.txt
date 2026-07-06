@@ -1,0 +1,32 @@
+NECROMANCER
+
+The Necromancers of the Conclave are regarded as dark and vile creatures;
+heartless, soulless magi whose presence and talents are scarcely tolerated
+by the rest of their clan.  They wield frightening power over death itself,
+and have been often spotted doting over corpses, harvesting pieces of the
+body for use in their dark Art.
+
+Necromancers are a special reclass, available only to those mages who choose
+to join the Conclave.  The Necromancers are generally evil, though not
+necessarily so, and despite rumor and legend, generally associate amiably
+with the rest of the wizardly classes.  The nature of their Art requires
+that they distance themselves somewhat from people; after all, one never
+knows when one's best friend would make an excellent corpse host.
+
+The school of Necromancy is by far the most powerful and most costly of the
+specialized magicks.  Necromancers suffer terrible physical deformities and
+disabilities, and find themselves often unable to sleep, their nights
+terrorized by nightmare dreams and memories from beyond death.  They receive
+precious little physical boon from leveling, and are severely limited in
+weapon selection.  Nevertheless, with the ability to conjure entire armies
+of lifeless soldiers to fight for them, they are far from a helpless lot.
+
+Who can be a Necromancer?
+
+CLASS:     MAGES only
+RACE:      ANY EXCEPT KENDER, HILL/MOUNTAIN DWARVES, GIANT OGRES, BUGBEARS
+           WEMICS
+ALIGNMENT: Any alignment, but usually evil
+CLAN:      CONCLAVE only
+
+See also - RECLASS CONCLAVE NECROMANCY

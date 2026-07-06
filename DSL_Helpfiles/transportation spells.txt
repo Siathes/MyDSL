@@ -1,0 +1,24 @@
+'TRANSPORTATION SPELLS'
+
+The transportation group is used for travel, whether by flight, magical
+teleportation, or walking through walls.  All classes may learn these
+spells, which are among the most useful in the game.
+
+More information on individual spells may be found by typing help
+(spellname).  The transportation spell group consists of the following
+spells:
+
+fly             allows the target to fly over nearly all obstacles
+gate            transports the caster to the target
+nexus           forms a two-way portal to a far off destination
+pass door       allows the caster to walk through walls
+portal          creates a one-way portal to a destination
+summon          transports the target to the caster
+teleport        sends the target to a random location
+word of recall  transports the caster to their point of recall
+
+This group is available to the following classes -
+    ASSASSIN BARD BATTLERAGER BLADESINGER CLERIC CRUSADER
+    DRAGON DRUID ENCHANTOR GIANT ILLUSIONIST INVOKER MAGE
+    NECROMANCER PALADIN PRIEST RANGER SHADOWKNIGHT SHAMAN
+    THIEF TRANSMUTER WARRIOR WITCH/WARLOCK

@@ -1,0 +1,7 @@
+meteo
+Syntax: c 'meteo'
+
+Meteo is perhaps the most powerful attack spell the gods have bestowed upon
+priests.  A shower of meteors from the heavens rains down upon the victims
+who are not grouped with the priest.  Any number of meteors can attack a
+given victim.

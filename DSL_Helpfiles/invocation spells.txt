@@ -1,0 +1,29 @@
+{YINVOCATION SPELLS{x
+
+This spell group is available only to members of the Conclave who have been
+taught to use their magical powers to invoke those spells.
+
+More information on individual spells may be found by typing help
+(spellname).  The invocation spell group consists of the following spells:
+
+{yalarm{x               sounds an alert when someone enters the room.
+{yantimagic shell{x     protects the caster from the magic of others.
+{ybind golem{x          creates a golem from an item, under the caster's control.
+{ycone of cold{x        creates a cone of cold which surrounds the victim.
+{ycone of fire{x        creates a cone of flame which blasts the victim.
+{ycone of lightning{x   creates a cone of lightning which shocks the victim.
+{ydarkness{x            creates a field of darkness about the victim.
+{ynondetection{x        prevents the caster from being detected by others.
+{yweb{x                 entangles the target in a sticky web.
+{ydispel protection{x   useful against targets with alignment protection.
+{yregenerate{x
+{ysoldify{x
+
+{cThis group is available to the following classes -{x
+
+     INVOKER
+
+
+{DSEE ALSO:{x  INVOKER, ALARM, ANTIMAGIC SHELL, BIND GOLEM, CONE OF COLD, CONE OF
+           FIRE, CONE OF LIGHTNING, DARKNESS, DISPEL PROTECTION, NONDETECTION
+           REGENERATE, SOLIDIFY, WEB

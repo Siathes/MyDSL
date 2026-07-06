@@ -1,0 +1,9 @@
+inspire
+INSPIRE
+
+Motivated by fanatical loyalty towards one's deity, the crusader is capable
+of inspiring great zeal among grouped allies, empowering them with greater
+protection and combat prowess.  Inspire is part of the Worship spellgroup
+and is only accessible to the Crusader class.
+
+cast 'inspire'

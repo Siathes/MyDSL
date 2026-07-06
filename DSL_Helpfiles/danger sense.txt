@@ -1,0 +1,5 @@
+DANGER SENSE
+Danger Sense Allows you to sense what your opponent is going to do before
+they do it so you can dodge or deflect their blow.
+
+Available to bards and bard reclasses.

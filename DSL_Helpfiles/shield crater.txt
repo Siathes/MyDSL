@@ -1,0 +1,10 @@
+SHIELD CRATER
+
+Syntax:  cast 'shield crater' <target>
+
+This spell allows the Eldritch to summon forth great power in order to
+weaken the targets resistance to damage from spells.  This does not
+reduce the targets resistance to spells, but increases damage from
+damage dealing magics.
+
+Groups containing this spell: ELDRITCH

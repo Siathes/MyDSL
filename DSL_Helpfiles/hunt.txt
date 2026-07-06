@@ -1,0 +1,4 @@
+HUNT
+HUNT
+By following tracks and sniffing the air, rangers using hunt can track other
+players.  They are able to determine in which direction the other person is.

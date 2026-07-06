@@ -1,0 +1,28 @@
+ARMOR SHOPS 'ARMORSHOPS'
+ARMOR SHOPS
+
+Item Levels:      8-15 18-24 28-34 38-44 48-51
+Cloth              AL   SH    NT    DK    AL
+Leather            AR   DK    DL    AR    AR
+Studded Leather    NT   DL    ND    AL    NT
+Chain Mail         VR   GA    SH    TH    VR
+Plate Mail         ND   TH    GA    VR    ND
+
+AL = Althainia
+AR = Arkane
+NT = New Thalos
+VR = Verminasia
+ND = Nordmaar
+SH = Shalonesti
+DK = Darkonin
+DL = Dolund'ir
+GA = Ganth
+TH = Thaxanos
+
+For directions to various shops see the following -
+
+HELP CLOTHSHOP
+HELP LEATHERSHOP
+HELP STUDDEDSHOP
+HELP CHAINSHOP
+HELP PLATESHOP

@@ -1,0 +1,43 @@
+STUDDEDSHOP
+STUDDEDSHOP
+
+Directions to the studded leather shops in the realm -
+
+Studded Leather    New Thalos    (8 - 15)
+
+Althainia Dock to Thalosian Central Square
+-    w,2s,12w
+Camelback Leather Shop from the Thalosian Central Square.
+-    2n,w
+
+Studded Leather    Dolund'ir    (18 - 24)
+
+Althainia Market Square to Dolund'ir Fountain Square
+-    3w,8s,2e,6s,2d,2w
+Althainia Dock to Dolund'ir Fountain Square
+-    w,2s,27w,sw,3s,w,sw,4s,2d,2w
+Grop's Thick Hides from Dolund'ir's Fountain Square
+-    w,3s,6w,3s
+
+Studded Leather    Nordmaar    (28 - 34)
+
+Icewall Dock to Nordmaar's Flag
+-    6n,u,4n
+Dead Yaenni Leather Works from Nordmaar's Flag
+-    n,e
+
+Studded Leather    Althainia    (38 - 44)
+
+Althainia Dock to Althainia Market Square
+-    w,2s,33w
+The Trade Wear from the Althainian Market Square
+-    3e,3s,w
+
+Studded Leather    New Thalos    (48 - 51)
+
+Althainia Dock to Thalosian Central Square
+-    w,2s,12w
+Lost Dunes Leather Shop from the Thalosian Central Square.
+-    2s,e
+
+See also - HELP ARMOR SHOPS

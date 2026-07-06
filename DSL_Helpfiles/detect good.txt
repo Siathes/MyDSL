@@ -1,0 +1,4 @@
+'DETECT GOOD'
+Syntax: cast 'detect good'
+This spell enables the caster to detect good characters, which will
+reveal a characteristic golden aura.

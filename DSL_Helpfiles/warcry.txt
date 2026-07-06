@@ -1,0 +1,7 @@
+WARCRY
+Only powerful barbarians can master the warcry.  The warcry enables the
+barbarians to focus their energy and thoughts on their ability to fight.  It
+is a bit similar to the Berserk skill and the frenzy spell, but more
+powerful than both in certain ways.  Techinically speaking, more hit and
+dam, but no extra saves against spells and your armor becomes even more
+vulnerable.

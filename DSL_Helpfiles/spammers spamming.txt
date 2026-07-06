@@ -1,0 +1,27 @@
+SPAMMERS SPAMMING
+SPAMMERS SPAMMING
+
+Spam is when you repeatedly type in the same thing.  While most forms of
+spam are harmless (i.e. spamming 'east' to reach New Thalos), people will
+always abuse things.
+
+Channels are the most commonly spammed parts of muds, since that will
+provide the IMMS and players with the most annoyance.
+
+You are allowed to input the same command up to 10 times.  This allows
+people to repeatedly cast spells to improve their skill level, spam in
+directions, or spam in certain skills to improve them.  This use of spamming
+is currently being permitted.  However, if you plan on spamming to raise
+your skill/spell levels, make sure that you are at the keyboard and paying
+attention.  Players found running a script while away from the keyboard will
+be punished.
+
+It may be changed in the future, so watch for any notices regarding the
+issue.  If you spam more than 34 times, the game will drop your link and
+give you a lovely message about it.
+
+Imms may step in before 10 spams if you are being a nuisance (i.e. spamming
+'hello' in a commonly used room, or spamming public channels).  Spam at your
+own risk.  Different IMMs will have different opinions on the matter.
+
+See also - RULES

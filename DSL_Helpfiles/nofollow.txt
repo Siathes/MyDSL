@@ -1,0 +1,6 @@
+NOFOLLOW
+NOFOLLOW
+Syntax:  nofollow
+This command toggles whether or not you will allow other characters to follow
+you around automatically.
+See also:  FOLLOW, AUTO

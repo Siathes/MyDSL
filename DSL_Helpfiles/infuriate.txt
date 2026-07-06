@@ -1,0 +1,13 @@
+INFURIATE
+
+Syntax: cast 'infuriate' <target>
+
+When cast upon a target, enrages them to focus their attack the battlemage.
+Very helpful in rescuing fellow magi.
+
+Groups containing this spell: Battlemagic
+
+
+SEE ALSO:  BATTLEMAGE, BATTLEMAGIC
+
+Updated 03.19.2021

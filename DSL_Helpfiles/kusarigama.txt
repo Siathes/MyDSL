@@ -1,0 +1,10 @@
+KUSARIGAMA
+KUSARIGAMA
+
+Syntax:  Kusarigama <direction> <target>
+
+Kusarigama is the art of using a chain to grab an opponent from a distance
+and drag them within striking range.  It will not initiate combat.
+
+
+SEE ALSO:  NINJA

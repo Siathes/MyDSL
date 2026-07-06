@@ -1,0 +1,125 @@
+BUILDS, PRICES, UPGRADES, HOUSING
+
+This is not a fully inclusive pricing list.  Please see individual helpfiles
+for more information.
+
+CLAN HALLS -
+
+Already large clan halls will NOT be allowed to add rooms but can
+re-design rooms based on pricing below.  In addition, NO personal rooms will
+be allowed.  The 10% boost means EITHER HP OR MANA per boost and will NOT be
+upgraded above 300%.  Outposts must have kingdom's permission before build.
+
+Room in Clan Hall .................. 40 Eggs per room - New or Remodel
+Object in Clan Hall (furniture) .... 20 Eggs per object
+Nighttime Description .............. 20 Eggs per room - New or Remodel
+Extended Descriptions .............. 10 Eggs per extended
+Regen Rate Increase ................ 15 Eggs per 10% boost for hp or mana in clan hall
+Regen Rate Between 200 - 300% ...... 20 Eggs per 10% boost for hp or mana in clan hall
+Increase Healer Level .............. 50 Eggs per level up to 51
+Clan Portals in Clan Halls ........ 300 Eggs per portal - Portals only go to specific locations
+Crafting Table .................... 300 Eggs
+Stables ........................... 400 Eggs - See Help Stables
+Vault Access ...................... 400 Eggs
+Clan Outpost ...................... 500 Eggs - One Outpost per Kingdom
+Poker Room ........................ 200 Eggs
+
+VOUCHERS -
+
+Clan restricted reclasses and remorts are not allowed to use regular vouchers.
+Supervouchers must also have extensive, established Rp.  Remorts, in either form,
+may also not use supervouchers.
+
+Renegades and Loners ............... 50 Eggs per voucher
+Nonclanners and Retired ............ 75 Eggs per voucher
+Super Voucher .................... 1000 Eggs
+
+KINGDOM HALLS -
+
+Already large kingdom halls will NOT be allowed to add rooms but can
+re-design rooms based on pricing below.  In addition, NO personal rooms will
+be allowed.  The 10% boost means EITHER HP OR MANA per boost and will NOT be
+upgraded above 300%.
+
+Room in Kingdom Hall ............... 50 Eggs per room - New or Remodel
+Room in Kingdom City .............. 100 Eggs per room - New or Remodel (if available)
+Object in Kingdom Hall (furniture) . 30 Eggs per object
+Nighttime Description .............. 50 Eggs per room - New or Remodel
+Extended Descriptions .............. 15 Eggs per extended
+Regen Rate Increase ................ 15 Eggs per 10% boost for hp or mana in kingdom hall
+Regen Rate Between 200 - 300% ...... 20 Eggs per 10% boost for hp or mana in kingdom hall
+Increase Healer Level .............. 50 Eggs per level up to 51 (NOT applicable to city healers)
+Portals in Kingdom Halls .......... 300 Eggs per portal - Portals only go to specific locations
+Crafting Table .................... 300 Eggs
+Stables ........................... 400 Eggs - See Help Stables
+Vault Access ...................... 500 Eggs
+Destroy Clan Outpost ............. 1000 Eggs
+Poker Room ........................ 300 Eggs
+
+HOMES AND LAIRS -
+
+Private homes are a 4 room maximum built within a kingdom's city limits.
+They must be constructed within a kingdom's housing district and will need
+the Kingdom Leader's permission to build.
+
+Lairs are for remorts only and can be built most anywhere outside of a
+kingdom's city limits.  Lairs are a 2 room minimum, up to 4 rooms maximum.
+Limit of 2 warders allowed.
+
+Home and lair boosts max out at 200%.  See Private Home for additional
+options and pricing. See Help Housing for building criteria, do's and dont's.
+
+House in the city .................. 15 Eggs per room - New or Remodel
+House outside the city ............ 100 Eggs per room - Remort Only
+Lair Room Remodel .................. 25 Eggs per room - Remodel Only - Location change is full cost
+Nighttime Description .............. 10 Eggs per room house - New or Remodel
+Nighttime Description .............. 20 Eggs per room lair - New or Remodel
+Regen Rate Increase ................ 20 Eggs per 10% boost hp or mana
+
+PERSONAL TOWERS -
+
+Personal Towers are available only through cards and are single owner.
+Unlike houses and lairs where you can add additional players to have
+uninvited access, these will require each owner to invite in others.  Like
+housing, remorts including giants cannot be owners of towers nor should
+remorts find sanctuary within any tower.  Towers follow all lair pricing for
+any additions and a helpfile will be coming soon.
+
+KINGDOM MERCHANT DISTRICT -
+
+Merchant District Area ............ 300 Eggs per kingdom
+Merchant District Location Change . 300 Eggs per kingdom area
+Merchant District Demolition ...... 500 Eggs per kingdom area
+
+PLAYER OWNED MERCHANT -
+
+Player owned merchant shops must be constructed within a kingdom's merchant
+district and will need the Kingdom Leader's permission to build.
+
+Merchant Shop ...................... 25 Eggs
+Shop Rent ........................... 1 Egg due every 30 days
+
+OTHER -
+
+Extended Descriptions ..............  5 Eggs per extended - Housing and Lairs only
+Books .............................. 10 Eggs per page - no ASCII
+                                     20 Eggs per page - ASCII
+Lottery Office .................... 100 Eggs
+Player Owned Taverns .............. See Help Taverns
+Temples ........................... See Help Temple - Priest Only
+Ships ............................. See Help Ship
+Outposts .......................... See Help Outpost
+Portals ........................... See Pricing Above and Help Portal Locations
+
+
+Please submit all building requests to Cayenna - cayenna.dsl@gmail.com
+
+
+SEE ALSO:  CLAN, HOUSING, KINGDOM, MERCHANT, MERCHANT DISTRICT, OUTPOSTS,
+           PLAYER, PRIVATE HOME, SHIP, SHOP, SHOPS, STABLES, TAVERNS, TEMPLES, VOUCHERS
+           TEMPLES, VOUCHERS
+
+Please see individual helpfiles for more information including pricing.
+
+Updated 10.13.2025
+

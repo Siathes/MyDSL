@@ -1,0 +1,9 @@
+'STUB FUNCTION'
+If you see a stub function statement, that simply means that the thing
+you are trying to do has only been partially coded.  This is most likely
+to be seen with spells for which all the various checks have been made
+to determine that you could successfully cast the spell, but the spell
+doesn't actually DO anything yet.
+Scorn has changed his policy on how coding should be done, so
+once we get rid of all the existing stub function spells, there should
+be no new ones here.

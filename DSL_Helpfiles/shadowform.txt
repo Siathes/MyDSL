@@ -1,0 +1,11 @@
+SHADOWFORM
+SHADOWFORM
+
+Syntax: cast shadowform
+
+The Shadowform spell draws upon the demi-plane of Shadow and replaces the
+Necromancer's life force with essence from the demi-plane of Shadow.  This
+renders the Necromancer completely undetectable in all but the most blaring
+light.
+
+See also - NECROMANCY NECROMANCER

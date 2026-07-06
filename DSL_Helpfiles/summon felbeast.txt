@@ -1,0 +1,21 @@
+summon felbeast
+SUMMON FELBEAST
+
+Syntax: cast 'summon felbeast'
+
+LORE:
+
+Early explorers from Storm Keep and Verminasia who dared venture into the
+far reaches of the Rip returned with tales of strange denizens and creatures
+within the otherworldly plane including an elusive feline predator.  Named
+after their bony horns, scaled hide, and scything claws, the felbeast has
+itself proven a territorial, foul-tempered guardian said to offer its
+respect and obedience only to those graced by Drakkara.  Disciples of the
+Sanctum on their trials crossing beyond the Rip into the Infinite Night
+found the Felbeast was drawn to wielders of the Umbra.  Moreover, should a
+bond be forged with such a creature, it may be called upon and serve as a
+mount for servants of the Dark Queen.
+
+SEE ALSO: CSR, RECLASS, SHADOW, SHADOWKNIGHT
+
+Created 12.03.2023

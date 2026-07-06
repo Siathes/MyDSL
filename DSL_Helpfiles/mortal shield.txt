@@ -1,0 +1,9 @@
+mortal shield
+MORTAL SHIELD
+
+Syntax: mshield <target>
+
+A pirate can pull an innocent bystander in front of him or her to take the
+oncoming attacks from an opponent. If the pirate flees the area, combat ends.
+The only way a pirate can take credit for a kill when using mortal shield is if
+he or she lands the killing blow.

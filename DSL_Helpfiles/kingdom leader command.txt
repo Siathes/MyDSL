@@ -1,0 +1,62 @@
+KINGDOM LEADER COMMANDS
+The following commands are available to all Kingdom Leaders.
+
+Krank - Sets recruiter status for a member of the Kingdom. This is a toggle.
+Syntax: Krank (character) kingdomname_rec
+Note: Krank removes any previously granted sirname.
+Note:  This includes second leader flags  See news from 6.21.22 until updated here.
+
+Krenegade - Removes a person from the kingdom displaying a global echo.
+Syntax: Krenegade (character)
+
+Banish - Removes a person from the kingdom without a global echo.
+Syntax: krank (character) (Kingdom)_banish
+
+Guild - Allows entry into the kingdom by a recruiter for a member outside of
+the kingdom.
+Syntax: Guild (character)
+Note: The character wishing to be guilded must first INVITE the recruiter.
+
+Setextrastatus - Honors the extradition of WANTED characters in the target
+kingdom.  Characters wanted by the selected kingdom will also be wanted
+within the kingdom adopting this command.
+Syntax: setextrastatus (targetkingdom)
+Note: Type extrastatus (kingdom) to see the full list of a kingdoms
+current extradition status.
+
+Toggleooc - Toggles on and off the OOC Kingdom channel.
+Syntax: Toggleooc
+
+Kmotd - Shows the currently posted Kingdom Message Of The Day.
+Syntax: KMOTD
+
+Kmotd edit- Allows for changes made to the Kingdom Message Of The Day.
+Editing may be done as one would with a note.
+Syntax: KMOTD edit
+
+Settax - Sets the tax rate of a kingdom which collects a percentage of
+monetary gains made within, including sales, vendor and merchant district
+purchases and quest rewards.
+Syntax: Settax (number)
+
+Pardon - Removes the wanted flag from a character in the kingdom.
+Syntax: Pardon (character)
+
+Kinfo - For kleaders, shows the kingdom bank account info in eggs, gold
+and silver.
+Syntax: kinfo (kingdomname)
+
+Sirname - Creates a newly granted title for the members of a kingdom.  Two
+titles must be created, one for the male and female slot.
+Syntax: sirname (male title) (female title)
+
+Note: Sirname (male title) (female title)  on an existing sirname will
+erase it from the list.
+
+Grant - Applies one of the the preset sirnames to a kingdomer, regardless of
+gender.
+Syntax: grant (sirname title)
+
+Guardreset - Respawns guards of the kingdom.
+Syntax: Guardreset
+Note: This function is temporarily disabled.

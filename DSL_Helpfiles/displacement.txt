@@ -1,0 +1,5 @@
+displacement
+c 'displacement' <target>
+
+Displacement if successful allows a priest to send a victim back to their
+point of recall.

@@ -1,0 +1,46 @@
+<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>
+<html>
+ <head>
+  <meta http-equiv='content-type' content='text/html; charset=utf-8'>  <meta name='generator' content='Mudlet MUD Client version: 4.19.1'>
+  <title>Mudlet, main console extract from Dark & Shattered Lands - PNP profile</title>
+  <style type='text/css'>
+   <!-- body { font-family: 'Liberation Mono', 'Courier New', 'Monospace', 'Courier'; font-size: 100%; line-height: 1.125em; white-space: nowrap; color:rgb(255,255,255); background-color:rgb(0,0,0);}
+        span { white-space: pre-wrap; } -->
+  </style>
+  </head>
+  <body><div><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">tavern</span><br>
+<span style="color: rgb(255,255,0); background: rgb(0,0,0); ">TAVERNS</span><br>
+<br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">Players can now own their own Tavern, for pure rp prestige, no benefits.</span><br>
+<br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">Tavern designs are a 1 room minimum with no more than 4 rooms total. All </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">taverns come with the following:</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); "> </span><br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">      1 shopkeeper/bartender</span><br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); ">      5 items (food/beverage only)</span><br>
+<span style="color: rgb(128,128,0); background: rgb(0,0,0); "> </span><br>
+<span style="color: rgb(0,128,128); background: rgb(0,0,0); ">PRICE - </span><br>
+<br>
+<span style="color: rgb(0,255,255); background: rgb(0,0,0); ">Tavern Room</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); "> .........................</span><span style="color: rgb(128,128,0); background: rgb(0,0,0); ">100 Eggs</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); "> per room - 4 Room Max</span><br>
+<span style="color: rgb(0,255,255); background: rgb(0,0,0); ">Stock Furniture</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); "> .......................</span><span style="color: rgb(128,128,0); background: rgb(0,0,0); ">5 Eggs </span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">per item</span><br>
+<span style="color: rgb(0,255,255); background: rgb(0,0,0); ">Custom Furniture</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); "> .....................</span><span style="color: rgb(128,128,0); background: rgb(0,0,0); ">20 Eggs </span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">per item</span><br>
+<span style="color: rgb(0,255,255); background: rgb(0,0,0); ">Extended Descriptions</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); "> .................</span><span style="color: rgb(128,128,0); background: rgb(0,0,0); ">5 Eggs </span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">per item</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); "> </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">Stock furniture is a </span><span style="color: rgb(170,85,0); background: rgb(0,0,0); ">table</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); "> and/or barstool.</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); "> </span><br>
+<span style="color: rgb(255,255,255); background: rgb(0,0,0); ">NOTE:</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  NO Private Owner rooms are allowed</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); "> </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">Must be placed within a Kingdom and that Kingdom leader MUST give permission.</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">All tax money will be payable to that kingdom, nothing to the owner.</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); "> </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">Housing con cards </span><span style="color: rgb(192,192,192); background: rgb(0,0,0);  text-decoration: underline">CANNOT</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); "> be used for this.</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); "> </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">To submit in for a tavern, send requests to </span><span style="color: rgb(255,255,0); background: rgb(0,0,0); ">Cayenna</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); "> at cayenna.dsl@gmail.com</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); "> </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); "> </span><br>
+<span style="color: rgb(128,128,128); background: rgb(0,0,0); ">SEE ALSO:</span><span style="color: rgb(192,192,192); background: rgb(0,0,0); ">  HELP PRICING, HELP HOUSING</span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); "> </span><br>
+<span style="color: rgb(192,192,192); background: rgb(0,0,0); ">Updated  01.08.2022</span><br>
+<br>
+ </div></body>
+</html>

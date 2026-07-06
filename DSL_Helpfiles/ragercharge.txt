@@ -1,0 +1,13 @@
+RAGERCHARGE
+RAGERCHARGE
+
+Syntax: ragercharge
+
+Rager charge is a skill unique to battleragers.  Upon being completely
+enraged, the rager charges through a room swinging his/her axes at anything
+and everything in sight (and/or out of sight).
+
+When in such a rage, the battlerager takes no heed of friends, foes or
+otherwise.  The battlerager's movements are so erratic that even those
+hiding and sneaking sometimes have to dodge out of the way of the swinging
+axes.

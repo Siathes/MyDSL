@@ -1,0 +1,22 @@
+CLERIC 'CLERIC BASICS' 'CLERIC DEFAULT'
+Clerics are the most defensively orientated of all the classes.  Most of their
+spells focus on healing or defending the faithful, with their few combat spells
+being far less powerful than those of mages. However, clerics are the best
+class by far at healing magics, and they posses an impressive area of
+protective magics, as well as fair combat prowess.
+All clerics begin with skill in the mace.  Other weapon or shield skills must
+be purchased, many at a very dear cost.  The default skill selection for
+clerics is as follows:
+skills:
+flail           the proper use of flails
+spell groups:
+attack          a selection of offensive magics
+creation        the making of physical objects, such as food and water
+curative        spells that cure the sick and feeble of their ailments
+benedictions    powerful magics that grant the blessings of the gods
+detection       informational magics, such as detect magic and identify
+healing         spells for treating wounds, from scratches to death blows
+maladictions    an assortment of curses
+protective      defensive magics, including the powerful sanctuary spell
+transportation  spells for getting from here to there
+weather         spells for conjuring and mastering the elements

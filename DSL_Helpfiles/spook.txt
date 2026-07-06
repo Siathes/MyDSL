@@ -1,0 +1,5 @@
+spook
+syntax: cast 'spook' <target>
+The spook spell sends visions of an opponents worst nightmares into their
+head.  The visions are so real looking, that many people will flee in
+terror.  Some races, however, are amused at such sights.

@@ -1,0 +1,9 @@
+SUMMON TREE
+
+Syntax: cast 'summon tree'
+
+Drawing on the teachings of Zandreya, the Eldritch is able to call upon the
+forest draw forth a powerful tree to fight by their side.  The tree uses
+its massive branches to slash down any enemy within its path.
+
+Groups containing this spell: ELDRITCH

@@ -1,0 +1,14 @@
+AURA OF PAIN
+
+Syntax: cast 'aura of pain'
+
+When casting this spell upon ones self, the battlemage will automatically
+retaliate and deliver low damage per strike when facing any physical attacks
+from their opponent.
+
+Groups containing this spell: Battlemagic
+
+
+SEE ALSO:  BATTLEMAGE, BATTLEMAGIC
+
+Updated 03.19.2021

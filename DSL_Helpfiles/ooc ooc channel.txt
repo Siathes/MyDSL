@@ -1,0 +1,6 @@
+OOC 'OOC CHANNEL'
+OOC 'OOC CHANNEL'
+Syntax:  ooc <message>
+OOC is a channel for speaking out of character.  Please remember to use this
+channel for anything that is not likely to be said by the character you are
+playing.

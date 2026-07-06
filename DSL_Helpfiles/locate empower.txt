@@ -1,0 +1,6 @@
+locate empower
+Syntax:  c 'locate empower'
+
+Locate empower is a spell which enables Paladins to find empowers held on
+those across Algoron.  Locate empower is unique from locate object, as it
+finds the name of the weapon empowered, as well as who bears it.

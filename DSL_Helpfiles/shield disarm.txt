@@ -1,0 +1,10 @@
+shield disarm
+SHIELD DISARM
+
+ Syntax: sdisarm <target>
+
+The Shadowknights of Necrucifer have perfected many forms of combat, and may
+be considered the masters of mounted warfare.  There are few skills as
+telling of this fact as the art of shield disarming.  A mounted Shadowknight
+may attempt to use his weapon as a savage cudgel, tearing away their
+opponent's shield and leaving them stunned and open to attack.

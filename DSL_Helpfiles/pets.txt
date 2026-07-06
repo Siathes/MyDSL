@@ -1,0 +1,4 @@
+PETS
+PETS
+You can buy pets in the pet shops.  You may own only one pet at a time;
+after the old one dies, you may purchase a replacement.

@@ -1,0 +1,13 @@
+FIND FAMILIAR
+FIND FAMILIAR
+
+Syntax: cast 'find familiar' cat
+        cast 'find familiar' raven
+
+A witch or warlock may summon a small pet as a travelling companion and for
+aid in magical concentration.  Witches tend to prefer the company of a black
+cat, while warlocks are often seen with a raven perched on their shoulder.
+
+However, either may choose the pet they desire.
+
+See also - WITCHCRAFT

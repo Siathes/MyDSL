@@ -1,0 +1,12 @@
+
+DISPEL NEUTRAL
+DISPEL NEUTRAL
+
+syntax: cast 'dispel neutral' <target>
+
+Dispel neutral calls forth the neutral energies of the universe to inflict
+horrific torment on all of those whose alignment is not within the sphere of
+neutrality.  Good and evil-aligned characters who use this powerful magic do
+so at their peril.
+
+See also - ATTACK

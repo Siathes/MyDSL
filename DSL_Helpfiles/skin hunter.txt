@@ -1,0 +1,31 @@
+SKIN HUNTER
+
+This is a 1st tier craft that requires the apprentice only to work with
+an appropriate knife and the wild life that inhabits Algoron.  You should
+find a shop with all of the knives in any major city.  Any of the higher
+level knives will work for lower level skins but low level knives won't
+work for high level skins.  Also your knives get weak as you use them and
+only last so long.  The higher level knives wear out very quickly so it
+is best not to use them on low level skins.  Also, the higher level knives
+may not yield the same amount of skins as you search the wild.  Animals
+with skins useful for this craft are found scattered across Algoron.  You
+are not required to have an animal only to be in the correct area.
+
+     Syntax: skin <animal type>
+
+            Animal/Knife Types   Location
+
+  1 - 120   Deer                 Old Thalos & Blackwood Forest
+120 - 240   Cow                  Nomad villiage & shalonesti
+240 - 360   Bull                 Oriental Village & Arena of Bull Dancer
+360 - 480   Moose                Enchantress Tower
+480 - 600   Bull Moose           Enchantress Tower
+600 - 720   Bear                 The Forbidden Forest & The Great Forest
+720 - 840   Whale                Crystal Bay & Lutsa Rusul
+840 - 960   Shark                The Stygian Sea & The Blood Sea
+960 - 1000  Elephant             The Savanna & Bamboo Temple Maze
+1000+       Bull Elephant        The Savanna & Bamboo Temple Maze
+
+
+SEE ALSO:
+TAN TANNER CRAFT CRAFTING

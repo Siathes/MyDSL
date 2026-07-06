@@ -1,0 +1,10 @@
+waypoint
+Syntax: cast 'waypoint'
+        cast 'waypoint' recall
+
+Waypoint is a spell of transportation that allows the caster to mark a room
+and gate back to it for a period of time.  The waypoint weakens with each and
+can be dispeled by other magics.  Only one waypoint may ever exist for a caster
+at any one time.
+
+A waypoint in rare circumstances may drift from it's original point of origin.

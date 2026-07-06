@@ -1,0 +1,50 @@
+procreation breeding babies interracial
+PROCREATION BREEDING BABIES INTERRACIAL
+
+The following combinations of parents may produce the following offsprings
+only.  All other races can only create offspring from the same race, except
+muls which are sterile and can not make children EVER!
+
+Human/Elven Chart:
+
+ M x F | S-Elf | W-Elf | Sea-E | D-Elf | H-Elf | Human
+-------+-------+-------+-------+-------+-------+-------
+ S-Elf | S-Elf | W-Elf | ----- | D-Elf | H-Elf | H-Elf
+-------+------- ------- ------- ------- ------- -------
+ W-Elf | W-Elf | W-Elf | ----- | D-Elf | H-Elf | H-Elf
+-------+------- ------- ------- ------- ------- -------
+ Sea-E | ----- | ----- | Sea-E | ----- | ----- | -----
+-------+------- ------- ------- ------- ------- -------
+ D-Elf | D-Elf | D-Elf | ----- | D-Elf | H-Elf | H-Elf
+-------+------- ------- ------- ------- ------- -------
+ H-Elf | H-Elf | H-Elf | ----- | H-Elf | H-Elf | H-Elf
+-------+------- ------- ------- ------- ------- -------
+ Human | H-Elf | H-Elf | ----- | H-Elf | H-Elf | Human
+
+
+Human/Ogre Chart:
+
+ M x F | Ogre* |H-Ogre | Human
+-------+-------+-------+-------
+  Ogre | Ogre  |H-Ogre |H-Ogre
+-------+------- ------- -------
+H-Ogre |H-Ogre |H-Ogre |H-Ogre
+-------+------- ------- -------
+ Human |H-Ogre |H-Ogre | Human
+
+
+NOTE: This is Ogre only, NOT Giant Ogre  All other races can ONLY breed
+with other like races.
+
+NOTE:  Remorts do not produce offspring with any mortal.  Dragon alterforms
+can produce offspring but the child(ren) will not have any dragon qualities
+and will need to follow the procreation chart for appropriate race.
+
+Example: Hill Dwarves with Hill Dwarves, Mountain Dwarves with Mountain
+Dwarves, Bugbears with Bugbears and so on and so forth.  Humans and Dwarves of
+any type, DO NOT make Muls.
+
+
+SEE ALSO:  HELP RACE
+
+Updated:  12.18.2021

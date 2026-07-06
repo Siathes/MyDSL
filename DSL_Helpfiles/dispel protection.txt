@@ -1,0 +1,10 @@
+'DISPEL PROTECTION'
+DISPEL PROTECTION
+
+Syntax: cast 'dispel protection' target
+
+The trained invoker has the ability to strip an opponent of many types of
+protective spells.  In this case, the casting of the dispel attempts to
+strip the target of their protections against various alignments.
+
+See also - INVOCATION INVOKER

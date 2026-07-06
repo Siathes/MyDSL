@@ -1,0 +1,5 @@
+'SECOND ATTACK'
+Training in second attack allows the character a chance at additional
+strikes in combat -- although a 100% second attack does NOT guarantee 2
+attacks every round.  Any class may learn this skill, although clerics and
+mages have a very hard time with it.

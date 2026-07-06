@@ -1,0 +1,5 @@
+holy flame
+Syntax: c 'holy flame' <victim> OR c 'holy flame' <direction> <target>
+
+A holy flame is a tool of the priest in which he/she can send a wrath of
+holy flames powerful enough to travel in a given direction.

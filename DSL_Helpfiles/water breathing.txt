@@ -1,0 +1,17 @@
+'WATER BREATHING'
+'WATER BREATHING'
+Syntax: cast 'water breathing' <character>
+This spell allows the character to breath in underwater areas.
+
+============================================================
+
+'WATER BREATHING'
+'WATER BREATHING'
+
+Syntax: cast 'water breathing' <target>
+
+This spell, when cast, gives the target the ability to breath under water
+for a specificied period of time.  It tends to be quite useful, as the lack
+of available air under water tends to cause great pain to most people.
+
+See also - ENHANCEMENT

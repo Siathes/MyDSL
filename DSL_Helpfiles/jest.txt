@@ -1,0 +1,13 @@
+JEST
+{YJEST{x
+
+{cSyntax:{x cast 'jest' <victim>
+
+When jested by an enchantor the victim becomes so captivated with the
+caster's presence that they cannot think for themselves or carry out any
+other actions.
+
+{yGroups containing this spell:{x Enhanced Enchantment
+
+
+{DSEE ALSO:{x  ENCHANTOR, ENHANCED ENCHANTMENT

@@ -1,0 +1,13 @@
+ALTER ARMOR
+
+Syntax: cast 'alter armor' <target_armor>
+
+Allows a transmuter to change the base type of any armor to cloth so they
+may wear it.
+
+Only fellow members of the Conclave may wear armor altered in this manner.
+
+Groups containing this spell: Alteration
+
+
+SEE ALSO:  ALTERATION, TRANSMUTER

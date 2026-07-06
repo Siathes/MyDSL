@@ -1,0 +1,5 @@
+target
+Allows a swashbuckler to target a specific part of a victim's person
+during combat.  The 'head', 'body', or 'legs'.  This skill can also be used
+by a swashbuckler to use his/her environment to evade one foe and engage
+another.

@@ -1,0 +1,8 @@
+'CREATE WATER'
+'CREATE WATER'
+
+Syntax: cast 'create water' <drink-container>
+
+This spell replenishes a drink container with water.
+
+See also - CREATION

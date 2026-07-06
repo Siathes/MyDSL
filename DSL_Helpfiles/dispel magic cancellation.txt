@@ -1,0 +1,12 @@
+'DISPEL MAGIC' CANCELLATION
+'DISPEL MAGIC' CANCELLATION
+Syntax: cast 'dispel magic' <character>
+        cast 'cancellation' <character>
+Both of these spells remove magical effects from the target.  Dispel magic
+has a reduced chance of working, and is considering an attack spell.
+Cancellation can only be used on allies, but is much more effective and does
+not provoke attack.  Unfortunately, the spells do not discriminate between
+harmful and benign spells.
+The chance of dispelling is based on the level of the spell. Permanent spells
+(such as mobile sanctuary) are much harder to remove.  Not all spells may
+be dispelled, notable examples are poison and plague.

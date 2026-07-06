@@ -1,0 +1,55 @@
+WAR HYMN SONGS
+WAR HYMN SONGS
+
+Syntax: Sing <'Name of Song'>
+
+While the bard's war hymns are known to all through gossip and rumor, what
+each song does is not common knowledge.
+
+Only bards and the one they trust know what each does, or those who are on
+the unfortunate wrong end of the magical songs.
+
+Song of War - With this song, the singer's melodious voice will inspire
+those who are close to the singer so they can find their own strength and
+in doing so, will find themselves able to strike harder and more accurately
+than before.
+
+No Eyes - A strong and powerful song that has the ability to blind the
+bard's opponent for which there is no cure for a short duration of time.
+
+The Piercing Winds - Another powerful song that when sung, will summon
+savage winds and slash at all foes within the area.  It can also provoke
+people that are hidden within the room into action.
+
+Weakness Within - When this song is sung, it can make the singer's
+target weary and tired, weakening their strength in battle.
+
+We Come, We Come - The strong tempo of this song will enrage the
+group and allow them to strike harder and with more accuracy against the
+enemy, however, as their focus is clouded by their aggressive actions in
+battle it leaves their defenses more vulnerable while under this songs
+influence.
+
+Lullaby - A soft and gentle melody that enables the singer to put
+someone temporarily in a deep sleep.
+
+Release Me - An interesting bard song that can distract the target
+enough so that as they listen to the tune, they may actually drop their
+weapon upon the ground.
+
+Song of Charm - An enchanting tune that can be sung to allow the bard
+to potentially place their target temporarily under his or her control.
+
+Nightmare - A melancholy tune with unnerving undertones, this song
+can strike fear into the hearts of their foe, causing them to run away.
+
+Green Leaf - A song of haphazard wimsy that distracts the mind of the
+target and able to cause amusing effects such as blurred vision and
+hallucinations as well as the inability to pick up or wear items.
+
+Screeching Banshee - A very loud and annoying song that can cause
+severe, though temporary deafness  in all who listen to it.
+
+
+SEE ALSO: BARD, BARDSONG, BREWMASTER, CHARLATAN, JONGLEUR, SKALD
+

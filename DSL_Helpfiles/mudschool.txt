@@ -1,0 +1,27 @@
+MUDSCHOOL
+
+The mudschool is designed to help new players familiarize themselves with
+DSL. Inside is an academy designed to teach DSL's commands and RP, an
+arena full of creatures to fight and gain experience, a universal trainer,
+a pet shop for those players that find themselves having difficulty
+fighting on their own and a store that sells basic supplies for new
+characters.
+
+The mudschool can be reached by going up from most bindstones. You can
+leave the mudschool at any time by typing 'recall'.  This will bring you
+to the temple within your home kingdom.  However, once you reach level 6,
+you will no longer be able to move inside the mudschool and will be forced
+to recall.  Please note that not all kingdoms have an easily accessible
+mudschool near them.
+
+Directions from Abaddon recall:
+Directions from Althainia recall: 2s, 6e, u
+Directions from Arkane recall: e, s u
+Directions from New Thalos recall: 3s, 11w, u
+Directions from Shalonesti recall: n, e, u
+Directions from Thaxanos recall: 2n, 3e, 4s, 2w, 2s, e, 3se, sw, s, 2u
+Directions from Ganth recall: w, 2s, 2e, 2n, 3e, u
+Directions from Verminasia recall: n, 2w, u
+Directions from Marauders recall: w, s, u
+Directions from Nordmaar recall: w, 3s, d, s, u
+Directions from Darkonin recall: e, u

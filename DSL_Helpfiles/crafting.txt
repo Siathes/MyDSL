@@ -1,0 +1,118 @@
+CRAFTING
+CRAFT CRAFTING
+
+This is used by all top tier crafters to create items for player use.  You
+may do this anywhere but you are required to have all the items needed for
+the item you are trying to create.  For some crafts like weapon making you
+will have a list of trinkets that you can craft to hone your skills.  You
+can sell these trinkets to the merchants that sell knives, saws, and
+pickaxes to cut your costs.  Additionally, vaults are essential to crafting
+and can hold considerable amounts of material.  Shops are another asset
+that can be utilized by the crafter to potentially sell their wares.
+
+- You must be level 51 to be able to craft.  If you begin a craft at level
+  51 and reclass, you need to wait until you hit level 51 again to resume
+  your craft.
+
+- Pay attention to craft weight or risk losing stock if you;re over burdened!
+
+- You can only apprentice in two crafts at a time.  Most (not all) crafting
+  room locations can register your apprenticeship for the craft you are
+  selecting and will ask you if you wish to apprentice each time you enter.
+  Typing apprentice alone will give you a list of all crafts currently
+  available.  Type apprentice <selected craft> to register your crafting
+  choice.  Example:
+
+           apprentice blunt weapons
+           You are now an apprentice of blunt weapons.
+
+  If you wish to change or remove a craft, type apprentice <craft name> forget.
+
+NOTE THAT IN DOING THIS, YOU WILL WIPE OUT ANYTHING PREVIOUSLY LEARNED
+  INCLUDING ALL MONEY SPENT AND START OVER IN YOUR NEW CRAFT!!!!
+
+- Each craft has a craftskill of 1 to 1000 and becomes more costly as you
+  progress.  There are 11 Craft Ranks depending on the craftskill of the
+  player:
+
+            1  - 99  Helper
+            100-199  Junior Apprentice
+            200-299  Apprentice
+            300-399  Neophyte
+            400-499  Assistant
+            500-599  Junior
+            600-699  Journeyman
+            700-799  Senior
+            800-899  Master
+            900-999  Grand Master
+            1000+    Legendary Grand Master
+
+- There are several tiers that apply to crafting.  Depending on the craft,
+  there may be only one tier so an apprentice can work alone within that
+  craft or as with other crafts, you are depeneant on items created from
+  the other tiered apprentices in order for you to advance.
+
+  1st tier crafters acquire the basic materials needed for crafting:
+
+  Miners acquire ore           (Required: Pick Axes)
+  Lumberjacks acquire logs     (Required: Saws)
+  Hunters acquire animal skins (Required: Skinning Knives)
+
+  2nd tier crafters refine the basic materials into usable items for 3rd tier:
+
+  Smelters make metal bars from ore  (Required: Smelting Furnace)
+  Millers make boards from logs      (Required: Enchanted Saw Mill)
+  Tanners make leather squares skins (Required: Tanning Table)
+
+  3rd tier crafters use materials from the world and from 2nd tier
+  crafters to create weapons, armor, and various other equipment and
+  items.  If there is only one tier in a craft it will be the 3rd tier.
+  Current available 3rd tier crafts:
+
+  Sharp Weapons, Blunt Weapons, Armor Crafting, Tailoring, Spellcrafting
+
+  See each individual craft help file for more specific information.
+
+SEE ALSO:
+MINE MINER MINING HARVESTWOOD LUMBERJACK HUNTER SKIN SMELT SMELTER MILL MILLER
+TAN TANNER '3rd TIER' 'THIRD TIER' SHARPWEAPON BLUNTWEAPON TAILOR ARMORCRAFT
+SPELLCRAFTING GEMS ESSENCES OVERCHARGE WHOCRAFT CRAFTLIST SHOPS VAULTS
+SIEGECRAFTING
+
+============================================================
+
+THIRD TIER CRAFTING' '3rd TIER CRAFTING'
+
+Apprentices of the 3rd tier create finished items such as weapons, armor
+and other various equipment for player use.  Spellcrafting varies slightly
+from the others and all are covered in separate help files. You may craft
+anywhere but you are required to have all the items in your inventory
+needed for the item you are trying to create.
+
+All 3rd tier crafts require that you first master the making of a trinket
+of a particular material or in the case of spellcrafting, a gemstone,
+before you can create the weapons, armor or gems of that same material.
+Every craft has a skill level range that you need to achieve in order
+to created the items within that range.
+
+You can sell all crafted trinkets back to the merchants that sell the
+materials needed for any craft.  The price that you get for the trinkets
+on resale depends on the type of material used.
+
+Skills-
+
+sharpweapon  - makes sharp weapons axes, swords, daggers, spears, and polearms
+bluntweapon  - makes blunt weapons maces, flails, staffs, whips, and exotics
+armorcraft   - makes leather studded, chainmail, and platemail armor
+tailor       - makes cloth and leather armor
+spellcrafter - makes gems to imbue onto armor and weapons
+
+Note that if you have an alt that is a 1st or 2nd tier crafter and you
+use  materials created by them for your alt that is a 3rd tier crafter, it
+is illegal.  You cannot use material gained from one in order to benefit
+the other.  See multiplaying rules.
+
+
+SEE ALSO:
+CRAFT CRAFTING CRAFTLIST SHARPWEAPON BLUNTWEAPON ARMORCRAFT TAILOR
+SPELLCRAFTING

@@ -1,0 +1,11 @@
+'CONTROL WEATHER'
+'CONTROL WEATHER'
+
+Syntax: cast 'control weather' better
+        cast 'control weather' worse
+
+This spell makes the weather either better or worse.  Changes in weather,
+being the domain of the goddess Turpa, are difficult to achieve, and tend to
+take a great deal of effort.
+
+See also - WEATHER

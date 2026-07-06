@@ -1,0 +1,6 @@
+betray
+Syntax: cast 'betray' victim
+
+The betray spell steals the charmed mob from another owner.  This spell must
+be cast while in combat.
+

@@ -1,0 +1,13 @@
+'MAGIC MISSILE'
+'MAGIC MISSILE'
+
+Syntax: cast 'magic missile' <target>
+
+One newly trained in the arts of magical combat learns this spell quickly in
+their studies.  The casting of magic missile provides the barest of
+offensive abilities in magical combat.
+
+When cast, this spell appears before the target as a series of projectiles
+of energy, flashing forth from the hands of the caster.
+
+See also - COMBAT

@@ -1,0 +1,91 @@
+CARDGAME
+cardgame
+
+Cardgames are played in a room with a card table.  There is no
+fighting allowed in rooms with a card table.  All games are logged
+and can be monitored.  The cardgame command has several valid
+arguments.  All of the following arguments may be used with the syntax
+'cardgame <argument>'.
+
+Arguments:
+list - Displays a list of cardgames.
+prompt - Displays your current cardgame prompt or changes your prompt.
+example:  prompt Position: %P Stack: %C Pocket: %H  Board: %c Pot: %p
+status - Displays the current status of the game.
+setup - Starts the process of creating a cardgame.
+join - Allows you to join a cardgame that has been setup.
+leave - Allows you to leave the cardgame you are playing.
+invite - Allows you to invite specific players to a private game.
+start - Starts the cardgame.
+
+Setting up a game:
+If at any point during the setup you would like to cancel you can type
+'exit'.  From there it will prompt you with many choices for the type
+of game you want to create.
+
+Public/Private - A public game is available to anyone.  In a private
+                 game you have to invite each player individually
+                 before they can join.
+
+Game Type - Currently Nexus Holdem is the only game available.
+
+Game Style - Cash games allow people to come and go as they like buying
+             in and cashing out at any time.  Freezeout games are played
+             to the last man standing (Tournament Style).
+
+Blind Timer - For freezeout games the blinds will increase at a regular
+              interval to ensure the game comes to an end.  The default
+              and maximum value is every 15 minutes.  You can make it as
+              often as every 3 minutes.
+
+Stakes - The stakes can be gold or blues.  So if the stakes are gold
+         then all bets are made in gold.  If they stakes are blues then
+         all bets are made in blues.
+
+Bets - The bets for a game determine the blinds.  They can be 1/2, 2/4,
+       5/10, 10/20, 20/40, and 50/100.  The bets also determine the
+       default buyin amount.  The default buyin is 50 times the big blind.
+       With the combination of stakes and bets a game can be made to fit
+       almost any budget.  For example if the stakes are gold and the
+       blinds are 1/2, the default buyin will be 100 gold.  The small
+       blind will be 1 and the big blind will be 2.
+
+Buyin - The default buyin can be increased if you wish.  The maximum
+        buyin is 30000.
+
+Bet Limit - The bet limit can be set to 0 for no limit poker.  That
+            means you can bet up to the amount of your current chipstack.
+            The bet limit can be set to almost anything.  It must be at
+            least as much as the ante or the big blind.  The largest
+            amount it can be set to is 32000.
+
+Action Time Limit - The choices here are 20, 40, or 60 second.  That
+                    means once it is your turn you have 20, 40, or 60
+                    seconds to make your play.
+
+Playing a game:
+Players will be folded and booted if they are LD when the action
+gets to them.
+
+If the action is not on you.  (It isn't your turn.)  You can use any
+normal  commands.  If the action is on you then you have a short
+list of commands available to you:
+
+Check - If there hasn't been a bet then you can check and pass the
+        action without betting or folding.
+
+Bet - If there hasn't been a bet then you can start the betting.
+
+Call - If there has been a bet you can match the bet and stay in the
+       hand.
+
+Raise - If there has been a bet you can raise the bet.  There can
+        only be 3 raises on any betting round.  If the bet is 2
+        and you raise 5 the new bet becomes 7.
+
+Fold - You can fold at any time.  This takes you out of the current
+       hand.
+
+Status - This shows you the current status of the game.
+
+See also: 'NEXUS HOLDEM'

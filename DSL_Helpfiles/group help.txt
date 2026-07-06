@@ -1,0 +1,9 @@
+The following commands are available:
+list         display all groups and skills not yet bought
+learned      show all groups and skills bought
+premise      brief explanation of creation points and skill groups
+add <name>   buy a skill or group
+drop <name>  discard a skill or group
+info <name>  list the skills or spells contained within a group
+help <name>  help on skills and groups, or other help topics
+done         exit the character generation process

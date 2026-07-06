@@ -1,0 +1,8 @@
+PURCHASE
+Jewelled eggs, the most valuable possession in the land, can now be
+bought from most shopkeepers.  To buy a jewelled egg from a shopkeeper,
+please have 50 diamonds or 10 blue diamonds in a bag, with nothing else in
+the bag.  Then, simply type 'purchase', and the shopkeeper will slip the
+jewelled egg into your inventory.  If you have more than required change will
+now be given.
+Please do not use the pray channel to ask for jewelled eggs anymore.

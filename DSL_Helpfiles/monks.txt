@@ -1,0 +1,29 @@
+MONKS
+MONKS
+
+The silent and imposing monk.  Their order is the offspring of an ancient
+cult of manatonicists in the old Serpantol Empire, who were run out of their
+homeland just before it was destroyed by the Yinn.  Only true manatonicists
+may reclass into a monk.
+
+Monks are expert combatants, being able to strike a dozen times in a
+single round.  They disdain most weapons, using only their hands and staves.
+They are healers as well as mages, utilizing healing, enhancements, and
+combat to keep themselves alive.  They receive hit points and THAC0 as a
+warrior, and mana as a mage.  They are not affected by the moons.
+
+To become a monk, the aspiring manatonicist must venture into dae'Tok, and
+find the Temple of the Serpent's Eye.  Therein lies the secret to the
+monastic life.
+
+Monks are forbidden from using any channels save their clan channel and OOC.
+
+Who can be a Monk?
+
+SPECIAL:   MANATONICS ONLY, successful quest completion
+CLASS:     ANY
+RACE:      ALL EXCEPT GIANT OGRE, KENDER, GOBLIN, HOBGOBLIN, BUGBEAR, PIXIE, GULLY DWARF
+ALIGNMENT: ANY
+CLAN:      ANY, including non-clanned
+
+See also - RECLASS

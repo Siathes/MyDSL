@@ -1,0 +1,5 @@
+roll
+The roll command will allow you to roll a die or a set of dice.
+
+Syntax:  roll <number of dice 1-6>
+Example:  roll 2

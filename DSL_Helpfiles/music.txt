@@ -1,0 +1,10 @@
+MUSIC
+MUSIC
+Syntax:  music <lyrics>
+MUSIC is the command for communicating on the music channel.  There
+are no requirements that your communications on the music channel
+have to be in character, but it's nice to see that a few bards have
+shared their talents with the playerbase via this channel.
+The second form of the syntax, where no argument is used with the
+command, acts as a toggle to turn the music channel on and off.
+See also:  CHANNELS

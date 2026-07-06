@@ -1,0 +1,3 @@
+REHEARSE
+Bards must rehearse their songs, not practise them. Typing rehearse will give
+bards their list of known songs as well.

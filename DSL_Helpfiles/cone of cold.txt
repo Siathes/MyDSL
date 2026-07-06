@@ -1,0 +1,11 @@
+'CONE OF COLD'
+CONE OF COLD
+
+Syntax: cast 'cone of cold'
+
+By drawing on enormous amounts of energy, the Invoker calls into being a
+cone of bitter cold wind and precipitation from the iciest parts of the
+world.  The temperatures affect all that are in the same room as the
+Invoker, save for those the invoker is grouped with.
+
+See also:  INVOKER

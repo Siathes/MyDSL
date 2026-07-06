@@ -1,0 +1,8 @@
+'CAUSE LIGHT' 'CAUSE SERIOUS' 'CAUSE CRITICAL' HARM
+'CAUSE LIGHT' 'CAUSE SERIOUS' 'CAUSE CRITICAL' HARM
+Syntax: cast 'cause light'    <victim>
+Syntax: cast 'cause serious'  <victim>
+Syntax: cast 'cause critical' <victim>
+Syntax: cast harm             <victim>
+These spells inflict damage on the victim.  The higher-level spells do
+more damage.

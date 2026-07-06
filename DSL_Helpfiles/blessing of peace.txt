@@ -1,0 +1,8 @@
+BLESSING OF PEACE
+
+Syntax: cast 'blessing of peace' <character>
+
+This blessing fills those granted with the essence of the ancients.  It will
+improve their ability to resist magical spells and effects.
+
+Groups containing this skill: SHUKENJA

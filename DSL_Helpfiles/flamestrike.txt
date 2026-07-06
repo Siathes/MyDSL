@@ -1,0 +1,10 @@
+FLAMESTRIKE
+FLAMESTRIKE
+
+Syntax: cast 'flamestrike' <victim>
+
+With the aid of his deity, the caster calls upon a column of pure fire to
+descend upon a foe, causing large amounts of damage.  Objects on the person
+of the recipient are subject to the effects of the column of flames as well.
+
+See also - ATTACK

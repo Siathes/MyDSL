@@ -1,0 +1,16 @@
+TRAIN
+TRAIN
+Syntax: train <str int wis dex con hp mana>
+TRAIN increases one of your attributes.  When you start the game, your
+character has standard attributes based on your class, and several initial
+training sessions.  You can increase your attributes by using these sessions
+at a trainer (there are several in town).  It takes one training session to
+improve an attribute by 2, or to increase mana or hp by 5.  You receive one
+session per level.  The best attributes to train first are WIS and CON.  WIS
+gives you more practice when you gain a level.  CON gives you more hit
+points.  In the long run, your character will be most powerful if you train
+WIS and CON both to their maximum values before practicing or training
+anything else.
+Syntax: train split <stat one> <stat two>
+Train splitting will allow you to put one point towards one stat and one
+towards another so that you do not waste any stats.

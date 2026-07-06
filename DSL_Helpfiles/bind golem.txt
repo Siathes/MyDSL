@@ -1,0 +1,9 @@
+'BIND GOLEM'
+BIND GOLEM
+
+Syntax: cast 'bind golem' <object>
+
+This spell infuses the item cast upon, creating a golem of the appropriate
+material type under the control of the invoker.  There are various materials
+that can be used to bring a golem to life from, ranging from the cheap woods
+in the realm, to the most expensive eggs available.

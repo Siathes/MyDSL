@@ -1,0 +1,9 @@
+DEMONFIRE
+
+Syntax: cast 'demonfire' <target>
+
+Demonfire is a spell of blackest evil, and as such can only be used
+correctly by those who follow the paths of darkness.  It conjures forth
+demonic spirits to inflict terrible wounds on the enemies of the caster.
+
+See also - ATTACK

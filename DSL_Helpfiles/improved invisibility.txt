@@ -1,0 +1,4 @@
+IMPROVED INVISIBILITY
+Improved invisibility is the same as invisibility except that the spell
+stays active even after combat.  Only mages who study as Illusionists learn
+this spell.

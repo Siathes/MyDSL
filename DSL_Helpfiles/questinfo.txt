@@ -1,0 +1,6 @@
+QUESTINFO
+This command will list all of the quests you have started and show you
+what your last instruction was for that step.  This system has absolutly
+nothing to do with quests from the pqrequest system.
+
+See also: QUESTOPTIONS

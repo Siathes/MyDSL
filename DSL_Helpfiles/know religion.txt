@@ -1,0 +1,9 @@
+KNOW RELIGION
+KNOW RELIGION
+
+Syntax: cast 'know religion' <character>
+
+This spell reveals the religious background of the individual it is cast
+upon.
+
+See also - BENEDICTIONS

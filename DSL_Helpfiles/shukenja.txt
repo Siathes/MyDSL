@@ -1,0 +1,17 @@
+SHUKENJA
+
+The art of the Shukenja was developed in the lands of Shokono. The people
+there held a deep devotion to their ancestors and the wisdom that was passed
+down through the ages. It was believed that a strength could be gained if
+one could speak to those spirits directly and use their power as his or her
+own. Through these studies the Shukenja forms were developed and allowed one
+to combine the power of their ancestors, healing magics and both single and
+dual wielding weapon techniques.
+
+Who can be a Shukenja?
+
+CLASS:     CLERICS only
+RACE:      ANY
+ALIGNMENT: Any alignment
+CLAN:      Any, including non-clanned
+See Also: 'RECLASS'

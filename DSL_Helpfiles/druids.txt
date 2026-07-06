@@ -1,0 +1,13 @@
+DRUIDS
+DRUIDS
+Druids are a nature based class. They worship trees, animals and all that
+surrounds them made of nature. They are more similar to Rangers than any
+other class, but they cast at their level and are VERY deadly in the proper
+sectors.
+Who can be a Druid?
+CLASS:     CLERICS only
+RACE:      HUMANS and ELVES.
+ALIGNMENT: ANY
+CLAN:      ANY
+
+See Also:  'RECLASS'

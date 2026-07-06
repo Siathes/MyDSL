@@ -1,0 +1,27 @@
+DSL
+(DSL) Dark & Shattered Lands
+DSL is a Diku/Merc/Rom based mud. We have re-written the majority
+of thier code and added our own versions of part of it. The current
+product of our code is currently called DSL 3.03. DSL would like to
+thank Diku, Merc, and Rom for their excellent source contributions.
+Code contributions were made by Scorn, Curumo, Istiak,
+Ashlar, Vaelin, Avachel, Estel, Bioteq, and Connor.
+These are the immortals that were here long enough to deserve
+recognition for their contributions to DSL. These immortals are
+those who did enough to deserve recognition.
+Scorn                   Vivienne                        Handel
+Xiola                   Jinx                            Atropos
+Crusher                 Sarzec                          Tathem
+Connor                  Vaelin                          Khamsin
+Ashlar                  BelGarion                       Enchantra
+Curumo                  Taltos                          Estel
+Sooth                   Deracs                          Tashio
+Chryseis                Grokle                          Palibar
+Solum                   Tarot                           Rosalyn
+Rocket                  Diavo                           Laika
+Aldur                   Kitichorn                       Milamber
+Charis                  Avachel                         Istiak
+Gryphon                 Kyri                            Maalthiir
+Joules                  Ozymandius                      Diluvian
+If you know of someone whom you feel derserves to be on this list, please
+leave a note to immortals.

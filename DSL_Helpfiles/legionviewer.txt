@@ -1,0 +1,7 @@
+legionviewer
+During the times when great battles are waged the magic of Algoron
+converges to form a way for the world to view these battles.  Those who
+participate are restricted from seeing this mystical view.
+
+Command: legionviewer
+Toggles the player's ability to see legion matches.

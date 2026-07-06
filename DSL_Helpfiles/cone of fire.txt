@@ -1,0 +1,15 @@
+'CONE OF FIRE'
+CONE OF FIRE
+
+Syntax: cast 'cone of fire'
+
+By drawing on enormous amounts of energy, the Invoker calls into being a
+cone of extreme heat and flame from the bowels of the realm.  The
+temperatures affect all that are in the same room as the Invoker, save for
+those the invoker is grouped with.
+
+See also: INVOKER
+
+
+
+

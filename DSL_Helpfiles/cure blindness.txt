@@ -1,0 +1,4 @@
+'CURE BLINDNESS'
+'CURE BLINDNESS'
+Syntax: cast 'cure blindness' <character>
+This spell cures blindness in one so unfortunate.

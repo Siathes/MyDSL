@@ -1,0 +1,7 @@
+polevault jump
+Syntax: pvjump <direction>
+
+Polevault jump allows a person to catapult themself over a room using a
+staff.  It does hurt when you fail, and of course it takes a bit more effort
+than just walking but it is a very proven way to avoid a room full of people
+wanting to wear your blood.

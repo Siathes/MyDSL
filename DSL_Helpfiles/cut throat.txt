@@ -1,0 +1,5 @@
+cut throat
+Command: Cutthroat
+
+A hidden Nightshade may use this skill to start a battle with unusually high
+damage.  The skill does require some time and a still target for it to work.

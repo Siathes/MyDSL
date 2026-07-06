@@ -1,0 +1,45 @@
+
+CLOTHSHOP
+CLOTHSHOP
+
+Directions to the cloth shops in the realm -
+
+Cloth    Althainia    (8-15)
+
+Althainia dock to Althainia Market Square
+-    w,2s,33w
+Nell's Cloth Creations from the Althainian Market Square
+-    3w,s,e
+
+Cloth    Shalonesti    (18 - 24)
+
+Althainia Market Square to Shalonesti Gates
+-    3e,4n,2w,7n,e,n,nw,2n,7w
+Althainia Dock to Shalonesti Gates
+-    w,2s,27w,nw,2n,2w,5n,e,n,nw,2n,7w
+Nyorim's Light Armor from the Shalonesti Gates
+-    5n,w
+
+Cloth    New Thalos    (28 - 34)
+
+Althainia Dock to Thalosian Central Square
+-    w,2s,12w
+Desert Loom Shop from the Thalosian Central Square.
+-    2e,n
+
+Cloth    Darkonin    (38-44)
+
+Icewall Port to Entrance of Darkonin
+- ne, e, ne, 2n, 7w, u, 3e, u, 2w, u
+
+entrance of Darkonin to Tattered Threads
+-  open e, e, e, e, e, e, e, e, e, e, open n, n
+
+Cloth    Althainia    (48 - 51)
+
+Althainia Dock to Althainia Market Square
+-    w,2s,33w
+Althainian Textiles from the Althainian Market Square
+-    3e,4n,w,s
+
+See also - HELP ARMOR SHOPS

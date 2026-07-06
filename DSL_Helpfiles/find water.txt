@@ -1,0 +1,7 @@
+FIND WATER
+Syntax: find water
+Find water is a skill available only to rangers and shamans.  They may use
+their knowledge of natural surroundings to find small springs or other
+sources of water that might remain hidden from other adventurers.
+
+see also: 'RANGER' 'SHAMAN'

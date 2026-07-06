@@ -1,0 +1,8 @@
+ENCHANTING TOUCH
+ENCHANTING TOUCH
+
+Syntax: cast 'enchanting touch' <victim>
+
+Enchanting touch allows the enchantor to enchant a person's soul and imbue
+their combat abilities.  Its strength can vary depending on the enchantor,
+and perhaps when the spell is cast.

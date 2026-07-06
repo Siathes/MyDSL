@@ -1,0 +1,6 @@
+NOBATTLE BATTLESPAM
+If you don't wish to see the spam of other people fighting in a room just
+type this command.
+
+This command is toggle-able and shows up in your score as NoBattle.
+The command is battlespam by itself.

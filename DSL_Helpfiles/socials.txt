@@ -1,0 +1,25 @@
+SOCIALS
+This is a complete list of socials for this MUD:
+
+accuse      collapse    gasp        massage     shake       stomp
+agree       comfort     giggle      mutter      shiver      stretch
+apologize   confused    glare       nod         shrug       strut
+applaud     cough       grimace     nudge       shudder     sulk
+babble      cower       grin        nuzzle      sigh        support
+beam        cringe      groan       passout     sing        swoon
+beckon      cry         grovel      pat         slobber     tag
+beg         cuddle      growl       peck        smile       tease
+bkiss       curtsey     grumble     peer        smirk       thank
+blink       drool       haccept     plead       snap        think
+blush       duck        hiccup      point       snarl       tickle
+boast       embrace     hkiss       ponder      sneer       twiddle
+boggle      eyebrow     hoffer      pout        sneeze      twitch
+bow         eyeroll     hop         puke        snicker     wait
+buff        faint       howl        purr        sniff       wave
+burp        fart        hug         rofl        snore       whine
+cackle      flex        hum         rub         snort       whistle
+cheekkiss   flinch      hush        sage        sob         wince
+cheer       flirt       innocent    salute      squeal      wink
+chortle     flutter     kiss        scratch     squirm      worry
+chuckle     frown       kneel       scream      stagger     yawn
+clap        fume        laugh       scuff       stare

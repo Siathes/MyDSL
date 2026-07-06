@@ -1,0 +1,10 @@
+'GIANT STRENGTH'
+'GIANT STRENGTH'
+
+Syntax: cast 'giant strength' <character>
+
+The caster can enhance the physical strength of a target, either himself or
+another, with this spell, giving the recipient the strength of a mighty
+giant.
+
+See also - ENHANCEMENT

@@ -1,0 +1,21 @@
+nightshade
+(YNIGHTSHADES{x
+
+Nightshades are a specialty thief, known for their ability to surprise an
+opponent and make a quick getaway.  The Nightshade is an expert at
+inflicting quick and heavy damage to distract their target from their
+primary goal, the loot.  Nightshades use trickery when forced into battle,
+and usually will not last long against an opponent who regains their senses
+from the initial surprise.  Primarily found in a city environment,
+Nightshades also use the shadows to their advantage.
+
+Elves, Goblin, Felar and Kender make the best Nightshades.  The large races
+do not play this class very well.
+
+{cThe following races cannot play this class:{x
+
+     Minotaur, Hill Dwarves, Mountain Dwarves
+
+{cThe following clans cannot recruit this class:{x
+
+     Knighthood, Shadow

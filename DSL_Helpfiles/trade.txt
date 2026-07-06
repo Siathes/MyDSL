@@ -1,0 +1,15 @@
+TRADE
+Trade is used to securely trade items between two players.  Both players
+must accept the trade to complete it.  Any item or amount of coin added will
+force both parties to accept again.  Once a trade has begun you are only
+allowed to use a few commands otherwise the trade will be cancelled.  You
+can use the say, speak, inventory, worth, score, and trade commands once a
+trade has begun.
+
+Syntax:
+trade <item> <player>                  -Adds the item to the trade
+trade <number>*<item> <player>         -Adds that number of items to the trade
+trade <amount> <gold/silver> <player>  -Adds that much gold/silver to the trade
+trade list                             -Displays what is being traded
+trade cancel                           -Cancels the trade
+trade accept                           -Accepts the trade

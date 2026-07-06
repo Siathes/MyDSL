@@ -1,0 +1,7 @@
+maingauche
+MAINGAUCHE
+
+Passive Skill.
+
+A pirate who wields a sword as his or her primary weapon and a dagger as the
+secondary weapon increases the chance of successfully parrying enemy attacks.

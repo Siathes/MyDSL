@@ -1,0 +1,8 @@
+WEB
+WEB
+
+Syntax: cast 'web' <target>
+
+This spell, available only to Invokers, entangles the target in a web that
+prevents the victim from moving in any way.  The target may be a mob or a
+player.

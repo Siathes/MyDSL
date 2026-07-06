@@ -1,0 +1,30 @@
+SMELT SMELTER
+
+This is a 2nd tier craft that requires the smelter to get their ore from
+another player after it has been mined.  Pricing in acquiring the ore can
+vary as this is set by the individual crafters. Smelting requires you be
+in a room with a smelting furnace.  These are quite expensive and likely
+only found in kingdom halls or clan halls.  You will also require the
+correct type of ore to smelt the metal you wish to make.
+
+     Syntax: smelt <metal type>
+
+               Metal types       Ore types
+
+               bronze bar        (copper)
+               iron bar          (iron)
+               steel bar         (coal)
+               alloy bar         (nickel)
+               fine alloy bar    (titanium)
+               mithril bar       (mithril)
+               adamantium bar    (adamant)
+               asterite bar      (asterite)
+               netherium bar     (netherium)
+               arcanium bar      (arcanium)
+
+Note that if you have an alt that mines and smelts, you cannot use material
+gained from one in order to benefit the other.  See multiplaying rules.
+
+
+SEE ALSO:
+MINE MINER MINING CRAFT CRAFTING

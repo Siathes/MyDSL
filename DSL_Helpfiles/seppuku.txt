@@ -1,0 +1,10 @@
+seppuku
+SEPPUKU
+
+Syntax: seppuku <target>
+
+The Samurai, when low on health, can avoid a dishonorable death by
+performing ritual suicide by disembowelment. This action, will kill the
+samurai. So pleased by the honorable sacrifice is the patron deity of
+the Samurai, that power strikes out from him or her, dealing a large
+amount of damage to the Samurai's chosen target.

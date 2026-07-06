@@ -1,0 +1,16 @@
+BANDIT
+BANDIT
+
+Bandits are often vicious, cunning, and cruel.  They are "cut throat" even
+with their own kind generally, but a common goal of obtaining loot or the
+big score makes them more than willing to work in well organized groups.
+
+Bandits are excellent fighters and keep all of the skills of a thief.
+
+Who can be a Bandit?
+
+CLASS:     THIEVES only
+RACE:      ALL EXCEPT KENDER
+ALIGNMENT: Any alignment
+CLAN:      ANY, including non-clanned
+See also - RECLASS

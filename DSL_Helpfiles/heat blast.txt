@@ -1,0 +1,11 @@
+heat blast
+syntax: cast 'heat blast' <target>
+Nurtured in the climate of the scorching desert, the brass dragon has
+adapted to itself the ability to breath a wave of extreme heat against his
+opponent.  Much like the exposure to the harsh conditions of the desert, the
+wave of immense heat can take a horrible toll on the opponent and all other
+individuals in the vicinity of the dragon.  Those who survive encounters
+with brass dragons report that upon being hit with the heat blast, they find
+themselves suffering from extreme heat exhaustion and suffer quite painful
+burns.
+see also:  BRASS DRAGON

@@ -1,0 +1,14 @@
+wing bind wingbind
+WINGBIND
+
+Syntax: wingbind <target> or simply wingbind while in combat
+
+A dragonslayer can launch a net over a victim with wings, dragging them to
+the ground.  A successful wingbind prevents use of wings, and wing-related
+skills, for a short period of time.
+
+
+SEE ALSO:  DRAGON SLAYER, DRAGON STRIKE, JAWBIND, RECLASS, SLAYERS,
+           SUPERVOUCHER
+
+Updated 06.17.2024

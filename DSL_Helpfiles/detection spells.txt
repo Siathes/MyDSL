@@ -1,0 +1,25 @@
+'DETECTION SPELLS'
+
+The detection spells have many uses, all related to gathering information.
+They can be used to see hidden objects, give information about treasure, or
+even scry out the true nature of your foe.  All classes except warriors can
+use detection spells.
+
+More information on individual spells may be found by typing help
+(spellname).  The detection spell group consists of the following spells:
+
+detect evil     reveals the aura of evil monsters
+detect good     similar to above, only for good monsters
+detect hidden   shows the whereabouts of hidden foes
+detect invis    allows the caster to see the unseeable
+detect magic    reveals magical auras to the caster
+detect poison   determines if food is safe to eat
+farsight        searches for living beings near the caster
+identify        gives information about the nature of an object
+know alignment  determines the moral character of a monster or person
+locate object   finds a specific item
+
+This group is available to the following classes -
+    ASSASSIN BLADESINGER CLERIC CRUSADER DRAGON DRUID
+    GIANT ILLUSIONIST INVOKER MAGE NECROMANCER PALADIN
+    PRIEST SHADOWKNIGHT SHAMAN THIEF TRANSMUTER WITCH/WARLOCK

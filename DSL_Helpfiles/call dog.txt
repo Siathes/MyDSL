@@ -1,0 +1,14 @@
+call dog
+CALL DOG
+
+Syntax: Call
+
+Shokonese lore tell of pet dogs fighting alongside Samurai.  While training
+far from home, young Ronin are gifted with Akita puppies to ease their
+loneliness.  This tradition turned out to have an added perk as Akita
+puppies have fiendishly sharp teeth and indomitable fighting spirits to
+protect their masters.  Around the same time Ronin gain enough seniority to
+be accepted as Samurai, the Akita puppy reaches maturity and grows into a
+full sized adult Akira.  In the depths of ancient myths are whispers of
+large Akira beasts so fearsome that only a Samurai who achieves the rank of
+Shogun may control them.

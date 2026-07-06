@@ -1,0 +1,34 @@
+skald
+SKALDS
+
+In the cold darkness during the winters of Viking lore, families and
+friends huddle around evening fires while elders tell tales of heroes,
+legends, and the Gods.  Songs and stories are passed down along the ages,
+any many children grow up with these stories embedded in their souls.
+
+So it is no surprise that Skalds of Algoron can inspire listeners with
+oration and songs of the tales of honor in battle, victory, and lore.  Not
+only can Skalds use their songs to rally their allies, but they can also
+use their songs to impart fear in the hearts of their foes.  Many enemies
+have been known to cringe and even run when Skalds begin to shout at them.
+Some may wonder why the songs of Skalds are so frightening to those of a
+different tongue, yet most Skalds will tell you it is more of the way they
+sing it than the words.
+
+In addition to their song, Skalds can train in some weapons of Algoron, and
+wear some heavier armors.  Skalds will never be as proficient in these
+respects as their warrior brethren, but the combintation of song and sword
+needs little else to be effective.
+
+Mountain and Hill Dwarves make the most natural Skalds.  Humans and Half
+Humans also make good Skalds.  The Ogre, Goblin and Leonine Species are not
+very fit to fight as a Skald.
+
+Who can be a Skald?
+
+CLASS:     BARDS only
+RACE:      ALL who can be Bards
+ALIGNMENT: Any alignment
+CLAN:      ANY, including non-clanned
+
+See also - RECLASS 'SKALD CHANTS' 'SKALD SONGS' 'HYMNS' 'SONGS'

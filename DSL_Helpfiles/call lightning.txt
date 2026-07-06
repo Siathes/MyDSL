@@ -1,0 +1,10 @@
+'CALL LIGHTNING'
+CALL LIGHTNING
+
+Syntax: cast 'call lightning'
+
+This spell works only out of doors, and only when the weather is bad.
+
+It calls down lightning bolts from the Gods.
+
+See also - WEATHER CONTROL WEATHER

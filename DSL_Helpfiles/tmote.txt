@@ -1,0 +1,160 @@
+TMOTE
+TMOTE (Targeted Emote)
+
+Syntax: tmote target phrase
+
+TMOTE QUICK REFERENCE GUIDE
+===========================
+Lower case TMOTE directs toward target. (eg. @m & @mf)
+Upper case TMOTE directs toward poster. (eg. @M & @Mf)
+
+        Others See                  Directed Toward Sees
+        -----------------------     --------------------
+@m      him/her/it                  you
+@mf     himself/herself/itself      yourself
+@s   *  his/her/its                 your
+@ss     his/her/its                 yours
+@e   *  he/she/it                   you
+@t   *  Subject                     you
+@p   *  Subject's                   your
+@ps     Subject's                   yours
+@hi     is                          are
+@hh     has                         have
+@hw     was                         were
+@v      verb +s                     verb
+@x      verb +es                    verb
+@y      verb ending in y to ies     verb ends in y
+
+* Auto-capitalizes after end of sentence on POSTER TMOTE option
+  only (@S, @E, @T, and @P).
+
+
+TMOTE DETAILED INSTRUCTIONS
+===========================
+All TMOTE commands start with the @ symbol.
+
+You must have one @ tmote command in the phrase
+(preferably at least one @t so the target is identified)
+
+Using a Dependent Clause within TMOTE
+-------------------------------------
+Your tmote phrase must begin with a comma.
+The dependent clause must have a closing comma.
+
+  eg: tmote player ,Leaning against the wall, looks at @t.
+  becomes: Leaning against the wall, Xandor looks at you.
+
+Please note you may not use the tmote options below in the dependent clause.
+
+TMOTE Target commands
+---------------------
+TMOTE target commands are directed to the person you listed as
+your target in the command.  They will see something different than what
+you and the room will see.
+
+Subject specific TMOTES:
+
+        Poster/Room sees           Target sees
+        Target as                  Themself as
+        ----------------------     -----------
+@m      him/her/it                 you
+@mf     himself/herself/itself     yourself
+@s      his/her/its                your
+@ss     his/her/its                yours
+@e      he/she/it                  you
+@t      Target                     you
+@p      Target's                   your
+@ps     Target's                   yours
+
+Helper Verbs:
+The letter after @h indicates helper verbs that the target sees
+differently than you or the room do.
+
+        Poster/Room sees           Target sees
+        Target as                  Themself as
+        ----------------           -----------
+@hi     is                         are
+@hh     has                        have
+@hw     was                        were
+
+Verb TMOTES:
+The 3 verb options allow verbs to be tensed correctly within TMOTE
+toward the target. You put the TMOTE verb command directly before the verb.
+
+@v  Poster and Room see s on the end of a verb.
+    Target does not see s on the end of the verb.
+@x  Poster and Room see es on the end of a verb.
+    Target does not see es on the end of the verb.
+@y  Poster and Room see ies on the end of a verb that ends in y.
+    Target sees the y on the end of the verb.
+
+    eg: @vemote
+    eg: @xscratch
+    eg: @yparty
+
+    Poster/Room sees     Target sees
+    verb as              verb as
+    ----------------     -----------
+    emotes               emote
+    scratches            scratch
+    parties              party
+
+TMOTE Poster Commands
+---------------------
+TMOTE Poster commands are directed towards you.  You will see something different
+than what the target and the room will see.  They are identical to the Target
+TMOTES, but are uppercase
+
+Subject specific TMOTES:
+
+        Target/Room sees            Poster sees
+        Poster as                   themself as
+        ----------------------      -----------
+@M      him/her/it                  you
+@Mf     himself/herself/itself      yourself
+@S   *  his/her/its                 your
+@Ss     his/her/its                 yours
+@E   *  he/she/it                   you
+@T   *  Poster                      you
+@P   *  Poster's                    your
+@Ps     Poster's                    yours
+
+     * Will automatically capitalize after a period
+       and either one or two spaces.
+
+Helper Verb TMOTES:
+The letter after @H indicates helper verbs that you see
+differently than the target or the room do.
+
+        Target/Room sees            Poster sees
+        Poster as                   themself as
+        ----------------            -----------
+@Hi     is                          are
+@Hh     has                         have
+@Hw     was                         were
+
+Verb TMOTES:
+The 3 verb options allow verbs to be tensed correctly within TMOTE
+toward you.  You put the TMOTE verb command directly before the verb.
+
+@V  Target and Room see s on end of verb.
+    Poster does not see s on end of verb.
+@X  Target and Room see es on the end of a verb.
+    Poster does not see es on the end of the verb.
+@Y  Target and Room see ies on the end of a verb that ends in y.
+    Poster sees the y on the end of the verb.
+
+    eg: @Vemote
+    eg: @Xscratch
+    eg: @Yparty
+
+    Target/Room sees     Poster sees
+    verb as              verb as
+    ----------------     -----------
+    emotes               emote
+    scratches            scratch
+    parties              party
+
+Please note: With TMOTE the poster will see you instead of the poster's
+    character name so you will want to use @V, @X, and @Y on many of your
+    verbs so the tense shows correctly.

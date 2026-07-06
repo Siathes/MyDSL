@@ -1,0 +1,9 @@
+FLY
+FLY
+Syntax: cast 'fly' <character>
+This spell enables the target character to fly.  There are some areas where
+passage may not be enabled simply by flying, for example - an underwater
+cave might require the use of swimming to get through.  You cannot rest
+sleep or ride a mount while flying.
+
+See also 'LAND'

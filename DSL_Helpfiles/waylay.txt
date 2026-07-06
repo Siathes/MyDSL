@@ -1,0 +1,4 @@
+waylay
+Bandits who are skilled with waylay can use it's attack to initiate
+combat and poetentially gain more hits initially.  It is used best when the
+bandit is sneaking around.

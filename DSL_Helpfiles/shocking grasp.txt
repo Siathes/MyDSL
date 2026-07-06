@@ -1,0 +1,13 @@
+'SHOCKING GRASP'
+'SHOCKING GRASP'
+
+Syntax: cast 'shocking grasp' <target>
+
+Adding that final element, literally, to the book of combat spells, the
+shocking grasp offers the caster an even greater potential for offensive
+damage than its siblings.
+
+Once this spell is learned, the caster begins training in greater, more
+damagaing, and in most cases, more specialized spells of combat.
+
+See also - COMBAT
