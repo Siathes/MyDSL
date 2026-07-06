@@ -137,9 +137,14 @@ function SV.init()
       name      = RH_MC,
       x = 0, y = 0, width = "100%", height = "100%",
       wrapWidth = 300,
+      fontSize  = 9,
       scrollBar = false,
     }, rhWin)
   end
+  -- Always re-apply font size in case Mudlet reset it during a reload.
+  -- Added 2026-07-05 (per Steven) -- this MiniConsole never had an explicit
+  -- fontSize before, so it fell back to Mudlet's small built-in default.
+  if SV._mc.rightHere then SV._mc.rightHere:setFontSize(9) end
 
   -- Register scan.updated event handler (rebuilds RightHere clickable list).
   SV._handlers.scanUpdated = registerAnonymousEventHandler(

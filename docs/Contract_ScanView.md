@@ -343,4 +343,10 @@ mydsl scan ungag    → MyDSL.ScanView.setGag(false)
 - Does not write to Target window
 - Does not capture `consider` output
 - Does not maintain scan history between commands
-- Does not parse players-near output (separate window, separate module)
+- **Correction 2026-07-05**: "Players near you:" output IS now captured and
+  gagged — via `MyDSL.beginPlayersNear()`/`endPlayersNear()` in DataLayer
+  (Section 9o.2, right after `endScan()`) and `MyDSL.Route.players()` in
+  `MyDSL_RouteHelper.lua`, routed into `MyDSL_PlayersNear`. Not owned by
+  ScanView itself, but ScanView's own scan-catch-all is what originally
+  recognized this line (as a scan-block terminator only, never routing it) —
+  documenting the correction here since this line said the opposite.

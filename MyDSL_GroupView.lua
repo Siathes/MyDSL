@@ -206,12 +206,14 @@ function GV.init()
       name      = GROUP_MC,
       x = 0, y = 0, width = "100%", height = "100%",
       wrapWidth = 300,
-      fontSize  = 10,
+      fontSize  = 8,
       scrollBar = false,
     }, groupWin)
   end
   -- Always re-apply font size in case Mudlet reset it during a reload.
-  if GV._mc.group then GV._mc.group:setFontSize(10) end
+  -- Dropped from 10 to 8 (2026-07-05, per Steven) -- a row (class tag + name
+  -- + hp/mana/mv + 2 quick-action buttons) was overflowing the window width.
+  if GV._mc.group then GV._mc.group:setFontSize(8) end
 
   -- Register the event handler that triggers a re-render after each group parse.
   GV._handlers.groupUpdated = registerAnonymousEventHandler(

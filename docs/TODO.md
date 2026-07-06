@@ -206,11 +206,25 @@ correctly with hit/miss/% landed).
 - [ ] **GroupView not populating** — reported not working; unconfirmed whether
       Steven was actually grouped at the time or `group` output failed to
       populate the window. Needs repro steps.
-- [ ] **autowhere → PlayersNear routing + gag** — `autowhere` output should be
-      routed into the `MyDSL_PlayersNear` window (like scan-based "Players
-      near you" already is) and then gagged from the main console.
+- [x] **"Players near you:" → MyDSL_PlayersNear routing + gag, fixed 2026-07-05.**
+      Investigated per Steven's question ("where does that stand?"): found
+      `MyDSL.Route.players(line)` already existed in `MyDSL_RouteHelper.lua`
+      (full working implementation, auto-creates the MiniConsole) but was
+      **never called from anywhere** — `MyDSL_PlayersNear` was a registered
+      window with zero code ever routing into it. The existing scan catch-all
+      only used the `"Players near you:"` line as a signal that scan had
+      ended, never gagged or routed it. Added `MyDSL.beginPlayersNear()`/
+      `endPlayersNear()` in DataLayer (mirrors `beginScan`/`endScan` exactly)
+      plus a permanent `"^Players near you:$"` trigger — captures the header
+      + each `<Name><padding><Room>` line (confirmed shape from `log/`) via
+      `Route.players(nil)` (appendBuffer, preserves original colors) and
+      gags each from main console, ending on the blank line. Needs live-test
+      confirmation. Note: this is triggered by Steven's own external
+      "autowhere" alias (runs `where` every ~20s) — not part of this
+      project, just the thing that produces the text we now capture.
 - [ ] **autowhere should not fire while sleeping** — currently fires
-      regardless of character state.
+      regardless of character state. (Steven's own alias, not ours — low
+      priority for us specifically, more his to tune.)
 - [ ] **Chat capture bug** — grabbing the first letter of the following line;
       Steven traced this to the GMCP `S` echo colliding with chat capture.
 - [ ] **Clan gossip duplicates in chat window** — possibly same root cause as
@@ -222,9 +236,17 @@ correctly with hit/miss/% landed).
 - [ ] **Roller needs to be fixed to match PNP's roller** — current DSL2 roller
       behaves differently than PNP's; PNP's is the reference implementation.
 - [ ] **RightHere should update on `look` too**, not just `scan`.
-- [ ] **History window font + RightHere font** — need to be adjustable in-game
-      and persist (character-bound, presumably — needs a decision like the
-      other font/config persistence gaps already tracked).
+- [x] **Combat/RightHere/Group font sizes fixed 2026-07-05** (per Steven's
+      screenshots) — Combat 10→9, RightHere had no explicit fontSize at all
+      (fell back to Mudlet's tiny default) → now 9, Group 10→8 (was
+      overflowing the window width — a row is class tag + name + hp/mana/mv
+      + 2 buttons). Still not adjustable in-game or persisted per-character
+      — that part of the ask remains open, needs a decision like the other
+      font/config persistence gaps already tracked.
+- [ ] **History window font** — still needs to be adjustable in-game and
+      persist (character-bound, presumably — needs a decision like the
+      other font/config persistence gaps already tracked). Not touched in
+      the 2026-07-05 font pass (Combat/RightHere/Group only).
 - [ ] **History window scrollbar doesn't match other windows** — cosmetic;
       Steven notes it may not be needed at all unless the window actually
       scrolls.

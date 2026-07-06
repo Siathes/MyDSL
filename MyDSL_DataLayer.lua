@@ -1297,6 +1297,49 @@ function MyDSL.endScan()
   MyDSL.emit("scan")
 end
 
+
+------------------------------------------------------------------------
+-- 9o.2  PLAYERS NEAR YOU
+------------------------------------------------------------------------
+-- Fixed 2026-07-05, per Steven: "Players near you:" (fired every ~20s by
+-- his own autowhere-style alias, not part of this project) was flowing
+-- untouched into main console -- MyDSL.Route.players() already existed in
+-- RouteHelper (auto-creates the MyDSL_PlayersNear MiniConsole) but was
+-- never actually called from anywhere. Confirmed real body shape from
+-- log/: "Players near you:" header, one "<Name><padding><Room>" line per
+-- player, terminated by a blank line -- same begin/catch-all/end shape as
+-- beginScan(), and the same "move text, don't rewrite it" observer pattern
+-- (appendBuffer via Route.players(nil), not a reformatted decho).
+
+function MyDSL.beginPlayersNear()
+  if not (MyDSL and MyDSL.Route) then return end
+  MyDSL.Route.clear("MyDSL_PlayersNear")
+  selectCurrentLine()
+  copy()
+  MyDSL.Route.players(nil)
+  deleteLine()
+
+  if MyDSL._triggers.playersNearBody then
+    pcall(killTrigger, MyDSL._triggers.playersNearBody)
+    MyDSL._triggers.playersNearBody = nil
+  end
+  MyDSL._triggers.playersNearBody = tempRegexTrigger(".*", function()
+    if not (MyDSL and MyDSL.Route) then return end
+    if trim(getCurrentLine()) == "" then MyDSL.endPlayersNear(); return end
+    selectCurrentLine()
+    copy()
+    MyDSL.Route.players(nil)
+    deleteLine()
+  end)
+end
+
+function MyDSL.endPlayersNear()
+  if MyDSL._triggers.playersNearBody then
+    pcall(killTrigger, MyDSL._triggers.playersNearBody)
+    MyDSL._triggers.playersNearBody = nil
+  end
+end
+
 ------------------------------------------------------------------------
 -- 9p  CREATURELORE
 ------------------------------------------------------------------------
@@ -1852,6 +1895,15 @@ MyDSL._triggers.scanDir = tempRegexTrigger(
     if not (MyDSL and MyDSL.beginScan) then return end
     local dir = getCurrentLine():match("^You peer intently (%a+)%.$")
     MyDSL.beginScan("direction", dir)
+  end
+)
+
+-- "Players near you:" -- fires independently of scan's own catch-all (which
+-- only uses this line to know scan has ended, doesn't gag/route it itself).
+MyDSL._triggers.playersNearStart = tempRegexTrigger(
+  "^Players near you:$",
+  function()
+    if MyDSL and MyDSL.beginPlayersNear then MyDSL.beginPlayersNear() end
   end
 )
 
