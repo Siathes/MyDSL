@@ -170,6 +170,50 @@ Still genuinely unconfirmed/unresolved (not new, carried forward):
       first mob of opposing alignment if one is visible; otherwise fall back
       to the first mob not in your own group. Design idea, not yet scoped.
 
+## OPEN — Found during the 2026-07-05 folder/file sweep
+
+- [x] **Round-by-round Combat display and Players-near-you routing —
+      confirmed working live.** Checked `log/` before/after Steven's reload:
+      "Players near you:" appeared 127 times untouched in the 18:48 log,
+      zero times in both the 19:31 and 20:37 logs — confirms the routing/gag
+      fix is live. A screenshot from 18:54 showed the old pre-fix state; that
+      was just a stale reload timing, not a bug.
+- [x] **Combat font 9→8, History font added at 8** (Steven: "battle text
+      needs to be a little smaller 8? history text 8"). History has no
+      dedicated view module — it's routed generically via
+      `MyDSL_RouteHelper.lua`'s `getOrCreateConsole()`, which hardcoded
+      `fontSize = 9` for every routed window. Added a per-window override
+      table there instead of a global change, so only History moved to 8.
+      Steven's note "this should all be tied in with the layout script
+      though" — still true, none of these font sizes are in-game-adjustable
+      or persisted yet, same open item as before.
+- [x] **RouteHelper-routed windows now get `MyDSL.logWindow()` coverage
+      too** — History/PlayersNear/Scan/Bloodbath previously had no logging
+      at all (only CombatView/GroupView/ScanView's RightHere/TargetView got
+      it when that feature was built). `Route.to()` now mirrors into
+      `MyDSL/logs/<windowname>/` for every routed window, same pattern.
+- [ ] **Skills/Spells → Combat window** (Steven: wants skill/spell actions
+      you actually take to echo to main *and* copy into the Combat window,
+      "same as PNP," while cutting down on raw attack spam). Investigated:
+      `DSL_PNP_Battle.lua` has zero spell/skill handling — this is not a
+      port-from-PNP situation, it's new ground, same category as our own
+      Poison-proc addition. Confirmed real skill-action text exists
+      (`"You disarm Jhawsh!"`, `"You kick!"`) but a robust trigger needs a
+      proper cataloging pass across many skills/spells first — not enough
+      confirmed patterns yet to implement responsibly. Needs its own
+      dedicated `log/` research session before this can be scoped, let
+      alone built.
+- [ ] **Shattered Archive discovered** (`~/Downloads/Shattered-Archive-release-dev.zip`,
+      524 files) — an open-source DSL-specific MUD client + tooling
+      ecosystem (shatteredarchive.com), including "extensive in-game
+      research and data tools." Directly relevant to the not-yet-started
+      Layer 4 reference library (items/mobs/lore) — worth checking whether
+      it already solved item/mob database tooling before building ours from
+      scratch, same reuse-before-reinvent principle as PNP/EMCO. Not
+      audited yet — just flagging its existence and location.
+
+---
+
 ## OPEN — Command-surface retrofit (queued for after Steven's combat-pass testing, 2026-07-05)
 
 Core mandate restated by Steven: reuse PNP/EMCO's actual command vocabulary,

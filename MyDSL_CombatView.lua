@@ -245,11 +245,11 @@ function CV.init()
       name      = COMBAT_MC,
       x = 0, y = 0, width = "100%", height = "100%",
       wrapWidth = 400,
-      fontSize  = 9,
+      fontSize  = 8,
       scrollBar = true,
     }, combatWin)
   end
-  if CV._mc.combat then CV._mc.combat:setFontSize(9) end
+  if CV._mc.combat then CV._mc.combat:setFontSize(8) end
 
   -- Event handlers.
   CV._handlers.combatUpdated = registerAnonymousEventHandler(

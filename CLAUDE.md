@@ -58,6 +58,12 @@ into wrong regex instead of PNP's tested source being copied directly).
   from `log/`/PNP once and reused, not rediscovered on every pass. Add to
   this file (don't create a parallel one) whenever a pattern is confirmed
   during testing/auditing — the "STILL NEEDED" section tracks what's missing.
+- `~/Downloads/Shattered-Archive-release-dev.zip` — found 2026-07-05, an
+  open-source DSL-specific MUD client + tooling monorepo
+  (shatteredarchive.com, 524 files) with its own in-game research/data
+  tools. Not yet audited — check before building the not-yet-started Layer 4
+  reference library (items/mobs/lore), same reuse-before-reinvent principle
+  as PNP/EMCO.
 - Sibling Mudlet profiles (e.g. `../Dark & Shattered Lands - PNP`, `../PNP1`,
   `../PNP2`, `../DSL1`, `../DSL - Kien`) and `~/Downloads/` — read access to
   these is already granted via `.claude/settings.local.json`'s

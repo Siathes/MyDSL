@@ -14,6 +14,14 @@
 MyDSL = MyDSL or {}
 MyDSL.Route = MyDSL.Route or {}
 
+-- Per-window font size override -- default 9 for anything not listed here.
+-- History dropped to 8 2026-07-05 per Steven (still cramped at 9). This
+-- should eventually live in the same in-game-adjustable/persisted config as
+-- the other window font sizes -- tracked in TODO.md, not done yet.
+local FONT_SIZE_OVERRIDES = {
+  MyDSL_History = 8,
+}
+
 -- getOrCreateConsole(windowName)
 -- Returns the MiniConsole inside a window, creating it if needed.
 -- A Geyser.UserWindow is just a frame — text output needs a MiniConsole child.
@@ -32,6 +40,8 @@ local function getOrCreateConsole(windowName)
   -- Return existing console if already created.
   if entry.console then return entry.console end
 
+  local fontSize = FONT_SIZE_OVERRIDES[windowName] or 9
+
   -- Create a MiniConsole filling the entire UserWindow.
   -- MiniConsole is Mudlet's scrollable text area — the right tool for routed text.
   local con = Geyser.MiniConsole:new({
@@ -39,17 +49,24 @@ local function getOrCreateConsole(windowName)
     x = 0, y = 0,
     width  = "100%",
     height = "100%",
-    fontSize = 9,
+    fontSize = fontSize,
     color = "black",
     scrollBar = true,
   }, entry.obj)
 
   if con then
     entry.console = con
-    con:setFontSize(9)
+    con:setFontSize(fontSize)
     con:setColor(0, 0, 0)
   end
   return con
+end
+
+-- Turns "MyDSL_PlayersNear" into "playersnear" for MyDSL.logWindow()'s
+-- category argument -- keeps every routed window's plain-text log under
+-- MyDSL/logs/<category>/<CharName>/ without a second naming scheme to track.
+local function logCategory(windowName)
+  return tostring(windowName or "unknown"):gsub("^MyDSL_", ""):lower()
 end
 
 -- MyDSL.Route.to(windowName, line)
@@ -59,17 +76,23 @@ end
 --   line nil      → appendBuffer mode: copies the current trigger line with all
 --                   original ANSI game colors intact. This is the observer pattern —
 --                   "move text, don't rewrite it."
+-- Also mirrors into MyDSL/logs/<category>/ (2026-07-05 -- same reasoning as
+-- CombatView/GroupView/ScanView/TargetView: Mudlet can't log a MiniConsole's
+-- content at all, see MyDSL_MudletAPIReference.md).
 function MyDSL.Route.to(windowName, line)
   local con = getOrCreateConsole(windowName)
   if not con then return end
 
+  local text = line
   if line then
     con:decho(line .. "\n")
   else
     selectCurrentLine()
+    text = getCurrentLine()
     copy()
     con:appendBuffer()
   end
+  if MyDSL.logWindow then MyDSL.logWindow(logCategory(windowName), text) end
 end
 
 -- MyDSL.Route.clear(windowName)
