@@ -170,6 +170,45 @@ Still genuinely unconfirmed/unresolved (not new, carried forward):
       first mob of opposing alignment if one is visible; otherwise fall back
       to the first mob not in your own group. Design idea, not yet scoped.
 
+## Claude.ai knowledge cross-check (2026-07-05) — clean-slate confirmed
+
+Asked Claude.ai directly whether it had prior design context on 5 open
+items, since some of this project's knowledge lives in that older
+conversation. Its answer was direct about what it did and didn't have —
+worth recording so nobody goes looking for prior research that doesn't
+exist:
+
+- **Chat routing / clan gossip duplication** — nothing. Genuinely new
+  diagnosis work for Claude Code, not a redo.
+- **Roller vs. `DSL_PNP_Roller.lua`** — nothing. Claude.ai read
+  `DSL_PNP_Battle.lua`/`DSL_PNP_Support.lua` but never opened the Roller
+  file or discussed a DSL2 roller module at all. From-scratch task.
+- **Skills/Spells → Combat window** — partially related but not the same
+  feature. What was designed: the severity ladder already distinguishes
+  weapon-swing damage from spell-cast damage (ALLCAPS vs. lowercase verb
+  forms). What was *not* designed: echoing the skill/spell action itself
+  (not just its damage outcome) as its own Combat-window category. Confirms
+  this is new ground, consistent with what was already found this session.
+- **Command-surface retrofit** (`toggle <module>`/`emco <verb>`) — nothing,
+  and Claude.ai was surprised by it as a plan. Every alias from that era was
+  our own `mydsl <module> <verb>` convention. No prior mapping/naming
+  decisions to recover — the retrofit plan above is 100% fresh design work.
+- **Layer 4 / "Shattered Archive"** — completely blank, including the name
+  itself. Confirms Shattered Archive is a brand-new discovery, not
+  something already evaluated and set aside.
+
+**One real catch from the cross-check:** verifying Claude.ai's "did the
+pseudo-attacker-key design land?" question surfaced a genuine internal
+contradiction in `Contract_CombatWindow.md` — its "What This Module Does
+NOT Do" section still said combat tracking ignores ambient/non-group
+fights, directly contradicting the "Scope filter" section's own 2026-07-05
+update (which removed that filter entirely, on purpose). Fixed — see the
+contract directly. Lesson: when a scope change is made in one section of a
+contract, check the rest of the same file for restating the old scope
+elsewhere, not just the section that prompted the edit.
+
+---
+
 ## OPEN — Found during the 2026-07-05 folder/file sweep
 
 - [x] **Round-by-round Combat display and Players-near-you routing —

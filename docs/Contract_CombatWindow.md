@@ -689,8 +689,14 @@ above for the full list and defaults.
 ## What This Module Does NOT Do
 
 - Does not send any command automatically — no auto-flee, no auto-target-switch
-- Does not condense combat that doesn't involve you or a current group member
-  (ambient third-party fights are ignored entirely)
+- **Stale, corrected 2026-07-05**: this used to say combat not involving you or
+  a group member is ignored — that relevance filter was removed the same day
+  (see "Scope filter" section above). It's now the opposite: every combat
+  line DSL shows you gets tracked, including ambient third-party fights,
+  matching PNP's own unfiltered behavior. Left here so the contradiction
+  this caused (found via a Claude.ai cross-check) doesn't happen again —
+  check "What This Module Does NOT Do" against the body of the contract
+  when editing scope, not just the section that prompted the edit.
 - Does not invent precise numeric damage — severity-tier percentage bands are
   clearly-labeled estimates, not measured values, until the calibration pass
   described above happens
