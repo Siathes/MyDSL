@@ -2,6 +2,43 @@
 **Layer 3 Phase B — Combat Round Condenser + Per-Target Tally**
 *Written 2026-07-04 — design finalized via extensive live-log analysis; several fields marked NEEDS LIVE CONFIRMATION per this project's established practice*
 
+**⚠ STALE AS OF 2026-07-06 — full rewrite happened, this doc is not yet
+updated to match.** Per Steven ("let's make it work like PNP, then discuss
+the additions"), the round-by-round display/format engine was rewritten to
+port `DSL_PNP_Battle.lua`'s actual logic close to verbatim, replacing the
+from-scratch condensed-table format described in most of this document
+below. Read the actual source in `MyDSL_DataLayer.lua`'s Section 9q (top
+comment explains the whole redesign) and `MyDSL_CombatView.lua` directly —
+do not trust the "Data Model," "Public API," or format-example sections
+below until this contract gets its own full rewrite pass. Concrete summary
+of what changed, until that pass happens:
+- Live Combat-window feed is now a running per-swing log (never cleared),
+  matching PNP's `battle_console` exactly — one line per non-miss swing,
+  raw sentence + severity score in brackets, not a per-round condensed
+  table. Pushed via `CV.appendSwing()`, called directly from
+  `parseCombatDamageLine()`.
+- Round-aggregate summaries (PNP's `output_damage()`) now go to **main
+  console**, not the Combat window — gated by `summarize_damage`,
+  independent of `gag_combat`. `CV.render()`/`renderRoundEntry()` no longer
+  exist.
+- `CV.config` now mirrors PNP's actual `defaults` table (`gag_combat`,
+  `gag_non_damage`, `show_damage`, `show_damage_by_me/to_me`, `show_miss`,
+  `show_evade`, `show_flag`, `show_condition`, `summarize_damage`,
+  `dam_format`, `summary_format`) instead of the smaller ad hoc set below.
+  New `mydsl combat mode raw|condensed|gag` alias implements Steven's 3-way
+  main-console toggle directly on top of these two flags.
+- Weapon-flag proc attribution now uses PNP's actual
+  `last_attacker`/`last_target`/`last_noun` technique
+  (`MyDSL.State.combat.last_attacker` etc., set at the end of
+  `parseCombatDamageLine`) instead of the pseudo-attacker-row workaround —
+  the "Weapon-as-subject proc attribution" section below is superseded.
+- `renderSummary()` (the persistent multi-fight "Fight summary" block) is
+  UNCHANGED — kept as our own addition on top, since PNP has no equivalent
+  concept (its `battle_data` resets every single round). To be discussed
+  next, per Steven's plan.
+
+---
+
 **This is a summary, not a substitute for source.** Where this contract
 describes PNP-derived behavior, it is a transcription — re-verify against
 `DSL_PNP_Battle.lua` (and `DSL_PNP_Character.lua`/`DSL_PNP_Affects.lua` for

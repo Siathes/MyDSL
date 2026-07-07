@@ -135,8 +135,19 @@ MyDSL.State.combat = MyDSL.State.combat or {
   active      = {},    -- keyed by target-key; each entry: {target_display, target_condition, by_attacker, started_at}
   history     = {},    -- array of snapshots (same shape), most recent first
   history_max = 5,
-  round_data  = {},    -- per-(attacker→target→noun) accumulators, cleared each round
+  round_data  = {},    -- per-(attacker→target→noun) accumulators, cleared each round -- PNP's battle_data equivalent
   rage        = { damage = 0, vamp = 0 },
+  -- PNP's last_attacker/last_target/last_noun globals (DSL_PNP_Battle.lua) --
+  -- weapon-flag procs attach to whichever combatant/noun the most recent
+  -- damage line involved, rather than trying to resolve identity from the
+  -- proc line's own text (which is often a weapon name, not a person).
+  last_attacker = nil,
+  last_target   = nil,
+  last_noun     = nil,
+  -- PNP's battle_data.screen_condition/window_condition equivalent -- a
+  -- single pending condition note, flushed to main/window on the next round
+  -- boundary alongside the round summary.
+  pending_condition = nil,
   last_updated = 0,
 }
 
@@ -1476,48 +1487,110 @@ end
 -- 9q  COMBAT
 ------------------------------------------------------------------------
 -- Always-active triggers (no begin/end block — DSL emits combat lines
--- continuously with no header). Each trigger feeds a shared accumulator.
--- Round boundary: MyDSL.time.updated (prompt reprints every combat round).
+-- continuously with no header). Round boundary: MyDSL.char.updated (fires
+-- on every gmcp.char_data packet, once per combat round).
+--
+-- Rewritten 2026-07-05 to port DSL_PNP_Battle.lua's actual display/format
+-- logic close to verbatim (per Steven: "make it work like PNP, then discuss
+-- the additions"), instead of the from-scratch condensed-table format this
+-- module invented earlier. What's ported: the dam_info severity/decoration
+-- table, battle_format() token substitution, the per-swing live-window
+-- echo (raw sentence + severity score, unconditional for non-miss damage),
+-- the round-summary aggregation (calc_dam_verb + battle_format, output to
+-- MAIN console gated only by summarize_damage -- NOT by gag_combat, matching
+-- PNP exactly), and critically the last_attacker/last_target/last_noun
+-- technique for weapon-flag proc attribution (replacing our old pseudo-
+-- attacker-row workaround with PNP's actual, more correct fix). What's kept
+-- as our own addition on top: persistent multi-fight history/snapshots
+-- (active[]/history[], PNP has no such concept -- its battle_data resets
+-- every single round) and the Poison proc sequence (no PNP equivalent).
 
--- ---- Severity ladder (PNP's exact tuned values) ---------------------
-local SEVERITY_LADDER = {
-  { score=0,   word="miss"          },
-  { score=2.5, word="scratch"       },
-  { score=6.5, word="graze"         },
-  { score=10.5,word="hit"           },
-  { score=14.5,word="injure"        },
-  { score=18.5,word="wound"         },
-  { score=22.5,word="maul"          },
-  { score=26.5,word="decimate"      },
-  { score=30.5,word="devastate"     },
-  { score=34.5,word="maim"          },
-  { score=38.5,word="MUTILATE"      },
-  { score=42.5,word="DISEMBOWEL"    },
-  { score=46.5,word="DISMEMBER"     },
-  { score=50.5,word="MASSACRE"      },
-  { score=54.5,word="MANGLE"        },
-  { score=58.5,word="DEMOLISH"      },
-  { score=68,  word="DEVASTATE"     },
-  { score=88,  word="OBLITERATE"    },
-  { score=113, word="ANNIHILATE"    },
-  { score=138, word="ERADICATE"     },
-  { score=163, word="GHASTLY"       },
-  { score=188, word="HORRID"        },
-  { score=213, word="DREADFUL"      },
-  { score=238, word="HIDEOUS"       },
-  { score=263, word="INDESCRIBABLE" },
-  { score=276, word="UNSPEAKABLE"   },
+-- ---- Severity/decoration ladder (PNP's exact dam_info table) ---------
+-- color/suffix/pre/suf/things mirror PNP's dam_info[verb] = {score, color,
+-- suffix, pre, suf, ...} exactly, translated from dsl_color names to decho
+-- RGB strings. "things" marks the GHASTLY..UNSPEAKABLE tier, which wraps as
+-- "does/do <VERB> things to" instead of "<verb>s <target>".
+local DAM_LADDER_ORDER = {
+  "miss","scratch","graze","hit","injure","wound","maul","decimate","devastate","maim",
+  "MUTILATE","DISEMBOWEL","DISMEMBER","MASSACRE","MANGLE",
+  "DEMOLISH","DEVASTATE","OBLITERATE","ANNIHILATE","ERADICATE",
+  "GHASTLY","HORRID","DREADFUL","HIDEOUS","INDESCRIBABLE","UNSPEAKABLE",
+}
+local DAM_INFO = {
+  miss          = { score=0,   color="204,204,68", suffix="es", pre=" ",     suf=" " },
+  scratch       = { score=2.5, color="68,204,68",  suffix="es", pre=" ",     suf=" " },
+  graze         = { score=6.5, color="68,204,68",  suffix="s",  pre=" ",     suf=" " },
+  hit           = { score=10.5,color="68,204,68",  suffix="s",  pre=" ",     suf=" " },
+  injure        = { score=14.5,color="68,204,68",  suffix="s",  pre=" ",     suf=" " },
+  wound         = { score=18.5,color="68,204,68",  suffix="s",  pre=" ",     suf=" " },
+  maul          = { score=22.5,color="68,204,68",  suffix="s",  pre=" ",     suf=" " },
+  decimate      = { score=26.5,color="68,204,68",  suffix="s",  pre=" ",     suf=" " },
+  devastate     = { score=30.5,color="68,204,68",  suffix="s",  pre=" ",     suf=" " },
+  maim          = { score=34.5,color="68,204,68",  suffix="s",  pre=" ",     suf=" " },
+  MUTILATE      = { score=38.5,color="255,215,65", suffix="S",  pre=" ",     suf=" " },
+  DISEMBOWEL    = { score=42.5,color="255,215,65", suffix="S",  pre=" ",     suf=" " },
+  DISMEMBER     = { score=46.5,color="255,215,65", suffix="S",  pre=" ",     suf=" " },
+  MASSACRE      = { score=50.5,color="255,215,65", suffix="S",  pre=" ",     suf=" " },
+  MANGLE        = { score=54.5,color="255,215,65", suffix="S",  pre=" ",     suf=" " },
+  DEMOLISH      = { score=58.5,color="255,68,68",  suffix="ES", pre=" *** ", suf=" *** " },
+  DEVASTATE     = { score=68,  color="255,68,68",  suffix="S",  pre=" *** ", suf=" *** " },
+  OBLITERATE    = { score=88,  color="255,68,68",  suffix="S",  pre=" === ", suf=" === " },
+  ANNIHILATE    = { score=113, color="255,68,68",  suffix="S",  pre=" >>> ", suf=" <<< " },
+  ERADICATE     = { score=138, color="255,68,68",  suffix="S",  pre=" <<< ", suf=" >>> " },
+  GHASTLY       = { score=163, color="255,68,68",  suffix="",   pre=" does ", suf=" things to ", things=true },
+  HORRID        = { score=188, color="255,68,68",  suffix="",   pre=" does ", suf=" things to ", things=true },
+  DREADFUL      = { score=213, color="255,68,68",  suffix="",   pre=" does ", suf=" things to ", things=true },
+  HIDEOUS       = { score=238, color="255,68,68",  suffix="",   pre=" does ", suf=" things to ", things=true },
+  INDESCRIBABLE = { score=263, color="255,68,68",  suffix="",   pre=" does ", suf=" things to ", things=true },
+  UNSPEAKABLE   = { score=276, color="255,68,68",  suffix="",   pre=" does ", suf=" things to ", things=true },
 }
 
 local SEVERITY_SCORE = {}
-for _, e in ipairs(SEVERITY_LADDER) do SEVERITY_SCORE[e.word] = e.score end
+for word, info in pairs(DAM_INFO) do SEVERITY_SCORE[word] = info.score end
 
-function MyDSL.derivedVerbForScore(score)
-  local result = "miss"
-  for _, e in ipairs(SEVERITY_LADDER) do
-    if e.score <= score then result = e.word else break end
+-- Weapon-flag color map (PNP's flag_info table) -- used in the round-
+-- summary %f token. P (Poison) has no PNP color since Poison is our own
+-- addition; picked a distinct purple.
+local FLAG_COLOR = {
+  L = "255,215,65", F = "255,68,68", C = "68,204,204", H = "255,68,255",
+  M = "68,136,255", S = "68,204,68", U = "68,68,68",   O = "255,255,255",
+  P = "170,68,204",
+}
+
+-- ---- battle_format() equivalent (PNP's token-substitution formatter) ----
+-- Tokens: %a attacker %t target %n noun %v verb %d damage %h hits %s swings
+-- %f flags %r possessive %p punctuation. fields is a table with keys
+-- a/t/n/v/d/h/s/f/r/p (any subset; missing ones substitute empty string).
+local function battleFormat(fmt, f)
+  local subs = {
+    ["%%a"] = trim(f.a or ""),            ["%%t"] = trim(f.t or ""),
+    ["%%n"] = trim(f.n or ""),             ["%%v"] = trim(f.v or ""),
+    ["%%f"] = trim(f.f or ""),             ["%%d"] = trim(tostring(f.d or "")),
+    ["%%h"] = trim(tostring(f.h or "")),   ["%%s"] = trim(tostring(f.s or "")),
+    ["%%r"] = trim(f.r or ""),             ["%%p"] = trim(f.p or ""),
+  }
+  for pat, val in pairs(subs) do fmt = fmt:gsub(pat, val) end
+  return (fmt:gsub("  ", " "))
+end
+
+-- ---- calc_dam_verb() equivalent (round-summary aggregate verb) ----
+-- Finds the highest severity tier whose score is <= totalScore, decorated
+-- exactly like PNP: the "does"->"do" swap only applies to the You-only
+-- special case, and the plural suffix is dropped entirely for You (this is
+-- a DIFFERENT, simpler pluralization rule than the per-swing one below --
+-- ported as its own thing, matching PNP's two genuinely distinct rules).
+local function calcDamVerb(totalScore, isYou)
+  local bestScore, bestWord = nil, "miss"
+  for _, word in ipairs(DAM_LADDER_ORDER) do
+    local info = DAM_INFO[word]
+    if info.score <= totalScore and (not bestScore or info.score >= bestScore) then
+      bestScore, bestWord = info.score, word
+    end
   end
-  return result
+  local info   = DAM_INFO[bestWord]
+  local pre    = (isYou and info.pre == " does ") and " do " or info.pre
+  local suffix = isYou and "" or info.suffix
+  return trim(pre .. "<" .. info.color .. ">" .. bestWord .. suffix .. "<r>" .. info.suf)
 end
 
 -- ---- Condition ladder -----------------------------------------------
@@ -1530,6 +1603,13 @@ local CONDITION_PATTERNS = {
   { pat = " looks pretty hurt",               label = "pretty hurt"   },
   { pat = " is in awful condition",           label = "awful"         },
 }
+-- PNP's condition_info percentage-range strings, keyed by our own label
+-- (same content, just reordered by label instead of by pattern text).
+local CONDITION_PERCENT = {
+  excellent = "100%", ["few scratches"] = "90-99%", ["small wounds"] = "75-89%",
+  ["big wounds"] = "30-49%", ["quite a few"] = "50-74%",
+  ["pretty hurt"] = "15-29%", awful = "0-14%",
+}
 
 -- ---- Scope + key helpers --------------------------------------------
 local function normalizeKey(name)
@@ -1537,27 +1617,6 @@ local function normalizeKey(name)
   local s = trim(name:lower())
   s = s:gsub("^a%s+", ""):gsub("^an%s+", ""):gsub("^the%s+", "")
   return trim(s)
-end
-
--- Named weapons are sometimes quoted in proc text (e.g. "Nadrik's Honor").
--- Strip the quote characters before normalizing so the key matches the
--- unquoted form used elsewhere.
-local function stripQuotes(s)
-  return (s or ""):gsub('"', "")
-end
-
--- Weapon-flag proc lines often name the weapon wielding a flag, not the
--- wielder (e.g. "A grand arcanium hoopak draws life from Kien.") -- we
--- can't resolve an arbitrary weapon name back to its wielder from text
--- alone. Used to tell a real combatant key apart from a likely weapon name.
-local function isKnownCombatant(key)
-  if key == "you" then return true end
-  local grp = MyDSL.State.group and MyDSL.State.group.members
-  if not grp then return false end
-  for _, m in ipairs(grp) do
-    if normalizeKey(m.name) == key then return true end
-  end
-  return false
 end
 
 local function ensureActive(tKey, tDisplay)
@@ -1582,8 +1641,9 @@ local function snapshotFight(tKey)
   return entry
 end
 
--- ---- parseCombatDamageLine ------------------------------------------
+-- ---- parseCombatDamageLine (PNP's handle_damage(), close to verbatim) ----
 local FALSE_POSITIVE_GUARDS = {"You gain", "has big nasty", "Affects", "has some small", "Wimpy"}
+local NOUN_FLAG_MAP = { ["life drain"] = "H", ["shocking bite"] = "L" }  -- our own addition, kept
 
 function MyDSL.parseCombatDamageLine(attacker, noun, verb, target, punct)
   -- PNP's false-positive guard
@@ -1596,24 +1656,74 @@ function MyDSL.parseCombatDamageLine(attacker, noun, verb, target, punct)
   noun     = trim(noun     or "")
   verb     = trim(verb     or "")
   target   = trim(target   or "")
-  if noun == "" then noun = "strike" end
+  punct    = punct or "."
 
-  local aKey = (attacker == "You" or attacker:lower() == "you") and "you"
-               or normalizeKey(attacker)
+  local info = DAM_INFO[verb]
+  if not info then return end
+
+  local aKey = (attacker == "You" or attacker:lower() == "you") and "you" or normalizeKey(attacker)
   local tKey = (target:lower() == "you") and "you" or normalizeKey(target)
+  -- No relevance filter, matching PNP: every combat line DSL shows you gets
+  -- tracked, relying on DSL's own vicinity-based broadcast rules rather
+  -- than filtering client-side (confirmed 2026-07-05).
 
-  -- No relevance filter, matching PNP: it tracks every combat line it sees
-  -- unfiltered, relying on DSL only ever showing you combat in your own
-  -- vicinity (which naturally includes group members fighting nearby).
-  -- Confirmed 2026-07-05 -- our own isRelevant() filter was an unnecessary
-  -- restriction PNP never had.
+  -- ---- Per-swing decorated verb (PNP's handle_damage construction) ----
+  -- Pluralization here keys off whether a weapon noun is present at all
+  -- (true for every normal hit; the "does...things to" tier has no noun,
+  -- but its own suffix is always "" anyway) -- this is a different,
+  -- simpler rule than calc_dam_verb's You-based one below, ported as its
+  -- own thing to match PNP's actual (slightly redundant) two rules.
+  local damVerb = "<" .. info.color .. ">" .. verb
+  if attacker ~= "You" or noun ~= "" then damVerb = damVerb .. info.suffix end
+  damVerb = info.pre .. damVerb .. "<r>" .. info.suf
 
-  local score = SEVERITY_SCORE[verb] or 0
+  local possessive, displayNoun = "", noun
+  if noun ~= "" then
+    displayNoun = " " .. noun
+    possessive = (attacker == "You") and "r" or "'s"
+  end
+
+  -- Live Combat-window echo -- every non-miss swing, unconditional, raw
+  -- sentence + severity score in brackets. Matches PNP's battle_console
+  -- cecho exactly: misses/evasion/procs never appear here at all, only
+  -- real damage (see Contract_CombatWindow.md).
+  if verb ~= "miss" then
+    -- No separator between damVerb and target -- damVerb's own trailing
+    -- info.suf (e.g. " " or " *** ") already provides the space, matching
+    -- PNP's exact concatenation (adding one here would double it).
+    local swingLine = " " .. attacker .. possessive .. displayNoun .. damVerb .. target .. punct .. " [" .. info.score .. "]\n"
+    if MyDSL.CombatView and MyDSL.CombatView.appendSwing then
+      MyDSL.CombatView.appendSwing(swingLine)
+    end
+  end
+
+  -- ---- Main-console gag/show decision (PNP's exact boolean formula) ----
+  local cfg = (MyDSL.CombatView and MyDSL.CombatView.config) or {}
+  local showDamage = (cfg.show_miss or verb ~= "miss")
+    and (cfg.show_damage or (cfg.show_damage_by_me and aKey == "you") or (cfg.show_damage_to_me and tKey == "you"))
+  if showDamage then
+    local str = battleFormat(cfg.dam_format or "%a%r %n %v %t (%d)", {
+      a = attacker, r = possessive, n = noun, v = damVerb, t = target, d = info.score, p = punct,
+    })
+    selectCurrentLine()
+    replace("")
+    decho(str)
+  elseif noun ~= "trip" and noun ~= "kicked dirt" then
+    deleteLine()
+  end
+
+  -- ---- Accumulation ----
+  -- round_data: PNP's battle_data equivalent, reset every round.
+  -- active[]: our own persistent-fight-history addition, layered on top --
+  -- PNP has no concept of "this fight, start to finish" at all.
+  local nounKey = noun:lower()
+  local score = info.score
+
   local entry = ensureActive(tKey, target)
   local ba    = entry.by_attacker
-  ba[aKey]       = ba[aKey]       or {}
-  ba[aKey][noun] = ba[aKey][noun] or { swings=0, hits=0, misses=0, score_total=0, flags={} }
-  local nd = ba[aKey][noun]
+  ba[aKey]        = ba[aKey]        or {}
+  ba[aKey][nounKey] = ba[aKey][nounKey] or { swings=0, hits=0, misses=0, score_total=0, flags={} }
+  local nd = ba[aKey][nounKey]
   nd.swings = nd.swings + 1
   if verb == "miss" then
     nd.misses = nd.misses + 1
@@ -1622,9 +1732,8 @@ function MyDSL.parseCombatDamageLine(attacker, noun, verb, target, punct)
     nd.score_total = nd.score_total + score
   end
 
-  -- Compound-noun proc flags (e.g. "life drain" → vampiric H, "shocking bite" → lightning L)
-  local NOUN_FLAG_MAP = { ["life drain"] = "H", ["shocking bite"] = "L" }
-  local impliedFlag = NOUN_FLAG_MAP[noun:lower()]
+  -- Compound-noun proc flags (our own addition, kept from the earlier fix).
+  local impliedFlag = NOUN_FLAG_MAP[nounKey]
   if impliedFlag and verb ~= "miss" then
     nd.flags[impliedFlag] = (nd.flags[impliedFlag] or 0) + 1
     if impliedFlag == "H" and aKey == "you" then
@@ -1632,27 +1741,35 @@ function MyDSL.parseCombatDamageLine(attacker, noun, verb, target, punct)
     end
   end
 
-  -- Round accumulation
   local rd    = MyDSL.State.combat.round_data
-  local rdKey = aKey .. "→" .. tKey .. "→" .. noun
-  rd[rdKey] = rd[rdKey] or { attacker=aKey, target=tKey, noun=noun, score=0, swings=0, hits=0 }
+  local rdKey = aKey .. "→" .. tKey .. "→" .. nounKey
+  rd[rdKey] = rd[rdKey] or { attacker=aKey, target=tKey, noun=nounKey, score=0, swings=0, hits=0 }
   rd[rdKey].score  = rd[rdKey].score + score
   rd[rdKey].swings = rd[rdKey].swings + 1
   if verb ~= "miss" then rd[rdKey].hits = rd[rdKey].hits + 1 end
 
-  -- Rage: accumulate damage taken by you
+  -- PNP's last_attacker/last_target/last_noun technique: weapon-flag procs
+  -- (parseCombatProcLine below) attach to whichever combatant/noun this
+  -- damage line involved, instead of trying to resolve identity from the
+  -- proc line's own (often weapon-named) text.
+  MyDSL.State.combat.last_attacker = aKey
+  MyDSL.State.combat.last_target   = tKey
+  MyDSL.State.combat.last_noun     = nounKey
+
   if tKey == "you" then
     MyDSL.State.combat.rage.damage = MyDSL.State.combat.rage.damage + score
   end
 end
 
--- ---- parseCombatAvoidLine -------------------------------------------
+-- ---- parseCombatAvoidLine (PNP's handle_evasion(), close to verbatim) ----
 -- Two call shapes:
 --   (evader, verb, attacker) -- dodge/parry/block triggers, PNP-derived PCRE
 --     capture groups. attacker is the literal word "your" when you're the
 --     one whose attack got avoided, otherwise a "Name's" possessive.
 --   (line)                   -- sense triggers, still whole-line Lua-pattern
 --     parsed (unchanged; not part of the PNP evasion-trigger port).
+-- Note: evasion never appears in the Combat window at all, matching PNP --
+-- handle_evasion never touches battle_console, only the main-console gag.
 function MyDSL.parseCombatAvoidLine(evader, verb, attacker)
   if not attacker then
     local line = evader
@@ -1671,8 +1788,7 @@ function MyDSL.parseCombatAvoidLine(evader, verb, attacker)
   else
     aKey = "unknown"
   end
-
-  -- No relevance filter here either, same reasoning as parseCombatDamageLine.
+  -- No relevance filter, matching PNP.
 
   local entry = ensureActive(eKey, evader)
   entry.by_attacker[aKey] = entry.by_attacker[aKey] or {}
@@ -1684,9 +1800,13 @@ function MyDSL.parseCombatAvoidLine(evader, verb, attacker)
   local rdKey = aKey .. "→" .. eKey .. "→(evade)"
   rd[rdKey] = rd[rdKey] or { attacker=aKey, target=eKey, noun="(evade)", score=0, swings=0, hits=0 }
   rd[rdKey].swings = rd[rdKey].swings + 1
+
+  -- Gag decision (PNP's exact formula).
+  local cfg = (MyDSL.CombatView and MyDSL.CombatView.config) or {}
+  if (cfg.gag_combat or cfg.gag_non_damage or not cfg.show_evade) then deleteLine() end
 end
 
--- ---- parseCombatConditionLine ---------------------------------------
+-- ---- parseCombatConditionLine (PNP's handle_condition(), close to verbatim) ----
 function MyDSL.parseCombatConditionLine(line)
   local name, label
   for _, c in ipairs(CONDITION_PATTERNS) do
@@ -1701,8 +1821,21 @@ function MyDSL.parseCombatConditionLine(line)
 
   local tKey = normalizeKey(name)
   local entry = MyDSL.State.combat.active[tKey]
-  if not entry then return end  -- not tracking this target, skip
-  entry.target_condition = label
+  if entry then entry.target_condition = label end  -- our own per-target addition
+
+  -- PNP's battle_data.screen_condition/window_condition equivalent -- a
+  -- single pending note, flushed alongside the next round summary.
+  local pct = CONDITION_PERCENT[label] or ""
+  MyDSL.State.combat.pending_condition = {
+    screen = "<255,68,255>" .. name .. "<r> " .. label .. (pct ~= "" and (" [" .. pct .. "]") or ""),
+    window = "<255,68,68>" .. name .. "<r> [" .. pct .. "]\n",
+  }
+
+  -- Gag decision (PNP's exact formula).
+  local cfg = (MyDSL.CombatView and MyDSL.CombatView.config) or {}
+  if (not cfg.show_condition) and ((cfg.gag_combat or cfg.gag_non_damage) and (not cfg.summarize_damage)) then
+    deleteLine()
+  end
 end
 
 -- ---- parseCombatDeathLine -------------------------------------------
@@ -1759,48 +1892,48 @@ function MyDSL.parseCombatEndLine(line)
   end
 end
 
--- ---- parseCombatProcLine --------------------------------------------
+-- ---- parseCombatProcLine (PNP's handle_flag(), close to verbatim) ----
 -- flagCode: C=Frost F=Flaming L=Shocking H=Vampiric S=Stunning M=ManaDrain O=Holy U=Unholy P=Poison
-function MyDSL.parseCombatProcLine(flagCode, attackerKey, targetKey)
-  -- Rage vamp tracking: your own vampiric procs landing
-  if flagCode == "H" and attackerKey == "you" then
-    MyDSL.State.combat.rage.vamp = MyDSL.State.combat.rage.vamp + 2.5
+--
+-- Rewritten 2026-07-05 to use PNP's actual technique: don't try to resolve
+-- identity from the proc line's own text (frequently a weapon name, not a
+-- person -- e.g. "A grand arcanium hoopak draws life from Kien.") -- just
+-- attach to whichever attacker/target/noun the most recent damage line
+-- involved (MyDSL.State.combat.last_attacker/last_target/last_noun, set at
+-- the end of parseCombatDamageLine). This replaces the old pseudo-
+-- attacker-row workaround entirely with PNP's actual, more correct fix --
+-- confirmed in DSL_PNP_Battle.lua's handle_flag(), which does exactly this.
+function MyDSL.parseCombatProcLine(flagCode)
+  -- PNP's drowning/freeze false-positive guard.
+  if flagCode == "C" and getCurrentLine() == "The panic of drowning freezes you in your tracks!" then
+    return
   end
 
-  -- Determine the active entry to annotate
-  local entry = targetKey and MyDSL.State.combat.active[targetKey]
-  if not entry then
-    -- Fallback: if exactly one active fight, use it
-    local count, lastKey, lastEntry = 0, nil, nil
-    for k, e in pairs(MyDSL.State.combat.active) do
-      count = count + 1; lastKey, lastEntry = k, e
-    end
-    if count ~= 1 then return end
-    entry, targetKey = lastEntry, lastKey
+  local combat = MyDSL.State.combat
+  local aKey, tKey, noun = combat.last_attacker, combat.last_target, combat.last_noun
+  if not (aKey and tKey and noun) then return end
+
+  if flagCode == "H" and aKey == "you" then
+    combat.rage.vamp = combat.rage.vamp + 2.5
   end
-  if not entry then return end
 
-  attackerKey = attackerKey or "you"
-  local ba = entry.by_attacker[attackerKey]
-
-  -- Pragmatic fix, not full resolution (see Contract_CombatWindow.md): if
-  -- attackerKey isn't a known combatant (you / group member), it's almost
-  -- certainly a weapon name the proc line named instead of the wielder.
-  -- Rather than dropping the proc, give the weapon its own pseudo-attacker
-  -- row so it stays visible in the fight summary.
-  if not ba and not isKnownCombatant(attackerKey) then
-    entry.by_attacker[attackerKey] = entry.by_attacker[attackerKey] or {}
-    ba = entry.by_attacker[attackerKey]
-    ba["(proc)"] = ba["(proc)"] or { swings=0, hits=0, misses=0, score_total=0, flags={} }
+  local entry = combat.active[tKey]
+  if entry then
+    local nd = entry.by_attacker[aKey] and entry.by_attacker[aKey][noun]
+    if nd then nd.flags[flagCode] = (nd.flags[flagCode] or 0) + 1 end
   end
-  if not ba then return end
 
-  -- Add to the first non-evade noun found for this attacker
-  for noun, ndata in pairs(ba) do
-    if noun ~= "(evade)" then
-      ndata.flags[flagCode] = (ndata.flags[flagCode] or 0) + 1
-      return
-    end
+  local rdEntry = combat.round_data[aKey .. "→" .. tKey .. "→" .. noun]
+  if rdEntry then
+    rdEntry.flags = rdEntry.flags or {}
+    rdEntry.flags[flagCode] = (rdEntry.flags[flagCode] or 0) + 1
+  end
+
+  -- Gag decision (PNP's exact formula) -- Stunning (S) is special-cased to
+  -- always show regardless of show_flag, matching PNP exactly.
+  local cfg = (MyDSL.CombatView and MyDSL.CombatView.config) or {}
+  if (cfg.gag_combat or cfg.gag_non_damage or not cfg.show_flag) and flagCode ~= "S" then
+    deleteLine()
   end
 end
 
@@ -2006,6 +2139,10 @@ MyDSL._triggers.loreStart = tempRegexTrigger(
 ------------------------------------------------------------------------
 -- Combat triggers (always-active — no begin/end block)
 ------------------------------------------------------------------------
+-- Gag/show decisions for damage/evasion/condition/proc all moved INTO
+-- their respective parse functions as of 2026-07-05 (matching PNP, where
+-- handle_damage/handle_evasion/handle_condition/handle_flag each make
+-- their own gag decision) -- trigger bodies below just call the parser.
 
 -- ---- Unified damage trigger (PNP-derived PCRE, one trigger for all damage types)
 local DAMAGE_VERBS = "miss|scratch|graze|hit|injure|wound|maul|decimate|devastate|maim|MUTILATE|DISEMBOWEL|DISMEMBER|MASSACRE|MANGLE|DEMOLISH|DEVASTATE|OBLITERATE|ANNIHILATE|ERADICATE|GHASTLY|HORRID|DREADFUL|HIDEOUS|INDESCRIBABLE|UNSPEAKABLE"
@@ -2015,10 +2152,6 @@ MyDSL._triggers.combatDamage = tempRegexTrigger(
   function()
     if MyDSL and MyDSL.parseCombatDamageLine then
       MyDSL.parseCombatDamageLine(matches[2], matches[3], matches[4], matches[5], matches[6])
-    end
-    if MyDSL and MyDSL.CombatView and MyDSL.CombatView.config
-       and MyDSL.CombatView.config.gag_combat then
-      deleteLine()
     end
   end
 )
@@ -2033,39 +2166,26 @@ MyDSL._triggers.combatDamage = tempRegexTrigger(
 -- trailing 's inside the captured name instead of breaking the match).
 MyDSL._triggers.combatDodge = tempRegexTrigger(
   "(You|[\\w\\-\\,\\s']+) (dodge)s? (your|[\\w\\-\\,\\s']+) attack\\.$",
-  function() if MyDSL and MyDSL.parseCombatAvoidLine then MyDSL.parseCombatAvoidLine(matches[2], matches[3], matches[4]) end
-    if MyDSL and MyDSL.CombatView and MyDSL.CombatView.config and MyDSL.CombatView.config.gag_combat then deleteLine() end
-  end)
+  function() if MyDSL and MyDSL.parseCombatAvoidLine then MyDSL.parseCombatAvoidLine(matches[2], matches[3], matches[4]) end end)
 MyDSL._triggers.combatParry = tempRegexTrigger(
   "(You|[\\w\\-\\,\\s']+) (parry|parries) (your|[\\w\\-\\,\\s']+) attack\\.$",
-  function() if MyDSL and MyDSL.parseCombatAvoidLine then MyDSL.parseCombatAvoidLine(matches[2], matches[3], matches[4]) end
-    if MyDSL and MyDSL.CombatView and MyDSL.CombatView.config and MyDSL.CombatView.config.gag_combat then deleteLine() end
-  end)
+  function() if MyDSL and MyDSL.parseCombatAvoidLine then MyDSL.parseCombatAvoidLine(matches[2], matches[3], matches[4]) end end)
 MyDSL._triggers.combatBlock = tempRegexTrigger(
   "(You|[\\w\\-\\,\\s']+) (block)[s]? (your|[\\w\\-\\,\\s']+) attack .*\\.$",
-  function() if MyDSL and MyDSL.parseCombatAvoidLine then MyDSL.parseCombatAvoidLine(matches[2], matches[3], matches[4]) end
-    if MyDSL and MyDSL.CombatView and MyDSL.CombatView.config and MyDSL.CombatView.config.gag_combat then deleteLine() end
-  end)
+  function() if MyDSL and MyDSL.parseCombatAvoidLine then MyDSL.parseCombatAvoidLine(matches[2], matches[3], matches[4]) end end)
 MyDSL._triggers.combatSense1 = tempRegexTrigger(
   "^[\\w\\-\\s,']+ senses they.?re about to be hit and deflects the blow\\.",
-  function() if MyDSL and MyDSL.parseCombatAvoidLine then MyDSL.parseCombatAvoidLine(getCurrentLine()) end
-    if MyDSL and MyDSL.CombatView and MyDSL.CombatView.config and MyDSL.CombatView.config.gag_combat then deleteLine() end
-  end)
+  function() if MyDSL and MyDSL.parseCombatAvoidLine then MyDSL.parseCombatAvoidLine(getCurrentLine()) end end)
 MyDSL._triggers.combatSense2 = tempRegexTrigger(
   "^[\\w\\-\\s,']+ senses [\\w\\-\\s,']+'s attack coming and avoids its blow\\.",
-  function() if MyDSL and MyDSL.parseCombatAvoidLine then MyDSL.parseCombatAvoidLine(getCurrentLine()) end
-    if MyDSL and MyDSL.CombatView and MyDSL.CombatView.config and MyDSL.CombatView.config.gag_combat then deleteLine() end
-  end)
+  function() if MyDSL and MyDSL.parseCombatAvoidLine then MyDSL.parseCombatAvoidLine(getCurrentLine()) end end)
 
 -- ---- Condition trigger (excludes DEAD — handled by combatDead below)
 MyDSL._triggers.combatCondition = tempRegexTrigger(
   "(?:is in excellent condition|has a few scratches|has some small wounds|has some big nasty wounds|has quite a few wounds|looks pretty hurt|is in awful condition)",
-  function()
-    if MyDSL and MyDSL.parseCombatConditionLine then MyDSL.parseCombatConditionLine(getCurrentLine()) end
-    if MyDSL and MyDSL.CombatView and MyDSL.CombatView.config and MyDSL.CombatView.config.gag_combat then deleteLine() end
-  end)
+  function() if MyDSL and MyDSL.parseCombatConditionLine then MyDSL.parseCombatConditionLine(getCurrentLine()) end end)
 
--- ---- Death trigger
+-- ---- Death trigger (no PNP equivalent for the second form -- own addition)
 MyDSL._triggers.combatDead = tempRegexTrigger(
   " is DEAD!!$",
   function()
@@ -2095,137 +2215,72 @@ MyDSL._triggers.combatTargetFled = tempRegexTrigger(
   "^[\\w\\-\\s,']+ has fled!$",
   function() if MyDSL and MyDSL.parseCombatEndLine then MyDSL.parseCombatEndLine(getCurrentLine()) end end)
 
--- ---- Weapon-flag proc triggers
--- Gag check added to every one of these 2026-07-05 -- confirmed live by
--- Steven (a raw "draws life from" proc line stayed on screen with
--- gag_combat presumably on) that none of these ever called deleteLine(),
--- unlike every other combat trigger (damage/dodge/condition/death) which
--- all already gag correctly. Real, confirmed gap, now fixed consistently.
-local function gagIfCombatGagged()
-  if MyDSL and MyDSL.CombatView and MyDSL.CombatView.config and MyDSL.CombatView.config.gag_combat then
-    deleteLine()
-  end
-end
+-- ---- Weapon-flag proc triggers ----
+-- Simplified 2026-07-05: no longer resolve attacker/target keys from each
+-- trigger's own capture groups (parseCombatProcLine now uses PNP's
+-- last_attacker/last_target/last_noun technique instead -- see 9q above).
+-- The quote-inclusive character classes stay in the regex patterns
+-- (Frost/Vampiric/Stunning) since they're still needed to MATCH lines with
+-- quoted weapon names ("Nadrik's Honor") -- just no longer used to extract
+-- a key from the match.
 
 -- C: Frost
 MyDSL._triggers.procFrostFreeze = tempRegexTrigger(
   "^([\\w\\-\\s,'\"]+) freezes ([\\w\\-\\s,'\"]+)\\.$",
-  function()
-    if not (MyDSL and MyDSL.parseCombatProcLine) then return end
-    local aKey = normalizeKey(matches[2] == "You" and "you" or stripQuotes(matches[2]))
-    local tKey = normalizeKey(matches[3]:lower() == "you" and "you" or stripQuotes(matches[3]))
-    MyDSL.parseCombatProcLine("C", aKey, tKey)
-    gagIfCombatGagged()
-  end)
+  function() if MyDSL and MyDSL.parseCombatProcLine then MyDSL.parseCombatProcLine("C") end end)
 MyDSL._triggers.procFrostTouch = tempRegexTrigger(
   "^The cold touch of ([\\w\\-\\s,']+) surrounds you with ice",
-  function()
-    if not (MyDSL and MyDSL.parseCombatProcLine) then return end
-    MyDSL.parseCombatProcLine("C", normalizeKey(matches[2]), "you")
-    gagIfCombatGagged()
-  end)
+  function() if MyDSL and MyDSL.parseCombatProcLine then MyDSL.parseCombatProcLine("C") end end)
 
 -- F: Flaming
 MyDSL._triggers.procFlameBurn = tempRegexTrigger(
   "^([\\w\\-\\s,']+) is burned by ([\\w\\-\\s,']+)\\.$",
-  function()
-    if not (MyDSL and MyDSL.parseCombatProcLine) then return end
-    MyDSL.parseCombatProcLine("F", normalizeKey(matches[3]), normalizeKey(matches[2]))
-    gagIfCombatGagged()
-  end)
+  function() if MyDSL and MyDSL.parseCombatProcLine then MyDSL.parseCombatProcLine("F") end end)
 MyDSL._triggers.procFlameSear = tempRegexTrigger(
   "^([\\w\\-\\s,']+) sears your flesh",
-  function()
-    if not (MyDSL and MyDSL.parseCombatProcLine) then return end
-    MyDSL.parseCombatProcLine("F", normalizeKey(matches[2]), "you")
-    gagIfCombatGagged()
-  end)
+  function() if MyDSL and MyDSL.parseCombatProcLine then MyDSL.parseCombatProcLine("F") end end)
 
 -- L: Shocking
 MyDSL._triggers.procShockLightning = tempRegexTrigger(
   "^([\\w\\-\\s,']+) is struck by lightning from ([\\w\\-\\s,']+)\\.$",
-  function()
-    if not (MyDSL and MyDSL.parseCombatProcLine) then return end
-    MyDSL.parseCombatProcLine("L", normalizeKey(matches[3]), normalizeKey(matches[2]))
-    gagIfCombatGagged()
-  end)
+  function() if MyDSL and MyDSL.parseCombatProcLine then MyDSL.parseCombatProcLine("L") end end)
 MyDSL._triggers.procShockShocked = tempRegexTrigger(
   "^([\\w\\-\\s,']+) is shocked by a",
-  function()
-    if not (MyDSL and MyDSL.parseCombatProcLine) then return end
-    MyDSL.parseCombatProcLine("L", "unknown", normalizeKey(matches[2]))
-    gagIfCombatGagged()
-  end)
+  function() if MyDSL and MyDSL.parseCombatProcLine then MyDSL.parseCombatProcLine("L") end end)
 
 -- H: Vampiric
 MyDSL._triggers.procVampDraw = tempRegexTrigger(
   "^([\\w\\-\\s,'\"]+) draws life from ([\\w\\-\\s,'\"]+)\\.$",
-  function()
-    if not (MyDSL and MyDSL.parseCombatProcLine) then return end
-    local aKey = (matches[2] == "You" or matches[2]:lower() == "you") and "you" or normalizeKey(stripQuotes(matches[2]))
-    local tKey = matches[3]:lower() == "you" and "you" or normalizeKey(stripQuotes(matches[3]))
-    MyDSL.parseCombatProcLine("H", aKey, tKey)
-    gagIfCombatGagged()
-  end)
+  function() if MyDSL and MyDSL.parseCombatProcLine then MyDSL.parseCombatProcLine("H") end end)
 MyDSL._triggers.procVampDrain = tempRegexTrigger(
   "^You feel ([\\w\\-\\s,']+) drawing your life away",
-  function()
-    if not (MyDSL and MyDSL.parseCombatProcLine) then return end
-    MyDSL.parseCombatProcLine("H", normalizeKey(matches[2]), "you")
-    gagIfCombatGagged()
-  end)
+  function() if MyDSL and MyDSL.parseCombatProcLine then MyDSL.parseCombatProcLine("H") end end)
 
 -- S: Stunning
 MyDSL._triggers.procStun = tempRegexTrigger(
   "^([\\w\\-\\s,'\"]+) is knocked to the ground by ([\\w\\-\\s,'\"]+)\\.$",
-  function()
-    if not (MyDSL and MyDSL.parseCombatProcLine) then return end
-    MyDSL.parseCombatProcLine("S", normalizeKey(stripQuotes(matches[3])), normalizeKey(stripQuotes(matches[2])))
-    gagIfCombatGagged()
-  end)
+  function() if MyDSL and MyDSL.parseCombatProcLine then MyDSL.parseCombatProcLine("S") end end)
 
 -- M: Mana drain
 MyDSL._triggers.procManaSelf = tempRegexTrigger(
   "^You feel something drawing your energy away",
-  function()
-    if not (MyDSL and MyDSL.parseCombatProcLine) then return end
-    MyDSL.parseCombatProcLine("M", "unknown", "you")
-    gagIfCombatGagged()
-  end)
+  function() if MyDSL and MyDSL.parseCombatProcLine then MyDSL.parseCombatProcLine("M") end end)
 MyDSL._triggers.procManaDraw = tempRegexTrigger(
   "^([\\w\\-\\s,']+) draws energy from ([\\w\\-\\s,']+)\\.$",
-  function()
-    if not (MyDSL and MyDSL.parseCombatProcLine) then return end
-    local aKey = (matches[2] == "You" or matches[2]:lower() == "you") and "you" or normalizeKey(matches[2])
-    local tKey = matches[3]:lower() == "you" and "you" or normalizeKey(matches[3])
-    MyDSL.parseCombatProcLine("M", aKey, tKey)
-    gagIfCombatGagged()
-  end)
+  function() if MyDSL and MyDSL.parseCombatProcLine then MyDSL.parseCombatProcLine("M") end end)
 
 -- O: Holy
 MyDSL._triggers.procHolyWrath = tempRegexTrigger(
   "^You feel a surge of ([\\w\\-\\s,']+)'s holy wrath race through your body",
-  function()
-    if not (MyDSL and MyDSL.parseCombatProcLine) then return end
-    MyDSL.parseCombatProcLine("O", normalizeKey(matches[2]), "you")
-    gagIfCombatGagged()
-  end)
+  function() if MyDSL and MyDSL.parseCombatProcLine then MyDSL.parseCombatProcLine("O") end end)
 MyDSL._triggers.procHolyFlash = tempRegexTrigger(
   "^A flash of holy power erupts from ([\\w\\-\\s,']+) and hits ([\\w\\-\\s,']+)!$",
-  function()
-    if not (MyDSL and MyDSL.parseCombatProcLine) then return end
-    MyDSL.parseCombatProcLine("O", normalizeKey(matches[2]), normalizeKey(matches[3]))
-    gagIfCombatGagged()
-  end)
+  function() if MyDSL and MyDSL.parseCombatProcLine then MyDSL.parseCombatProcLine("O") end end)
 
 -- U: Unholy
 MyDSL._triggers.procUnholy = tempRegexTrigger(
   "^You feel a surge of ([\\w\\-\\s,']+)'s unholy wrath race through your body",
-  function()
-    if not (MyDSL and MyDSL.parseCombatProcLine) then return end
-    MyDSL.parseCombatProcLine("U", normalizeKey(matches[2]), "you")
-    gagIfCombatGagged()
-  end)
+  function() if MyDSL and MyDSL.parseCombatProcLine then MyDSL.parseCombatProcLine("U") end end)
 
 -- Sharp: TODO — no confirmed trigger text observed in any log to date
 -- Vorpal: confirmed non-functional (produces no echo) — deliberately omitted
@@ -2233,47 +2288,33 @@ MyDSL._triggers.procUnholy = tempRegexTrigger(
 -- P: Poison (our own confirmed addition; no PNP equivalent)
 MyDSL._triggers.procPoisonSetup = tempRegexTrigger(
   "^([\\w\\-\\s,']+) coats ([\\w\\-\\s,']+) with deadly lifebane poison\\.$",
-  function()
-    if not (MyDSL and MyDSL.parseCombatProcLine) then return end
-    -- attacker is matches[2], weapon is matches[3]; target tracked at onset
-    -- just mark a P proc for whoever coated the weapon
-    local aKey = (matches[2] == "You" or matches[2]:lower() == "you") and "you" or normalizeKey(matches[2])
-    MyDSL.parseCombatProcLine("P", aKey, nil)
-    gagIfCombatGagged()
-  end)
+  function() if MyDSL and MyDSL.parseCombatProcLine then MyDSL.parseCombatProcLine("P") end end)
 MyDSL._triggers.procPoisonOnset = tempRegexTrigger(
   "^([\\w\\-\\s,']+) is poisoned by the venom on ([\\w\\-\\s,']+)\\.$",
-  function()
-    if not (MyDSL and MyDSL.parseCombatProcLine) then return end
-    local tKey = matches[2]:lower() == "you" and "you" or normalizeKey(matches[2])
-    MyDSL.parseCombatProcLine("P", "unknown", tKey)
-    gagIfCombatGagged()
-  end)
+  function() if MyDSL and MyDSL.parseCombatProcLine then MyDSL.parseCombatProcLine("P") end end)
 MyDSL._triggers.procPoisonTick = tempRegexTrigger(
   "^([\\w\\-\\s,']+) shivers and suffers\\.$",
-  function()
-    if not (MyDSL and MyDSL.parseCombatProcLine) then return end
-    local tKey = matches[2]:lower() == "you" and "you" or normalizeKey(matches[2])
-    MyDSL.parseCombatProcLine("P", "unknown", tKey)
-    gagIfCombatGagged()
-  end)
+  function() if MyDSL and MyDSL.parseCombatProcLine then MyDSL.parseCombatProcLine("P") end end)
 
--- ---- Round-flush handler -------------------------------------------
+-- ---- Round-flush handler (PNP's output_damage(), close to verbatim) ----
 -- Fires on every GMCP char_data packet (vitals refresh), which the game
--- sends once per prompt/combat round. CONFIRMED BUG, fixed 2026-07-05: this
--- was wired to "MyDSL.time.updated", which only fires when the player types
--- the "time" command -- essentially never during a real fight. That's why
--- round_data accumulated correctly (combatDamage trigger populates it fine)
--- but never got flushed/rendered live: the round log always sat empty until
--- either a manual "time" or a kill (a completely separate code path via
--- snapshotFight(), which is why fight summaries kept working while the
--- live round-by-round display never appeared). "MyDSL.char.updated" is
--- raised by update("char", ...) on every gmcp.char_data event -- the actual
--- once-per-round signal.
--- Derives one condensed verb per (attacker,target,noun) combo from the
--- accumulated round scores, raises combat.updated, then clears round_data.
--- Rage: if GMCP reported hp_raw == "???" this round, re-fire combat_rage.
-
+-- sends once per prompt/combat round -- see 9q's header comment for why
+-- this event (not updatePrompt-equivalent) is the right once-per-round
+-- signal for us. For each (attacker,target) pair active this round, combine
+-- nouns/hits/swings/dam (excluding "(evade)" from the noun/hit/dam
+-- combination but INCLUDING its swings in the total, matching PNP's exact
+-- `if k3 ~= "evaded"` scope), compute an aggregate verb via calcDamVerb(),
+-- and output ONE summary sentence per pair to MAIN CONSOLE.
+--
+-- Critical PNP behavior, confirmed by reading output_damage() directly:
+-- this summary is gated ONLY by summarize_damage -- NOT by gag_combat. That
+-- means PNP's actual out-of-box default (gag_combat=true, gag_non_damage=
+-- true, summarize_damage=true) already gives exactly a "condensed" mode:
+-- raw per-swing lines hidden, one aggregate sentence per round shown. The
+-- 3-way raw/condensed/gag toggle Steven described maps directly onto these
+-- two flags -- raw: gag_combat=false, summarize_damage=false; condensed:
+-- gag_combat=true, summarize_damage=true (the PNP default); gag: both true/
+-- false respectively (summarize_damage=false, nothing to main at all).
 if MyDSL._handlers.combatRoundFlush then
   pcall(killAnonymousEventHandler, MyDSL._handlers.combatRoundFlush)
 end
@@ -2281,17 +2322,68 @@ MyDSL._handlers.combatRoundFlush = registerAnonymousEventHandler(
   "MyDSL.char.updated",
   function()
     if not (MyDSL and MyDSL.State and MyDSL.State.combat) then return end
-    -- Derive condensed round lines (stored on round_data entries for CombatView)
-    local rd = MyDSL.State.combat.round_data
-    for _, entry in pairs(rd) do
-      entry.derived_verb = MyDSL.derivedVerbForScore(entry.score)
+    local combat = MyDSL.State.combat
+    local rd  = combat.round_data
+    local cfg = (MyDSL.CombatView and MyDSL.CombatView.config) or {}
+
+    if next(rd) and cfg.summarize_damage then
+      -- Group round_data entries by (attacker,target) pair.
+      local roundPairs = {}
+      for _, e in pairs(rd) do
+        local pairKey = e.attacker .. "→" .. e.target
+        roundPairs[pairKey] = roundPairs[pairKey]
+          or { attacker=e.attacker, target=e.target, swings=0, hits=0, dam=0, nouns={}, flags={} }
+        local p = roundPairs[pairKey]
+        p.swings = p.swings + (e.swings or 0)
+        if e.noun ~= "(evade)" then
+          p.hits = p.hits + (e.hits or 0)
+          p.dam  = p.dam  + (e.score or 0)
+          p.nouns[#p.nouns + 1] = e.noun
+          if e.flags then
+            for code, cnt in pairs(e.flags) do p.flags[code] = (p.flags[code] or 0) + cnt end
+          end
+        end
+      end
+
+      local first = true
+      for _, p in pairs(roundPairs) do
+        if p.swings > 0 then
+          local isYou           = (p.attacker == "you")
+          local displayAttacker = isYou and "You" or string.title(p.attacker)
+          local displayTarget   = string.title(p.target)
+          local possessive      = isYou and "r" or "'s"
+          local nounsStr        = table.concat(p.nouns, ", ")
+          local flagsStr        = ""
+          for code, _ in pairs(p.flags) do
+            flagsStr = flagsStr .. "<" .. (FLAG_COLOR[code] or "255,215,65") .. ">" .. code
+          end
+          if flagsStr ~= "" then flagsStr = flagsStr .. "<r>" end
+
+          local str = battleFormat(cfg.summary_format or "%a%r %n %v %t (%d)", {
+            a = displayAttacker, r = possessive, n = nounsStr, v = calcDamVerb(p.dam, isYou),
+            t = displayTarget, d = p.dam, h = p.hits, s = p.swings, f = flagsStr,
+          })
+          decho((first and "" or "\n") .. str)
+          first = false
+        end
+      end
+
+      if combat.pending_condition then
+        decho("\n" .. combat.pending_condition.screen)
+      end
     end
-    -- Raise combat.updated — CombatView.render() rebuilds the round log
-    MyDSL.State.combat.last_updated = os.time()
+
+    if combat.pending_condition and MyDSL.CombatView and MyDSL.CombatView.appendSwing then
+      MyDSL.CombatView.appendSwing(combat.pending_condition.window)
+    end
+    combat.pending_condition = nil
+
+    combat.last_updated = os.time()
     raiseEvent("MyDSL.combat.updated", rd)
-    MyDSL.State.combat.round_data = {}
+    combat.round_data = {}
+
     -- Rage: check if HP is hidden this round
-    local rage = MyDSL.State.combat.rage
+    local rage = combat.rage
     local char = MyDSL.State.char
     if char and char.hp_raw == "???" then
       raiseEvent("MyDSL.combat_rage", rage.damage, rage.vamp)

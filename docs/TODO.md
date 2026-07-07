@@ -258,6 +258,57 @@ elsewhere, not just the section that prompted the edit.
 
 ---
 
+## OPEN — Combat display engine rewritten to match PNP (2026-07-06)
+
+Per Steven: "let's make it work like PNP, then discuss the additions."
+Rewrote `MyDSL_CombatView.lua` and `MyDSL_DataLayer.lua`'s Section 9q/10 to
+port `DSL_PNP_Battle.lua`'s actual logic close to verbatim, replacing the
+from-scratch condensed-table format (arrow notation, hit/miss percentages —
+never present anywhere in PNP) that had been invented instead.
+
+- [x] Ported PNP's `dam_info` severity/decoration table, `battle_format()`
+      token substitution, and the per-swing sentence construction —
+      verified byte-for-byte against real confirmed examples
+      (`"Your pierce *** DEVASTATES *** a gnome student!"` etc.) with a
+      standalone test script before this was called done.
+- [x] Combat window is now a running per-swing log (never cleared),
+      matching PNP's `battle_console` exactly, instead of a per-round
+      condensed redraw. Pushed via new `CV.appendSwing()`, called directly
+      from `parseCombatDamageLine()`.
+- [x] Round-aggregate summaries (PNP's `output_damage()`) now go to **main
+      console**, gated by `summarize_damage` — independent of `gag_combat`,
+      matching PNP exactly (confirmed by reading `output_damage()` directly:
+      it only checks `summarize_damage`, never `gag_combat`). This means
+      PNP's own out-of-box default (`gag_combat=true`, `summarize_damage=
+      true`) already is Steven's "condensed" mode.
+- [x] `mydsl combat mode raw|condensed|gag` alias added, implementing the
+      3-way main-console toggle directly on top of PNP's two flags.
+- [x] **Weapon-as-subject proc misattribution actually fixed now** (not
+      just worked around) — adopted PNP's real `last_attacker`/
+      `last_target`/`last_noun` technique
+      (`MyDSL.State.combat.last_attacker` etc.) instead of the pseudo-
+      attacker-row workaround from the previous pass. Matches PNP's
+      `handle_flag()` exactly; the old workaround is fully removed
+      (`isKnownCombatant()`/`stripQuotes()` deleted, no longer needed).
+- [x] `Contract_CombatWindow.md` flagged with a staleness banner pointing
+      at the new architecture — **still needs its own full rewrite pass**,
+      not done as part of this change (large file, most of it describes
+      the old format).
+- [ ] **Needs live-test confirmation** — none of this has been exercised
+      against a real fight yet. Specifically watch for: per-swing lines
+      appearing live in the Combat window (not batched), a round-summary
+      sentence appearing in main console after each round (PNP's default
+      behavior), and a weapon-flag proc actually attaching to the right
+      combatant now.
+- [ ] **Discuss next** (deliberately deferred, per Steven's own framing):
+      whether `renderSummary()`'s persistent multi-fight "Fight summary"
+      block (our own addition, no PNP equivalent) should also be
+      reformatted to match PNP's sentence style, or kept in its current
+      table style since it serves a genuinely different purpose (whole-
+      fight tally vs. PNP's per-round-only data).
+
+---
+
 ## OPEN — Command-surface retrofit (queued for after Steven's combat-pass testing, 2026-07-05)
 
 Core mandate restated by Steven: reuse PNP/EMCO's actual command vocabulary,

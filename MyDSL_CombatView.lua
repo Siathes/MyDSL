@@ -1,10 +1,18 @@
 -- =============================================================================
--- MyDSL_CombatView.lua  --  Layer 3 Phase B: Combat round condenser
+-- MyDSL_CombatView.lua  --  Layer 3 Phase B: Combat window
 -- =============================================================================
--- Passive display only. Listens for combat events from DataLayer and renders
--- two views in MyDSL_Combat:
---   1. Live condensed round log — one line per (attacker,target,noun) per round
---   2. Per-target fight-summary block — rendered on death/flee/rescue
+-- Passive display only. Two things happen in MyDSL_Combat:
+--   1. Live per-swing feed — every non-miss damage line, appended as it
+--      happens (never cleared/redrawn), matching PNP's battle_console
+--      exactly: a running raw-sentence-plus-severity-score log, not a
+--      per-round batch redraw. Pushed directly by DataLayer's
+--      parseCombatDamageLine() via CV.appendSwing() -- see 9q in
+--      MyDSL_DataLayer.lua for where these lines are built.
+--   2. Per-target fight-summary block — rendered on death/flee/rescue. This
+--      is OUR OWN addition (PNP has no persistent multi-fight concept at
+--      all -- its battle_data resets every single round) -- kept in its
+--      existing table-style format for now, to be discussed/revisited
+--      separately from the "match PNP" rendering pass.
 -- Never sends commands.
 -- =============================================================================
 
@@ -20,67 +28,46 @@ CV._handlers = {}
 CV._aliases  = {}
 CV._mc       = CV._mc or {}   -- persists across reloads
 
--- Config table. Redesigned 2026-07-05 to match PNP's actual tested behavior
--- (DSL_PNP_Battle.lua handle_damage(): every non-miss damage line gets an
--- UNCONDITIONAL live echo into the battle window, regardless of any show_*
--- flag -- those flags only ever gated the *main console* copy in PNP, never
--- the battle window itself). Ours now works the same way:
---   - gag_combat = true (default): raw line deleted from main console;
---     always shown, live, in the Combat window -- no per-category opt-in
---     needed for damage.
---   - gag_combat = false: raw line left completely untouched in main
---     console (no reformatted duplicate added -- "echo_to_main" removed,
---     it doesn't fit this model).
---   - show_miss / show_evade: still opt-in for the Combat window itself,
---     matching PNP (misses are never in its live feed at all; evasion is
---     tracked but never streamed live either, only in round/fight summaries).
---   - show_flag / show_condition: unchanged, still opt-in.
--- Use "mydsl combat show <key>" / "mydsl combat hide <key>" to toggle.
+-- Config table -- rewritten 2026-07-05 to match PNP's actual `defaults`
+-- table in DSL_PNP_Battle.lua exactly (see MyDSL_DataLayer.lua's 9q section
+-- for how each flag is actually used -- gag_combat/gag_non_damage/show_*
+-- gate the RAW per-swing main-console line; summarize_damage gates the
+-- round-aggregate sentence to main, independently of gag_combat; the
+-- Combat window itself always gets every non-miss swing unconditionally,
+-- gated by neither). dam_format/summary_format are PNP's own configurable
+-- token strings (%a %r %n %v %t %d %h %s %f %p) -- see battleFormat() in
+-- DataLayer.
 CV.config = CV.config or {}
-if CV.config.show_miss           == nil then CV.config.show_miss           = false end
-if CV.config.show_evade          == nil then CV.config.show_evade          = false end
-if CV.config.show_flag           == nil then CV.config.show_flag           = false end
-if CV.config.show_condition      == nil then CV.config.show_condition      = false end
-if CV.config.gag_combat          == nil then CV.config.gag_combat          = true  end
+if CV.config.gag_combat        == nil then CV.config.gag_combat        = true  end
+if CV.config.gag_non_damage    == nil then CV.config.gag_non_damage    = true  end
+if CV.config.show_damage       == nil then CV.config.show_damage       = false end
+if CV.config.show_damage_by_me == nil then CV.config.show_damage_by_me = false end
+if CV.config.show_damage_to_me == nil then CV.config.show_damage_to_me = false end
+if CV.config.show_miss         == nil then CV.config.show_miss         = false end
+if CV.config.show_evade        == nil then CV.config.show_evade        = false end
+if CV.config.show_flag         == nil then CV.config.show_flag         = false end
+if CV.config.show_condition    == nil then CV.config.show_condition    = false end
+if CV.config.summarize_damage  == nil then CV.config.summarize_damage  = true  end
+if CV.config.dam_format        == nil then CV.config.dam_format        = "%a%r %n %v %t (%d)" end
+if CV.config.summary_format    == nil then CV.config.summary_format    = "%a%r %n %v %t (%d)" end
 
 -- Window / MiniConsole name constants.
 local COMBAT_WIN = "MyDSL_Combat"
 local COMBAT_MC  = "MyDSL_Combat_MC"
 
--- Flag-code → display tag map (single-letter codes, gold text).
+-- Flag-code → display tag map (single-letter codes, gold text) -- used only
+-- by renderSummary() below, our own fight-history addition.
 local FLAG_TAGS = {
   C = "❄", F = "🔥", L = "⚡", H = "🩸", S = "💫",
   M = "∅",  O = "✨", U = "☠",  P = "☣",
 }
 
--- Bracket decorations for high-tier verbs (from contract severity table).
-local VERB_BRACKETS = {
-  DEMOLISH     = { pre = "*** ", suf = " ***" },
-  DEVASTATE    = { pre = "*** ", suf = " ***" },
-  OBLITERATE   = { pre = "=== ", suf = " ===" },
-  ANNIHILATE   = { pre = ">>> ", suf = " <<<" },
-  ERADICATE    = { pre = "<<< ", suf = " >>>" },
-  GHASTLY      = { pre = "", suf = "", things = true },
-  HORRID       = { pre = "", suf = "", things = true },
-  DREADFUL     = { pre = "", suf = "", things = true },
-  HIDEOUS      = { pre = "", suf = "", things = true },
-  INDESCRIBABLE = { pre = "", suf = "", things = true },
-  UNSPEAKABLE  = { pre = "", suf = "", things = true },
-}
-
--- Hit-rate color (mirrors GroupView hpColor thresholds for consistency).
+-- Hit-rate color (mirrors GroupView hpColor thresholds for consistency) --
+-- used only by renderSummary() below.
 local function hitRateColor(pct)
   if     pct >= 75 then return "68,204,68"
   elseif pct >= 50 then return "204,204,68"
   else                   return "204,68,68"
-  end
-end
-
--- Attacker display color.
-local function attackerColor(aKey)
-  if aKey == "you"     then return "68,204,68"   -- green: your own attacks
-  elseif aKey == "unknown" then return "136,136,136"
-  else return "68,136,204"                        -- blue: ally/pet
   end
 end
 
@@ -94,81 +81,18 @@ end
 
 
 ------------------------------------------------------------------------
--- render()  —  redraws the round log from the latest round_data
+-- appendSwing(text)  —  append one already-decorated line, never clearing
 ------------------------------------------------------------------------
--- Called every round via "MyDSL.combat.updated". Receives the round_data
--- snapshot that DataLayer passed at the moment of flush.
+-- Called directly (synchronously) from DataLayer's parseCombatDamageLine
+-- for every non-miss swing, and from the round-flush handler for the
+-- pending condition note. Matches PNP's battle_console: a running scrollable
+-- log that's never cleared/redrawn per round -- only the round-summary
+-- sentence (sent to MAIN console, not here) is round-scoped.
 
--- Lua 5.1 (LuaJIT) has no goto/::label:: — use local function + return
--- instead of continue-style early exits in loops.
-local function renderRoundEntry(mc, rd)
-  local aKey = rd.attacker or "?"
-  local tKey = rd.target   or "?"
-  local noun = rd.noun     or "?"
-  local verb = rd.derived_verb or "miss"
-
-  -- Apply config filters. Damage itself (not a miss, not an evade entry) is
-  -- always shown in the Combat window, unconditionally -- matching PNP,
-  -- which never gated its battle-window echo on who the attacker/target was.
-  if verb == "miss" and not CV.config.show_miss then return end
-  if noun == "(evade)" and not CV.config.show_evade then return end
-
-  -- Build the line.
-  local aColor = attackerColor(aKey)
-  local vColor = (tKey == "you") and "204,68,68" or "68,204,68"
-  if verb == "miss" or noun == "(evade)" then vColor = "136,136,136" end
-
-  local brk    = VERB_BRACKETS[verb]
-  local verbTxt
-  if brk and brk.things then
-    verbTxt = string.format("does %s things to", verb)
-  elseif brk then
-    verbTxt = brk.pre .. verb .. brk.suf
-  else
-    verbTxt = verb
-  end
-
-  -- Flag tags for this round entry (from active entry if available).
-  local flagStr = ""
-  if CV.config.show_flag and rd.flags then
-    for code, cnt in pairs(rd.flags) do
-      local tag = FLAG_TAGS[code] or code
-      flagStr = flagStr .. string.format(" <255,215,65>%s%s<r>",
-        tag, cnt > 1 and "×" .. cnt or "")
-    end
-  end
-
-  -- Also check lore for vulnerability cross-reference.
-  if CV.config.show_flag and rd.flags and next(rd.flags) then
-    local lore = MyDSL.State and MyDSL.State.creaturelore
-    if lore and lore.key and tKey == lore.key then
-      -- creaturelore doesn't currently parse resistances/vulnerabilities as
-      -- structured fields — just store the note for future use when it does.
-    end
-  end
-
-  local line = string.format(
-    "<%s>%s<r> → <%s>%s<r> (%s): <%s>%s<r>%s (%d/%d)\n",
-    aColor, aKey,
-    "204,204,204", tKey,
-    noun,
-    vColor, verbTxt,
-    flagStr,
-    rd.hits or 0, rd.swings or 0)
-
-  mcLog(mc, line)
-end
-
-function CV.render(roundData)
+function CV.appendSwing(text)
   local mc = CV._mc and CV._mc.combat
-  if not mc then return end
-
-  -- Only clear and redraw if there's something to show this round.
-  if not roundData or not next(roundData) then return end
-
-  for _, rd in pairs(roundData) do
-    renderRoundEntry(mc, rd)
-  end
+  if not mc or not text then return end
+  mcLog(mc, text)
 end
 
 
@@ -251,11 +175,11 @@ function CV.init()
   end
   if CV._mc.combat then CV._mc.combat:setFontSize(8) end
 
-  -- Event handlers.
-  CV._handlers.combatUpdated = registerAnonymousEventHandler(
-    "MyDSL.combat.updated",
-    function(_, roundData) CV.render(roundData) end)
-
+  -- Event handlers. Note: no "MyDSL.combat.updated" subscription anymore --
+  -- the live per-swing feed happens immediately via CV.appendSwing(),
+  -- called directly from DataLayer as each swing occurs, not batched per
+  -- round (matching PNP's battle_console being a running log, not a
+  -- per-round redraw).
   CV._handlers.combatEnded = registerAnonymousEventHandler(
     "MyDSL.combat.ended",
     function(_, snapshot) CV.renderSummary(snapshot) end)
@@ -328,6 +252,34 @@ CV._aliases.combatHide = tempAlias(
       MyDSL.CombatView.config[key] = false
       echo("Combat show " .. matches[2] .. " = false\n")
     else echo("Unknown config key: " .. key .. "\n") end
+  end]])
+
+-- Direct implementation of the raw/condensed/gag 3-way main-console mode
+-- Steven described (2026-07-05), mapped onto PNP's actual two independent
+-- flags (see the round-flush handler's header comment in DataLayer for the
+-- full mapping):
+--   raw       -- gag_combat=false, summarize_damage=false: every raw swing
+--                left untouched in main console, no round summary line.
+--   condensed -- gag_combat=true, summarize_damage=true: raw swings hidden
+--                from main, one aggregate sentence per round shown instead.
+--                This is PNP's actual out-of-box default.
+--   gag       -- gag_combat=true, summarize_damage=false: nothing in main
+--                console at all; the Combat window still shows everything.
+-- The Combat window's live per-swing feed is unaffected by this mode in all
+-- three cases -- it always shows every non-miss swing, matching PNP.
+CV._aliases.combatMode = tempAlias(
+  "^mydsl combat mode\\s+(raw|condensed|gag)$",
+  [[if MyDSL and MyDSL.CombatView then
+    local mode = matches[2]
+    local cfg = MyDSL.CombatView.config
+    if mode == "raw" then
+      cfg.gag_combat = false; cfg.gag_non_damage = false; cfg.summarize_damage = false
+    elseif mode == "condensed" then
+      cfg.gag_combat = true; cfg.gag_non_damage = true; cfg.summarize_damage = true
+    elseif mode == "gag" then
+      cfg.gag_combat = true; cfg.gag_non_damage = true; cfg.summarize_damage = false
+    end
+    echo("Combat mode: " .. mode .. "\n")
   end]])
 
 
