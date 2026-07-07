@@ -78,7 +78,8 @@ into wrong regex instead of PNP's tested source being copied directly).
 - Main console is sacred — don't break or hide it.
 - Every display module is optional / toggleable.
 - All window positions: percentages, never hardcoded pixels (this is a
-  confirmed past bug — see MyDSL_Audit.md item 9 in docs/ if present).
+  confirmed past bug — see `MyDSL_Audit.md` item 9, profile root, not docs/ —
+  fixed 2026-07-06, this file previously said "in docs/" which was wrong).
 - **Reuse PNP/EMCO source and their command vocabulary — don't reinvent.**
   Restated 2026-07-05 after Steven reported having to repeatedly fight
   Claude.ai's tendency to recreate PNP/EMCO functionality from scratch

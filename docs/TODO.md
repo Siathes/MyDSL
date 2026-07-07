@@ -258,6 +258,55 @@ elsewhere, not just the section that prompted the edit.
 
 ---
 
+## Rules/docs contradiction sweep (2026-07-06)
+
+Per Steven: "check whatever 'rules' you read for contradictions, we keep
+running into issues from before migrating to our direct conversations."
+Read CLAUDE.md, every root-level doc, and `docs/README.md`'s full file
+index end-to-end looking specifically for pre-migration leftovers. Found
+and fixed real ones, not just cosmetic:
+
+- [x] **Root `SESSION_START.md` was a stale duplicate, deleted.** A
+      completely different, much older file than `docs/SESSION_START.md` —
+      predates Phase B entirely, predates the Claude.ai removal, still
+      described Layer 3 Phase A as in-progress and referenced installing
+      via `MyDSL_Full.mpackage`. Worse: it contained a self-referential
+      bootstrapping instruction ("How To Start A New Claude Code Session: 1.
+      Read SESSION_START.md") that would trap a reader in the stale content
+      if ever followed literally from that file. `CLAUDE.md` always
+      correctly says `docs/SESSION_START.md` (never the bare filename), so
+      this wasn't actively being read by instruction — but it was a landmine
+      for anyone glancing at the root directory expecting it to be current.
+      Deleted (git-tracked, fully recoverable via history if ever needed).
+- [x] **Root `DSL_UI_Philosophy.md` was an exact duplicate**, byte-for-byte
+      identical to `docs/DSL_UI_Philosophy.md` — not diverged, just
+      redundant. Deleted the root copy; `docs/README.md` already correctly
+      pointed at the `docs/` one.
+- [x] **`CLAUDE.md` had a wrong file path for `MyDSL_Audit.md`** — said "in
+      docs/ if present" (the hedge itself was a symptom of nobody having
+      verified this); `MyDSL_Audit.md` is actually at the profile root and
+      has never been in `docs/`. Fixed.
+- [x] **`docs/README.md`'s file index referenced 5 files that don't exist
+      anywhere in this repo**: `claude_export_2026-07-05/` (deleted mid-
+      session on 2026-07-05, README never updated to match),
+      `2026-06-07_09-42-43.xml`, `MyDSL_WorkflowPlan.md`,
+      `MyDSL_FeatureComparison.md`, `MyDSL_Backlog.md` (the last four appear
+      to be phantom references inherited from the old Claude.ai project-
+      folder index — confirmed via full-repo search, they were never
+      actually migrated into this repo at all). Removed from the index.
+- [x] **`docs/DSL_SessionNotes.md`'s header was misleading** — read as if
+      the whole file were still "June 9, 2026, research phase, no code
+      changes," when it's actually a running append-only log continuing
+      through the 2026-07-05 audit. Added a clarifying note above the
+      original (unchanged) header rather than rewriting history.
+- Noted, not fixed (cosmetic only, not a factual contradiction): `TODO.md`
+  has two similarly-named "OPEN — From Steven's..." sections from different
+  points in the same session (in-game notes vs. live-test session) — genuinely
+  different content, just a confusing pair of headers. Low priority, revisit
+  if this file gets a structural cleanup pass.
+
+---
+
 ## OPEN — Combat display engine rewritten to match PNP (2026-07-06)
 
 Per Steven: "let's make it work like PNP, then discuss the additions."

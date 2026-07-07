@@ -1,4 +1,10 @@
 # DSL Observer UI — Session Notes
+*Running log, oldest entries first — started June 9, 2026. The "Research &
+contract phase, no code changes" status below describes only that first
+entry, not the file as a whole — this is an append-only log that continues
+through the most recent session (check the bottom for the latest entry).
+Fixed 2026-07-06 (contradiction sweep) after this header was found to read
+as if the whole file were still June-9-current.*
 *Session date: June 9, 2026*
 *Status: Research & contract phase. No code changes made this session.*
 

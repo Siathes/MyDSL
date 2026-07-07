@@ -80,15 +80,16 @@ open) lives in `TODO.md` — this table is a one-line summary.
 |---|---|
 | `../MyDSL_DataLayer.lua` | Layer 1 source — this is the live, actually-loaded copy |
 | `../MyDSL_creaturelore.lua` | Creature DB (do not break) |
-| `claude_export_2026-07-05/` | Snapshot produced for the old Claude.ai handoff — obsolete now, safe to delete whenever this repo gets tidied |
 
-### Old/Stale (keep for reference, do not use as current)
-| File | Notes |
-|---|---|
-| `2026-06-07_09-42-43.xml` | Old DSL1 audit XML — reference only |
-| `MyDSL_WorkflowPlan.md` | Early planning doc, superseded by SESSION_START |
-| `MyDSL_FeatureComparison.md` | Feature matrix from early session |
-| `MyDSL_Backlog.md` | Early backlog, superseded by TODO.md |
+**Corrected 2026-07-06 (contradiction sweep):** this section previously
+listed `claude_export_2026-07-05/`, `2026-06-07_09-42-43.xml`,
+`MyDSL_WorkflowPlan.md`, `MyDSL_FeatureComparison.md`, and `MyDSL_Backlog.md`
+as present files — confirmed none of these exist anywhere in this repo (the
+first was deleted mid-session on 2026-07-05 without this file being updated;
+the other four appear to be phantom references inherited from the old
+Claude.ai project-folder index, never actually migrated here). Removed.
+If any of these turn out to exist somewhere Steven has access to and are
+worth pulling in, treat them as a fresh find, not a restoration.
 
 ---
 
