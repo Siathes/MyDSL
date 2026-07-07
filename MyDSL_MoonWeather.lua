@@ -787,7 +787,7 @@ end
 -- (script reload) it cleans up the previous listeners and re-registers
 -- fresh ones without touching the Geyser objects.
 --
--- Required order (from Contract_MoonWeather.md):
+-- Required order:
 --   1. Kill previous _handlers, _triggers, _aliases
 --   2. Create Adjustable.Container + single Geyser.Label (first call only)
 --   3. Apply label stylesheet

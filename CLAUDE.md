@@ -11,30 +11,45 @@ character name, class, or race into logic. All persistent state must be
 keyed by the logged-in character name (see "Character-binding" below) —
 per-character data derived from GMCP/login/score output, not assumed.
 
-## Workflow (Claude.ai removed 2026-07-05)
-It's Steven and Claude Code working directly from this repo now — no design
+## Workflow (Claude.ai removed 2026-07-05; docs restructured 2026-07-06)
+It's Steven and Claude Code working directly from this repo — no design
 relay through a separate chat, no upload/download dance with a project
-folder. Claude Code reads contracts, source, logs, and PNP reference
-material straight off disk and owns keeping `docs/SESSION_START.md`,
-`docs/TODO.md`, `docs/DSL_SessionNotes.md`, and `docs/CHANGELOG.md` current.
-See `docs/SESSION_START.md`'s "Workflow" section for the incident that
-prompted this (a contract's prose paraphrase of PNP's behavior got reinvented
-into wrong regex instead of PNP's tested source being copied directly).
+folder. Claude Code reads source, logs, and PNP reference material straight
+off disk and owns keeping `docs/TODO.md` and `docs/CHANGELOG.md` current.
+
+**2026-07-06: the 19 per-module `Contract_*.md` files, `SESSION_START.md`,
+`SYNC.md`, `DSL_SessionNotes.md`, and `docs/README.md` were all deleted.**
+They were built for a workflow where Claude.ai designed a module and Claude
+Code implemented it *from* the contract — the contract came first. Now the
+code comes first and gets edited directly, so a separate spec describing it
+has nothing forcing it to stay in sync and reliably drifts (this happened
+repeatedly — contracts describing bugs already fixed in code, contradicting
+each other, and at least one bug caused by trusting a contract's prose
+paraphrase instead of PNP's actual tested source). The principle now: **docs
+only hold what git history and the code can't already tell you.** That's:
+- `docs/TODO.md` — a small, *current* punch list. Resolved items get
+  pruned, not archived — `CHANGELOG.md`/git log already have that record
+  permanently. If `TODO.md` looks like it's turning back into a growing
+  append-only history, prune it.
+- `docs/CHANGELOG.md` — one line per real change, append-only. This one
+  doesn't decay — each line is a historical fact that never needs updating.
+- `docs/DSL_CommandRef.md` — confirmed regex/output patterns for DSL
+  itself. High-value because it's about an external, stable system (DSL's
+  text doesn't change), not our own code (which does).
+- The actual `.lua` files — how something currently works. Always read
+  these directly; there is no separate spec describing them anymore.
+- `notes_utf8.txt` (profile root) — Steven's informal scratch/question
+  channel, not a formal doc.
 
 ## IMPORTANT — Read before touching any file
-1. Read `docs/SESSION_START.md` first, every session. It has current state,
-   known bugs, and architecture decisions.
-2. Read the relevant `docs/Contract_<ModuleName>.md` before editing that
-   module — but verify it against the live `.lua` file rather than trusting
-   it blindly. Contracts are summaries and have been found to drift from
-   what's actually in the code (several gaps were already fixed in code but
-   still described as open bugs in their contracts as of the 2026-07-05 audit).
-3. If the module is ThemeEngine, LayoutEngine, WindowRegistry, RouteHelper,
-   or PortraitView — also read `docs/Contract_Addendum_2026-06-21.md`. It
-   supersedes specific sections of those five contracts. The addendum wins
-   on any conflict.
-4. Read `docs/DSL_CommandRef.md` for any in-game text pattern you need to
+1. Read `docs/TODO.md` first, every session — the current punch list.
+2. Read the actual `.lua` file for any module being edited — there is no
+   separate contract/spec anymore; the code is the only source of truth for
+   how something currently works.
+3. Read `docs/DSL_CommandRef.md` for any in-game text pattern you need to
    parse or match — it has the confirmed real output and the fix patterns.
+   Add to it (don't create a parallel file) whenever a new pattern is
+   confirmed during testing/auditing.
 
 ## Reference material — cross-check against these before reinventing anything
 - `PNP files/` (this directory) — full PNP source, 46 files. When PNP already
@@ -77,6 +92,14 @@ into wrong regex instead of PNP's tested source being copied directly).
 - Any game command sent by a module must be user-initiated (alias or click).
 - Main console is sacred — don't break or hide it.
 - Every display module is optional / toggleable.
+- **Move text, don't replace it.** If the game sends something, redirect it
+  to the right window. Never manufacture fake output or inject text the
+  game didn't send.
+- **Automate to assist, not to play.** Spellup lists, respell reminders,
+  disarm alerts — these help the player decide faster. They never decide
+  for the player.
+- **Stale data beats spam.** If current data isn't available, show the last
+  known state. Never flood the server just to stay current.
 - All window positions: percentages, never hardcoded pixels (this is a
   confirmed past bug — see `MyDSL_Audit.md` item 9, profile root, not docs/ —
   fixed 2026-07-06, this file previously said "in docs/" which was wrong).
@@ -127,10 +150,10 @@ themes are user-creatable named presets, shared across all characters.
 - Scripts are loose `.lua` files on disk in this directory, loaded via
   `dofile()` wrappers registered in Mudlet's Script editor — not embedded in
   autosave.xml (that file is stale/not the source of truth as of Phase B)
-- Contracts and docs: `docs/`
+- Docs: `docs/` — see the Workflow section above for what's actually there
+  now (just `TODO.md`, `CHANGELOG.md`, `DSL_CommandRef.md`, and reference
+  material like `MyDSL_MudletAPIReference*.md`, `templates_*.txt`,
+  `MyDSL_IdeaBacklog.md`)
 
 ## Current priority
-See `docs/TODO.md` for the up-to-date, itemized list. As of 2026-07-05:
-top priority is live-testing the CombatView fixes from that date (evasion
-triggers, death-message forms, weapon-proc attribution, quoted weapon
-names) — none of it has been exercised in an actual DSL combat session yet.
+See `docs/TODO.md` for the up-to-date, itemized list.

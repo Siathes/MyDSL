@@ -1686,7 +1686,7 @@ function MyDSL.parseCombatDamageLine(attacker, noun, verb, target, punct)
   -- Live Combat-window echo -- every non-miss swing, unconditional, raw
   -- sentence + severity score in brackets. Matches PNP's battle_console
   -- cecho exactly: misses/evasion/procs never appear here at all, only
-  -- real damage (see Contract_CombatWindow.md).
+  -- real damage.
   if verb ~= "miss" then
     -- No separator between damVerb and target -- damVerb's own trailing
     -- info.suf (e.g. " " or " *** ") already provides the space, matching

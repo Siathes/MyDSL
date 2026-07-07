@@ -58,7 +58,7 @@ the patterns we need for triggers, and notes on edge cases.
 | **alignment** | **NOT IN GMCP** | ⚠️ Score command only |
 | day/night status | gmcp.tick.time (partial) | ⚠️ Text trigger needed |
 
-**RESOLVED (see SESSION_START.md "Prompt System"):** Toggleable pretty prompt,
+**RESOLVED (see `MyDSL_PromptView.lua`):** Toggleable pretty prompt,
 default UI mode ON — all 3 lines gagged, replaced by MyDSL_PromptBar overlay.
 Classic mode (raw prompt visible) available via `mydsl prompt off`. No extra
 data capture needed from the prompt text — alignment comes from score,
@@ -212,8 +212,9 @@ Q/A       Quest      grats        radio  newbie
 kingdom   okingdom   shouts       tells
 ```
 
-### Confirmed tab organization (see Contract_ChatWrapper.md — supersedes the
-### table below, which was an early proposal, not what was built):
+### Confirmed tab organization (see `MyDSL_ChatWrapper.lua` directly for what
+### was actually built — the table below was an early proposal, not verified
+### current; the now-deleted Contract_ChatWrapper.md used to carry this note):
 | Tab | Channels routed to it |
 |---|---|
 | All | mirror of everything (EMCO built-in allTab) |
@@ -396,7 +397,7 @@ multiple in-game `lua display(gmcp.tick)` captures across a full session.
 **Resolved source:** Day/Night is derived from the `time` command's hour +
 ampm (see TIME COMMAND section above), using Steven's existing trigger that
 runs `time` twice per in-game day. This is the authoritative source — not the
-prompt, not gmcp.tick.time. See SESSION_START.md "Prompt System" section.
+prompt, not gmcp.tick.time. See `MyDSL_PromptView.lua` directly.
 
 ### GMCP tick carries:
 - `gmcp.tick.time` — clock string only (e.g., `"8:00am"`) — CORRECTED, see above
@@ -409,9 +410,10 @@ prompt, not gmcp.tick.time. See SESSION_START.md "Prompt System" section.
 during Phase B but never checked off here.** Corrected:
 - [x] `lunar` / `l moons` — captured, see "MOON SYSTEM" section this file
 - [x] `time` — captured, see "GAME TIME / TICK" section this file
-- [x] `scan` — captured in `Contract_ScanView.md` (not duplicated here)
-- [x] `group` — captured in `Contract_GroupView.md` (not duplicated here)
-- [x] `consider <mob>` — captured in `Contract_TargetView.md` (not duplicated here)
+- [x] `scan` — see `MyDSL_ScanView.lua` / `MyDSL_DataLayer.lua`'s scan parse
+      functions directly (the contract that used to document this is deleted)
+- [x] `group` — see `MyDSL_GroupView.lua` / DataLayer's group parse functions
+- [x] `consider <mob>` — see `MyDSL_TargetView.lua`'s consider-capture triggers
 - [x] Weather description lines — trigger wired in DataLayer (`MyDSL._triggers.weather`);
       no display row consumes it yet (MoonWeather Gap, low priority)
 - [x] `improve` — parser exists (`MyDSL.parseImproveLine`)
@@ -599,7 +601,8 @@ Pattern (PNP-derived, `combatDamage`):
 ^(You|[\w\-\s,']+?)(?:(?<=You)r|'s)?(?:\s?((?<=Your )[\w\s]+?|(?<='s )[\w\s]+?|))(?: do[es]*| [\>\<\=\*]+|) (VERB)[esES]*(?: things to| [\>\<\=\*]+|) ([\w\-\s,']+)([\.\.!]+)$
 ```
 `VERB` = `miss|scratch|graze|hit|injure|wound|maul|decimate|devastate|maim|MUTILATE|DISEMBOWEL|DISMEMBER|MASSACRE|MANGLE|DEMOLISH|DEVASTATE|OBLITERATE|ANNIHILATE|ERADICATE|GHASTLY|HORRID|DREADFUL|HIDEOUS|INDESCRIBABLE|UNSPEAKABLE`
-— 26-entry severity ladder (relative units, not real HP), see `Contract_CombatWindow.md`.
+— 26-entry severity ladder (relative units, not real HP), see the `DAM_INFO`
+table in `MyDSL_DataLayer.lua`'s Section 9q.
 
 ### Evasion — 5 confirmed forms (all direct ports of PNP's tested regex)
 ```
@@ -699,7 +702,8 @@ You cannot escape from combat!!!
 Combat tracking has **no** filter on who's fighting whom — every combat line DSL shows you gets
 tracked, matching PNP's own `handle_damage()` (which never filters either). Known tradeoff: ambient
 bystander fights you happen to see (`"A boar's charge misses a liger cub."`) get tracked too. See
-`Contract_CombatWindow.md`'s "Scope filter" section for the full reasoning.
+`MyDSL_DataLayer.lua`'s `parseCombatDamageLine()`/`parseCombatAvoidLine()`
+for where the filter used to live and why it was removed.
 
 ### Corrected text parse pattern (Lua):
 ```lua

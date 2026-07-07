@@ -162,8 +162,10 @@ as the Lua-pattern-vs-PCRE confusion — captured here so it doesn't recur in fu
 
 ## CONFIRMED: When PNP already solved a trigger, read its source directly — don't re-derive from a contract/summary
 
-**Source:** 2026-07-05 evasion-trigger bug. `Contract_CombatWindow.md` and `MyDSL_PNP_Reference.md`
-both describe PNP's dodge/parry/block handling in prose. The dodge/parry/block triggers were written
+**Source:** 2026-07-05 evasion-trigger bug. Two now-deleted summary docs
+(a per-module "contract" file and a PNP-package prose summary — both removed
+2026-07-06 for exactly this reason, see `CLAUDE.md`'s Workflow section)
+both described PNP's dodge/parry/block handling in prose. The dodge/parry/block triggers were written
 from that prose description instead of copied from PNP's actual tested regex in `DSL_PNP_Battle.lua`
 (lines 464-466). The reinvented version hardcoded third-person verb forms (`dodges`/`parries`/`blocks`)
 and required a literal `'s attack`, so it silently never matched the you-as-subject or your-attack
