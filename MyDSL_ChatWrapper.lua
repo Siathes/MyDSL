@@ -41,6 +41,14 @@ MyDSL.Chat = MyDSL.Chat or {}
 local C = MyDSL.Chat
 C.version = "ChatWrapper v4C11 QuietWindowSetup"
 
+-- _handlers holds IDs from registerAnonymousEventHandler; safe-reload
+-- kills a leftover handler from a previous load before re-registering.
+C._handlers = C._handlers or {}
+if C._handlers.characterIdentified then
+  pcall(killAnonymousEventHandler, C._handlers.characterIdentified)
+  C._handlers.characterIdentified = nil
+end
+
 C.config = C.config or {}
 C.config.windowId = C.config.windowId or "Chat"
 C.config.windowName = C.config.windowName or "MyDSL_Chat"
@@ -95,8 +103,29 @@ local function ensureDir(path)
   if os and os.execute then pcall(os.execute, "mkdir -p " .. string.format("%q", path)) end
 end
 
+-- Character-bound as of 2026-07-07 (was a single shared file) -- matches
+-- the project's recorded decision that all settings should be
+-- character-bound, and the same charName()/safeFileName() pattern already
+-- used by MyDSL_TargetView.lua/MyDSL_AffectsView.lua.
+local function charName()
+  if gmcp and gmcp.login_data and gmcp.login_data.name and gmcp.login_data.name ~= "" then
+    return tostring(gmcp.login_data.name)
+  end
+  if MyCore and MyCore.getChar then
+    local ok, name = pcall(MyCore.getChar)
+    if ok and name and name ~= "" then return tostring(name) end
+  end
+  return "Unknown"
+end
+
+local function safeFileName(s)
+  s = tostring(s or "Unknown"):gsub("[^%w_%-%.]+", "_"):gsub("^_+", ""):gsub("_+$", "")
+  if s == "" then s = "Unknown" end
+  return s
+end
+
 function C.settingsFile()
-  return profileDir() .. "/chat_settings.lua"
+  return profileDir() .. "/chat_settings_" .. safeFileName(charName()) .. ".lua"
 end
 
 function C.serializeSettings()
@@ -555,6 +584,14 @@ function C.clear()
   ce("clear requested")
 end
 
+-- Numeric size here maps to EMCO's "fontSize" verb, not its "font" verb
+-- (which takes a font *name*) -- native `emco fontSize <n>` calls the same
+-- ch:setFontSize() on this same live demonnic.chat object (MyDSL reassigns
+-- that global at createInWindow(), so the native alias's fresh per-call
+-- `demonnic.chat` read hits MyDSL's instance too). Kept as its own entry
+-- point anyway since this one also persists to MyDSL's own settings file,
+-- which `emco fontSize` never touches -- don't "fix" this into calling a
+-- differently-named EMCO method, they're already calling the same one.
 function C.setFont(size)
   size = tonumber(size)
   if not size then ce("usage: mydsl chat font <size>"); return end
@@ -619,6 +656,11 @@ function C.installAliases()
   tempAlias([[^mydsl chat status$]], [[MyDSL.Chat.status()]])
   tempAlias([[^mydsl chat save$]], [[MyDSL.Chat.saveSettings(); MyDSL.Chat.status()]])
   tempAlias([[^mydsl chat reload settings$]], [[MyDSL.Chat.loadSettings(); MyDSL.Chat.applyFont(); MyDSL.Chat.applyWrap(); MyDSL.Chat.applyTimestamp(); MyDSL.Chat.status()]])
+  -- Not a duplicate of native `emco show`/`hide`: those toggle
+  -- demonnic.container, the original Adjustable.Container that
+  -- C.hideOldPrebuilt() hides forever -- MyDSL's real chat lives in its
+  -- own C.window (WindowRegistry-integrated) instead. See docs/TODO.md's
+  -- closed "emco <verb>" item for the full trace.
   tempAlias([[^mydsl chat show$]], [[MyDSL.Chat.show()]])
   tempAlias([[^mydsl chat hide$]], [[MyDSL.Chat.hide()]])
   tempAlias([[^mydsl chat clear$]], [[MyDSL.Chat.clear()]])
@@ -666,3 +708,21 @@ function C.install()
 end
 
 C.install()
+
+-- Re-load once the real character is known -- fixed 2026-07-07. install()
+-- above (via loadSettings()) runs at script-boot time, which on a
+-- genuinely fresh Mudlet start happens before login, so it loads
+-- "Unknown"'s settings (or bare defaults) and would otherwise never pick
+-- up this character's real saved chat settings. MyDSL_DataLayer.lua's
+-- gmcp.login_data handler raises "MyDSL.character.identified" once the
+-- real name is known; re-run the exact same sequence "mydsl chat reload
+-- settings" already uses.
+C._handlers.characterIdentified = registerAnonymousEventHandler(
+  "MyDSL.character.identified",
+  function()
+    C.loadSettings()
+    C.applyFont()
+    C.applyWrap()
+    C.applyTimestamp()
+  end
+)
