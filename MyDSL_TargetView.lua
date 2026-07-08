@@ -101,10 +101,18 @@ end
 
 TV.actions = {
   murder = {
-    cmd     = function(t) return "murder " .. commandArg(t.name) end,
+    -- Verb fixed 2026-07-07: DSL_Helpfiles/"kill kill command hit.txt" is
+    -- explicit that `kill`/`hit` starts combat against mobs, while `murder`
+    -- is specifically the PKILL-system command for attacking players --
+    -- "You must join the pkill system and use the MURDER command to
+    -- attack other players." Always sending "murder" regardless of
+    -- t.is_mob was itself a likely real bug on mob targets, separate from
+    -- the reported order_attack issue below (same wrong-verb root cause).
+    cmd     = function(t) return (t.is_mob and "kill " or "murder ") .. commandArg(t.name) end,
     label   = "Murder",
     color   = "204,68,68",
     tooltip = "Attack target",
+    attack  = true,
   },
   glance = {
     cmd     = function(t) return "gl " .. commandArg(t.name) end,
@@ -124,10 +132,18 @@ TV.actions = {
     color   = "204,204,204",
     tooltip = "Get creature lore (opens reference window)",
   },
+  -- Color changed 2026-07-07 (rescue + all cure_* actions below) from the
+  -- old pale blue-violet "170,170,255" per Steven: "really need to change
+  -- the blue actions in the windows i cant read them the contrast is
+  -- terrible, i use the hover text to tell what they are on my monitor."
+  -- Left the mob/player type-indicator blue (ScanView/TargetView's
+  -- "136,170,255") alone -- that's a category color, not an action button,
+  -- and changing it would break an established mob=orange/player=blue
+  -- convention that isn't what was reported as unreadable.
   rescue = {
     cmd     = function(t) return "rescue " .. commandArg(t.name) end,
     label   = "Rescue",
-    color   = "170,170,255",
+    color   = "120,210,220",
     tooltip = "Rescue target from combat",
   },
   flee = {
@@ -137,10 +153,24 @@ TV.actions = {
     tooltip = "Attempt to flee combat",
   },
   order_attack = {
-    cmd     = function(t) return "order all murder " .. commandArg(t.name) end,
+    -- Verb fixed 2026-07-07 -- likely root cause of "order all kill
+    -- greaser did not work from target window" (reported live-testing,
+    -- docs/TODO.md "Reported bugs"). The native, real "(oac)" alias
+    -- (current/autosave.xml, `^oac (.+)$`) sends the tested, working
+    -- "order all kill <target>" verbatim -- this action was instead
+    -- always sending "order all murder", the PKILL-only player-attack
+    -- verb (see the murder action above), against order_attack's only
+    -- actual use (mob_buttons only, never player_buttons). DSL_Helpfiles/
+    -- order.txt confirms `order all <command>` just passes any command
+    -- through to followers, so the wrong verb being silently accepted
+    -- with no attack (server said "Ok." both times reported) is
+    -- consistent with `murder` requiring PKILL/player-target state a
+    -- follower-ordered-at-a-mob command doesn't have.
+    cmd     = function(t) return "order all " .. (t.is_mob and "kill " or "murder ") .. commandArg(t.name) end,
     label   = "Order All",
     color   = "204,68,68",
     tooltip = "Order all followers to attack target",
+    attack  = true,
   },
   look = {
     cmd     = function(t) return "look " .. commandArg(t.name) end,
@@ -181,31 +211,31 @@ TV.actions = {
   cure_blindness = {
     cmd     = function(t) return "cast 'cure blindness' " .. commandArg(t.name) end,
     label   = "Cr.Blind",
-    color   = "170,170,255",
+    color   = "120,210,220",
     tooltip = "Cure blindness",
   },
   cure_disease = {
     cmd     = function(t) return "cast 'cure disease' " .. commandArg(t.name) end,
     label   = "Cr.Disease",
-    color   = "170,170,255",
+    color   = "120,210,220",
     tooltip = "Cure disease",
   },
   cure_poison = {
     cmd     = function(t) return "cast 'cure poison' " .. commandArg(t.name) end,
     label   = "Cr.Poison",
-    color   = "170,170,255",
+    color   = "120,210,220",
     tooltip = "Cure poison",
   },
   cure_fatigue = {
     cmd     = function(t) return "cast 'cure fatigue' " .. commandArg(t.name) end,
     label   = "Cr.Fatigue",
-    color   = "170,170,255",
+    color   = "120,210,220",
     tooltip = "Cure fatigue",
   },
   cure_bugbite = {
     cmd     = function(t) return "cast 'cure bugbite' " .. commandArg(t.name) end,
     label   = "Cr.Bugbite",
-    color   = "170,170,255",
+    color   = "120,210,220",
     tooltip = "Cure bugbite toxin",
   },
   sanctuary = {
@@ -248,6 +278,28 @@ end
 
 
 ------------------------------------------------------------------------
+-- Group-member safety check -- 2026-07-07, per Steven: "clicked bear from
+-- group, got bear in target window but it should not have the kill
+-- option, those should change when group members are selected, so i dont
+-- attack a follower/group member." Checked by name against the live group
+-- roster (same normalization GroupView itself already uses), not by the
+-- click source -- so it also protects a group member re-targeted some
+-- other way (e.g. from RightHere), not just a GroupView click.
+------------------------------------------------------------------------
+
+local function isOwnGroupMember(name)
+  if not name or name == "" then return false end
+  local key = normalizeName(name)
+  local grp = MyDSL.State and MyDSL.State.group
+  if not grp or not grp.members then return false end
+  for _, m in ipairs(grp.members) do
+    if normalizeName(m.name) == key then return true end
+  end
+  return false
+end
+
+
+------------------------------------------------------------------------
 -- Target state management
 ------------------------------------------------------------------------
 
@@ -283,6 +335,10 @@ function MyDSL.Target.doAction(action_key)
   if not t or not t.name then return end
   local act = TV.actions[action_key]
   if not act then return end
+  -- Defense in depth for the group/follower safety fix below -- refuse to
+  -- send an attack-type command against your own group member even if a
+  -- stale button link somehow still exists (render() already hides these).
+  if act.attack and isOwnGroupMember(t.name) then return end
   local cmd = act.cmd(t)
   send(cmd, false)
 end
@@ -292,6 +348,28 @@ function MyDSL.Target.captureConsider(line)
   TV.render()
 end
 
+
+------------------------------------------------------------------------
+-- Phase F (2026-07-07): DslColors_Core_v1_0 (native, live -- confirmed via
+-- "[DslColors v1.0 RELEASE] loaded" in-game) already has a persistent
+-- friend/enemy relation system (dslcolor friend/enemy/neutral <name>,
+-- backed by DSL_COLOR_DB.relations.people) that fully supersedes what PNP's
+-- Highlighter+People would have provided -- reusing it directly here
+-- instead of porting PNP source, per CLAUDE.md's reuse mandate. Read-only:
+-- MyDSL never writes to DSL_COLOR_DB, setting relations stays on the real
+-- "dslcolor friend/enemy <name>" command. Guarded with pcall since
+-- DSL_COLOR_DB/dslKey are globals owned by a separate native script, not
+-- ours -- must not error if DslColors isn't loaded for any reason.
+------------------------------------------------------------------------
+
+local function dslColorRelation(name)
+  if not name or name == "" then return nil end
+  local ok, key = pcall(function() return dslKey(name) end)
+  if not ok or not key then return nil end
+  local db = _G.DSL_COLOR_DB
+  if not db or not db.relations or not db.relations.people then return nil end
+  return db.relations.people[key]
+end
 
 ------------------------------------------------------------------------
 -- render()  —  redraws the entire Target window
@@ -314,17 +392,23 @@ function TV.render()
   else
     tvLog(mc, " ")
     tvLogLink(mc, "<170,68,68>[Clear]<r>", "MyDSL.Target.clear()", "Clear target", false)
-    tvLog(mc, string.format(" <255,255,255>%s<r>\n", t.name))
+    local rel = dslColorRelation(t.name)
+    local relTag = ""
+    if rel == "friend" then relTag = " <0,200,0>[Friend]<r>"
+    elseif rel == "enemy" then relTag = " <200,60,60>[Enemy]<r>" end
+    tvLog(mc, string.format(" <255,255,255>%s<r>%s\n", t.name, relTag))
   end
 
   -- Lines 2-3: 6 action buttons
   if t and t.name then
     local buttons = t.is_mob and TV.config.mob_buttons or TV.config.player_buttons
+    local ownMember = isOwnGroupMember(t.name)
     for row = 0, 1 do
       for col = 1, 3 do
         local idx = row * 3 + col
         local key = buttons[idx]
         local act = key and TV.actions[key]
+        if act and act.attack and ownMember then act = nil end
         if act then
           local btn_text = string.format("<%s>[%s]<r>", act.color, act.label)
           if col < 3 then btn_text = btn_text .. " " end
@@ -368,17 +452,43 @@ function TV.init()
     function() TV.render() end
   )
 
+  -- Re-load once the real character is known -- fixed 2026-07-07. The
+  -- loadConfig() call below runs at script-boot time, which on a
+  -- genuinely fresh Mudlet start happens before login, so it loads
+  -- "Unknown"'s button config (or bare defaults) and would otherwise
+  -- never pick up this character's real saved button layout.
+  -- MyDSL_DataLayer.lua's gmcp.login_data handler raises
+  -- "MyDSL.character.identified" once the real name is known.
+  TV._handlers.characterIdentified = registerAnonymousEventHandler(
+    "MyDSL.character.identified",
+    function()
+      loadConfig()
+      TV.render()
+    end
+  )
+
   -- Consider capture triggers (not gagged — output stays in main console).
-  TV._triggers.considerLine1 = tempRegexTrigger(
-    "^You wonder if you could kill",
+  -- Rewritten 2026-07-06: the old text ("^You wonder if you could kill")
+  -- was invented, not sourced -- it matched nothing in a 328,643-line
+  -- log-corpus regression test, isn't in PNP source (DSL_PNP_*.lua never
+  -- mentions "consider" at all), and considerLine2's "^\.\.\. " pattern
+  -- only ever matched an unrelated "..." emote line, never real consider
+  -- output. Only two difficulty tiers have a confirmed real example in
+  -- the corpus so far -- DSL almost certainly has more (a graduated
+  -- difficulty ladder is standard for this command per DSL_Helpfiles/
+  -- consider.txt's "tells you what your chances are"), but adding
+  -- unconfirmed tiers would repeat the exact mistake being fixed here.
+  -- Add more as real examples are captured.
+  TV._triggers.considerEasyKill = tempRegexTrigger(
+    "^[A-Z][\\w' -]*? looks like an easy kill\\.$",
     function()
       if MyDSL and MyDSL.Target then
         MyDSL.Target.captureConsider(getCurrentLine())
       end
     end
   )
-  TV._triggers.considerLine2 = tempRegexTrigger(
-    "^\\.\\.\\. ",
+  TV._triggers.considerNoMatch = tempRegexTrigger(
+    "^[A-Z][\\w' -]*? is no match for you\\.$",
     function()
       if MyDSL and MyDSL.Target then
         MyDSL.Target.captureConsider(getCurrentLine())
