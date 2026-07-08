@@ -1,4 +1,4 @@
-========== PERSONAL / GAME NOTES (not project scope) ==========
+========== PERSONAL / GAME NOTES ==========
 
 QUESTOPTIONS QUESTINFO WORTH
 
@@ -8,61 +8,58 @@ head back to mud school
 
 make start satchels for dragons and new characters with a parchment explaining where they wee found, area maps!
 
-look at making new maps like thalos's updated one use shattered book editor? (mapper work is deferred -- see docs/TODO.md DESIGN section)
+look at making new maps like thalos's updated one use shattered book editor? (mapper work is deferred -- see docs/TODO.md DEFERRED section)
 
 check out stat command and vitality
 
-i turned on timestamps, it might be useful? -- yes for reading live and lining up with screenshots, but on-screen timestamps are NOT written into the log/ files, so I can't grep a log for a specific timestamp after the fact. Still need the actual screenshot (or nearby game text) to locate a moment precisely.
-
-timestamp in gameplay/logs might help spot post/pre action lag -- agreed, worth trying next time something feels laggy and we want to measure it.
-
-can claude code access my obsidian vault for my knowledge library? -- yes, already accessible right now under the same broad read grant. Holding off on designing that workflow since you flagged it as a later project -- say the word whenever you want to start it.
+timestamp in gameplay/logs might help spot post/pre action lag -- worth trying next time something feels laggy and we want to measure it.
 
 ========== PROJECT NOTES ==========
-Everything reported here has been captured into docs/TODO.md (see "OPEN --
-From Steven's 2026-07-05 live-test session" and the GroupView/aura-autotarget
-section just above it) so it isn't sitting only in this file. Keep adding new
-project notes here as they come up during play -- I'll keep folding them into
-TODO.md on request.
 
 ========== IDEAS ==========
-The big idea dump (formerly ~/Downloads/aistuff.txt) is now organized by
-category at docs/MyDSL_IdeaBacklog.md. aistuff.txt itself has been deleted --
-that doc is the only copy now. Add new stray ideas either here or straight
-into that file.
 
-========== claude notes ==========
-Add a new dated block here each session with a short recap if useful --
-kept out for now since docs/TODO.md and docs/CHANGELOG.md are the durable
-record and this file was getting long. Ask if you'd like the recaps back.
+========== IN-GAME CHECKLIST (2026-07-07) ==========
+Full detail for anything here: docs/TODO.md. Check items off as you play;
+tell me what happened and I'll close them out in TODO.md/CHANGELOG.md.
 
-there is a Shattered-Archive-release-dev.zip file in downloads that might be worth a browse, i think its the source for the website that hosts a client for DSL
- i would like the ability to see the charcaters "Skills/Spells to echo to the main screen but also copy to the combat (combat should get everything *same as PNP*) but i want to remove the spam attacks to battle,but see actions i actually make. like PNP. 
+*** DO THIS FIRST -- blocks everything marked (*) below ***
+[ ] mydsl test reported 4 real modules that exist in code but were never
+    wired into Mudlet's actual load sequence (checked autosave.xml --
+    every other module has a dofile() Script entry, these don't):
+      MyDSL_ChatTriggers.lua
+      MyDSL_CharacterAssist.lua
+      MyDSL_Roller.lua
+      MyDSL_RawCapture.lua
+    Fix: Script Editor -> find the "MyDSL_Full" group (same folder as
+    MyDSL_DataLayer etc.) -> add 4 new script items, each one line:
+      dofile("/home/owner/Desktop/Mudlet/mudlet-data/profiles/DSL2/MyDSL_ChatTriggers.lua")
+      dofile("/home/owner/Desktop/Mudlet/mudlet-data/profiles/DSL2/MyDSL_CharacterAssist.lua")
+      dofile("/home/owner/Desktop/Mudlet/mudlet-data/profiles/DSL2/MyDSL_Roller.lua")
+      dofile("/home/owner/Desktop/Mudlet/mudlet-data/profiles/DSL2/MyDSL_RawCapture.lua")
+    Save profile, full restart (not just reload), run "mydsl test" again
+    -- should say "all 23 loaded OK".
 
-battle text needs to be a little smaller 8? history text 7. this should all be tied in with the  layout script tough
+[ ] mydsl log <category> on re-enables a debug window's log file
+[ ] AffectsView countdown paces correctly in real time; near-expiry color warning fires
+[ ] (*) Rearm (weapon+shield), standup, spellup/setspell, blind-vision check
+[ ] eq / equipment populates equipment data
+[ ] dslcolor friend/enemy <name>, then target them -- [Friend]/[Enemy] tag shows
+[ ] mydsl who <name> matches dslcolor show <name>
+[ ] Full Mudlet restart (not reload) -- no crash on fresh start
+[ ] (*) Chat routing -- real chat activity reaches the right EMCO tabs
+[ ] mydsl help / mydsl history font <n> work
+[ ] (*) MyDSL_RawCapture -- once wired in, place its dofile first in load order, test if raw text ever differs from displayed
+[ ] Target a charmed pet/group member -- murder/order-all buttons gone
+[ ] Order-all/murder a mob -- should say "kill", not "murder"
+[ ] (*) Roller -- next character creation
+[ ] Look around a populated room -- RightHere updates without needing scan
+[ ] mydsl combat font <n> / mydsl history font <n> survive a real restart
+[ ] Rescue/cure-spell buttons actually readable now
+[ ] Fresh login as any other character -- correct saved settings load (not stuck on defaults); expect a one-time layout snap the first time, like Kien had tonight -- run "mydsl layout save" once after to fix it for good
+[ ] GroupView name truncation (cosmetic)
+[ ] Consider text ("easy kill" / "no match") shows correctly
+[ ] GroupView/TargetView logs show one line per row, not one word per line
 
-order all kill didnt seem to work on the first elf in combat i did it manually
-tibbins doesnt have heal so it wont work on follower, thts fine unless an easy way to tell if characters have healing spells skills.helpfiles might help with that.
-switched to kien
-clicked bear from group, got bear in target window but it should not have the kill option, those should change when group members are selected, so i dont attack a follower/group member
-heal works on bear from group window. kien has healing skill. the heal should change on the skill as wel there are more than one heal (need a solution for these) 
-did a skill spell list
-order all kill greaser did not work from target window
-really need to change the blue actions in the windows i cant read them the contrast is terrible. i use the hover text to tell what they are on my monitor.
-can we find a way to make commands feel more like human speak or mud commands, something more IC and flows like DSL commands
-i turned off timestamps, let me know if it needs to turn back on (helpful for pre/post lag of skils/actions/spells?)
-turned off itemstat triggers for comaprison, what else would you like to see
-
-im not seeing the debufs i cast on the target, like weaken and slow?
-
-need to make sure everything is safe to reload. is the only way to not onflict to close profile and reopen. is there a way to guard/protect things so if i quit a chacater i can just reconnect and it will be like opening a clean profile. is that not a proper method
-
-
-affects winfow treating skills like stealth and riot as spells
-
-the kill/murder button on target window needs like a drop down or manual command option (or whatever better option you have) for vrokt as example, it is better to waylay init combat than to kill/murder init combat.
-
-clean up this log and remove actioned items and header descriptions when the profile is closed.
+(*) = blocked on the dofile fix above -- can't have been properly tested yet.
 
 i will use cecho to make comment in the log
-
