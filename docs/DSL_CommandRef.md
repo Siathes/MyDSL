@@ -361,6 +361,42 @@ local name, rank_type, org = line:match("^(%S+) %- (.+) %((.-)%)%s*$")
 
 ---
 
+## IMPROVE COMMAND (confirmed 2026-07-07)
+
+### Command: `improve` (no args) — status check; `improve <skillname>` / `improve none` — set focus
+Syntax reminder line always printed alongside: `Syntax: improve <skillname> / improve none`
+
+### Status-check output (real, confirmed across many skills):
+```
+You are currently improving astrology (100%). (71 online minutes to improvement)
+You are currently improving blind fighting (91%). (0 online minutes to improvement).
+You are currently improving second attack (100%). (0 online minutes to improvement).
+```
+Note DSL's own inconsistent trailing period — present when minutes is `0`, usually absent otherwise
+(both forms confirmed real, pattern must tolerate either). `(N%)` is the skill's current mastery
+level (same 0-100 scale as the `skills` listing), *not* progress toward the next improvement tick —
+those are two unrelated numbers in the same line. `(M online minutes to improvement)` is the actual
+countdown, measured in minutes of *online* (connected) time, not calendar time or game cycles.
+
+Parse pattern (Lua, `parseImproveStatusLine` in `MyDSL_DataLayer.lua`):
+```
+^You are currently improving (.-) %((%d+)%%%)%. %((%d+) online minutes to improvement%)%.?$
+```
+
+### Completion notification (separate message, fires spontaneously during play — not a response to
+typing `improve`):
+```
+Your knowledge of bash improves to 72%.
+You feel yourself getting better at <skill>. (<N>%)
+```
+
+### Feeds
+`MyDSL.State.improve` → `MyDSL.DB.improve` (via `MyDSL_DataBridge.lua`) → `MyDSL_LiveView.lua`'s
+already-built "Improve" bar. User-initiated only — MyDSL never sends `improve` automatically; the bar
+shows the last snapshot as-is between checks rather than a live-ticking countdown.
+
+---
+
 ## COMMANDS FROM `commands` (notable for our purposes)
 
 ```

@@ -89,6 +89,8 @@ these until that's fixed. Full technical detail for any of these:
 - [ ] `considerEasyKill`/`considerNoMatch` text in-game
 - [ ] `MyDSL.logWindow()` fragmented-row fix — GroupView/TargetView logs
       show one line per row, not one word per line
+- [ ] LiveView Improve bar — type `improve`, check the bar populates with
+      skill/percent/remaining minutes
 
 ---
 
@@ -171,27 +173,37 @@ Steven: "make it work like PNP, then discuss the additions"):
       instead of murder for PvP-style openers, "for vrokt as example").
       Needs a design call: dropdown vs. long-press vs. a saved
       per-character opener command.
-- [ ] **Unwired DataLayer capture pipelines — context gathered 2026-07-07,
-      still needs Steven's call.** 7 pipelines, none ever called by any
-      trigger. Broken down by what's actually driving each one:
-      - `inv`/`map` — fed the `MyDSL_Inventory`/`MyDSL_AsciiMap` windows
-        just removed (see below). No window left to feed — candidates to
-        delete along with the windows unless a display is planned again.
-      - `affectsText` — a **text fallback** for affects duration, only
-        used if GMCP hasn't sent `affect_data` yet this session. Feeds
-        the same `MyDSL.State.affects` AffectsView already renders from
-        GMCP — since that's confirmed reliable, this is low-value
-        insurance, not a missing feature. Candidate to delete.
-      - `whok`/`whoc` (kingdom/clan roster, from typing `whok`/`whoc`) —
-        no window was ever designed for these, not tied to anything just
-        removed. Real feature or dead scaffolding — Steven's call.
-      - `unread`/`improve` — single-line, fire naturally (unread mail
-        count at login; skill-improve messages during play). Cheap to
-        wire (parser already correct) but no display exists yet — could
-        be a small echo/notification if wanted, or cut.
-      Recommendation: delete `inv`/`map`/`affectsText` now (tied to
-      removed windows or redundant with working GMCP), keep `whok`/`whoc`/
-      `unread`/`improve` only if one of them is an actual wanted feature.
+- [x] **Unwired DataLayer capture pipelines — resolved 2026-07-07, per
+      Steven** ("i agree with you on all but the improve"). `whok`, `whoc`,
+      `unread`, `inv`, `map`, `affectsText` — all 6 fully deleted
+      (functions + their `MyDSL.State.*` initializers), no consumer for
+      any of them. `improve` was kept and **built**, since
+      `MyDSL_LiveView.lua` already had a complete "Improve" bar (color,
+      UI element, render call) sitting unused, only waiting on real data:
+      - New `MyDSL.parseImproveStatusLine()` in `MyDSL_DataLayer.lua`,
+        parsing the real `"You are currently improving <skill> (<pct>%).
+        (<mins> online minutes to improvement)"` status line (confirmed
+        pattern, see `docs/DSL_CommandRef.md`'s new IMPROVE COMMAND
+        section) — a different message from the existing completion-line
+        parser, which is now also actually wired to a trigger (neither
+        was before).
+      - `MyDSL_DataBridge.lua` now maps `MyDSL.State.improve` →
+        `MyDSL.DB.improve` (pre-formatted `text` field: `"<skill> <pct>%
+        (<mins>m)"`), and listens for the correctly-cased
+        `MyDSL.improve.updated` event.
+      - `MyDSL_LiveView.lua`: added the correctly-cased event to its
+        listener list (`MyDSL.Improve.Updated`, capitalized, never
+        matched anything DataLayer actually raises — left in place,
+        unused, rather than removed, in case something else depends on
+        it; not chased further, out of scope for this pass).
+      - User-initiated only, matches philosophy — MyDSL never sends
+        `improve` automatically; the bar shows the last snapshot as-is
+        between checks, no live-ticking countdown.
+      Verified via a full real emulation chain: real captured text →
+      `parseImproveStatusLine()` → event → `DataBridge.sync()` →
+      `LiveView.data()`/`.render()` — bar text confirmed as
+      `"Imp sneak 91% (12m)"`, zero errors. Needs Steven to confirm live
+      (type `improve`, check the LiveView Improve bar populates).
 - [x] **Four dead-but-registered windows — killed 2026-07-07, per Steven**
       ("kill until we need, I think we have extra code all over").
       `MyDSL_Inventory`/`MyDSL_Equipment`/`MyDSL_AsciiMap`/`MyDSL_Banner`

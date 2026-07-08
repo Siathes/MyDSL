@@ -59,7 +59,11 @@ tell me what happened and I'll close them out in TODO.md/CHANGELOG.md.
 [ ] GroupView name truncation (cosmetic)
 [ ] Consider text ("easy kill" / "no match") shows correctly
 [ ] GroupView/TargetView logs show one line per row, not one word per line
+[ ] Type "improve" -- LiveView's Improve bar should populate (skill, mastery %, minutes remaining)
 
 (*) = blocked on the dofile fix above -- can't have been properly tested yet.
+(done since last check: GroupView confirmed working; killed the 4 dead
+windows Inventory/Equipment/AsciiMap/Banner; deleted the whok/whoc/unread/
+inv/map/affectsText dead code; improve bar built above)
 
 i will use cecho to make comment in the log
