@@ -185,14 +185,9 @@ MyDSL.Windows.registry = MyDSL.Windows.registry or {
   MyDSL_PlayersNear      = { obj=nil, type="UserWindow", visible=true,  created=false },
   MyDSL_CreatureReference= { obj=nil, type="UserWindow", visible=false, created=false },
 
-  MyDSL_Inventory        = { obj=nil, type="UserWindow", visible=false, created=false },  -- hidden by default; toggled by inv command
-  MyDSL_Equipment        = { obj=nil, type="UserWindow", visible=false, created=false },  -- hidden by default; toggled by eq command
-
   -- ---- Adjustable.Container windows (anchored inside the main Mudlet console) --
 
   MyDSL_MoonWeather      = { obj=nil, type="Container",  visible=true,  created=false, lockStyle="padding" },
-  MyDSL_AsciiMap         = { obj=nil, type="Container",  visible=false, created=false },
-  MyDSL_Banner           = { obj=nil, type="Container",  visible=false, created=false },  -- hidden until content arrives
 }
 
 
@@ -228,7 +223,7 @@ end
 --
 -- Why lazy creation instead of creating all windows at load time?
 -- Two reasons:
---   1. Some windows (Inventory, Equipment, Mapper) may never be needed
+--   1. Some windows (CreatureReference, Mapper) may never be needed
 --      in a given session. Creating them upfront wastes memory and
 --      Mudlet rendering resources for windows that stay hidden.
 --   2. Load order safety: if ThemeEngine or LayoutEngine aren't ready
@@ -408,7 +403,7 @@ end
 -- Called before ensureAll() so windows are created with the correct
 -- visibility state rather than having to be hidden immediately after.
 -- If no state file exists, all windows use their registry defaults
--- (most visible=true, Mapper/Inventory/Equipment/Banner false).
+-- (most visible=true, Mapper/CreatureReference false).
 
 function MyDSL.Windows.loadState()
   local f = io.open(STATE_FILE(), "r")

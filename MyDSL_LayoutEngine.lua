@@ -75,12 +75,6 @@ MyDSL.Layout.defaults = MyDSL.Layout.defaults or {
   -- MyDSL_CreatureReference: bottom-right — mob/creature info lookup.
   MyDSL_CreatureReference = { x=0.66, y=0.73, w=0.34, h=0.27 },
 
-  -- MyDSL_Inventory: overlaps affects zone — shown on demand (toggle).
-  MyDSL_Inventory        = { x=0.66, y=0.30, w=0.34, h=0.45 },
-
-  -- MyDSL_Equipment: overlaps inventory zone — shown on demand (toggle).
-  MyDSL_Equipment        = { x=0.66, y=0.30, w=0.34, h=0.45 },
-
   -- ---- LEFT PANEL (UserWindows) ------------------------------------
 
   -- MyDSL_Portrait: top-left corner — character portrait image.
@@ -118,12 +112,6 @@ MyDSL.Layout.defaults = MyDSL.Layout.defaults or {
 
   -- MyDSL_MoonWeather: thin bar across the top of the console area.
   MyDSL_MoonWeather      = { x=0.10, y=0.00, w=0.56, h=0.05 },
-
-  -- MyDSL_AsciiMap: ASCII map inset over the top-left of the console.
-  MyDSL_AsciiMap         = { x=0.10, y=0.05, w=0.30, h=0.25 },
-
-  -- MyDSL_Banner: center-screen overlay for announcements and alerts.
-  MyDSL_Banner           = { x=0.20, y=0.40, w=0.40, h=0.10 },
 }
 
 
