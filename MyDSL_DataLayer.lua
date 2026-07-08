@@ -214,6 +214,7 @@ function MyDSL.help()
   echo("  mydsl lore <name>\n")
   echo("  mydsl layout save\n")
   echo("  mydsl who <name>                     -- DslColors' known-person info (dslcolor show passthrough)\n")
+  echo("  mydsl test                           -- smoke test: module load / window / character-binding status\n")
   echo("  toggle <module>                      -- PNP's universal on/off (combat, affects, moons, ...)\n")
 end
 
@@ -242,6 +243,104 @@ if MyDSL._aliases.who then pcall(killAlias, MyDSL._aliases.who) end
 MyDSL._aliases.who = tempAlias(
   "^mydsl who (.+)$",
   [[MyDSL.who(matches[2])]]
+)
+
+
+------------------------------------------------------------------------
+-- MyDSL.test() + "mydsl test" -- smoke-test alias, added 2026-07-07
+------------------------------------------------------------------------
+-- CLAUDE.md's own workflow section has always referenced "mydsl test (if
+-- it exists), otherwise manually verify" as the pre-done-check -- it
+-- never existed. Fast in-game sanity check: confirms every real module
+-- namespace loaded, reports window-registry and character-binding
+-- status. Not a full test suite -- that's test/mudlet_mock.lua, for
+-- offline real-code testing outside Mudlet entirely.
+
+local TEST_MODULES = {
+  { "ChatWrapper",       "Chat" },
+  { "ChatTriggers",      "ChatTriggers" },
+  { "CombatView",        "CombatView" },
+  { "TargetView",        "TargetView" },
+  { "GroupView",         "GroupView" },
+  { "ScanView",          "ScanView" },
+  { "AffectsView",       "Affects" },
+  { "MoonWeather",       "MoonWeather" },
+  { "TickSource",        "TickSource" },
+  { "TickView",          "TickView" },
+  { "LayoutEngine",      "Layout" },
+  { "WindowRegistry",    "Windows" },
+  { "ThemeEngine",       "Theme" },
+  { "CharacterAssist",   "CharacterAssist" },
+  { "Roller",            "Roller" },
+  { "RouteHelper",       "Route" },
+  { "CreatureReference", "CreatureReference" },
+  { "PromptView",        "Prompt" },
+  { "PortraitView",      "Portrait" },
+  { "LocationView",      "Location" },
+  { "LiveView",          "LiveView" },
+  { "DataBridge",        "DB" },
+  { "RawCapture",        "RawCapture" },
+}
+
+function MyDSL.test()
+  echo("\n=== MyDSL smoke test ===\n")
+
+  -- Module load check.
+  local missing = {}
+  for _, mod in ipairs(TEST_MODULES) do
+    local label, key = mod[1], mod[2]
+    if type(MyDSL[key]) ~= "table" then
+      missing[#missing + 1] = label
+    end
+  end
+  if #missing == 0 then
+    echo("Modules: all " .. #TEST_MODULES .. " loaded OK\n")
+  else
+    cecho("<red>Modules: " .. #missing .. " MISSING -- " .. table.concat(missing, ", ") .. "<reset>\n")
+  end
+
+  -- Character binding.
+  local charName = "Unknown"
+  if gmcp and gmcp.login_data and gmcp.login_data.name and gmcp.login_data.name ~= "" then
+    charName = tostring(gmcp.login_data.name)
+  end
+  if charName == "Unknown" then
+    cecho("<yellow>Character: not yet identified by GMCP (expected before login)<reset>\n")
+  else
+    echo("Character: " .. charName .. "\n")
+  end
+
+  -- Window registry.
+  if MyDSL.Windows and MyDSL.Windows.registry then
+    local total, visible = 0, 0
+    for _, entry in pairs(MyDSL.Windows.registry) do
+      total = total + 1
+      if entry.visible then visible = visible + 1 end
+    end
+    echo("Windows: " .. total .. " registered, " .. visible .. " visible\n")
+  else
+    cecho("<red>Windows: WindowRegistry not loaded<reset>\n")
+  end
+
+  -- Core state sanity.
+  if type(MyDSL.State) == "table" then
+    echo("State: MyDSL.State present\n")
+  else
+    cecho("<red>State: MyDSL.State MISSING -- DataLayer did not initialize correctly<reset>\n")
+  end
+  if type(MyDSL.Data) == "table" then
+    echo("Data: MyDSL.Data present\n")
+  else
+    cecho("<red>Data: MyDSL.Data MISSING<reset>\n")
+  end
+
+  echo("=== end smoke test ===\n")
+end
+
+if MyDSL._aliases.test then pcall(killAlias, MyDSL._aliases.test) end
+MyDSL._aliases.test = tempAlias(
+  "^mydsl test$",
+  [[MyDSL.test()]]
 )
 
 
