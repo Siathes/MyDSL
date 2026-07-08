@@ -12,7 +12,6 @@ look at making new maps like thalos's updated one use shattered book editor? (ma
 
 check out stat command and vitality
 
-timestamp in gameplay/logs might help spot post/pre action lag -- worth trying next time something feels laggy and we want to measure it.
 
 ========== PROJECT NOTES ==========
 
@@ -23,21 +22,21 @@ Full detail for anything here: docs/TODO.md. Check items off as you play;
 tell me what happened and I'll close them out in TODO.md/CHANGELOG.md.
 
 [ ] mydsl log <category> on re-enables a debug window's log file
-[ ] AffectsView countdown paces correctly in real time; near-expiry color warning fires
+[x] AffectsView countdown paces correctly in real time; near-expiry color warning fires
 [ ] Rearm (weapon+shield), standup, spellup/setspell, blind-vision check
 [ ] eq / equipment populates equipment data
 [ ] dslcolor friend/enemy <name>, then target them -- [Friend]/[Enemy] tag shows
-[ ] mydsl who <name> matches dslcolor show <name>
+[x] mydsl who <name> matches dslcolor show <name>
 [ ] Full Mudlet restart (not reload) -- no crash on fresh start
-[ ] Chat routing -- real chat activity reaches the right EMCO tabs (ChatTriggers now wired in)
+[x] Chat routing -- real chat activity reaches the right EMCO tabs (ChatTriggers now wired in)
 [ ] mydsl help / mydsl history font <n> work
-[ ] Target a charmed pet/group member -- murder/order-all buttons gone
+[x] Target a charmed pet/group member -- murder/order-all buttons gone
 [ ] Order-all/murder a mob -- should say "kill", not "murder"
 [ ] Roller -- next character creation
-[ ] Look around a populated room -- RightHere updates without needing scan
-[ ] mydsl combat font <n> / mydsl history font <n> survive a real restart
-[ ] Rescue/cure-spell buttons actually readable now
-[ ] Layout: rearrange windows, "mydsl layout save", restart Mudlet -- confirm it holds (native saveWindowLayout() now, per-profile not per-character)
+[ ] Look around a populated room -- RightHere updates without needing scan- didnt seem to work in Northeast end of the Clockworks 
+[x] mydsl combat font <n> / mydsl history font <n> survive a real restart
+[ ] Rescue/cure-spell buttons actually readable now -  these are still blue and underlined see screenshot
+[x] Layout: rearrange windows, "mydsl layout save", restart Mudlet -- confirm it holds (native saveWindowLayout() now, per-profile not per-character)
 [ ] GroupView name truncation (cosmetic)
 [ ] Consider text ("easy kill" / "no match") shows correctly
 [ ] GroupView/TargetView logs show one line per row, not one word per line
