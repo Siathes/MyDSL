@@ -73,7 +73,19 @@ in-game. Full technical detail for any of these: `git log --oneline` +
 - [ ] TargetView/GroupView kill vs murder verb fix — order-all/murder a
       mob should now say "kill", not "murder"
 - [ ] Roller — next character creation
-- [ ] RightHere updates on `look`, not just `scan`
+- [x] **RightHere-on-look — real bug found and fixed 2026-07-08.** Steven
+      reported it "didnt seem to work in Northeast end of the Clockworks."
+      Traced against the real captured sequence and found 3 compounding
+      bugs: item lines ("X lies here.") and a genuine mid-listing blank
+      line (confirmed real, not random — happens identically twice for
+      the same busy room) both incorrectly ended capture early; worse,
+      `parseLookHereLine()` only recognized "is here", but a full corpus
+      check found "stands here" (2,740 occurrences) is actually *more*
+      common than "is here" (1,928) for stationary NPCs — most mobs in
+      most rooms were never being captured at all since this feature was
+      built. All fixed; verified via emulation against the real 7-entity
+      room (0 captured before, 7 after). Needs Steven to confirm live in
+      a busy room again.
 - [ ] CombatView/History font persistence — `mydsl combat font <n>` /
       `mydsl history font <n>` survive a real restart
 - [ ] Action-button color contrast — Rescue/cure-spell buttons actually
@@ -165,30 +177,27 @@ Steven: "make it work like PNP, then discuss the additions"):
       live.** "groupview works, there have been many edits since that bug
       report." Not independently isolated to one specific fix — resolved
       as a side effect of everything else touched this session.
-- [x] **Clan gossip duplicates — confirmed fixed 2026-07-08, same root
-      cause as the chat "S" bug.** Per Steven: "close clan gossip it was
-      the same issue for the previous chat issue and is resolved." The
-      genuine second, duplicate set of chat-capture triggers (disabled
-      while chasing the "S" bug) was also the real cause of the
-      gossip-duplicate reports — confirmed live, not just a theory.
-      Closing both under the same fix.
-- [x] **Chat capture "S" bug — real root cause found and confirmed fixed
-      2026-07-08.** Reopened same day with strong evidence (every routed
-      chat line 100% reproducibly followed by a standalone "S" line, per
-      `log/MyDSL_EMCO_Chat/2026/07/08/OOC.html`), initially suspected as a
-      timing race inside EMCO's own `append()`/`xEcho()`. **Actual cause,
-      per Steven's own live experiment**: a *second*, duplicate set of
-      chat-capture triggers was also active and racing with
-      `MyDSL_ChatTriggers.lua` — disabling that second set ("i disabled
-      the OTHER chat capture triggers") fully resolved it ("i see no
-      problems now"). Not an EMCO/Mudlet-core bug after all — a genuine
-      duplicate-trigger conflict, similar in shape (though not root cause)
-      to the earlier "clan gossip duplicates" report. Closing.
-      **Follow-up fixed same session**: chat lines were also staying
-      duplicated in the main console after routing — not an EMCO gag
-      setting, just `MyDSL_ChatTriggers.lua`'s own `route()` helper, which
-      had deliberately left `deleteLine()` out for testing ("add back once
-      routing confirmed"). Restored now that routing is confirmed working.
+- [ ] **Chat "S" bug + clan gossip duplicates — REOPENED 2026-07-08, both
+      closed prematurely.** Both were closed same-day on Steven's live
+      impression ("i see no problems now" / "is resolved"). While
+      investigating the RightHere-on-look bug (same session), directly
+      checked the actual chat log this time instead of taking the
+      confirmation at face value: **`log/MyDSL_EMCO_Chat/2026/07/08/
+      All.html` shows 54 standalone "S" lines and 25 consecutive duplicate
+      lines across just 153 total segments in this one file** — both
+      problems clearly still active, right up through the most recent
+      entries (last real line before file end: "Snik clan gossips 'Been a
+      slice lads, I'm out!'" immediately followed by another lone "S").
+      Whatever Steven tested at the time must not have hit it, or it
+      regressed after — `deleteLine()` restoration (see below) is
+      confirmed real and unrelated to this. Needs a fresh live check: is
+      the "second set of chat triggers" he disabled still actually
+      disabled (did a script reload silently re-register it?), and is
+      this possibly two genuinely different causes (S only ever seen
+      after OOC-family lines; duplicates only ever seen on gossip/tells/
+      group/says) rather than one shared root cause as previously assumed.
+      `deleteLine()` restoration in `route()` (below) is unaffected by
+      this and still believed correct/needed regardless.
 - [ ] **autowhere fires while sleeping** — Steven's own alias, not ours;
       low priority for us specifically.
 
