@@ -16,6 +16,25 @@
 -- If it doesn't exist yet, create a fresh empty table.
 MyDSL = MyDSL or {}
 
+-- Moved here 2026-07-06 (was Section 3, line ~205): _aliases was used at
+-- the log-toggle/help aliases below (originally added 2026-07-05/07-06)
+-- BEFORE it was ever initialized as a table. Confirmed as a real crash,
+-- not theoretical -- caught by loading this file into a genuinely fresh
+-- Lua state (no prior MyDSL global at all, i.e. Mudlet's very first
+-- dofile() of this file in a new session) via a Mudlet-API mock harness:
+-- "attempt to index field '_aliases' (a nil value)" at the first
+-- MyDSL._aliases.logToggle reference, which would have silently aborted
+-- the rest of this file's load -- every trigger registered after that
+-- point (all of combat, weather, chat, everything) would never exist.
+-- Only masked in practice because Mudlet's Lua state persists across a
+-- same-session "reload this script" (MyDSL._aliases already existed from
+-- the previous successful load), so it never surfaced on an in-session
+-- edit -- only on a genuinely fresh Mudlet start. _triggers moved
+-- alongside it for the same reason, even though its first use (further
+-- down) happened to already be safe.
+MyDSL._triggers = MyDSL._triggers or {}
+MyDSL._aliases = MyDSL._aliases or {}
+
 
 ------------------------------------------------------------------------
 -- SECTION 2: PRIVATE UTILITIES
@@ -41,13 +60,26 @@ end
 
 -- Master + per-category toggle for MyDSL.logWindow(), added 2026-07-05 per
 -- Steven ("i dont think we need to log players near you, can you make
--- logging toggleable?"). playersnear defaults OFF -- it fires every ~20s
--- from Steven's own autowhere alias and isn't worth the disk churn. Toggle
--- via aliases: "mydsl log on"/"mydsl log off" (master), "mydsl log <category>
--- on"/"mydsl log <category> off" (per-category) -- see Section 10.
+-- logging toggleable?"). Toggle via aliases: "mydsl log on"/"mydsl log off"
+-- (master), "mydsl log <category> on"/"mydsl log <category> off"
+-- (per-category) -- see Section 10.
+--
+-- Defaults reworked 2026-07-07 per Steven: combat/chat/history are useful
+-- to actually review later, so those stay on. Every other per-window log
+-- (group/righthere/target/scan/playersnear/bloodbath) is debug-only --
+-- off by default, opt-in when actually debugging that specific window,
+-- not something worth the disk churn during normal play. All of them
+-- remain individually toggleable regardless of default.
 MyDSL.LogConfig = MyDSL.LogConfig or {
   enabled = true,
-  disabled_categories = { playersnear = true },
+  disabled_categories = {
+    playersnear = true,
+    group       = true,
+    righthere   = true,
+    target      = true,
+    scan        = true,
+    bloodbath   = true,
+  },
 }
 
 -- Per-window plain-text logging. Confirmed 2026-07-05 (see
@@ -62,10 +94,37 @@ MyDSL.LogConfig = MyDSL.LogConfig or {
 -- a shared file across characters got confusing once more than one
 -- character is tested in the same day, which already happened). One file
 -- per character per day, so it rotates naturally instead of growing forever.
+-- Fixed 2026-07-07: found via live testing that GroupView/TargetView's logs
+-- came out fragmented -- one word/segment per line ("[Mob]", then
+-- "A throughbred stalli" on its own line, then " 100%hp" on another, etc.)
+-- instead of one coherent row. Root cause: those two views build a single
+-- visual row from several separate decho/dechoLink calls (class tag, name,
+-- hp%, mana%, mv%, action buttons, then a final lone "\n" call to end the
+-- row) -- decho doesn't force a line break, so Mudlet's own console shows
+-- them joined on one line, but this function used to write one full log
+-- line per CALL regardless, unconditionally appending "\n" to whatever text
+-- it was given. Combat/RightHere/History never hit this because those
+-- modules already pass one complete line per call. Fixed generally instead
+-- of patching each view: buffer per category, only flush a real log line
+-- when a "\n" actually shows up in the accumulated text (wherever it comes
+-- from), so multi-call rows reconstruct as one line with one timestamp,
+-- and single-call callers behave exactly as before (buffer fills then
+-- immediately empties on the same call).
+MyDSL._logBuffers = MyDSL._logBuffers or {}
+
 function MyDSL.logWindow(category, text)
   if not category or not text or text == "" then return end
   if not MyDSL.LogConfig.enabled then return end
   if MyDSL.LogConfig.disabled_categories[category] then return end
+
+  local buf = (MyDSL._logBuffers[category] or "") .. text
+  local nl = buf:find("\n", 1, true)
+  if not nl then
+    -- No complete line yet -- keep buffering, nothing to write.
+    MyDSL._logBuffers[category] = buf
+    return
+  end
+
   local char = safeFileName(MyDSL.Char and MyDSL.Char() or "Unknown")
   local dir  = getMudletHomeDir() .. "/MyDSL/logs/" .. category .. "/" .. char
   -- mkdir -p equivalent: lfs.mkdir only makes one level, so try os.execute
@@ -75,10 +134,18 @@ function MyDSL.logWindow(category, text)
   if lfs and lfs.mkdir then pcall(lfs.mkdir, dir) end
   if os and os.execute then pcall(os.execute, "mkdir -p " .. string.format("%q", dir)) end
   local path = dir .. "/" .. os.date("%Y-%m-%d") .. ".log"
+
   local f = io.open(path, "a")
-  if not f then return end
-  f:write(os.date("%H:%M:%S") .. "  " .. stripColorTags(text) .. "\n")
-  f:close()
+  while nl do
+    local line = buf:sub(1, nl - 1)
+    buf = buf:sub(nl + 1)
+    if f and line ~= "" then
+      f:write(os.date("%H:%M:%S") .. "  " .. stripColorTags(line) .. "\n")
+    end
+    nl = buf:find("\n", 1, true)
+  end
+  if f then f:close() end
+  MyDSL._logBuffers[category] = buf
 end
 
 -- "mydsl log on/off" (master) and "mydsl log <category> on/off" (per-
@@ -89,16 +156,92 @@ MyDSL._aliases.logToggle = tempAlias(
   [[MyDSL.LogConfig.enabled = (matches[2] == "on")
     echo("Window logging " .. matches[2] .. ".\n")]]
 )
+-- "chat" is special-cased below (added 2026-07-07): it doesn't go through
+-- MyDSL.logWindow() at all -- EMCO has its own real per-tab logging
+-- (enableAllLogging()/disableAllLogging(), writing to
+-- log/MyDSL_EMCO_Chat/YYYY/MM/DD/<Tab>.html, already on by default). Reuse
+-- that directly instead of duplicating chat content into a second file in
+-- a different format, while keeping the same "mydsl log <category>
+-- on/off" command shape as every other category for consistency.
 if MyDSL._aliases.logCategoryToggle then pcall(killAlias, MyDSL._aliases.logCategoryToggle) end
 MyDSL._aliases.logCategoryToggle = tempAlias(
   "^mydsl log (\\S+) (on|off)$",
   [[local cat = matches[2]
-    if matches[3] == "off" then
-      MyDSL.LogConfig.disabled_categories[cat] = true
+    if cat == "chat" then
+      local ch = demonnic and demonnic.chat
+      if ch then
+        if matches[3] == "off" then ch:disableAllLogging() else ch:enableAllLogging() end
+        echo("Chat logging " .. matches[3] .. ".\n")
+      else
+        echo("Chat window not ready yet -- try again in a moment.\n")
+      end
     else
-      MyDSL.LogConfig.disabled_categories[cat] = nil
-    end
-    echo("Window logging for '" .. cat .. "' " .. matches[3] .. ".\n")]]
+      if matches[3] == "off" then
+        MyDSL.LogConfig.disabled_categories[cat] = true
+      else
+        MyDSL.LogConfig.disabled_categories[cat] = nil
+      end
+      echo("Window logging for '" .. cat .. "' " .. matches[3] .. ".\n")
+    end]]
+)
+
+-- "mydsl help" -- added 2026-07-06. Steven typed this 6 times across
+-- different sessions expecting a command list; no such alias existed, so
+-- it fell straight through to the server as "Huh?" every time (found via
+-- the log-corpus regression test: every "mydsl ..."/"toggle ..." line
+-- immediately followed by "Huh?" in the corpus). Static list, not
+-- generated from the live alias tree -- keep in sync by hand when a
+-- module gains/loses a top-level command.
+function MyDSL.help()
+  echo("\nMyDSL commands:\n")
+  echo("  mydsl help                          -- this list\n")
+  echo("  mydsl log on|off                     -- window logging master switch\n")
+  echo("  mydsl log <category> on|off          -- per-category window logging\n")
+  echo("      categories: combat, chat, history (on by default);\n")
+  echo("      group, righthere, target, scan, bloodbath, playersnear (debug-only, off by default)\n")
+  echo("  mydsl rawlog on|off                  -- diagnostic raw-line capture\n")
+  echo("  mydsl chat <status|show|hide|clear|save|reload settings|rebuild|revive|font <n>|wrap ...|timestamp ...|echo ...|test ...>\n")
+  echo("  mydsl live <status|show|hide|rebuild|refresh|save|reload settings|font <n>|titlefont <n>|barfont <n>|title <text>|mode compact|full|layout>\n")
+  echo("  mydsl tickview <status|show|hide|rebuild|save|reload settings|font <n>|mode compact|full|title <text>>\n")
+  echo("  mydsl tick <status|reset|average <n>|window <n>|debug on|off>\n")
+  echo("  mydsl combat <clear|history|gag|ungag|hide <flag>|mode raw|condensed|gag|show <flag>>\n")
+  echo("  mydsl target <clear|mobset ...|playerset ...|...>\n")
+  echo("  mydsl group <gag|ungag|quickset <k1> <k2>>\n")
+  echo("  mydsl scan <gag|ungag>\n")
+  echo("  mydsl location / mydsl loc [args]    -- also: roompic, locpic\n")
+  echo("  mydsl history font <n>               -- History window font size\n")
+  echo("  mydsl prompt [args]\n")
+  echo("  mydsl lore <name>\n")
+  echo("  mydsl layout save\n")
+  echo("  mydsl who <name>                     -- DslColors' known-person info (dslcolor show passthrough)\n")
+  echo("  toggle <module>                      -- PNP's universal on/off (combat, affects, moons, ...)\n")
+end
+
+if MyDSL._aliases.help then pcall(killAlias, MyDSL._aliases.help) end
+MyDSL._aliases.help = tempAlias(
+  "^mydsl help$",
+  [[MyDSL.help()]]
+)
+
+-- MyDSL.who(name) + "mydsl who <name>" -- added 2026-07-07 (Phase F
+-- follow-up). DslColors_Core_v1_0's `dslcolor show <name>` is real, live,
+-- and already the authoritative "known person" lookup (see Phase F entry
+-- in docs/TODO.md) -- this just gives it a "mydsl"-prefixed entry point
+-- for command-surface consistency with the rest of MyDSL, calling the
+-- exact same underlying dispatcher rather than a parallel implementation.
+-- dslColorCommand is a global owned by that separate native script, not
+-- ours -- pcall-guarded so this can't error if DslColors isn't loaded.
+function MyDSL.who(name)
+  name = tostring(name or ""):match("^%s*(.-)%s*$")
+  if name == "" then echo("usage: mydsl who <name>\n"); return end
+  local ok = pcall(function() dslColorCommand("show " .. name) end)
+  if not ok then echo("DslColors not loaded -- can't look up '" .. name .. "'.\n") end
+end
+
+if MyDSL._aliases.who then pcall(killAlias, MyDSL._aliases.who) end
+MyDSL._aliases.who = tempAlias(
+  "^mydsl who (.+)$",
+  [[MyDSL.who(matches[2])]]
 )
 
 
@@ -131,6 +274,7 @@ MyDSL.State.scan         = MyDSL.State.scan         or {  -- text: nearby entiti
   mode=nil, direction=nil, rows={}, rightHere={}, byName={}, last_updated=0
 }
 MyDSL.State.creaturelore = MyDSL.State.creaturelore or { last_updated = 0 }  -- text: creature lore block
+MyDSL.State.equipment    = MyDSL.State.equipment    or { last_updated = 0 }  -- text: worn/wielded equipment by slot
 MyDSL.State.combat = MyDSL.State.combat or {
   active      = {},    -- keyed by target-key; each entry: {target_display, target_condition, by_attacker, started_at}
   history     = {},    -- array of snapshots (same shape), most recent first
@@ -162,12 +306,8 @@ MyDSL.listeners = MyDSL.listeners or {}
 -- can kill them cleanly when the script reloads.
 MyDSL._handlers = MyDSL._handlers or {}
 
--- Trigger IDs from tempRegexTrigger, kept so we can kill them on reload.
-MyDSL._triggers = MyDSL._triggers or {}
-
--- Alias IDs from tempAlias, kept so we can kill them on reload. DataLayer
--- had no aliases of its own until the log-toggle ones (2026-07-05).
-MyDSL._aliases = MyDSL._aliases or {}
+-- _triggers/_aliases initialization moved to Section 1 (2026-07-06) --
+-- see the comment there for why.
 
 
 ------------------------------------------------------------------------
@@ -337,6 +477,20 @@ MyDSL._handlers.login_data = registerAnonymousEventHandler(
     if name and name ~= "" then
       MyDSL.Data[name] = MyDSL.Data[name] or {}
       MyDSL.restoreChar(name)
+      -- Fixed 2026-07-07, per Steven: every character-bound settings file
+      -- (chat_settings/MyDSL_layout/MyDSL_windowstate/TargetView/
+      -- AffectsView/CombatView/History font configs) resolves its path
+      -- via a charName() that falls back to "Unknown" until GMCP
+      -- identifies the character -- and on a genuinely fresh Mudlet
+      -- start, each module's own initial load() runs at script-boot time,
+      -- before login, so they'd load "Unknown"'s settings (or bare
+      -- defaults) and never pick up the real character's saved settings
+      -- once login completes -- restoreChar() above only restores
+      -- State.score/lunar/flags/improve/affects, nothing per-window.
+      -- Raising this lets every character-bound module re-run its own
+      -- load+apply once the real name is known, closing that gap in one
+      -- place instead of per-module timing hacks.
+      raiseEvent("MyDSL.character.identified", name)
     end
   end
 )
@@ -919,7 +1073,15 @@ function MyDSL.parseWeatherLine(line)
   local lc = desc:lower()
   local found = false
   for _, w in ipairs(_weatherWords) do
-    if lc:find(w, 1, true) then found = true; break end
+    -- Word-boundary match, not plain substring (fixed 2026-07-06). The
+    -- trigger itself is intentionally broad (any capitalized sentence,
+    -- matches ~13% of all lines) and this filter is the real safety net --
+    -- but a plain substring check meant "sun" matched inside "Sunday",
+    -- confirmed live-corrupting MyDSL.State.weather with the log-session-
+    -- start banner ("Log session starting at ... on Sunday...") every time
+    -- a new Mudlet log file opened. Frontier pattern requires a non-letter
+    -- on both sides of the word.
+    if lc:find("%f[%a]" .. w .. "%f[%A]") then found = true; break end
   end
   if not found then return end
   update("weather", { description = desc })
@@ -1368,6 +1530,87 @@ function MyDSL.endScan()
   if MyDSL._triggers.scanBody then
     pcall(killTrigger, MyDSL._triggers.scanBody)
     MyDSL._triggers.scanBody = nil
+  end
+  MyDSL.State.scan.last_updated = os.time()
+  MyDSL.emit("scan")
+end
+
+
+------------------------------------------------------------------------
+-- 9o.1  LOOK -- refresh RightHere from a full room look, not just scan
+------------------------------------------------------------------------
+-- Fixed 2026-07-07, per Steven: "RightHere should update on look too, not
+-- just scan." `look`'s room-content lines use a different, plainer format
+-- than scan's ("<Name> is here[, <status>].", optionally prefixed with a
+-- "(<Flag>) " tag) -- confirmed real text from log/2026-07-07#18-29-43.html:
+-- "(Golden Aura) A gnome factory worker is here.", "(Charmed) a wild bear
+-- is here, fighting a gnome machinist.", "A gnome is here using levers and
+-- pullies to yank up a large parts of the" (no comma at all before the
+-- trailing description). Anchored on the room's own "[Exits: ...]" line
+-- (always the line immediately after the room description, immediately
+-- before its content listing) rather than a fixed header phrase, since
+-- `look` has no distinct start-of-listing banner the way scan's "Looking
+-- around you see:" does -- this also means RightHere now refreshes on
+-- every room entry (movement reprints the room), not just an explicit
+-- `look`, which is a strict improvement, not scope creep (still 100%
+-- observational, no command ever sent). Long status phrases can wrap onto
+-- a following physical line (confirmed: "...keeping the gears" /
+-- "lubricated." split across two lines in the same real example) --
+-- since only presence (not the wrapped remainder) matters for RightHere,
+-- continuation lines are recognized by starting with a lowercase letter
+-- (DSL always capitalizes the start of a new game message) and are
+-- skipped without ending capture. Any other line ends capture, since
+-- look's listing has no blank-line terminator the way scan's does --
+-- real-time events (arrivals, tells, etc.) can start appearing
+-- immediately after the last content line with no gap.
+
+function MyDSL.beginLook()
+  MyDSL.State.scan = MyDSL.State.scan or {
+    mode = nil, direction = nil, rows = {}, rightHere = {}, byName = {}, last_updated = 0,
+  }
+  MyDSL.State.scan.rightHere = {}
+  -- Only one listing-capture should ever be active at a time -- kill a
+  -- leftover scan catch-all too, not just a leftover look one.
+  if MyDSL._triggers.scanBody then
+    pcall(killTrigger, MyDSL._triggers.scanBody)
+    MyDSL._triggers.scanBody = nil
+  end
+  if MyDSL._triggers.lookBody then
+    pcall(killTrigger, MyDSL._triggers.lookBody)
+    MyDSL._triggers.lookBody = nil
+  end
+  MyDSL._triggers.lookBody = tempRegexTrigger(".*", function()
+    if not (MyDSL and MyDSL.State and MyDSL.State.scan) then return end
+    local ln = getCurrentLine()
+    local t  = trim(ln)
+    if t == "" then MyDSL.endLook(); return end
+    if MyDSL.parseLookHereLine(ln) then return end
+    if t:match("^%l") then return end  -- wrapped continuation, keep capturing
+    MyDSL.endLook()
+  end)
+end
+
+function MyDSL.parseLookHereLine(line)
+  local scan = MyDSL.State.scan
+  if not scan then return false end
+  local rest = line:match("^%([^()]+%)%s*(.+)$") or line
+  local name = rest:match("^(.-) is here%f[%A]")
+  if not name then return false end
+  name = trim(name)
+  if name == "" then return false end
+  local key    = name:lower():gsub("^[Aa]n? ", ""):gsub("^[Tt]he ", "")
+  local is_mob = isMobName(name)
+  scan.rightHere[key] = {
+    raw = line, name = name, display = name, key = key,
+    where = "right here", is_mob = is_mob, count = 1,
+  }
+  return true
+end
+
+function MyDSL.endLook()
+  if MyDSL._triggers.lookBody then
+    pcall(killTrigger, MyDSL._triggers.lookBody)
+    MyDSL._triggers.lookBody = nil
   end
   MyDSL.State.scan.last_updated = os.time()
   MyDSL.emit("scan")
@@ -1939,6 +2182,97 @@ end
 
 
 ------------------------------------------------------------------------
+-- 9r  EQUIPMENT
+------------------------------------------------------------------------
+-- Ported 2026-07-07 from DSL_PNP_Character.equipment.lua (PNP/EMCO
+-- cannibalization pass, Phase E) -- passive capture only. PNP's own
+-- version also has a useItem() convenience that SENDS commands
+-- (wear/wield/get) -- deliberately NOT ported: this file's own header
+-- says "Never sends commands to the game", and CLAUDE.md reserves
+-- user-initiated game commands for a display-module button (like
+-- TargetView's action buttons), not Layer 1. A future EquipmentView
+-- could add an interactive "use equipped item" button if wanted.
+--
+-- Real format confirmed against 154 unique lines in the clean corpus:
+--   "You are using:"
+--   "<used as light>     (Blue Aura) (Glowing) a Guiding jewel -[30] ..."
+--   "<worn on finger>    (nothing)"
+--   "<worn about body>   a long robe -[30] 7/7/7/3 (W)-1S,2D ..."
+-- Slot descriptions actually seen: "floating nearby", "held", "secondary
+-- weapon", "sheathed", "used as light", "wielded", "worn about
+-- body/waist", "worn around neck/wrist", "worn as quiver/shield",
+-- "worn on arms/feet/finger/hands/head/legs/torso" -- matches PNP's own
+-- expected slot list. finger/neck/wrist auto-number to 1/2 (you can wear
+-- two), same as PNP. Item text can itself contain parens after any
+-- leading flag-parens (weapon/armor stat blocks like "(W)-1S,2D (R)
+-- 4Con,2H") -- the trigger only captures broad boundaries (slot / rest
+-- of line), the flags-vs-item split happens in Lua below, where it's
+-- just stripping consecutive leading "(x) " groups -- avoids relying on
+-- PCRE backtracking to split two overlapping-charset capture groups the
+-- way PNP's own regex does.
+
+local equipBlock = {}
+local ringIdx, neckIdx, wristIdx = 0, 0, 0
+
+-- Same filler words PNP strips, same order -- confirmed via the log-
+-- corpus test above that this normalizes every real slot string seen.
+local EQUIP_FILLER_WORDS = { "worn ", "used ", "as ", "on ", "around ", "about ", " nearby", " weapon" }
+
+local function normalizeEquipSlot(raw)
+  local slot = raw
+  for _, w in ipairs(EQUIP_FILLER_WORDS) do
+    slot = slot:gsub(w, "", 1)
+  end
+  slot = trim(slot)
+  if slot == "finger" then ringIdx = ringIdx + 1; slot = slot .. ringIdx end
+  if slot == "neck"   then neckIdx = neckIdx + 1; slot = slot .. neckIdx end
+  if slot == "wrist"  then wristIdx = wristIdx + 1; slot = slot .. wristIdx end
+  return slot
+end
+
+function MyDSL.beginEquip()
+  equipBlock = {}
+  ringIdx, neckIdx, wristIdx = 0, 0, 0
+  if MyDSL._triggers.equipBody then
+    pcall(killTrigger, MyDSL._triggers.equipBody)
+    MyDSL._triggers.equipBody = nil
+  end
+  MyDSL._triggers.equipBody = tempRegexTrigger(".*", function()
+    local ln = getCurrentLine()
+    if trim(ln) == "" then MyDSL.endEquip(); return end
+    local rawSlot, rest = ln:match("^<([a-z ]+)>%s*(.+)$")
+    if rawSlot and MyDSL.parseEquipLine then MyDSL.parseEquipLine(rawSlot, rest) end
+  end)
+end
+
+function MyDSL.parseEquipLine(rawSlot, rest)
+  local slot = normalizeEquipSlot(rawSlot)
+  if rest == "(nothing)" then
+    equipBlock[slot] = { item = nil, flags = {} }
+    return
+  end
+  local flags = {}
+  local remaining = rest
+  while true do
+    local flag, tail = remaining:match("^%((.-)%)%s*(.*)$")
+    if not flag then break end
+    flags[#flags + 1] = flag
+    remaining = tail
+  end
+  equipBlock[slot] = { item = trim(remaining), flags = flags }
+end
+
+function MyDSL.endEquip()
+  if MyDSL._triggers.equipBody then
+    pcall(killTrigger, MyDSL._triggers.equipBody)
+    MyDSL._triggers.equipBody = nil
+  end
+  update("equipment", { slots = equipBlock })
+  equipBlock = {}
+end
+
+
+------------------------------------------------------------------------
 -- SECTION 10: TRIGGER REGISTRATION
 ------------------------------------------------------------------------
 -- Score header: "Score for Kien -= Zandreya =- (Companion) *Observer*"
@@ -2096,6 +2430,17 @@ MyDSL._triggers.scanDir = tempRegexTrigger(
   end
 )
 
+-- Room's own "[Exits: ...]" line -- always immediately precedes a `look`'s
+-- (or any room reprint's, e.g. after movement) content listing. See the
+-- beginLook() comment above for why this anchor was picked over a fixed
+-- header phrase.
+MyDSL._triggers.lookExits = tempRegexTrigger(
+  "^\\[Exits: .*\\]\\s*$",
+  function()
+    if MyDSL and MyDSL.beginLook then MyDSL.beginLook() end
+  end
+)
+
 -- "Players near you:" -- fires independently of scan's own catch-all (which
 -- only uses this line to know scan has ended, doesn't gag/route it itself).
 MyDSL._triggers.playersNearStart = tempRegexTrigger(
@@ -2131,6 +2476,15 @@ MyDSL._triggers.loreStart = tempRegexTrigger(
   function()
     if MyDSL and MyDSL.beginCreatureLore then
       MyDSL.beginCreatureLore(getCurrentLine())
+    end
+  end
+)
+
+MyDSL._triggers.equipStart = tempRegexTrigger(
+  "^You are using:$",
+  function()
+    if MyDSL and MyDSL.beginEquip then
+      MyDSL.beginEquip()
     end
   end
 )
