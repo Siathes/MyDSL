@@ -32,6 +32,12 @@ MyDSL.Windows  = MyDSL.Windows  or {}
 -- deregister them cleanly when the script reloads.
 MyDSL.Windows._handlers = MyDSL.Windows._handlers or {}
 
+-- Safe-reload: kill any handler from a previous load before re-registering.
+if MyDSL.Windows._handlers.characterIdentified then
+  pcall(killAnonymousEventHandler, MyDSL.Windows._handlers.characterIdentified)
+  MyDSL.Windows._handlers.characterIdentified = nil
+end
+
 
 ------------------------------------------------------------------------
 -- SECTION 2: SAVE FILE PATH
@@ -40,7 +46,30 @@ MyDSL.Windows._handlers = MyDSL.Windows._handlers or {}
 -- Layout positions have their own file managed by LayoutEngine.
 -- Using a local so it never leaks into the global environment.
 
-local STATE_FILE = getMudletHomeDir() .. "/MyDSL_windowstate.lua"
+-- Character-bound as of 2026-07-07 (was a single shared file) -- matches
+-- the project's recorded decision that all settings should be
+-- character-bound. Computed fresh on each call (not a fixed local) since
+-- gmcp.login_data may not be populated yet at script-load time, before login.
+local function stateCharName()
+  if gmcp and gmcp.login_data and gmcp.login_data.name and gmcp.login_data.name ~= "" then
+    return tostring(gmcp.login_data.name)
+  end
+  if MyCore and MyCore.getChar then
+    local ok, name = pcall(MyCore.getChar)
+    if ok and name and name ~= "" then return tostring(name) end
+  end
+  return "Unknown"
+end
+
+local function stateSafeFileName(s)
+  s = tostring(s or "Unknown"):gsub("[^%w_%-%.]+", "_"):gsub("^_+", ""):gsub("_+$", "")
+  if s == "" then s = "Unknown" end
+  return s
+end
+
+local function STATE_FILE()
+  return getMudletHomeDir() .. "/MyDSL_windowstate_" .. stateSafeFileName(stateCharName()) .. ".lua"
+end
 
 
 ------------------------------------------------------------------------
@@ -164,7 +193,6 @@ MyDSL.Windows.registry = MyDSL.Windows.registry or {
   MyDSL_MoonWeather      = { obj=nil, type="Container",  visible=true,  created=false, lockStyle="padding" },
   MyDSL_AsciiMap         = { obj=nil, type="Container",  visible=false, created=false },
   MyDSL_Banner           = { obj=nil, type="Container",  visible=false, created=false },  -- hidden until content arrives
-  MyDSL_Bloodbath        = { obj=nil, type="Container",  visible=false, created=false },  -- hidden until content arrives
 }
 
 
@@ -368,7 +396,11 @@ function MyDSL.Windows.saveState()
   for name, entry in pairs(MyDSL.Windows.registry) do
     state[name] = entry.visible
   end
-  table.save(STATE_FILE, state)
+  local ok = pcall(table.save, STATE_FILE(), state)
+  if not ok then
+    debugc("[MyDSL] WindowRegistry: failed to save window state to " .. STATE_FILE())
+  end
+  return ok
 end
 
 -- loadState()
@@ -376,17 +408,17 @@ end
 -- Called before ensureAll() so windows are created with the correct
 -- visibility state rather than having to be hidden immediately after.
 -- If no state file exists, all windows use their registry defaults
--- (most visible=true, Mapper/Inventory/Equipment/Banner/Bloodbath false).
+-- (most visible=true, Mapper/Inventory/Equipment/Banner false).
 
 function MyDSL.Windows.loadState()
-  local f = io.open(STATE_FILE, "r")
+  local f = io.open(STATE_FILE(), "r")
   if not f then
     -- No saved state — use whatever is in the registry definition.
     return
   end
   f:close()
 
-  local loaded = table.load(STATE_FILE)
+  local loaded = table.load(STATE_FILE())
   if type(loaded) ~= "table" then
     debugc("[MyDSL] WindowRegistry: state file unreadable — using defaults.")
     return
@@ -500,6 +532,22 @@ if not MyDSL.Windows._saveAliasInstalled then
   MyDSL.Windows._saveAliasInstalled = true
 end
 
+-- "mydsl layout reset" -- added 2026-07-07 alongside MyDSL.Layout.resetAll()
+-- (closes the confirmed LOW PRIORITY "resetAll() does not exist" gap).
+-- Resets in-memory positions to defaults and reflows all windows, but
+-- does not persist until "mydsl layout save" is run afterward -- same
+-- explicit-save convention as every other layout change.
+if not MyDSL.Windows._resetAliasInstalled then
+  tempAlias("^mydsl layout reset$", function()
+    if MyDSL.Layout and MyDSL.Layout.resetAll then
+      MyDSL.Layout.resetAll()
+      if MyDSL.Layout.reflowAll then MyDSL.Layout.reflowAll(MyDSL.Windows.registry) end
+      cecho("\n<green>[MyDSL] Layout reset to defaults (run 'mydsl layout save' to persist).\n")
+    end
+  end)
+  MyDSL.Windows._resetAliasInstalled = true
+end
+
 
 ------------------------------------------------------------------------
 -- SECTION 11: STARTUP SEQUENCE
@@ -514,6 +562,25 @@ patchUserWindowConstructor()
 MyDSL.Windows.loadState()
 MyDSL.Windows.ensureAll()
 if loadWindowLayout then loadWindowLayout() end
+
+-- Re-load once the real character is known -- fixed 2026-07-07. loadState()
+-- above runs at script-boot time, which on a genuinely fresh Mudlet start
+-- happens before login, so it loads "Unknown"'s visibility state (or bare
+-- defaults) and would otherwise never pick up this character's real saved
+-- state. MyDSL_DataLayer.lua's gmcp.login_data handler raises
+-- "MyDSL.character.identified" once the real name is known; re-load and
+-- apply visibility to whatever windows already exist (loadState() only
+-- updates the registry's `visible` field, it doesn't touch already-created
+-- window objects, so show()/hide() are called explicitly here).
+MyDSL.Windows._handlers.characterIdentified = registerAnonymousEventHandler(
+  "MyDSL.character.identified",
+  function()
+    MyDSL.Windows.loadState()
+    for name, entry in pairs(MyDSL.Windows.registry) do
+      if entry.visible then MyDSL.Windows.show(name) else MyDSL.Windows.hide(name) end
+    end
+  end
+)
 
 
 ------------------------------------------------------------------------
