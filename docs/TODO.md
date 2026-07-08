@@ -9,17 +9,45 @@ DEFERRED gets started without an explicit go-ahead.
 
 ---
 
+## BLOCKING — 4 real modules were never wired into Mudlet's load sequence
+Found 2026-07-07 by actually running the new `mydsl test` smoke test live:
+it reported `ChatTriggers`, `CharacterAssist`, `Roller`, `RawCapture` as
+MISSING. Confirmed via `current/autosave.xml`: every other module
+(`MyDSL_DataLayer`, `MyDSL_ChatWrapper`, etc.) has its own Script entry
+under the `MyDSL_Full` group with a single `dofile("...")` line — these 4
+don't have one at all. The code is correct and committed; it has simply
+never executed in the live profile. This means every "needs live
+confirmation" item below tagged **(*)** could not actually have been
+tested yet, no matter what was tried, since the module never ran.
+
+- [ ] **Add 4 new Script entries in Mudlet's Script Editor**, under the
+      same `MyDSL_Full` group as the existing ones, each with one line
+      (same path prefix the existing entries use):
+      ```
+      dofile("/home/owner/Desktop/Mudlet/mudlet-data/profiles/DSL2/MyDSL_ChatTriggers.lua")
+      dofile("/home/owner/Desktop/Mudlet/mudlet-data/profiles/DSL2/MyDSL_CharacterAssist.lua")
+      dofile("/home/owner/Desktop/Mudlet/mudlet-data/profiles/DSL2/MyDSL_Roller.lua")
+      dofile("/home/owner/Desktop/Mudlet/mudlet-data/profiles/DSL2/MyDSL_RawCapture.lua")
+      ```
+      Then save the profile, do a **full Mudlet restart**, and run
+      `mydsl test` again — should report "all 23 loaded OK". This is a
+      native-XML/GUI change, not something to hand-edit on disk while the
+      profile is live.
+
+---
+
 ## NEEDS LIVE CONFIRMATION
 Fixed in code, verified via syntax checks and/or the emulation test harness
 (`test/mudlet_mock.lua`) — none of this is closed until Steven confirms it
-in-game. Full technical detail for any of these: `git log --oneline` +
-`docs/CHANGELOG.md`.
+in-game. **(*)** = blocked on the dofile gap above; don't bother testing
+these until that's fixed. Full technical detail for any of these:
+`git log --oneline` + `docs/CHANGELOG.md`.
 
 - [ ] Logging defaults rework — `mydsl log <category> on` re-enables a
       debug-only window's log file
 - [ ] AffectsView countdown paces correctly in real time; near-expiry color
       warning fires
-- [ ] CharacterAssist: rearm (weapon+shield), standup, spellup/setspell,
+- [ ] (*) CharacterAssist: rearm (weapon+shield), standup, spellup/setspell,
       blind-vision check
 - [ ] Equipment capture — `eq`/`equipment` populates `MyDSL.State.equipment`
 - [ ] TargetView `[Friend]`/`[Enemy]` tag — `dslcolor friend/enemy <name>`,
@@ -27,24 +55,36 @@ in-game. Full technical detail for any of these: `git log --oneline` +
 - [ ] `mydsl who <name>` passthrough to `dslcolor show <name>`
 - [ ] DataLayer fresh-start crash fix — needs a **full Mudlet restart**,
       not just a script reload, to actually test
-- [ ] ChatTriggers channel routing (3 rewrite passes) — real chat activity
-      reaches the right EMCO tabs
+- [ ] (*) ChatTriggers channel routing (3 rewrite passes) — real chat
+      activity reaches the right EMCO tabs
 - [ ] `mydsl help` / `mydsl history font <n>` commands work
-- [ ] `MyDSL_RawCapture.lua` — needs Steven to place its `dofile()` first
-      in Script editor load order, then test if raw text ever differs from
-      displayed text
+- [ ] (*) `MyDSL_RawCapture.lua` — needs Steven to place its `dofile()`
+      first in Script editor load order, then test if raw text ever
+      differs from displayed text
 - [ ] TargetView group/follower safety guard — target a charmed pet/group
       member, murder/order-all buttons should be gone
 - [ ] TargetView/GroupView kill vs murder verb fix — order-all/murder a
       mob should now say "kill", not "murder"
-- [ ] Roller — next character creation
+- [ ] (*) Roller — next character creation
 - [ ] RightHere updates on `look`, not just `scan`
 - [ ] CombatView/History font persistence — `mydsl combat font <n>` /
       `mydsl history font <n>` survive a real restart
 - [ ] Action-button color contrast — Rescue/cure-spell buttons actually
       readable now
-- [ ] Character-binding "Unknown" fallback fix — confirm across a real
-      fresh login (not just an in-session script reload)
+- [x] Character-binding "Unknown" fallback fix — **confirmed 2026-07-07,
+      with an explained side effect.** Kien's UI loaded with the generic
+      default layout, then snapped to a different (visually "collapsed")
+      arrangement right as login completed — this is the fix working
+      exactly as designed: Kien had no `MyDSL_layout_Kien.lua` yet
+      (character-binding is brand new), so the very first
+      `MyDSL.character.identified` event found nothing to load and
+      `reflowAll()` re-applied LayoutEngine's generic defaults, overriding
+      whatever Mudlet's own `restoreLayout`/`autoDock` had put windows at
+      from a previous session. Steven manually rearranged the UI after —
+      running `mydsl layout save` now will create `MyDSL_layout_Kien.lua`
+      so this won't recur for Kien. Same one-time snap should be expected
+      the first time any other character logs in post-fix, fixed the same
+      way (save once).
 - [ ] GroupView name truncation (cosmetic)
 - [ ] `considerEasyKill`/`considerNoMatch` text in-game
 - [ ] `MyDSL.logWindow()` fragmented-row fix — GroupView/TargetView logs
