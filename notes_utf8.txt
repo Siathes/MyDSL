@@ -23,28 +23,21 @@ tell me what happened and I'll close them out in TODO.md/CHANGELOG.md.
 
 [ ] mydsl log <category> on re-enables a debug window's log file
 [ ] Rearm (weapon+shield), standup, spellup/setspell, blind-vision check
-[ ] eq / equipment populates equipment data
+[ ] eq / equipment populates equipment data (not built yet -- real eq
+    text format confirmed via logs, ready whenever this gets picked up)
 [ ] Roller -- next character creation
-[ ] Look around a populated room with charmed pets present -- RightHere
-    should finally populate now (real root cause found and fixed: a
-    self-retrigger bug that closed capture instantly on every look,
-    before any content was ever seen) -- needs one more check in a busy
-    room like Northeast end of the Clockworks
+[ ] Look around a populated room with duplicate mobs -- RightHere now
+    populates (self-retrigger bug fixed) and mob counts should increment
+    correctly now (was always showing count 1, fixed) -- needs one more
+    check to confirm counts display right
 [ ] Rescue/cure-spell buttons actually readable now -  these are still blue and underlined see screenshot
 [ ] Consider text ("easy kill" / "no match") shows correctly
-[ ] GroupView/TargetView logs show one line per row, not one word per line
-[ ] Quiet mode -- check that "Gag promt line1" (native trigger) no longer
-    leaves the raw vitals prompt visible after you update its pattern per
-    docs/TODO.md's new entry
 
-(done since last check: RightHere-on-look's real root cause found and
-fixed -- a self-retrigger where the capture-body trigger, installed while
-the "[Exits: ...]" line was still being processed, immediately re-fired
-on that same line and closed capture before any content was ever seen;
-closed 8 confirmed-live checklist items -- Friend/Enemy tag, mydsl who
-passthrough, full-restart crash fix, chat routing basic check, mydsl
-help/history font, charmed-pet button guard, kill-vs-murder verb, GroupView
-name truncation, Improve bar populating; diagnosed the quiet-mode prompt
-gag bug -- native trigger fix needed, see docs/TODO.md)
+(done since last check: RightHere-on-look actually populates now for the
+first time ever -- self-retrigger bug fixed; two more real bugs found
+from your screenshots and fixed -- mob counts weren't incrementing on
+duplicates, and a floating-dagger item line was silently dropping every
+mob listed after it in one room; GroupView/TargetView log-format fix and
+the quiet-mode prompt gag fix both confirmed live, closed)
 
 i will use cecho to make comment in the log

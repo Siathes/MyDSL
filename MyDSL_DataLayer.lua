@@ -1533,6 +1533,13 @@ local function isLookFixtureLine(line)
       or line:match("are lying here%f[%A]") ~= nil
       or line:match("has been left here%f[%A]") ~= nil
       or line:match("^You see .- here%f[%A]") ~= nil
+      -- Found live 2026-07-08: "(Glowing) (Humming) A Parrying dagger
+      -- floats above the ground." has no "here"/"in the room" anchor at
+      -- all, so it fell through every check (including the broad mob
+      -- fallback) straight to "unrelated event, end capture" -- confirmed
+      -- via screenshot to have silently dropped 4 real gnomes/excavators
+      -- listed right after it in the same room.
+      or line:match("floats above the ground%f[%A]") ~= nil
 end
 
 -- isCharmedStatusLine() -- added 2026-07-08. Real bug found live: charmed/
@@ -1654,10 +1661,22 @@ function MyDSL.parseLookHereLine(line)
   if name == "" then return false end
   local key    = name:lower():gsub("^[Aa]n? ", ""):gsub("^[Tt]he ", "")
   local is_mob = isMobName(name)
-  scan.rightHere[key] = {
-    raw = line, name = name, display = name, key = key,
-    where = "right here", is_mob = is_mob, count = 1,
-  }
+  -- Fixed 2026-07-08, per Steven ("not updating correctly on mob
+  -- counts"): this used to unconditionally overwrite scan.rightHere[key]
+  -- with a fresh count=1 table every time, so a room with 3 identical
+  -- mobs (e.g. "A gnome in a protective heat suit is studying here."
+  -- appearing twice) always showed count=1 in the RightHere window --
+  -- each repeat just clobbered the previous one instead of incrementing.
+  -- Matches the same increment-if-exists pattern parseScanLine already
+  -- uses for scan.rightHere just above.
+  if scan.rightHere[key] then
+    scan.rightHere[key].count = scan.rightHere[key].count + 1
+  else
+    scan.rightHere[key] = {
+      raw = line, name = name, display = name, key = key,
+      where = "right here", is_mob = is_mob, count = 1,
+    }
+  end
   return true
 end
 

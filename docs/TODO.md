@@ -82,39 +82,36 @@ in-game. Full technical detail for any of these: `git log --oneline` +
       mob should now say "kill", not "murder". **Confirmed live 2026-07-08
       by Steven** — closing.
 - [ ] Roller — next character creation
-- [ ] **RightHere-on-look — round 4, actual real root cause found via live
-      trace 2026-07-08, fix applied, needs one more live confirmation
-      before closing.** `mydsl righthere dump` (added as a live
-      diagnostic after round 3's static checks all came back clean) showed
-      0 entries / capture inactive on every single real `look`, so a
-      temporary debug trace was added directly to the trigger chain
-      (anchor fire, `beginLook()` entry, capture success, `endLook()`
-      entry) and Steven ran one more real test. **The trace nailed it
-      immediately: `endLook()` was firing on the exact same "[Exits: ...]"
-      line that had just fired `lookExits` and installed the capture body,
-      every single time, before any real content line was ever seen.**
-      Root cause: `lookBody`'s `.*` catch-all gets installed by
-      `lookExits`'s callback *while that same line is still being
-      processed*, and Mudlet evaluates newly-registered triggers against
-      the current line in the same pass — so the brand-new `lookBody`
-      immediately re-fires on the very "[Exits: ...]" line that created
-      it, which isn't recognized as fixture/mob/charm/continuation, so it
-      falls through to "unrelated event, end capture" and closes
-      immediately. This is why rounds 1-3 were all individually correct
-      but the feature never worked even once, ever, in real gameplay —
-      capture always self-terminated before reaching any content.
-      Fixed with one line: `lookBody` now explicitly ignores a line
-      matching the Exits-line shape itself (`^%[Exits: .*%]$`) as a
-      keep-capturing no-op, same treatment as a wrapped continuation line.
-      Verified via emulation reproducing the exact self-retrigger
-      (installing the body then immediately firing it again against the
-      same anchor line) — capture survives, all real entities after it
-      get captured. Removed the temporary debug traces. This is the
-      fourth and (confirmed via live trace, not just static analysis)
-      actual root cause — needs Steven to do one more `look` in a busy
-      room to confirm RightHere finally populates before this closes for
-      real. Known low-priority gap from an earlier round, still unfixed:
-      a handful of proper-named NPCs use non-standard verb phrases with no
+- [ ] **RightHere-on-look — round 4 (self-retrigger) confirmed live via
+      screenshots 2026-07-08; round 5 (count + floating-item fixture)
+      fixed same day, not yet live-confirmed.** Round 4's
+      real root cause: `lookBody`'s `.*` catch-all got installed by
+      `lookExits`'s callback *while that same "[Exits: ...]" line was
+      still being processed*, and Mudlet evaluates newly-registered
+      triggers against the current line in the same pass — so the
+      brand-new `lookBody` immediately re-fired on the very line that
+      created it, which fell through to "unrelated event, end capture"
+      before any real content was ever seen. This is why rounds 1-3 were
+      all individually correct but the feature never worked even once in
+      real gameplay. Fixed with one line: `lookBody` now ignores a line
+      matching the Exits-line shape itself as a keep-capturing no-op.
+      Steven's next live test (5 screenshots, a busy multi-room gnome
+      corridor) confirmed capture finally runs, but surfaced two more real
+      bugs: **(1)** `parseLookHereLine()` unconditionally overwrote
+      `scan.rightHere[key]` with a fresh `count = 1` table on every match,
+      so duplicate mobs (2 identical gnomes in the same room) never
+      incremented — fixed to match `parseScanLine`'s existing
+      increment-if-exists pattern. **(2)** one screenshot showed RightHere
+      completely empty despite 4 real gnomes in the room — traced to
+      `"(Glowing) (Humming) A Parrying dagger floats above the ground."`,
+      a never-seen item verb phrase with no "here"/"in the room" anchor at
+      all, falling through every check straight to "unrelated event, end
+      capture" — added `"floats above the ground"` to
+      `isLookFixtureLine()`. Both verified via emulation against the exact
+      real room sequences from the screenshots. Needs one more `look` in a
+      busy room with duplicate mobs to confirm counts now show correctly
+      before this fully closes. Known low-priority gap, still unfixed: a
+      handful of proper-named NPCs use non-standard verb phrases with no
       "A/An/The" prefix to anchor on ("Sorbus the Hermit is sitting
       here...") and still end capture early if encountered — revisit only
       if it turns out to matter live.
@@ -153,8 +150,9 @@ in-game. Full technical detail for any of these: `git log --oneline` +
 - [x] GroupView name truncation (cosmetic). **Confirmed live 2026-07-08 by
       Steven** — closing.
 - [ ] `considerEasyKill`/`considerNoMatch` text in-game
-- [ ] `MyDSL.logWindow()` fragmented-row fix — GroupView/TargetView logs
-      show one line per row, not one word per line
+- [x] `MyDSL.logWindow()` fragmented-row fix — GroupView/TargetView logs
+      show one line per row, not one word per line. **Confirmed live
+      2026-07-08 by Steven** — closing.
 - [x] LiveView Improve bar — type `improve`, check the bar populates with
       skill/percent/remaining minutes. **Confirmed live 2026-07-08 by
       Steven** — closing. Steven separately noted the displayed time
@@ -212,33 +210,17 @@ Steven: "make it work like PNP, then discuss the additions"):
 ---
 
 ## OPEN — Reported bugs, not yet fixed
-- [ ] **Quiet-mode prompt gag failure — found root cause 2026-07-08, needs
-      a native trigger edit Steven has to make himself.** Steven's note:
-      "the quiet tag/indicator when def, ungags the prompt line." Confirmed
-      via corpus grep: normal vitals prompt is `"[1005/1005HP | 1004/938M |
-      316/316MV ] [ Offensive | neutral | Common |  ]"`, but quiet mode
-      prepends a literal `"[Quiet] "` tag —
-      `"[Quiet] [1605/1605HP | 789/960M | 406/406MV ] [ Offensive | neutral
-      | Elvish |  ]"`. The gag mechanism for this is a **native Mudlet
-      trigger** (`MyDSL_PromptView.lua`'s header documents it as
-      "required in Mudlet Trigger Editor, not created by this script" —
-      not something I can edit directly). Found the real live trigger in
-      `current/*.xml`: named **"Gag promt line1"** (sic, real typo in the
-      name), pattern `^\[\d+/\d+HP \| \d+/\d+M \| \d+/\d+MV \] \[ .* \| .*
-      \| .* \| .* \]$` — requires the line to start with `[` immediately
-      followed by digits, so the `"[Quiet] "` prefix breaks the match and
-      the raw vitals line shows up ungagged in the main console whenever
-      quiet mode is on. **Fix Steven needs to make in Mudlet's Trigger
-      Editor**: open trigger "Gag promt line1" and change its pattern to
-      `^(?:\[Quiet\] )?\[\d+/\d+HP \| \d+/\d+M \| \d+/\d+MV \] \[ .* \| .*
-      \| .* \| .* \]$` (just adds an optional non-capturing `(?:\[Quiet\]
-      )?` at the front) — verified this matches both the quiet and
-      non-quiet real prompt text. Also noticed in passing while reading
-      this trigger: its script is a bare `deleteLine()`, not gated by
+- [x] **Quiet-mode prompt gag failure — found and fixed 2026-07-08.**
+      Quiet mode prepends a literal `"[Quiet] "` tag to the vitals prompt,
+      which broke the native prompt-gag trigger's start-anchored pattern
+      (required `[` immediately followed by digits). Fix was in a native
+      Mudlet trigger ("Gag promt line1", sic), not a `.lua` file, so
+      Steven applied the corrected pattern himself in the Trigger Editor.
+      **Confirmed live** ("doesnt gag prompt now after new pattern added")
+      — closing. Unrelated doc/reality drift noticed in passing, not
+      fixed: that trigger's script is a bare `deleteLine()`, not gated by
       `MyDSL.Prompt.enabled` the way `MyDSL_PromptView.lua`'s own header
-      comment describes ("Triggers always fire; they check enabled before
-      calling deleteLine()") — a doc/reality drift, not in scope to fix
-      here, just flagging it.
+      comment describes.
 - [x] **GroupView not populating — confirmed fixed 2026-07-07, per Steven
       live.** "groupview works, there have been many edits since that bug
       report." Not independently isolated to one specific fix — resolved
