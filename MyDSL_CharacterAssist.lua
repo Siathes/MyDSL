@@ -396,6 +396,16 @@ CA._triggers.lightOut = tempRegexTrigger([[^[\w\s]+ flickers and goes out.$]], f
 
 -- Standup
 CA._triggers.knockdown = tempRegexTrigger([[^.+ knocking you senseless.$]], function() MyDSL.CharacterAssist.standup() end)
+-- Second, distinct knockdown form -- found 2026-07-08, per Steven ("stand
+-- does not work with character assist after being knocked down"): real
+-- text confirmed from logs is "<actor> bumps into you causing you to lose
+-- your balance." followed by "You sit down." -- a completely different
+-- message from "knocking you senseless" above, never covered. Triggered
+-- on the bump line itself, not "You sit down." -- that status line alone
+-- is almost certainly ambiguous with deliberately typing "sit" to rest
+-- (standard DIKU/ROM convention), which must never be auto-stood back up;
+-- the bump line is unambiguously involuntary.
+CA._triggers.knockdownBump = tempRegexTrigger([[^.+ bumps into you causing you to lose your balance.$]], function() MyDSL.CharacterAssist.standup() end)
 
 -- Spellup outcome triggers -- disabled by default, only enabled for the
 -- duration of an active spellup run (see startSpellup()/stop() above).
