@@ -50,10 +50,53 @@ if CV.config.show_condition    == nil then CV.config.show_condition    = false e
 if CV.config.summarize_damage  == nil then CV.config.summarize_damage  = true  end
 if CV.config.dam_format        == nil then CV.config.dam_format        = "%a%r %n %v %t (%d)" end
 if CV.config.summary_format    == nil then CV.config.summary_format    = "%a%r %n %v %t (%d)" end
+-- fontSize -- 2026-07-07 per Steven ("battle text needs to be a little
+-- smaller 8?"): default already matched what he asked for, but it was a
+-- bare hardcoded literal with no way to change/persist it. Wired into the
+-- same per-window font-persistence pattern every other window uses
+-- (mydsl combat font <n>), character-bound like TargetView/AffectsView.
+if CV.config.fontSize          == nil then CV.config.fontSize          = 8 end
 
 -- Window / MiniConsole name constants.
 local COMBAT_WIN = "MyDSL_Combat"
 local COMBAT_MC  = "MyDSL_Combat_MC"
+
+------------------------------------------------------------------------
+-- Config persistence -- character-bound, same pattern as
+-- MyDSL_TargetView.lua/MyDSL_AffectsView.lua's charName()/safeFileName().
+------------------------------------------------------------------------
+
+local function charName()
+  if gmcp and gmcp.login_data and gmcp.login_data.name and gmcp.login_data.name ~= "" then
+    return tostring(gmcp.login_data.name)
+  end
+  if MyCore and MyCore.getChar then
+    local ok, name = pcall(MyCore.getChar)
+    if ok and name and name ~= "" then return tostring(name) end
+  end
+  return "Unknown"
+end
+
+local function safeFileName(s)
+  s = tostring(s or "Unknown"):gsub("[^%w_%-%.]+", "_"):gsub("^_+", ""):gsub("_+$", "")
+  if s == "" then s = "Unknown" end
+  return s
+end
+
+local function configFile()
+  return getMudletHomeDir() .. "/MyDSL/combatview_config_" .. safeFileName(charName()) .. ".lua"
+end
+
+local function loadConfig()
+  local ok, data = pcall(table.load, configFile())
+  if ok and type(data) == "table" and type(data.fontSize) == "number" then
+    CV.config.fontSize = data.fontSize
+  end
+end
+
+local function saveConfig()
+  pcall(table.save, configFile(), { fontSize = CV.config.fontSize })
+end
 
 -- Flag-code → display tag map (single-letter codes, gold text) -- used only
 -- by renderSummary() below, our own fight-history addition.
@@ -163,17 +206,19 @@ end
 ------------------------------------------------------------------------
 
 function CV.init()
+  loadConfig()
+
   local combatWin = MyDSL.Windows.ensure(COMBAT_WIN)
   if not CV._mc.combat then
     CV._mc.combat = Geyser.MiniConsole:new({
       name      = COMBAT_MC,
       x = 0, y = 0, width = "100%", height = "100%",
       wrapWidth = 400,
-      fontSize  = 8,
+      fontSize  = CV.config.fontSize,
       scrollBar = true,
     }, combatWin)
   end
-  if CV._mc.combat then CV._mc.combat:setFontSize(8) end
+  if CV._mc.combat then CV._mc.combat:setFontSize(CV.config.fontSize) end
 
   -- Event handlers. Note: no "MyDSL.combat.updated" subscription anymore --
   -- the live per-swing feed happens immediately via CV.appendSwing(),
@@ -188,6 +233,21 @@ function CV.init()
     "MyDSL.combat_rage",
     function(_, dmg, vamp) CV.renderRage(dmg, vamp) end)
 
+  -- Re-load once the real character is known -- fixed 2026-07-07. The
+  -- loadConfig() call above runs at script-boot time, which on a
+  -- genuinely fresh Mudlet start happens before login, so it loads
+  -- "Unknown"'s font size (or the bare default) and would otherwise
+  -- never pick up this character's real saved font. MyDSL_DataLayer.lua's
+  -- gmcp.login_data handler raises "MyDSL.character.identified" once the
+  -- real name is known.
+  CV._handlers.characterIdentified = registerAnonymousEventHandler(
+    "MyDSL.character.identified",
+    function()
+      loadConfig()
+      if CV._mc.combat then CV._mc.combat:setFontSize(CV.config.fontSize) end
+    end
+  )
+
   -- Initial state.
   if CV._mc.combat then
     CV._mc.combat:clear()
@@ -199,8 +259,26 @@ end
 
 
 ------------------------------------------------------------------------
+-- setFont(size)  —  change + persist the Combat window's font size
+------------------------------------------------------------------------
+
+function CV.setFont(size)
+  size = tonumber(size)
+  if not size then echo("usage: mydsl combat font <size>\n"); return end
+  CV.config.fontSize = size
+  if CV._mc.combat then CV._mc.combat:setFontSize(size) end
+  saveConfig()
+  echo("Combat font=" .. tostring(size) .. "\n")
+end
+
+
+------------------------------------------------------------------------
 -- Aliases
 ------------------------------------------------------------------------
+
+CV._aliases.combatFont = tempAlias(
+  "^mydsl combat font (\\d+)$",
+  [[MyDSL.CombatView.setFont(matches[2])]])
 
 CV._aliases.combatClear = tempAlias(
   "^mydsl combat clear$",
