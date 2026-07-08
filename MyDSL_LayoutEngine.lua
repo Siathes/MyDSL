@@ -32,6 +32,12 @@ MyDSL.Layout  = MyDSL.Layout  or {}
 -- one — the resize event would fire the layout function two, three, four times.
 MyDSL.Layout._handlers = MyDSL.Layout._handlers or {}
 
+-- Safe-reload: kill any handler from a previous load before re-registering.
+if MyDSL.Layout._handlers.characterIdentified then
+  pcall(killAnonymousEventHandler, MyDSL.Layout._handlers.characterIdentified)
+  MyDSL.Layout._handlers.characterIdentified = nil
+end
+
 
 ------------------------------------------------------------------------
 -- SECTION 2: DEFAULT POSITIONS
@@ -118,9 +124,6 @@ MyDSL.Layout.defaults = MyDSL.Layout.defaults or {
 
   -- MyDSL_Banner: center-screen overlay for announcements and alerts.
   MyDSL_Banner           = { x=0.20, y=0.40, w=0.40, h=0.10 },
-
-  -- MyDSL_Bloodbath: bottom overlay for bloodbath/event messages.
-  MyDSL_Bloodbath        = { x=0.10, y=0.75, w=0.46, h=0.08 },
 }
 
 
@@ -138,6 +141,18 @@ MyDSL.Layout.defaults = MyDSL.Layout.defaults or {
 -- then modifying positions["MyDSL_Chat"].x would also modify defaults["MyDSL_Chat"].x
 -- because both variables point at the same table in memory.
 -- A deep copy gives each entry its own independent table.
+
+-- resetAll() -- added 2026-07-07, closing a confirmed LOW PRIORITY gap
+-- ("resetAll() does not exist"). Promotes the deep-copy-to-defaults logic
+-- below into a callable function instead of only running once at
+-- first-ever load, so a window that's been dragged somewhere unreachable
+-- can be reset without deleting the save file by hand.
+function MyDSL.Layout.resetAll()
+  MyDSL.Layout.positions = {}
+  for name, pos in pairs(MyDSL.Layout.defaults) do
+    MyDSL.Layout.positions[name] = { x=pos.x, y=pos.y, w=pos.w, h=pos.h }
+  end
+end
 
 if not MyDSL.Layout.positions then
   MyDSL.Layout.positions = {}
@@ -160,7 +175,30 @@ end
 -- This is a local variable — it never needs to be accessed from outside
 -- this file. Declaring it local keeps the global namespace clean.
 
-local SAVE_FILE = getMudletHomeDir() .. "/MyDSL_layout.lua"
+-- Character-bound as of 2026-07-07 (was a single shared file) -- matches
+-- the project's recorded decision that all settings should be
+-- character-bound. Computed fresh on each call (not a fixed local) since
+-- gmcp.login_data may not be populated yet at script-load time, before login.
+local function layoutCharName()
+  if gmcp and gmcp.login_data and gmcp.login_data.name and gmcp.login_data.name ~= "" then
+    return tostring(gmcp.login_data.name)
+  end
+  if MyCore and MyCore.getChar then
+    local ok, name = pcall(MyCore.getChar)
+    if ok and name and name ~= "" then return tostring(name) end
+  end
+  return "Unknown"
+end
+
+local function layoutSafeFileName(s)
+  s = tostring(s or "Unknown"):gsub("[^%w_%-%.]+", "_"):gsub("^_+", ""):gsub("_+$", "")
+  if s == "" then s = "Unknown" end
+  return s
+end
+
+local function SAVE_FILE()
+  return getMudletHomeDir() .. "/MyDSL_layout_" .. layoutSafeFileName(layoutCharName()) .. ".lua"
+end
 
 
 ------------------------------------------------------------------------
@@ -175,7 +213,11 @@ local SAVE_FILE = getMudletHomeDir() .. "/MyDSL_layout.lua"
 -- This is much simpler than writing a custom file format.
 
 function MyDSL.Layout.save()
-  table.save(SAVE_FILE, MyDSL.Layout.positions)
+  local ok = pcall(table.save, SAVE_FILE(), MyDSL.Layout.positions)
+  if not ok then
+    debugc("[MyDSL] LayoutEngine: failed to save layout to " .. SAVE_FILE())
+  end
+  return ok
 end
 
 -- load()
@@ -188,7 +230,7 @@ function MyDSL.Layout.load()
   -- io.open is Lua's standard file-open function.
   -- We open in read mode ("r") just to test if the file exists.
   -- If it doesn't exist, io.open returns nil and we skip the load.
-  local f = io.open(SAVE_FILE, "r")
+  local f = io.open(SAVE_FILE(), "r")
   if not f then
     -- No save file found — first run, or file was deleted. Use defaults.
     return
@@ -198,7 +240,7 @@ function MyDSL.Layout.load()
   -- table.load() reads the serialized file and returns the table it contains.
   -- We load into a temporary variable first so that if the load fails
   -- (e.g. the file is corrupt), we don't overwrite good live data.
-  local loaded = table.load(SAVE_FILE)
+  local loaded = table.load(SAVE_FILE())
   if type(loaded) ~= "table" then
     debugc("[MyDSL] LayoutEngine: save file corrupt or unreadable — using defaults.")
     return
@@ -455,6 +497,27 @@ end
 -- If no save file exists, this is a silent no-op and defaults are used.
 
 MyDSL.Layout.load()
+
+
+------------------------------------------------------------------------
+-- SECTION 10: RE-LOAD ONCE THE REAL CHARACTER IS KNOWN
+------------------------------------------------------------------------
+-- Fixed 2026-07-07: the load() call above runs at script-boot time, which
+-- on a genuinely fresh Mudlet start happens before login -- so it loads
+-- "Unknown"'s save file (or bare defaults) and would otherwise never pick
+-- up this character's real saved layout. MyDSL_DataLayer.lua's
+-- gmcp.login_data handler raises "MyDSL.character.identified" once the
+-- real name is known; re-load and reflow any windows that already exist.
+
+MyDSL.Layout._handlers.characterIdentified = registerAnonymousEventHandler(
+  "MyDSL.character.identified",
+  function()
+    MyDSL.Layout.load()
+    if MyDSL.Windows and MyDSL.Windows.registry and MyDSL.Layout.reflowAll then
+      MyDSL.Layout.reflowAll(MyDSL.Windows.registry)
+    end
+  end
+)
 
 
 ------------------------------------------------------------------------
