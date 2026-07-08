@@ -465,7 +465,23 @@ end)
 
 ### perm Triggers (saved to profile, visible in editor)
 
-These show up in the Triggers editor and survive profile reloads. Best for permanent chat routing, status detection. **Our existing chat routing triggers use this approach.**
+These show up in the Triggers editor and survive profile reloads.
+
+**Correction (2026-07-07, found doing a full validity scan of this file after Steven asked twice —
+this section was flatly wrong about actual project practice, not just an unconfirmed web claim):**
+this used to claim *"Best for permanent chat routing, status detection. Our existing chat routing
+triggers use this approach"* and stated outright that project principle was to use
+`permSubstringTrigger`/`permRegexTrigger` for all chat/gameplay triggers. **Neither claim matches
+reality.** `MyDSL_ChatTriggers.lua`'s `route()` helper — read and edited repeatedly this session —
+calls `tempRegexTrigger()`, not `permRegexTrigger()`. Every single `MyDSL_*.lua` module touched this
+entire session (`DataLayer`, `AffectsView`, `CombatView`, `ChatTriggers`, `CharacterAssist`, `Roller`,
+`RouteHelper`, ...) uses the same real, consistent, working pattern instead: `tempRegexTrigger`/
+`tempAlias`, tracked in a per-module `_triggers`/`_aliases` table, with a `deregisterTriggers()`
+kill-then-recreate call at the top of the file so re-running `dofile()` during development never
+creates duplicates. Zero modules use `permRegexTrigger`/`permAlias` anywhere in this codebase. This
+section's example code is still valid Mudlet API syntax (useful if perm triggers are ever wanted for
+something), but the specific project-practice claims attached to it were wrong — corrected here rather
+than silently deleted, since the wrong version had been sitting here uncorrected for a while.
 
 ```lua
 -- These are normally created in the Trigger editor, but can be created via Lua:
@@ -486,7 +502,10 @@ permRegexTrigger("PromptCapture", "",
 )
 ```
 
-**Important:** Our project principle is that all chat and gameplay triggers should be visible in the Trigger editor, not hidden in scripts. Use `permSubstringTrigger`/`permRegexTrigger` or create them manually in the editor.
+**The actual established pattern in this codebase** (confirmed by direct, repeated observation, not a
+web claim): `tempRegexTrigger`/`tempAlias`, module-owned `_triggers`/`_aliases` tables, kill-and-
+recreate on every `dofile()`. Follow that, not the perm-trigger framing above, unless there's a
+specific new reason to deviate.
 
 ### Named Triggers (session-only, controllable)
 
@@ -557,6 +576,23 @@ resumeNamedTimer("MyDSL", "TickCountdown")
 ---
 
 ## 19. EMCO INTERNALS — How demonnic.chat Works
+
+**Resolved (2026-07-07):** this section was originally written from general EMCO/Geyser knowledge,
+then flagged uncertain during the validity scan, then fully settled by directly reading
+`EMCOChat/emco.lua`'s real `EMCO:append()`/`EMCO:xEcho()` functions (line 1660 and 1781). First
+confirmed the vendored file is byte-for-byte identical (same md5) to `src/resources/emco.lua` in the
+genuine upstream `~/Downloads/EMCO-2.9.0.zip` package, so it's unmodified real EMCO source, not a
+local fork. The real call chain, read directly, turns out to be **both** things previously discussed,
+combined: `EMCO:append(tabName, excludeAll)` (line 1660) is a thin validating wrapper that calls
+`self:xEcho(tabName, nil, 'a', excludeAll)` (the correction from earlier this session), and `xEcho`
+itself, for `xtype == "a"`, internally does exactly `getCurrentLine()` (gag-check) → `selectCurrentLine()`
+→ save fg/bg colors → `copy()` → restore bg if `preserveBackground` → `deselect()` → `resetFormat()` →
+(later in the same function) `console:appendBuffer()` (+ mirrors to the "all" tab, + deletes the line
+if `self.gag` is set). So the original doc text below ("internally calls `selectCurrentLine()` +
+`copy()` + `targetConsole:appendBuffer()`") was an accurate description of the *net effect*, just one
+call-frame removed — that logic lives inside `xEcho`, not directly inside `append()`. Both prior
+versions of this note undersold how close the original claim actually was. No remaining uncertainty
+on this specific point.
 
 ### What EMCO Actually Is
 
@@ -753,13 +789,16 @@ end
 
 ## 21. DYNAMIC ALIAS CREATION
 
-For completeness — aliases follow the same temp/perm/named pattern as triggers:
+For completeness — aliases follow the same temp/perm/named pattern as triggers. **As with Section 18,
+`tempAlias` is what's actually used everywhere in this codebase** — every alias in every `MyDSL_*.lua`
+module is a `tempAlias`, tracked in the module's own `_aliases` table, re-created on reload. `permAlias`
+below is real Mudlet API, just not what this project actually does anywhere.
 
 ```lua
--- Session-only alias:
+-- Session-only alias -- the real pattern used throughout this codebase:
 tempAlias("^score$", [[send("score"); MyDSL.Score.capturing = true]])
 
--- Permanent (appears in Alias editor):
+-- Permanent (appears in Alias editor) -- valid API, not used in this project:
 permAlias("ScoreAlias", "", "^score$", 
   [[send("score"); MyDSL.Score.capturing = true]])
 

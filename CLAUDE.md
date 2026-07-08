@@ -115,10 +115,40 @@ only hold what git history and the code can't already tell you.** That's:
   update` alias does `uninstallPackage()` + reinstall from GitHub — must not
   survive into our copy). GMCP should be used wherever it covers the same
   ground as a text trigger. Full rationale: `docs/MyDSL_MudletAPIReference.md`.
-  Confirmed violation found immediately on first audit: `MyDSL_ChatWrapper.lua`
-  invented `mydsl chat show/hide/font/...` instead of reusing EMCO's own
-  `emco show/hide/font/...` — see `docs/TODO.md` for the full command-surface
-  gap inventory as it's built out.
+  **Correction (2026-07-07), superseding the 2026-07-06 correction below:**
+  the original claim was right and the 2026-07-06 "fix" was wrong. Root
+  cause: the native alias literally named `emco` (bare, no suffix) has its
+  regex tag sitting *after* a long multi-branch `<script>` body in
+  `current/autosave.xml`; the check that produced the 2026-07-06 correction
+  only read ~800 chars past the `<name>` tag and never reached the
+  `<regex>` tag, so it concluded no such alias existed. The real, active
+  (`isActive="yes"`) regex is `^emco (save|load|font|fontSize|blink|
+  blankLine|timestamp|show|hide)(?: (.+))?$` — confirmed both in
+  `current/autosave.xml` directly and independently in the real upstream
+  package (`~/Downloads/EMCO-2.9.0.zip`'s `src/aliases/EMCO/aliases.json`).
+  So `emco show`, `emco hide`, `emco font <name>`, `emco fontSize <n>`,
+  `emco blink`, `emco blankLine`, `emco timestamp`, `emco save`, `emco load`
+  are all real, live commands. **Narrowed 2026-07-07, same day, after
+  tracing what each sub-verb actually operates on** (see `docs/TODO.md`'s
+  closed `emco <verb>` item for the full trace): `emco show`/`hide` act on
+  `demonnic.container`, the *original* native `Adjustable.Container` —
+  `MyDSL_ChatWrapper.lua`'s `C.hideOldPrebuilt()` deliberately hides that
+  forever since MyDSL replaced it with its own `MyDSL_Chat` Geyser window,
+  so `emco show`/`hide` don't affect the visible chat at all here; `mydsl
+  chat show`/`hide` are correct as-is, **not** a duplication, and were
+  **not** rerouted. `emco font`/`fontSize` (unlike show/hide) read
+  `demonnic.chat` fresh each time they fire, which MyDSL reassigns to its
+  own live object (`MyDSL_ChatWrapper.lua:313`) — so `emco fontSize <n>`
+  and `mydsl chat font <n>` (numeric, maps to EMCO's `fontSize` not `font`,
+  which takes a name) really do both call `:setFontSize()` on the same
+  live object. That one's real but low-stakes (left as-is since `mydsl
+  chat font` also persists to MyDSL's own settings file, which `emco
+  fontSize` doesn't) — a code comment records this in
+  `MyDSL_ChatWrapper.lua` so it isn't miscorrected again.
+  (Struck-through, kept for the record of the mistake: "EMCO's real native
+  aliases are `emco addtab/color/color usage/gaglist/gag/lock/notify/
+  remtab/title/ungag/unlock/unnotify/update/usage` — there is no `emco
+  show/hide/font` at all." This was itself wrong, per above.)
 
 ## Character-binding — confirmed status as of 2026-07-05 audit
 Correctly character-bound: DataLayer's `MyDSL.Data[charName]` persistent

@@ -220,33 +220,81 @@ recreating PNP/EMCO functionality from scratch instead of reusing it — the sam
 evasion-trigger bug above, just at the command-surface level instead of a single trigger pattern.
 
 **The gap this is meant to catch:** "port PNP/EMCO's logic" is not the same thing as "port PNP/EMCO's
-commands." Confirmed on the first pass: EMCO's real, documented alias surface (from
-`EMCO-2.9.0/src/aliases/EMCO/aliases.json` in the full archive at `~/Downloads/EMCO-2.9.0.zip`) is:
+commands."
+
+**Second correction (2026-07-07, same day, after re-checking the archive again):** the correction
+directly above this one was ITSELF wrong, and the original claim (that `emco save/load/font/fontSize/
+blink/blankLine/timestamp/show/hide` is real) was right all along. Root cause of the mistake: the
+"verify against `current/autosave.xml`" check that produced the correction above only read about 800
+characters past the `<name>emco</name>` tag before giving up — but the bare `emco` alias's `<script>`
+body (a long multi-branch handler) runs longer than that, so the check never reached the `<regex>` tag
+that comes *after* the script, and concluded "not found" when it just hadn't read far enough.
+
+Re-checked properly this time, reading the full block: `current/autosave.xml` has an `Alias
+isActive="yes"` literally named `emco` (bare) with:
+```
+<regex>^emco (save|load|font|fontSize|blink|blankLine|timestamp|show|hide)(?: (.+))?$</regex>
+```
+and a script body whose first line is `local valid_options = {"font", "fontSize", "blink",
+"blankLine", "timestamp", "save", "load", "show", "hide"}`. This is live and active in this profile
+today, confirmed by two independent sources: the native XML directly, and `~/Downloads/
+EMCO-2.9.0.zip`'s `src/aliases/EMCO/aliases.json`, which defines the identical alias/regex.
+
+**So `emco show`, `emco hide`, `emco font <name>`, `emco fontSize <n>`, `emco blink`, `emco
+blankLine`, `emco timestamp`, `emco save`, `emco load` are all real, live commands** — bundled under
+one alias named plainly `emco`, not separately-named aliases per verb (that's why grepping alias
+*names* for "show"/"hide"/"font" found nothing; the verb lives in the regex, not the name). The full
+real native alias list is:
 
 ```
-emco (save|load|font|fontSize|blink|blankLine|timestamp|show|hide) [value]
-emco gag <tab>          emco ungag <tab>          emco gaglist
-emco notify <tab>       emco unnotify <tab>
-emco addtab <name> [pos]   emco remtab <tab>
-emco color <tab> <color>   emco color               (usage)
-emco title <text>
+emco addtab <name>       emco remtab <tab>
+emco color <tab> <color>   emco color usage
+emco gaglist              emco gag <tab>          emco ungag <tab>
 emco lock                emco unlock
+emco notify <tab>        emco unnotify <tab>
+emco title <text>
 emco update               -- SELF-UPDATER, do not port: uninstallPackage() +
                               reinstall from GitHub releases
+emco usage
+emco (save|load|font|fontSize|blink|blankLine|timestamp|show|hide) [value]
 ```
 
-But `MyDSL_ChatWrapper.lua` built an entirely separate `mydsl chat
-show/hide/font/wrap/timestamp/save/reload settings/...` vocabulary instead of just calling into EMCO's
-own aliases. Functionally fine, but it means a PNP/EMCO user migrating to this UI has to learn a
-second, parallel command set for functionality EMCO already named — exactly what Steven's mandate
-prohibits.
+**Narrowed 2026-07-07, same day, after tracing what each sub-verb actually operates on** (full trace
+in `docs/TODO.md`'s closed `emco <verb>` item): the four verbs above don't behave uniformly, because
+`emco show`/`hide` and `emco font`/`fontSize` read different objects.
 
-**Rule:** before adding an alias for something PNP or EMCO already exposes a command for, check its
-actual alias/command names (grep `PNP files/*.lua` for `dslpnp.triggers.register`/alias patterns;
-check `EMCO-2.9.0.zip`'s `aliases.json` for EMCO's) and reuse that vocabulary directly rather than
-inventing a `mydsl <module> <verb>` equivalent. Internal implementation can and should still be adapted
-for our window system (Geyser.UserWindow vs PNP's windowManager) and data layer (GMCP vs text-parsing)
-— it's the user-facing command names that need to match, not the code underneath them.
+`emco show`/`hide` call `demonnic.container:show()`/`:hide()` — `demonnic.container` is the
+**original native `Adjustable.Container`** (`"EMCOPrebuiltChatContainer"`), a *different* object from
+the chat console. `MyDSL_ChatWrapper.lua`'s `C.hideOldPrebuilt()` (called from `createInWindow()`)
+deliberately hides that container forever, since MyDSL replaced it with its own `MyDSL_Chat` Geyser
+window (`C.window`, WindowRegistry-integrated). So `emco show`/`hide` don't touch the visible chat
+window in this profile at all — `mydsl chat show`/`hide` (`MyDSL_ChatWrapper.lua:622-623`) are
+correct as written and are **not** a duplication; they were not rerouted.
+
+`emco font`/`fontSize`/`blink`/`blankLine`/`timestamp`, by contrast, all read
+`local chatEMCO = demonnic.chat` fresh, inside the alias body, each time they fire — and
+`MyDSL_ChatWrapper.lua:313` (`demonnic.chat = obj`) reassigns that same global to MyDSL's own live
+EMCO instance. So these sub-verbs genuinely do act on the real, currently-visible console: `emco
+fontSize <n>` calls `:setFontSize()` on the exact same object `mydsl chat font <n>` does
+(`C.applyFont()` also calls `ch:setFontSize()`). This one **is** a real, confirmed, low-stakes
+duplication — left as-is rather than merged, since `mydsl chat font` also persists the value to
+MyDSL's own settings file (`C.saveSettings()`), which `emco fontSize` doesn't touch, so it isn't a
+pure reinvention either. `MyDSL_ChatWrapper.lua`'s `font (\d+)` alias takes a *number*, which
+semantically matches EMCO's `fontSize` (numeric point size), not EMCO's `font` (font *name* string)
+— a code comment near `C.setFont()`/`installAliases()` now records this mapping so it isn't
+miscorrected into calling the wrong EMCO method later.
+
+One more nuance found tracing this: `emco save`/`load` (native `demonnic.helpers.save/load`) use a
+**module-level** `chatEMCO` upvalue that's only reassigned inside `demonnic.helpers.
+resetToDefaults()` — a function MyDSL never calls. So unlike the sub-verbs above, `emco save`/`load`
+almost certainly act on the stale original prebuilt object, not MyDSL's live chat — effectively
+disconnected. Not independently re-verified beyond tracing the assignment; flagged, not asserted as
+fully confirmed.
+
+**Rule, reconfirmed the hard way twice on the same claim:** when reading a large XML/script blob to
+check "does tag X exist after tag Y," don't cap the read window arbitrarily short — a `<script>` body
+between `<name>` and `<regex>` can run to several KB. Read the whole `<Alias>...</Alias>` block, or
+search for the closing tag explicitly, not a fixed character offset.
 
 ---
 
@@ -268,3 +316,43 @@ wording, whether a line was gagged from main) and anything a module explicitly e
 console. They are the **wrong** tool for confirming whether a custom window actually displayed
 something — that requires a screenshot. Don't conclude a window-only feature is broken (or working)
 from log absence/presence; check a screenshot from the same moment instead.
+
+---
+
+## CONFIRMED: a Debug-window-style view shows live GMCP events; UI navigation details NOT confirmed
+
+**Source, split by actual confidence level (corrected 2026-07-07 — the first version of this entry
+overstated the web-search part as flatly "confirmed" when it wasn't; flagging that mistake here on
+purpose rather than quietly fixing it, since we've been burned by overconfident secondhand claims
+before):**
+
+**Directly confirmed (Steven's own live session, not a web claim):** opening whatever window he
+opened printed "System Message: gmcp event `<gmcp.char_data>` display(gmcp) to see the full content"
+into his session, and typing `lua display(gmcp)` in-game then dumped the entire current `gmcp` table
+as readable text — we have the actual captured output. This mechanism is real and directly witnessed.
+
+**NOT independently confirmed — web search only, and the two searches disagreed with each other:**
+exactly which icon/shortcut opens this specific view. First search said "ladybug icon or Ctrl+8"
+opens the debug window. A second search said Ctrl+8 opens the **Error** console specifically, and
+described "error console, statistics generator, and debug console" as three separate features within
+the Script Editor — not one window with a stats button. Both `WebFetch` attempts on the actual wiki
+pages (`Manual:Mudlet_User_Interface`, `Manual:GMCP_Extensions`) returned HTTP 403, so neither claim
+could be checked against primary source, only AI-summarized search results — the same general
+category of risk as unverified secondhand claims elsewhere in this file (see the EMCO `show/hide/
+font` correction above — that one ultimately turned out true, but only after a truncated-read mistake
+briefly made it look false; the lesson is "verify fully," not "assume secondhand claims are wrong").
+Don't trust the exact icon/shortcut/"Statistics button" details written here without re-checking;
+what to trust is the GMCP-announcement + `display(gmcp)` behavior, which is witnessed, not sourced
+from search.
+
+**Why this matters here:** GMCP payloads are never visible in session logs otherwise (confirmed
+repeatedly this session — GMCP is a side-channel, not printed as console text). Whatever this window
+is, `display(gmcp)` is the one reliable way to actually see real GMCP field names/values, which is
+how the `MyDSL_CharacterAssist.lua` vision check got fixed from an unverified guess
+(`MyDSL.State.room.sector`) to a confirmed fact (`gmcp.room_data.room == "darkness"` while blind) —
+Steven ran `lua display(gmcp)` live while testing and pasted the output. Use this whenever a future
+GMCP-dependent question can't be settled from logs/source alone, instead of guessing.
+
+**On the manual generally:** don't bulk-download it — it's a large MediaWiki site that would go
+stale. Keep using this file (and `_Part2.md`) the way it's already built: a small, curated set of
+specific, *tested* facts added as they're confirmed, not a mirror of the whole site.

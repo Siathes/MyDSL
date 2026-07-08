@@ -35,3 +35,34 @@ into that file.
 Add a new dated block here each session with a short recap if useful --
 kept out for now since docs/TODO.md and docs/CHANGELOG.md are the durable
 record and this file was getting long. Ask if you'd like the recaps back.
+
+there is a Shattered-Archive-release-dev.zip file in downloads that might be worth a browse, i think its the source for the website that hosts a client for DSL
+ i would like the ability to see the charcaters "Skills/Spells to echo to the main screen but also copy to the combat (combat should get everything *same as PNP*) but i want to remove the spam attacks to battle,but see actions i actually make. like PNP. 
+
+battle text needs to be a little smaller 8? history text 7. this should all be tied in with the  layout script tough
+
+order all kill didnt seem to work on the first elf in combat i did it manually
+tibbins doesnt have heal so it wont work on follower, thts fine unless an easy way to tell if characters have healing spells skills.helpfiles might help with that.
+switched to kien
+clicked bear from group, got bear in target window but it should not have the kill option, those should change when group members are selected, so i dont attack a follower/group member
+heal works on bear from group window. kien has healing skill. the heal should change on the skill as wel there are more than one heal (need a solution for these) 
+did a skill spell list
+order all kill greaser did not work from target window
+really need to change the blue actions in the windows i cant read them the contrast is terrible. i use the hover text to tell what they are on my monitor.
+can we find a way to make commands feel more like human speak or mud commands, something more IC and flows like DSL commands
+i turned off timestamps, let me know if it needs to turn back on (helpful for pre/post lag of skils/actions/spells?)
+turned off itemstat triggers for comaprison, what else would you like to see
+
+im not seeing the debufs i cast on the target, like weaken and slow?
+
+need to make sure everything is safe to reload. is the only way to not onflict to close profile and reopen. is there a way to guard/protect things so if i quit a chacater i can just reconnect and it will be like opening a clean profile. is that not a proper method
+
+
+affects winfow treating skills like stealth and riot as spells
+
+the kill/murder button on target window needs like a drop down or manual command option (or whatever better option you have) for vrokt as example, it is better to waylay init combat than to kill/murder init combat.
+
+clean up this log and remove actioned items and header descriptions when the profile is closed.
+
+i will use cecho to make comment in the log
+

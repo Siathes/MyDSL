@@ -658,6 +658,48 @@ form for an entire session, others use both for the same kill (redundant, harmle
 - `^(.+) hits the ground %.%.%. DEAD%.$` (Lua pattern, inside `parseCombatDeathLine`)
 - Triggers: `" is DEAD!!$"` / `" hits the ground \\.\\.\\. DEAD\\.$"` (PCRE)
 
+### Killing-blow flavor text — new pattern class, confirmed 2026-07-07, NOT yet wired to anything
+A random first-person flourish line fires on the finishing hit, alongside (not instead of) the
+normal death line above — confirmed via a 216-file DSL2-era log-catalog pass (dates 2026-06-06
+through 2026-07-07, includes a previously-missed `log/2026-0/` subdirectory the flat `log/*.html`
+glob had skipped). Distinct from the damage VERB severity ladder — these are one-off finishers, not
+part of that ladder:
+```
+You disembowel <target> with amazing skill!
+You cleave <target> in half with one mighty swing!
+You reach through <target>'s chest and pull out its/her/his still beating heart!
+You tear <target>'s windpipe right out of its/his/her throat!
+You pull <target>'s spine out through his/her mouth!
+You smash your weapon through <target>'s skull!
+You smash a hole into <target>'s body and watch his/her spleen fall to the ground!
+You slam into <target>'s body!
+```
+Not wired to any trigger yet — flagged here as confirmed real text for whenever this is picked up
+(e.g. as combat-window flavor, or folded into the death-line capture).
+
+### Disarm — confirmed 2026-07-07 (see also `MyDSL_CharacterAssist.lua`'s rearm triggers)
+```
+An air elemental DISARMS you and sends your weapon flying!         (mob disarms you -- confirmed exact)
+Rylae grabs Moe's weapon and sends it flying!                       (third-person analog, no comma before "and")
+Rylae tries to disarm Moe, but fails.                                (fail form, both directions)
+A cave bear tries to disarm you, but your grip is too strong!        (fail form, self-target variant)
+```
+No literal first-person `"You disarm <name>!"` success form was found anywhere in the 216-file
+corpus — worth remembering if `"Skills/Spells -> Combat window"` (see `docs/TODO.md`) ever tries to
+echo the player's own disarm success, since that exact phrasing doesn't appear to exist. PNP's
+`"grabs your weapon, and sends it flying!"` pattern had a comma the confirmed third-person analog
+doesn't have — `MyDSL_CharacterAssist.lua`'s `disarm2`/`disarm3` triggers made the comma optional
+rather than assert one way, since only the third-person form (not the exact player-as-victim
+wording) was actually confirmed.
+
+### Bash-evasion — new confirmed form, NOT in the 5-form evasion list above
+```
+You evade a gnome machinist's bash, causing him to fall flat on his face.
+You evade the quadrone's bash, causing it to fall flat on its face.
+```
+Distinct from the generic `dodge`/`parry`/`block`/`senses` evasion forms above — this is evading a
+*bash* specifically, with a knockdown-avoidance flourish. Not yet wired to any trigger.
+
 ### Weapon-flag procs — 14 PNP-confirmed + 3 our own (Poison)
 
 **Confirmed gotcha, applies to Frost/Flame/Shock/Vamp/Stun:** the "attacker" side of these lines is
