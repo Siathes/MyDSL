@@ -562,29 +562,13 @@ function MW.toggle()
 end
 
 
-------------------------------------------------------------------------
--- PUBLIC EVENT HANDLERS
-------------------------------------------------------------------------
--- One handler per data section. All four just call render() because
--- render() reads the full current State each time — no partial updates.
-
-function MW.onLunarUpdate()
-  MW.setLunarAnchor()
-  MW.render()
-end
-function MW.onWeatherUpdate() MW.render() end
-function MW.onTickUpdate()
-  local tickStr = gmcp and gmcp.tick and gmcp.tick.time
-  MW.setClockAnchor(tickStr)
-  MW.render()
-end
-function MW.onTimeUpdate()
-  -- Only anchor from State.time when no tick anchor exists yet (first login, before first tick).
-  -- Once a tick has anchored the clock via gmcp.tick.time, the time command must not reset it.
-  if not MW._clock.anchor_real then MW.setClockAnchor(nil) end
-  MW.render()
-end
-function MW.onLoginUpdate()   MW.render() end
+-- Removed 2026-07-07 (full dead-code audit, per Steven): MW.onLunarUpdate/
+-- onWeatherUpdate/onTickUpdate/onTimeUpdate/onLoginUpdate used to live here
+-- as the public event handlers, but _registerHandlers() below was refactored
+-- at some point to use inline anonymous closures instead (same logic,
+-- duplicated inline) and these five named functions were never deleted or
+-- called again from anywhere. Confirmed via a whole-codebase grep -- zero
+-- references outside their own definitions.
 
 
 ------------------------------------------------------------------------
