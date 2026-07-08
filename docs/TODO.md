@@ -165,17 +165,13 @@ Steven: "make it work like PNP, then discuss the additions"):
       live.** "groupview works, there have been many edits since that bug
       report." Not independently isolated to one specific fix — resolved
       as a side effect of everything else touched this session.
-- [ ] **Clan gossip duplicates** — a prior "likely root cause" was
-      investigated and retracted, but **a strong new lead surfaced
-      2026-07-08**: while chasing the chat-capture "S" bug, Steven found
-      and disabled a genuine *second, duplicate set of chat-capture
-      triggers* running alongside `MyDSL_ChatTriggers.lua` (unidentified
-      so far — not yet confirmed which native group/script this was).
-      Given duplicate chat capture was real, this is now the leading
-      theory for the gossip-duplicate report too — same general shape
-      (two things routing the same chat text). Worth re-testing for
-      gossip duplicates specifically now that the second set is off,
-      rather than treating this as still-unexplained.
+- [x] **Clan gossip duplicates — confirmed fixed 2026-07-08, same root
+      cause as the chat "S" bug.** Per Steven: "close clan gossip it was
+      the same issue for the previous chat issue and is resolved." The
+      genuine second, duplicate set of chat-capture triggers (disabled
+      while chasing the "S" bug) was also the real cause of the
+      gossip-duplicate reports — confirmed live, not just a theory.
+      Closing both under the same fix.
 - [x] **Chat capture "S" bug — real root cause found and confirmed fixed
       2026-07-08.** Reopened same day with strong evidence (every routed
       chat line 100% reproducibly followed by a standalone "S" line, per
