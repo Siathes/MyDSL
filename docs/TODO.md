@@ -20,13 +20,16 @@ wasn't running.
 **Resolved 2026-07-08 for 3 of the 4** — Steven added the Script entries
 for `ChatTriggers`, `CharacterAssist`, and `Roller` (confirmed via
 `current/autosave.xml`). Nothing critical remains blocked on this.
-**`MyDSL_RawCapture.lua` — Steven reports moving it out of `MyDSL_Full`
-to the very top of the script tree** (so it's the first thing that runs,
-ahead of any other script/trigger — exactly the intended design, see the
-file's own header comment), **but this isn't reflected in
-`current/autosave.xml` yet** (zero references anywhere, same 23-entry
-`dofile()` count as before) — likely just needs a profile save to
-persist. Re-check next session.
+**`MyDSL_RawCapture.lua` — confirmed via screenshot 2026-07-08
+(`Screenshot_20260708_155236.png`)**: now the very first item in the
+whole script tree (above even "Startups"), checked/enabled, correct
+`dofile(".../MyDSL_RawCapture.lua")` line — exactly right placement, runs
+before any other script/trigger. **Still not in `current/autosave.xml`
+on disk** — this is Mudlet's live in-memory Script Editor state, not yet
+persisted. Needs Steven to click "Save Profile" in the Editor toolbar;
+until then a real Mudlet restart would likely lose this change entirely
+(Mudlet loads from the on-disk file at startup, not the editor's live
+state). Re-check `current/autosave.xml` after that's done.
 
 ---
 
