@@ -19,13 +19,14 @@ console but never reached any EMCO chat tab, since `MyDSL_ChatTriggers.lua`
 wasn't running.
 **Resolved 2026-07-08 for 3 of the 4** — Steven added the Script entries
 for `ChatTriggers`, `CharacterAssist`, and `Roller` (confirmed via
-`current/autosave.xml`). Only `MyDSL_RawCapture.lua` (a diagnostic-only
-tool, off by default even when loaded) still has no entry — same fix if
-ever wanted:
-```
-dofile("/home/owner/Desktop/Mudlet/mudlet-data/profiles/DSL2/MyDSL_RawCapture.lua")
-```
-Nothing critical remains blocked on this.
+`current/autosave.xml`). Nothing critical remains blocked on this.
+**`MyDSL_RawCapture.lua` — Steven reports moving it out of `MyDSL_Full`
+to the very top of the script tree** (so it's the first thing that runs,
+ahead of any other script/trigger — exactly the intended design, see the
+file's own header comment), **but this isn't reflected in
+`current/autosave.xml` yet** (zero references anywhere, same 23-entry
+`dofile()` count as before) — likely just needs a profile save to
+persist. Re-check next session.
 
 ---
 
@@ -87,9 +88,9 @@ in-game. Full technical detail for any of these: `git log --oneline` +
       just no longer drives ongoing persistence. Verified via
       `test/mudlet_mock.lua`: `saveLayout()` calls native
       `saveWindowLayout()` and does not write a custom file;
-      `character.identified` no longer touches layout. Needs Steven to
-      confirm live that native save/restore actually holds a layout
-      across a real restart.
+      `character.identified` no longer touches layout. **Confirmed live
+      2026-07-08 by Steven** ("layout seems to be functioning as it
+      should now") — closing.
 - [ ] GroupView name truncation (cosmetic)
 - [ ] `considerEasyKill`/`considerNoMatch` text in-game
 - [ ] `MyDSL.logWindow()` fragmented-row fix — GroupView/TargetView logs
