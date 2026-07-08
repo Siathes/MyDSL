@@ -19,6 +19,13 @@ don't have one at all. The code is correct and committed; it has simply
 never executed in the live profile. This means every "needs live
 confirmation" item below tagged **(*)** could not actually have been
 tested yet, no matter what was tried, since the module never ran.
+**Confirmed still not fixed as of 2026-07-08** (re-checked
+`current/autosave.xml`, same 4 missing) — directly caused a real symptom
+Steven hit live: `"The ghost of Terri clan gossips (Elvish) 'Ouch!'"`
+printed to the main console (confirmed in the session log) but never
+reached any EMCO chat tab, because `MyDSL_ChatTriggers.lua` — the only
+thing that would have routed it — still isn't running. Not a new/separate
+chat bug; re-test chat routing generally once this is fixed.
 
 - [ ] **Add 4 new Script entries in Mudlet's Script Editor**, under the
       same `MyDSL_Full` group as the existing ones, each with one line
@@ -80,11 +87,40 @@ these until that's fixed. Full technical detail for any of these:
       `MyDSL.character.identified` event found nothing to load and
       `reflowAll()` re-applied LayoutEngine's generic defaults, overriding
       whatever Mudlet's own `restoreLayout`/`autoDock` had put windows at
-      from a previous session. Steven manually rearranged the UI after —
-      running `mydsl layout save` now will create `MyDSL_layout_Kien.lua`
-      so this won't recur for Kien. Same one-time snap should be expected
-      the first time any other character logs in post-fix, fixed the same
-      way (save once).
+      from a previous session.
+      **Recurred 2026-07-08 — confirmed same root cause, not a new bug:**
+      checked both sessions' logs, `mydsl layout save` was never actually
+      typed either time (zero mentions), so nothing was ever persisted —
+      the old pre-character-binding `MyDSL_layout.lua` (June 28) wouldn't
+      have helped either, its saved positions look degenerate (most
+      windows piled at `x=0,y=0`). **Fixed properly 2026-07-08**: layout
+      now auto-saves ~2s after you stop moving a window (debounced, and
+      suppressed during boot/reflow/reset so it can't capture transient
+      dock-churn geometry — see the new "layout auto-save" entry below for
+      the full design). `mydsl layout autosave on|off` to toggle if
+      needed. Needs Steven to confirm live: rearrange windows, wait ~2s,
+      restart Mudlet, confirm the arrangement survived without typing
+      `mydsl layout save` manually.
+- [x] **Layout auto-save — built 2026-07-08, per Steven** ("make auto
+      save but that caused docking issues with claude ai... if you can do
+      it properly i am good with auto save"). Root cause of the prior
+      failure is already documented in `MyDSL_LayoutEngine.lua`'s own
+      SECTION 8 comment: Mudlet's `sysWindowResizeEvent` fires on *every*
+      dock/undock geometry change, not just a genuine user drag — naively
+      saving/reflowing off that event captures transient mid-operation
+      positions. Fixed with two safeguards: (1) `MyDSL.
+      suppressLayoutAutoSave(seconds)`, a time-window any programmatic
+      repositioning (boot, both character-identified reflows, `mydsl
+      layout reset`) sets before touching geometry, so its own resize
+      events can't look like a user drag; (2) a ~2s debounce, so only the
+      final settled state after a drag (or a burst of dock churn) is ever
+      captured. New `mydsl layout autosave on|off` toggle (default on) as
+      a safety valve. Verified via `test/mudlet_mock.lua` with real
+      timer/event dispatch: zero saves scheduled during boot suppression,
+      a genuine post-suppression resize schedules one, rapid repeated
+      events collapse to a single surviving timer, firing it triggers
+      exactly one save, toggle confirmed on/off. Needs Steven to confirm
+      live it doesn't reintroduce the old docking symptoms.
 - [ ] GroupView name truncation (cosmetic)
 - [ ] `considerEasyKill`/`considerNoMatch` text in-game
 - [ ] `MyDSL.logWindow()` fragmented-row fix — GroupView/TargetView logs
