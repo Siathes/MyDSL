@@ -332,6 +332,15 @@ internal logic — see `CLAUDE.md` Philosophy section.
       backup/cross-check for room identity beyond GMCP's `room_data`.
 - [ ] **Data-driven notes/quest tracking** — streamline `notes_utf8.txt`'s
       in-game feature/quest items via data files instead of manual notes.
+- [ ] **Consolidate all native Mudlet objects into one package** — per
+      Steven 2026-07-08 ("this is why i want to pull all mudlet objects
+      into one package so we can troubleshoot cleaner"). Currently
+      scattered across `gui-drop`/`mpkg`/`DslColors_v1_0.../`
+      `generic_mapper`/`EMCOChat`/`MyDSL_Full` plus loose top-level items
+      (`MyDSL_RawCapture`, `Startups`) — a real organizational pain point,
+      directly related to this session's `current/autosave.xml` staleness
+      gotcha and the "which script is actually running" confusion. Large,
+      structural, GUI-driven undertaking — its own future session.
 
 ---
 
