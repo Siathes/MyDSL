@@ -58,72 +58,30 @@ in-game. Full technical detail for any of these: `git log --oneline` +
       **Confirmed live 2026-07-08 by Steven** ("the stand up fix make
       sense, close it also") — closing.
 - [ ] Equipment capture — `eq`/`equipment` populates `MyDSL.State.equipment`
-- [ ] TargetView `[Friend]`/`[Enemy]` tag — `dslcolor friend/enemy <name>`,
-      then target them
-- [ ] `mydsl who <name>` passthrough to `dslcolor show <name>`
-- [ ] DataLayer fresh-start crash fix — needs a **full Mudlet restart**,
-      not just a script reload, to actually test
-- [ ] ChatTriggers channel routing (3 rewrite passes) — real chat
-      activity reaches the right EMCO tabs
-- [ ] `mydsl help` / `mydsl history font <n>` commands work
+- [x] TargetView `[Friend]`/`[Enemy]` tag — `dslcolor friend/enemy <name>`,
+      then target them. **Confirmed live 2026-07-08 by Steven** ("works as
+      intended") — closing.
+- [x] `mydsl who <name>` passthrough to `dslcolor show <name>`.
+      **Confirmed live by Steven** — closing.
+- [x] DataLayer fresh-start crash fix — needs a **full Mudlet restart**,
+      not just a script reload, to actually test. **Confirmed live
+      2026-07-08 by Steven** (no crash on fresh restart) — closing.
+- [x] ChatTriggers channel routing (3 rewrite passes) — real chat
+      activity reaches the right EMCO tabs. **Confirmed live by Steven**
+      — closing. (Separate from the still-open "S"/duplicate-line
+      cosmetic bug tracked below — that's a distinct, still-active issue,
+      not this basic routing check.)
+- [x] `mydsl help` / `mydsl history font <n>` commands work. **Confirmed
+      live 2026-07-08 by Steven** — closing.
 - [ ] `MyDSL_RawCapture.lua` — still needs its `dofile()` entry added
       (see LOW PRIORITY above) before this can be tested at all
-- [ ] TargetView group/follower safety guard — target a charmed pet/group
-      member, murder/order-all buttons should be gone
-- [ ] TargetView/GroupView kill vs murder verb fix — order-all/murder a
-      mob should now say "kill", not "murder"
+- [x] TargetView group/follower safety guard — target a charmed pet/group
+      member, murder/order-all buttons should be gone. **Confirmed live by
+      Steven** ("murder/order-all buttons gone") — closing.
+- [x] TargetView/GroupView kill vs murder verb fix — order-all/murder a
+      mob should now say "kill", not "murder". **Confirmed live 2026-07-08
+      by Steven** — closing.
 - [ ] Roller — next character creation
-- [x] **RightHere-on-look — real bug found and fixed 2026-07-08, third
-      round, this one the actual root cause.** Steven originally reported
-      it "didnt seem to work in Northeast end of the Clockworks." Round 1
-      fixed 3 real bugs in the capture body (item lines, mid-listing blank
-      lines, "stands here" verb coverage). Round 2 fixed a real second bug
-      (charmed pets' varied idle-action verbs like "sloshes around here."/
-      "follows their client." ending capture early, broadened via a
-      generic fallback + `isCharmedStatusLine()` safety net). **Both were
-      real fixes, but Steven reported it was STILL not populating live**,
-      which prompted checking the one thing neither round had actually
-      verified: whether the capture ever starts at all. It doesn't.
-      **Root cause: the trigger that calls `beginLook()` — anchored on
-      `"^\[Exits: .*\]\s*$"` — has never matched a single real line, ever.**
-      Corpus-checked every "Exits:" line across the whole DSL2-era log
-      history (172 distinct room/exit combinations, 100% of them): the
-      real line always has one leading space before the bracket
-      (`" [Exits: north east south west  ]"`), which the trigger's `^\[`
-      start-anchor rejects outright. Every round-1/round-2 fix to the
-      capture *body* logic was real and correct, but moot — the body never
-      ran because the trigger that installs it never fired. My own
-      verification method has a blind spot here: both prior rounds tested
-      via emulation by calling `MyDSL.beginLook()` directly, which
-      bypasses this trigger's pattern entirely and never would have caught
-      this. Fixed the anchor to `"^\s*\[Exits: .*\]\s*$"`. Also hardened
-      the same bug class in `scanAround` (`"Looking around you see:"` —
-      9 of 412 real occurrences have a leading double-space the old exact
-      anchor missed) while in there. Additionally found via a broader
-      corpus sweep (718 candidate "...here."/"...in the room." lines) that
-      the same "unrecognized verb ends capture" problem also silently
-      dropped mobs after common **static room-landmark lines** — much
-      more frequent than charmed pets alone — e.g. "A large beautiful
-      fountain flows here.", "An obsidian statue of a fierce demon stands
-      in the middle of a fountain here.", "A member of the Minotaur Guard
-      stands watch here." — all confirmed via direct log context to sit
-      inside the real presence-listing block, right next to mobs/items.
-      The round-2 broad article-anchored fallback already covers these.
-      Also found and fixed a new false-positive: the broad fallback was
-      catching item lines like "You see a long and sharp Protection Sword
-      here." as a fake mob — added `"^You see .- here"` (9 real
-      occurrences) to `isLookFixtureLine()`. Known remaining gap, not
-      fixed (longer tail, lower value): a handful of proper-named NPCs use
-      non-standard verb phrases with no "A/An/The" prefix to anchor on
-      ("Sorbus the Hermit is sitting here...", "Shilna Sha'enlas stands
-      patiently here...", "Several half-elven girls are here...") — these
-      still end capture early if encountered. Low priority; revisit only
-      if it turns out to matter live. Verified the full fix chain
-      end-to-end via emulation, exercising the actual trigger IDs
-      (anchor → body) rather than calling internal functions directly, to
-      close the exact gap that let this hide through two prior rounds.
-      Needs Steven to confirm live in a busy room again — this time it
-      should actually be exercised at all.
 - [ ] **RightHere-on-look — round 4, actual real root cause found via live
       trace 2026-07-08, fix applied, needs one more live confirmation
       before closing.** `mydsl righthere dump` (added as a live
@@ -155,7 +113,11 @@ in-game. Full technical detail for any of these: `git log --oneline` +
       fourth and (confirmed via live trace, not just static analysis)
       actual root cause — needs Steven to do one more `look` in a busy
       room to confirm RightHere finally populates before this closes for
-      real.
+      real. Known low-priority gap from an earlier round, still unfixed:
+      a handful of proper-named NPCs use non-standard verb phrases with no
+      "A/An/The" prefix to anchor on ("Sorbus the Hermit is sitting
+      here...") and still end capture early if encountered — revisit only
+      if it turns out to matter live.
 - [ ] CombatView/History font persistence — `mydsl combat font <n>` /
       `mydsl history font <n>` survive a real restart
 - [ ] Action-button color contrast — Rescue/cure-spell buttons actually
@@ -188,12 +150,19 @@ in-game. Full technical detail for any of these: `git log --oneline` +
       `character.identified` no longer touches layout. **Confirmed live
       2026-07-08 by Steven** ("layout seems to be functioning as it
       should now") — closing.
-- [ ] GroupView name truncation (cosmetic)
+- [x] GroupView name truncation (cosmetic). **Confirmed live 2026-07-08 by
+      Steven** — closing.
 - [ ] `considerEasyKill`/`considerNoMatch` text in-game
 - [ ] `MyDSL.logWindow()` fragmented-row fix — GroupView/TargetView logs
       show one line per row, not one word per line
-- [ ] LiveView Improve bar — type `improve`, check the bar populates with
-      skill/percent/remaining minutes
+- [x] LiveView Improve bar — type `improve`, check the bar populates with
+      skill/percent/remaining minutes. **Confirmed live 2026-07-08 by
+      Steven** — closing. Steven separately noted the displayed time
+      "does not count down, must be updated by improve command" — this is
+      the deliberate design, not a bug (see `MyDSL_DataLayer.lua:1355`:
+      "the bar shows the last snapshot as-is... rather than a live-ticking
+      countdown", per "stale data beats spam"). No action needed unless
+      Steven actually wants a live countdown, which would be new scope.
 
 ---
 
@@ -243,6 +212,33 @@ Steven: "make it work like PNP, then discuss the additions"):
 ---
 
 ## OPEN — Reported bugs, not yet fixed
+- [ ] **Quiet-mode prompt gag failure — found root cause 2026-07-08, needs
+      a native trigger edit Steven has to make himself.** Steven's note:
+      "the quiet tag/indicator when def, ungags the prompt line." Confirmed
+      via corpus grep: normal vitals prompt is `"[1005/1005HP | 1004/938M |
+      316/316MV ] [ Offensive | neutral | Common |  ]"`, but quiet mode
+      prepends a literal `"[Quiet] "` tag —
+      `"[Quiet] [1605/1605HP | 789/960M | 406/406MV ] [ Offensive | neutral
+      | Elvish |  ]"`. The gag mechanism for this is a **native Mudlet
+      trigger** (`MyDSL_PromptView.lua`'s header documents it as
+      "required in Mudlet Trigger Editor, not created by this script" —
+      not something I can edit directly). Found the real live trigger in
+      `current/*.xml`: named **"Gag promt line1"** (sic, real typo in the
+      name), pattern `^\[\d+/\d+HP \| \d+/\d+M \| \d+/\d+MV \] \[ .* \| .*
+      \| .* \| .* \]$` — requires the line to start with `[` immediately
+      followed by digits, so the `"[Quiet] "` prefix breaks the match and
+      the raw vitals line shows up ungagged in the main console whenever
+      quiet mode is on. **Fix Steven needs to make in Mudlet's Trigger
+      Editor**: open trigger "Gag promt line1" and change its pattern to
+      `^(?:\[Quiet\] )?\[\d+/\d+HP \| \d+/\d+M \| \d+/\d+MV \] \[ .* \| .*
+      \| .* \| .* \]$` (just adds an optional non-capturing `(?:\[Quiet\]
+      )?` at the front) — verified this matches both the quiet and
+      non-quiet real prompt text. Also noticed in passing while reading
+      this trigger: its script is a bare `deleteLine()`, not gated by
+      `MyDSL.Prompt.enabled` the way `MyDSL_PromptView.lua`'s own header
+      comment describes ("Triggers always fire; they check enabled before
+      calling deleteLine()") — a doc/reality drift, not in scope to fix
+      here, just flagging it.
 - [x] **GroupView not populating — confirmed fixed 2026-07-07, per Steven
       live.** "groupview works, there have been many edits since that bug
       report." Not independently isolated to one specific fix — resolved

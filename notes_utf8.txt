@@ -22,34 +22,29 @@ Full detail for anything here: docs/TODO.md. Check items off as you play;
 tell me what happened and I'll close them out in TODO.md/CHANGELOG.md.
 
 [ ] mydsl log <category> on re-enables a debug window's log file
-[x] AffectsView countdown paces correctly in real time; near-expiry color warning fires
 [ ] Rearm (weapon+shield), standup, spellup/setspell, blind-vision check
 [ ] eq / equipment populates equipment data
-[ ] dslcolor friend/enemy <name>, then target them -- [Friend]/[Enemy] tag shows
-[x] mydsl who <name> matches dslcolor show <name>
-[ ] Full Mudlet restart (not reload) -- no crash on fresh start
-[x] Chat routing -- real chat activity reaches the right EMCO tabs (ChatTriggers now wired in)
-[ ] mydsl help / mydsl history font <n> work
-[x] Target a charmed pet/group member -- murder/order-all buttons gone
-[ ] Order-all/murder a mob -- should say "kill", not "murder"
 [ ] Roller -- next character creation
-[ ] Look around a populated room with charmed pets present -- RightHere should now capture everything, including the pet itself (fixed the "sloshes around here"/"follows their client" style verb variety that was ending capture early) -- needs a fresh check in a busy room like Northeast end of the Clockworks
-[x] mydsl combat font <n> / mydsl history font <n> survive a real restart
+[ ] Look around a populated room with charmed pets present -- RightHere
+    should finally populate now (real root cause found and fixed: a
+    self-retrigger bug that closed capture instantly on every look,
+    before any content was ever seen) -- needs one more check in a busy
+    room like Northeast end of the Clockworks
 [ ] Rescue/cure-spell buttons actually readable now -  these are still blue and underlined see screenshot
-[x] Layout: rearrange windows, "mydsl layout save", restart Mudlet -- confirm it holds (native saveWindowLayout() now, per-profile not per-character)
-[ ] GroupView name truncation (cosmetic)
 [ ] Consider text ("easy kill" / "no match") shows correctly
 [ ] GroupView/TargetView logs show one line per row, not one word per line
-[ ] Type "improve" -- LiveView's Improve bar should populate (skill, mastery %, minutes remaining)
+[ ] Quiet mode -- check that "Gag promt line1" (native trigger) no longer
+    leaves the raw vitals prompt visible after you update its pattern per
+    docs/TODO.md's new entry
 
-(done since last check: GroupView confirmed working; killed the 4 dead
-windows Inventory/Equipment/AsciiMap/Banner; deleted the whok/whoc/unread/
-inv/map/affectsText dead code; improve bar built; chat-routing dofile fix
-confirmed applied (3 of 4 modules, RawCapture still optional/not wired);
-layout auto-save + per-character binding both reverted back to
-per-profile + native saveWindowLayout(); RightHere-on-look fixed properly
-this time -- the real bug was charmed/summoned pets' idle-action lines
-using verb phrasing ("sloshes around here", "follows their client", etc)
-that ended capture early, not the blank line I fixed first)
+(done since last check: RightHere-on-look's real root cause found and
+fixed -- a self-retrigger where the capture-body trigger, installed while
+the "[Exits: ...]" line was still being processed, immediately re-fired
+on that same line and closed capture before any content was ever seen;
+closed 8 confirmed-live checklist items -- Friend/Enemy tag, mydsl who
+passthrough, full-restart crash fix, chat routing basic check, mydsl
+help/history font, charmed-pet button guard, kill-vs-murder verb, GroupView
+name truncation, Improve bar populating; diagnosed the quiet-mode prompt
+gag bug -- native trigger fix needed, see docs/TODO.md)
 
 i will use cecho to make comment in the log
