@@ -198,6 +198,29 @@ Steven: "make it work like PNP, then discuss the additions"):
       group/says) rather than one shared root cause as previously assumed.
       `deleteLine()` restoration in `route()` (below) is unaffected by
       this and still believed correct/needed regardless.
+      **2026-07-08, later same day: tried switching `route()` from
+      `append()` to `decho()` with a directly-captured line (bypassing
+      the live console-selection copy entirely) — reverted per Steven**
+      ("revert the decho, that was not what i was try to convey... i do
+      not want to modify the chat till ive had more time to test it").
+      Misread his ask: he wants the *known extra-line artifact itself*
+      detected and suppressed/replaced (an EMCO gag-list addition,
+      possibly even something he can do himself live via the native
+      `emco gag <pattern>` alias — no code change needed at all), not a
+      rewrite of the underlying capture mechanism. `route()` is back to
+      the original `append()` + `deleteLine()` form. **Holding off on any
+      further chat changes until Steven has tested the current state**
+      (native `deleteLine()` restore + the old duplicate trigger set now
+      fully deleted, not just disabled) and reports back.
+      **Sibling-profile log scan (2026-07-08) — dead end, don't repeat.**
+      Checked DSL1/Qinrathaz-Vaelis/all 3 PNP profiles for additional
+      room-presence verb patterns (same method that found "stands here").
+      95-99% of sampled files are verbose debug/framework logging, not
+      real game text; the three "PNP"/"PNP1"/"PNP2" profiles' largest log
+      files are byte-identical mirror copies of each other (not
+      independent data). No new verbs found. DSL2's own corpus remains
+      the best source — a live catch during play beats more log
+      archaeology here.
 - [ ] **autowhere fires while sleeping** — Steven's own alias, not ours;
       low priority for us specifically.
 
