@@ -138,12 +138,18 @@ Steven: "make it work like PNP, then discuss the additions"):
 ---
 
 ## OPEN — Reported bugs, not yet fixed
-- [ ] **GroupView not populating** — needs repro steps (was Steven actually
-      grouped at the time?)
+- [x] **GroupView not populating — confirmed fixed 2026-07-07, per Steven
+      live.** "groupview works, there have been many edits since that bug
+      report." Not independently isolated to one specific fix — resolved
+      as a side effect of everything else touched this session.
 - [ ] **Clan gossip duplicates** — no confirmed lead currently exists (a
       prior "likely root cause" was investigated and retracted). Needs a
       live repro: does the duplicate come from `MyDSL_ChatTriggers.lua`
-      itself double-appending, EMCO's `allTab` mirroring, or something else.
+      itself double-appending, EMCO's `allTab` mirroring, or something
+      else. **Note:** `MyDSL_ChatTriggers.lua` currently has no `dofile()`
+      entry at all (see BLOCKING section above) — it isn't running right
+      now, so it can't be the current cause of any live duplication until
+      that's fixed and re-tested.
 - [ ] **autowhere fires while sleeping** — Steven's own alias, not ours;
       low priority for us specifically.
 
@@ -165,17 +171,36 @@ Steven: "make it work like PNP, then discuss the additions"):
       instead of murder for PvP-style openers, "for vrokt as example").
       Needs a design call: dropdown vs. long-press vs. a saved
       per-character opener command.
-- [ ] **Unwired DataLayer capture pipelines** — `beginWhok/Whoc/Inv/Map/
-      AffectsText`, `parseImprove/UnreadLine`: 17 fully-written functions,
-      no trigger anywhere calls them. Plausibly tied to the not-yet-built
-      Inventory/AsciiMap windows below. Needs a decision on which still
-      matter before wiring trigger calls.
-- [ ] **Four dead-but-registered windows** (`MyDSL_Inventory`,
-      `MyDSL_Equipment`, `MyDSL_AsciiMap`, `MyDSL_Banner`) — placeholders
-      matching real `MyDSL_IdeaBacklog.md` ideas, not abandoned code.
-      `MyDSL.State.inv`/`.equipment` data already exists for two of them.
-      Needs a decision: build minimal display modules, or explicitly cut
-      if not wanted.
+- [ ] **Unwired DataLayer capture pipelines — context gathered 2026-07-07,
+      still needs Steven's call.** 7 pipelines, none ever called by any
+      trigger. Broken down by what's actually driving each one:
+      - `inv`/`map` — fed the `MyDSL_Inventory`/`MyDSL_AsciiMap` windows
+        just removed (see below). No window left to feed — candidates to
+        delete along with the windows unless a display is planned again.
+      - `affectsText` — a **text fallback** for affects duration, only
+        used if GMCP hasn't sent `affect_data` yet this session. Feeds
+        the same `MyDSL.State.affects` AffectsView already renders from
+        GMCP — since that's confirmed reliable, this is low-value
+        insurance, not a missing feature. Candidate to delete.
+      - `whok`/`whoc` (kingdom/clan roster, from typing `whok`/`whoc`) —
+        no window was ever designed for these, not tied to anything just
+        removed. Real feature or dead scaffolding — Steven's call.
+      - `unread`/`improve` — single-line, fire naturally (unread mail
+        count at login; skill-improve messages during play). Cheap to
+        wire (parser already correct) but no display exists yet — could
+        be a small echo/notification if wanted, or cut.
+      Recommendation: delete `inv`/`map`/`affectsText` now (tied to
+      removed windows or redundant with working GMCP), keep `whok`/`whoc`/
+      `unread`/`improve` only if one of them is an actual wanted feature.
+- [x] **Four dead-but-registered windows — killed 2026-07-07, per Steven**
+      ("kill until we need, I think we have extra code all over").
+      `MyDSL_Inventory`/`MyDSL_Equipment`/`MyDSL_AsciiMap`/`MyDSL_Banner`
+      removed from `MyDSL_WindowRegistry.lua`'s registry and
+      `MyDSL_LayoutEngine.lua`'s default positions. `MyDSL.State.equipment`
+      (Phase E's already-tested capture logic) is untouched — only the
+      unused window/layout scaffolding was removed, not working data
+      capture. Verified via emulation test: 15 windows now register
+      cleanly (was 19).
 - [ ] **Itemstat trigger retirement timing** — see the combat-section note
       above; just needs sequencing against Layer 4, not a decision now.
 - [ ] **"Prompt Line 1" parsing** — not scoped, low priority, likely fully
