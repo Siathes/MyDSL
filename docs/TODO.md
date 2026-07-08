@@ -9,52 +9,37 @@ DEFERRED gets started without an explicit go-ahead.
 
 ---
 
-## BLOCKING — 4 real modules were never wired into Mudlet's load sequence
-Found 2026-07-07 by actually running the new `mydsl test` smoke test live:
-it reported `ChatTriggers`, `CharacterAssist`, `Roller`, `RawCapture` as
-MISSING. Confirmed via `current/autosave.xml`: every other module
-(`MyDSL_DataLayer`, `MyDSL_ChatWrapper`, etc.) has its own Script entry
-under the `MyDSL_Full` group with a single `dofile("...")` line — these 4
-don't have one at all. The code is correct and committed; it has simply
-never executed in the live profile. This means every "needs live
-confirmation" item below tagged **(*)** could not actually have been
-tested yet, no matter what was tried, since the module never ran.
-**Confirmed still not fixed as of 2026-07-08** (re-checked
-`current/autosave.xml`, same 4 missing) — directly caused a real symptom
-Steven hit live: `"The ghost of Terri clan gossips (Elvish) 'Ouch!'"`
-printed to the main console (confirmed in the session log) but never
-reached any EMCO chat tab, because `MyDSL_ChatTriggers.lua` — the only
-thing that would have routed it — still isn't running. Not a new/separate
-chat bug; re-test chat routing generally once this is fixed.
-
-- [ ] **Add 4 new Script entries in Mudlet's Script Editor**, under the
-      same `MyDSL_Full` group as the existing ones, each with one line
-      (same path prefix the existing entries use):
-      ```
-      dofile("/home/owner/Desktop/Mudlet/mudlet-data/profiles/DSL2/MyDSL_ChatTriggers.lua")
-      dofile("/home/owner/Desktop/Mudlet/mudlet-data/profiles/DSL2/MyDSL_CharacterAssist.lua")
-      dofile("/home/owner/Desktop/Mudlet/mudlet-data/profiles/DSL2/MyDSL_Roller.lua")
-      dofile("/home/owner/Desktop/Mudlet/mudlet-data/profiles/DSL2/MyDSL_RawCapture.lua")
-      ```
-      Then save the profile, do a **full Mudlet restart**, and run
-      `mydsl test` again — should report "all 23 loaded OK". This is a
-      native-XML/GUI change, not something to hand-edit on disk while the
-      profile is live.
+## LOW PRIORITY — 1 module still not wired into Mudlet's load sequence
+Found 2026-07-07 via `mydsl test`: `ChatTriggers`, `CharacterAssist`,
+`Roller`, `RawCapture` had no `dofile()` Script entry at all (confirmed via
+`current/autosave.xml` — every other module has one, these didn't), so
+they'd never actually executed despite being correct, committed code. This
+directly caused a real symptom: a clan-gossip line printed to the main
+console but never reached any EMCO chat tab, since `MyDSL_ChatTriggers.lua`
+wasn't running.
+**Resolved 2026-07-08 for 3 of the 4** — Steven added the Script entries
+for `ChatTriggers`, `CharacterAssist`, and `Roller` (confirmed via
+`current/autosave.xml`). Only `MyDSL_RawCapture.lua` (a diagnostic-only
+tool, off by default even when loaded) still has no entry — same fix if
+ever wanted:
+```
+dofile("/home/owner/Desktop/Mudlet/mudlet-data/profiles/DSL2/MyDSL_RawCapture.lua")
+```
+Nothing critical remains blocked on this.
 
 ---
 
 ## NEEDS LIVE CONFIRMATION
 Fixed in code, verified via syntax checks and/or the emulation test harness
 (`test/mudlet_mock.lua`) — none of this is closed until Steven confirms it
-in-game. **(*)** = blocked on the dofile gap above; don't bother testing
-these until that's fixed. Full technical detail for any of these:
-`git log --oneline` + `docs/CHANGELOG.md`.
+in-game. Full technical detail for any of these: `git log --oneline` +
+`docs/CHANGELOG.md`.
 
 - [ ] Logging defaults rework — `mydsl log <category> on` re-enables a
       debug-only window's log file
 - [ ] AffectsView countdown paces correctly in real time; near-expiry color
       warning fires
-- [ ] (*) CharacterAssist: rearm (weapon+shield), standup, spellup/setspell,
+- [ ] CharacterAssist: rearm (weapon+shield), standup, spellup/setspell,
       blind-vision check
 - [ ] Equipment capture — `eq`/`equipment` populates `MyDSL.State.equipment`
 - [ ] TargetView `[Friend]`/`[Enemy]` tag — `dslcolor friend/enemy <name>`,
@@ -62,65 +47,49 @@ these until that's fixed. Full technical detail for any of these:
 - [ ] `mydsl who <name>` passthrough to `dslcolor show <name>`
 - [ ] DataLayer fresh-start crash fix — needs a **full Mudlet restart**,
       not just a script reload, to actually test
-- [ ] (*) ChatTriggers channel routing (3 rewrite passes) — real chat
+- [ ] ChatTriggers channel routing (3 rewrite passes) — real chat
       activity reaches the right EMCO tabs
 - [ ] `mydsl help` / `mydsl history font <n>` commands work
-- [ ] (*) `MyDSL_RawCapture.lua` — needs Steven to place its `dofile()`
-      first in Script editor load order, then test if raw text ever
-      differs from displayed text
+- [ ] `MyDSL_RawCapture.lua` — still needs its `dofile()` entry added
+      (see LOW PRIORITY above) before this can be tested at all
 - [ ] TargetView group/follower safety guard — target a charmed pet/group
       member, murder/order-all buttons should be gone
 - [ ] TargetView/GroupView kill vs murder verb fix — order-all/murder a
       mob should now say "kill", not "murder"
-- [ ] (*) Roller — next character creation
+- [ ] Roller — next character creation
 - [ ] RightHere updates on `look`, not just `scan`
 - [ ] CombatView/History font persistence — `mydsl combat font <n>` /
       `mydsl history font <n>` survive a real restart
 - [ ] Action-button color contrast — Rescue/cure-spell buttons actually
       readable now
-- [x] Character-binding "Unknown" fallback fix — **confirmed 2026-07-07,
-      with an explained side effect.** Kien's UI loaded with the generic
-      default layout, then snapped to a different (visually "collapsed")
-      arrangement right as login completed — this is the fix working
-      exactly as designed: Kien had no `MyDSL_layout_Kien.lua` yet
-      (character-binding is brand new), so the very first
-      `MyDSL.character.identified` event found nothing to load and
-      `reflowAll()` re-applied LayoutEngine's generic defaults, overriding
-      whatever Mudlet's own `restoreLayout`/`autoDock` had put windows at
-      from a previous session.
-      **Recurred 2026-07-08 — confirmed same root cause, not a new bug:**
-      checked both sessions' logs, `mydsl layout save` was never actually
-      typed either time (zero mentions), so nothing was ever persisted —
-      the old pre-character-binding `MyDSL_layout.lua` (June 28) wouldn't
-      have helped either, its saved positions look degenerate (most
-      windows piled at `x=0,y=0`). **Fixed properly 2026-07-08**: layout
-      now auto-saves ~2s after you stop moving a window (debounced, and
-      suppressed during boot/reflow/reset so it can't capture transient
-      dock-churn geometry — see the new "layout auto-save" entry below for
-      the full design). `mydsl layout autosave on|off` to toggle if
-      needed. Needs Steven to confirm live: rearrange windows, wait ~2s,
-      restart Mudlet, confirm the arrangement survived without typing
-      `mydsl layout save` manually.
-- [x] **Layout auto-save — built 2026-07-08, per Steven** ("make auto
-      save but that caused docking issues with claude ai... if you can do
-      it properly i am good with auto save"). Root cause of the prior
-      failure is already documented in `MyDSL_LayoutEngine.lua`'s own
-      SECTION 8 comment: Mudlet's `sysWindowResizeEvent` fires on *every*
-      dock/undock geometry change, not just a genuine user drag — naively
-      saving/reflowing off that event captures transient mid-operation
-      positions. Fixed with two safeguards: (1) `MyDSL.
-      suppressLayoutAutoSave(seconds)`, a time-window any programmatic
-      repositioning (boot, both character-identified reflows, `mydsl
-      layout reset`) sets before touching geometry, so its own resize
-      events can't look like a user drag; (2) a ~2s debounce, so only the
-      final settled state after a drag (or a burst of dock churn) is ever
-      captured. New `mydsl layout autosave on|off` toggle (default on) as
-      a safety valve. Verified via `test/mudlet_mock.lua` with real
-      timer/event dispatch: zero saves scheduled during boot suppression,
-      a genuine post-suppression resize schedules one, rapid repeated
-      events collapse to a single surviving timer, firing it triggers
-      exactly one save, toggle confirmed on/off. Needs Steven to confirm
-      live it doesn't reintroduce the old docking symptoms.
+- [x] **Layout: character-binding + auto-save both reverted 2026-07-08,
+      per Steven** ("revert the layout save and per character layout
+      save. we will keep it layout per profile and use lua
+      saveWindowLayout() cause its not woking right and i dont want to
+      have that fight again"). Full history: character-binding (2026-07-07)
+      caused Kien's UI to snap to generic defaults on login (no
+      per-character file existed yet); recurred 2026-07-08 since `mydsl
+      layout save` was never actually typed either session (confirmed via
+      both logs); auto-save was then built same-day with debounce +
+      suppression safeguards against the specific docking-corruption
+      failure mode a prior attempt hit — verified working via emulation,
+      but reverted anyway per Steven's direct preference for simplicity
+      over continuing to maintain custom layout-persistence logic.
+      **Final state**: `MyDSL_LayoutEngine.lua`'s `SAVE_FILE` is back to
+      the fixed, non-character-bound `MyDSL_layout.lua`; the
+      `MyDSL.character.identified` → `Layout.load()`+`reflowAll()` hook
+      is removed entirely (nothing character-specific to reload anymore);
+      `MyDSL_WindowRegistry.lua`'s `saveLayout()` (`mydsl layout save`)
+      now just calls native `saveWindowLayout()`/`saveProfile()` — the
+      custom capture-into-percentages-and-write-our-own-file steps are
+      gone. `MyDSL.Layout`'s percentage system still exists for a
+      window's first-ever creation coordinates and `mydsl layout reset`,
+      just no longer drives ongoing persistence. Verified via
+      `test/mudlet_mock.lua`: `saveLayout()` calls native
+      `saveWindowLayout()` and does not write a custom file;
+      `character.identified` no longer touches layout. Needs Steven to
+      confirm live that native save/restore actually holds a layout
+      across a real restart.
 - [ ] GroupView name truncation (cosmetic)
 - [ ] `considerEasyKill`/`considerNoMatch` text in-game
 - [ ] `MyDSL.logWindow()` fragmented-row fix — GroupView/TargetView logs
@@ -343,9 +312,14 @@ Timers. Real candidates for future integration, none urgent:
 ---
 
 ## DECISIONS RECORDED
-- All settings (theme, layout, visibility) are character-bound — as of
-  2026-07-07 this is now actually true (chat/layout/windowstate/Combat
-  font/History font/TargetView/AffectsView all character-bound).
+- Most settings (theme, visibility, chat, fonts, TargetView/AffectsView)
+  are character-bound (chat/windowstate/Combat font/History font/
+  TargetView/AffectsView, confirmed 2026-07-07). **Window layout is the
+  one deliberate exception, reverted 2026-07-08 per Steven**: layout is
+  per-profile (single shared `MyDSL_layout.lua` + native Qt
+  `saveWindowLayout()`), not per-character — after repeated fights with a
+  custom per-character percentage-save system, simplicity won out over
+  the "everything character-bound" default.
 - Themes: user-creatable named presets, shared across all characters
   (intentionally not character-bound).
 - `MyDSL_Mapper` removed from WindowRegistry — minimap via

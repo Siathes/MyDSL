@@ -22,48 +22,32 @@ timestamp in gameplay/logs might help spot post/pre action lag -- worth trying n
 Full detail for anything here: docs/TODO.md. Check items off as you play;
 tell me what happened and I'll close them out in TODO.md/CHANGELOG.md.
 
-*** DO THIS FIRST -- blocks everything marked (*) below ***
-[ ] mydsl test reported 4 real modules that exist in code but were never
-    wired into Mudlet's actual load sequence (checked autosave.xml --
-    every other module has a dofile() Script entry, these don't):
-      MyDSL_ChatTriggers.lua
-      MyDSL_CharacterAssist.lua
-      MyDSL_Roller.lua
-      MyDSL_RawCapture.lua
-    Fix: Script Editor -> find the "MyDSL_Full" group (same folder as
-    MyDSL_DataLayer etc.) -> add 4 new script items, each one line:
-      dofile("/home/owner/Desktop/Mudlet/mudlet-data/profiles/DSL2/MyDSL_ChatTriggers.lua")
-      dofile("/home/owner/Desktop/Mudlet/mudlet-data/profiles/DSL2/MyDSL_CharacterAssist.lua")
-      dofile("/home/owner/Desktop/Mudlet/mudlet-data/profiles/DSL2/MyDSL_Roller.lua")
-      dofile("/home/owner/Desktop/Mudlet/mudlet-data/profiles/DSL2/MyDSL_RawCapture.lua")
-    Save profile, full restart (not just reload), run "mydsl test" again
-    -- should say "all 23 loaded OK".
-
 [ ] mydsl log <category> on re-enables a debug window's log file
 [ ] AffectsView countdown paces correctly in real time; near-expiry color warning fires
-[ ] (*) Rearm (weapon+shield), standup, spellup/setspell, blind-vision check
+[ ] Rearm (weapon+shield), standup, spellup/setspell, blind-vision check
 [ ] eq / equipment populates equipment data
 [ ] dslcolor friend/enemy <name>, then target them -- [Friend]/[Enemy] tag shows
 [ ] mydsl who <name> matches dslcolor show <name>
 [ ] Full Mudlet restart (not reload) -- no crash on fresh start
-[ ] (*) Chat routing -- real chat activity reaches the right EMCO tabs
+[ ] Chat routing -- real chat activity reaches the right EMCO tabs (ChatTriggers now wired in)
 [ ] mydsl help / mydsl history font <n> work
-[ ] (*) MyDSL_RawCapture -- once wired in, place its dofile first in load order, test if raw text ever differs from displayed
 [ ] Target a charmed pet/group member -- murder/order-all buttons gone
 [ ] Order-all/murder a mob -- should say "kill", not "murder"
-[ ] (*) Roller -- next character creation
+[ ] Roller -- next character creation
 [ ] Look around a populated room -- RightHere updates without needing scan
 [ ] mydsl combat font <n> / mydsl history font <n> survive a real restart
 [ ] Rescue/cure-spell buttons actually readable now
-[ ] Fresh login as any other character -- correct saved settings load (not stuck on defaults); expect a one-time layout snap the first time, like Kien had tonight -- run "mydsl layout save" once after to fix it for good
+[ ] Layout: rearrange windows, "mydsl layout save", restart Mudlet -- confirm it holds (native saveWindowLayout() now, per-profile not per-character)
 [ ] GroupView name truncation (cosmetic)
 [ ] Consider text ("easy kill" / "no match") shows correctly
 [ ] GroupView/TargetView logs show one line per row, not one word per line
 [ ] Type "improve" -- LiveView's Improve bar should populate (skill, mastery %, minutes remaining)
 
-(*) = blocked on the dofile fix above -- can't have been properly tested yet.
 (done since last check: GroupView confirmed working; killed the 4 dead
 windows Inventory/Equipment/AsciiMap/Banner; deleted the whok/whoc/unread/
-inv/map/affectsText dead code; improve bar built above)
+inv/map/affectsText dead code; improve bar built; chat-routing dofile fix
+confirmed applied (3 of 4 modules, RawCapture still optional/not wired);
+layout auto-save + per-character binding both reverted back to
+per-profile + native saveWindowLayout())
 
 i will use cecho to make comment in the log
