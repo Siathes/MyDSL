@@ -177,42 +177,44 @@ Steven: "make it work like PNP, then discuss the additions"):
       live.** "groupview works, there have been many edits since that bug
       report." Not independently isolated to one specific fix — resolved
       as a side effect of everything else touched this session.
-- [ ] **Chat "S" bug + clan gossip duplicates — REOPENED 2026-07-08, both
-      closed prematurely.** Both were closed same-day on Steven's live
+- [ ] **EMCO chat bug (the "S"/duplicate-line issue) — REOPENED
+      2026-07-08, closed prematurely.** Closed same-day on Steven's live
       impression ("i see no problems now" / "is resolved"). While
-      investigating the RightHere-on-look bug (same session), directly
-      checked the actual chat log this time instead of taking the
+      investigating the (unrelated) RightHere-on-look bug in the same
+      session, directly checked the actual chat log instead of taking the
       confirmation at face value: **`log/MyDSL_EMCO_Chat/2026/07/08/
       All.html` shows 54 standalone "S" lines and 25 consecutive duplicate
       lines across just 153 total segments in this one file** — both
-      problems clearly still active, right up through the most recent
-      entries (last real line before file end: "Snik clan gossips 'Been a
-      slice lads, I'm out!'" immediately followed by another lone "S").
-      Whatever Steven tested at the time must not have hit it, or it
-      regressed after — `deleteLine()` restoration (see below) is
-      confirmed real and unrelated to this. Needs a fresh live check: is
-      the "second set of chat triggers" he disabled still actually
-      disabled (did a script reload silently re-register it?), and is
-      this possibly two genuinely different causes (S only ever seen
-      after OOC-family lines; duplicates only ever seen on gossip/tells/
-      group/says) rather than one shared root cause as previously assumed.
-      `deleteLine()` restoration in `route()` (below) is unaffected by
-      this and still believed correct/needed regardless.
-      **2026-07-08, later same day: tried switching `route()` from
-      `append()` to `decho()` with a directly-captured line (bypassing
-      the live console-selection copy entirely) — reverted per Steven**
+      still active right up through the most recent entries. Needs a
+      fresh live check: is the duplicate chat-trigger set Steven deleted
+      actually gone for good, and is this possibly two genuinely
+      different causes (S only ever seen after OOC-family lines;
+      duplicates only ever seen on gossip/tells/group/says) rather than
+      one shared root cause. **Tried switching `route()` from `append()`
+      to `decho()` with a directly-captured line — reverted per Steven**
       ("revert the decho, that was not what i was try to convey... i do
       not want to modify the chat till ive had more time to test it").
-      Misread his ask: he wants the *known extra-line artifact itself*
-      detected and suppressed/replaced (an EMCO gag-list addition,
-      possibly even something he can do himself live via the native
-      `emco gag <pattern>` alias — no code change needed at all), not a
-      rewrite of the underlying capture mechanism. `route()` is back to
-      the original `append()` + `deleteLine()` form. **Holding off on any
-      further chat changes until Steven has tested the current state**
-      (native `deleteLine()` restore + the old duplicate trigger set now
-      fully deleted, not just disabled) and reports back.
-      **Sibling-profile log scan (2026-07-08) — dead end, don't repeat.**
+      `route()` is back to the original `append()` + `deleteLine()` form
+      (the `deleteLine()` restoration itself is confirmed correct/needed
+      and unaffected by the revert). **Per Steven 2026-07-08: this is a
+      separate, unrelated bug from the "follower extra line" issue below
+      — do not combine them again.** Holding off on any further chat
+      changes until Steven has tested the current reverted state and
+      reports back. One option for later, not yet implemented: EMCO's own
+      native gag-list mechanism (`emco gag <pattern>`) could potentially
+      suppress the artifact directly without touching `route()` at all,
+      once its exact shape is confirmed.
+- [ ] **"Follower extra line" bug — flagged 2026-07-08, needs real data
+      before this can be scoped.** Per Steven: a known, previously
+      unresolved issue (other people's/quest scripts have hit this too)
+      where an extra line appears after certain follower-related output —
+      **explicitly a separate bug from the EMCO chat issue above, not the
+      same thing.** No concrete example captured yet — needs Steven to
+      describe or show a real instance (a screenshot or the exact log
+      excerpt) before this can be investigated properly, same discipline
+      as everything else this session: don't guess at a mechanism without
+      real text to check it against.
+- [ ] **Sibling-profile log scan (2026-07-08) — dead end, don't repeat.**
       Checked DSL1/Qinrathaz-Vaelis/all 3 PNP profiles for additional
       room-presence verb patterns (same method that found "stands here").
       95-99% of sampled files are verbose debug/framework logging, not
