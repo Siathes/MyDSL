@@ -1512,6 +1512,27 @@ end
 -- real-time events (arrivals, tells, etc.) can start appearing
 -- immediately after the last content line with no gap.
 
+-- isLookFixtureLine() -- fixed 2026-07-08. Real bug found live: a room
+-- with an item on the ground ("A grand arcanium hoopak lies here.")
+-- ended capture immediately after that ONE line, silently dropping every
+-- mob listed after it -- "lies here"/"is lying here" don't match
+-- parseLookHereLine's mob pattern, and the line starts with a capital
+-- letter so the wrapped-continuation check didn't save it either,
+-- leaving only the "unrelated event, end capture" fallback. Confirmed
+-- these phrasings are common, not rare -- dozens of real examples across
+-- items ("X lies here[.| on the ground.]") and corpses ("The corpse of X
+-- is lying here.") in the DSL2-era corpus -- checked specifically for
+-- any mob using these two verbs and found none, unlike "sits here"
+-- (see parseLookHereLine, handled there instead since it's genuinely
+-- ambiguous). These lines are real, static room content (like mob lines)
+-- -- just not something RightHere tracks -- so they should be skipped
+-- without ending capture, same treatment as a wrapped continuation line.
+local function isLookFixtureLine(line)
+  return line:match("lies? here%f[%A]") ~= nil
+      or line:match("is lying here%f[%A]") ~= nil
+      or line:match("are lying here%f[%A]") ~= nil
+end
+
 function MyDSL.beginLook()
   MyDSL.State.scan = MyDSL.State.scan or {
     mode = nil, direction = nil, rows = {}, rightHere = {}, byName = {}, last_updated = 0,
@@ -1531,8 +1552,16 @@ function MyDSL.beginLook()
     if not (MyDSL and MyDSL.State and MyDSL.State.scan) then return end
     local ln = getCurrentLine()
     local t  = trim(ln)
-    if t == "" then MyDSL.endLook(); return end
+    -- Blank lines DON'T end capture here (fixed 2026-07-08) -- confirmed
+    -- real, repeatable: a busy room's mob listing can include a genuine
+    -- blank line mid-list (same room, same blank-line position, on both
+    -- a movement-triggered reprint and an explicit "look"), so treating
+    -- blank as a terminator was silently dropping every mob after it.
+    -- look has no reliable terminator at all (see the header comment
+    -- above) -- skip blanks silently and keep waiting for real content.
+    if t == "" then return end
     if MyDSL.parseLookHereLine(ln) then return end
+    if isLookFixtureLine(ln) then return end  -- item/corpse/fixture, keep capturing
     if t:match("^%l") then return end  -- wrapped continuation, keep capturing
     MyDSL.endLook()
   end)
@@ -1541,8 +1570,31 @@ end
 function MyDSL.parseLookHereLine(line)
   local scan = MyDSL.State.scan
   if not scan then return false end
-  local rest = line:match("^%([^()]+%)%s*(.+)$") or line
+  -- Strip ALL leading parenthetical tags, not just one -- confirmed real
+  -- multi-tag stacking, e.g. "(Glowing) (Humming) (Green Aura) A ..." and
+  -- "(Translucent) (White Aura) An air elemental ...".
+  local rest = line
+  while true do
+    local stripped = rest:match("^%([^()]+%)%s*(.+)$")
+    if not stripped then break end
+    rest = stripped
+  end
+  -- "stands here"/"sits here"/"hovers" added 2026-07-08: confirmed via
+  -- corpus frequency check that "stands here" (2,740 occurrences) is
+  -- actually MORE common than "is here" (1,928) for describing stationary
+  -- NPCs (guards, shopkeepers, mounts) -- these were never captured at
+  -- all before this fix. "sits here" is genuinely ambiguous between mobs
+  -- ("A hill dwarf sits here, panning for gold.") and items/fixtures
+  -- ("A jewel-encrusted dagger sits here."/an altar) -- erred toward
+  -- capturing it (a spurious item entry in RightHere is a harmless
+  -- cosmetic rough edge; silently dropping a real mob is worse). "hovers"
+  -- (139 occurrences, e.g. "An air elemental hovers in the room like a
+  -- cloud.", "A half elven child hovers nearby, looking for food.") isn't
+  -- always followed by "here" so it's matched on its own.
   local name = rest:match("^(.-) is here%f[%A]")
+            or rest:match("^(.-) stands here%f[%A]")
+            or rest:match("^(.-) sits here%f[%A]")
+            or rest:match("^(.-) hovers%f[%A]")
   if not name then return false end
   name = trim(name)
   if name == "" then return false end
