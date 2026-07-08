@@ -33,7 +33,7 @@ tell me what happened and I'll close them out in TODO.md/CHANGELOG.md.
 [x] Target a charmed pet/group member -- murder/order-all buttons gone
 [ ] Order-all/murder a mob -- should say "kill", not "murder"
 [ ] Roller -- next character creation
-[ ] Look around a populated room -- RightHere updates without needing scan- didnt seem to work in Northeast end of the Clockworks 
+[ ] Look around a populated room with charmed pets present -- RightHere should now capture everything, including the pet itself (fixed the "sloshes around here"/"follows their client" style verb variety that was ending capture early) -- needs a fresh check in a busy room like Northeast end of the Clockworks
 [x] mydsl combat font <n> / mydsl history font <n> survive a real restart
 [ ] Rescue/cure-spell buttons actually readable now -  these are still blue and underlined see screenshot
 [x] Layout: rearrange windows, "mydsl layout save", restart Mudlet -- confirm it holds (native saveWindowLayout() now, per-profile not per-character)
@@ -47,6 +47,9 @@ windows Inventory/Equipment/AsciiMap/Banner; deleted the whok/whoc/unread/
 inv/map/affectsText dead code; improve bar built; chat-routing dofile fix
 confirmed applied (3 of 4 modules, RawCapture still optional/not wired);
 layout auto-save + per-character binding both reverted back to
-per-profile + native saveWindowLayout())
+per-profile + native saveWindowLayout(); RightHere-on-look fixed properly
+this time -- the real bug was charmed/summoned pets' idle-action lines
+using verb phrasing ("sloshes around here", "follows their client", etc)
+that ended capture early, not the blank line I fixed first)
 
 i will use cecho to make comment in the log

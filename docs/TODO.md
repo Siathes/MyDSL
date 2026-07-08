@@ -73,19 +73,42 @@ in-game. Full technical detail for any of these: `git log --oneline` +
 - [ ] TargetView/GroupView kill vs murder verb fix — order-all/murder a
       mob should now say "kill", not "murder"
 - [ ] Roller — next character creation
-- [x] **RightHere-on-look — real bug found and fixed 2026-07-08.** Steven
-      reported it "didnt seem to work in Northeast end of the Clockworks."
-      Traced against the real captured sequence and found 3 compounding
-      bugs: item lines ("X lies here.") and a genuine mid-listing blank
-      line (confirmed real, not random — happens identically twice for
-      the same busy room) both incorrectly ended capture early; worse,
-      `parseLookHereLine()` only recognized "is here", but a full corpus
-      check found "stands here" (2,740 occurrences) is actually *more*
-      common than "is here" (1,928) for stationary NPCs — most mobs in
-      most rooms were never being captured at all since this feature was
-      built. All fixed; verified via emulation against the real 7-entity
-      room (0 captured before, 7 after). Needs Steven to confirm live in
-      a busy room again.
+- [x] **RightHere-on-look — real bug found and fixed 2026-07-08, second
+      round after Steven reported it still not populating.** Steven
+      originally reported it "didnt seem to work in Northeast end of the
+      Clockworks." Round 1 fixed 3 compounding bugs: item lines ("X lies
+      here.") and a genuine mid-listing blank line both incorrectly ended
+      capture early; `parseLookHereLine()` only recognized "is here" when
+      "stands here" (2,740 occurrences) is actually *more* common (1,928)
+      for stationary NPCs. I initially guessed this fully explained
+      Steven's separately-flagged "space after certain followers"/"blank
+      lines after the summoned/follower bear wolf elementals" note too —
+      **wrong.** Steven reported round 1 didn't fix it live, prompting a
+      re-check against a fresh log (`log/2026-07-08#17-15-32.html`,
+      captured *after* round 1 was loaded): a **second, real bug** —
+      charmed/summoned pets' own idle-action lines use wildly varying DSL
+      verb phrasing ("sloshes around here.", "prances about here.", "paces
+      back and forth here.", "looms here.", "is dancing about here.",
+      "burns hotly in the room.", even "follows their client." with no
+      "here"/"room" at all — confirmed via corpus grep across every
+      "(Charmed)" line in the DSL2-era logs). None of these matched
+      `parseLookHereLine`'s verb set, so the *first* charmed pet listed in
+      a room silently ended capture and dropped every real entity after
+      it — this is what "the space after certain followers" actually is,
+      not the blank line (that part was real but harmless, already
+      correctly handled by round 1). Fixed: broadened `parseLookHereLine`'s
+      name match with an article-anchored generic "... here"/"... in the
+      room" fallback, reordered the fixture check before it (item lines
+      like "X lies here." would otherwise satisfy the new broad fallback
+      too), and added `isCharmedStatusLine()` as a safety net — any line
+      carrying a literal "(Charmed)" tag is treated as skip-don't-end
+      regardless of verb phrasing, so future never-seen idle-action verbs
+      can't reintroduce this. Verified via emulation against the exact
+      real captured sequences from both round 1 and round 2 (water
+      elemental/wild bear/stallion/gnomes room, and the no-anchor
+      "follows their client." edge case) — all entities now captured,
+      capture never terminates early. Needs Steven to confirm live in a
+      busy room with charmed pets again.
 - [ ] CombatView/History font persistence — `mydsl combat font <n>` /
       `mydsl history font <n>` survive a real restart
 - [ ] Action-button color contrast — Rescue/cure-spell buttons actually
@@ -196,24 +219,15 @@ Steven: "make it work like PNP, then discuss the additions"):
       not want to modify the chat till ive had more time to test it").
       `route()` is back to the original `append()` + `deleteLine()` form
       (the `deleteLine()` restoration itself is confirmed correct/needed
-      and unaffected by the revert). **Per Steven 2026-07-08: this is a
-      separate, unrelated bug from the "follower extra line" issue below
-      — do not combine them again.** Holding off on any further chat
-      changes until Steven has tested the current reverted state and
-      reports back. One option for later, not yet implemented: EMCO's own
-      native gag-list mechanism (`emco gag <pattern>`) could potentially
-      suppress the artifact directly without touching `route()` at all,
-      once its exact shape is confirmed.
-- [ ] **"Follower extra line" bug — flagged 2026-07-08, needs real data
-      before this can be scoped.** Per Steven: a known, previously
-      unresolved issue (other people's/quest scripts have hit this too)
-      where an extra line appears after certain follower-related output —
-      **explicitly a separate bug from the EMCO chat issue above, not the
-      same thing.** No concrete example captured yet — needs Steven to
-      describe or show a real instance (a screenshot or the exact log
-      excerpt) before this can be investigated properly, same discipline
-      as everything else this session: don't guess at a mechanism without
-      real text to check it against.
+      and unaffected by the revert). **Confirmed 2026-07-08 unrelated to
+      the "follower extra line" bug** (that turned out to be the already-
+      fixed RightHere-on-look blank-line bug above, not a chat issue —
+      see that entry). Holding off on any further chat changes until
+      Steven has tested the current reverted state and reports back. One
+      option for later, not yet implemented: EMCO's own native gag-list
+      mechanism (`emco gag <pattern>`) could potentially suppress the
+      artifact directly without touching `route()` at all, once its
+      exact shape is confirmed.
 - [ ] **Sibling-profile log scan (2026-07-08) — dead end, don't repeat.**
       Checked DSL1/Qinrathaz-Vaelis/all 3 PNP profiles for additional
       room-presence verb patterns (same method that found "stands here").

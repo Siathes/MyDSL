@@ -1533,6 +1533,29 @@ local function isLookFixtureLine(line)
       or line:match("are lying here%f[%A]") ~= nil
 end
 
+-- isCharmedStatusLine() -- added 2026-07-08. Real bug found live: charmed/
+-- summoned pets' own idle-action lines use widely varying DSL-side verb
+-- phrasing -- confirmed via corpus grep across every "(Charmed)" line in
+-- the DSL2-era logs: "sloshes around here.", "prances about here.",
+-- "paces back and forth here.", "looms here.", "is dancing about here.",
+-- "burns hotly in the room.", even "follows their client." with no "here"
+-- at all. None of these matched parseLookHereLine's verb set even after
+-- today's broadened fallback (below) -- "follows their client." has no
+-- "here"/"room" anchor to catch at all -- so the first charmed pet listed
+-- in a room silently ended capture and dropped every real entity listed
+-- after it. This is what Steven meant by "the space after certain
+-- followers"/"blank lines after the summoned/follower bear wolf
+-- elementals" -- not a stray blank line (those are harmless, already
+-- handled above), the charmed pet's own status line ending capture.
+-- Enumerating every possible idle-action verb is a losing game (new ones
+-- keep turning up), so treat the "(Charmed)" tag itself as sufficient
+-- proof of a live entity worth skipping past, regardless of what verb
+-- phrase follows it -- this is the safety net for whatever
+-- parseLookHereLine's broadened fallback still doesn't catch.
+local function isCharmedStatusLine(line)
+  return line:find("(Charmed)", 1, true) ~= nil
+end
+
 function MyDSL.beginLook()
   MyDSL.State.scan = MyDSL.State.scan or {
     mode = nil, direction = nil, rows = {}, rightHere = {}, byName = {}, last_updated = 0,
@@ -1560,8 +1583,12 @@ function MyDSL.beginLook()
     -- look has no reliable terminator at all (see the header comment
     -- above) -- skip blanks silently and keep waiting for real content.
     if t == "" then return end
-    if MyDSL.parseLookHereLine(ln) then return end
+    -- Fixture check MUST run before parseLookHereLine -- item lines like
+    -- "X lies here." also satisfy parseLookHereLine's broad "here"
+    -- fallback below, and would otherwise get miscaptured as mobs.
     if isLookFixtureLine(ln) then return end  -- item/corpse/fixture, keep capturing
+    if MyDSL.parseLookHereLine(ln) then return end
+    if isCharmedStatusLine(ln) then return end  -- see comment above the function
     if t:match("^%l") then return end  -- wrapped continuation, keep capturing
     MyDSL.endLook()
   end)
@@ -1591,10 +1618,22 @@ function MyDSL.parseLookHereLine(line)
   -- (139 occurrences, e.g. "An air elemental hovers in the room like a
   -- cloud.", "A half elven child hovers nearby, looking for food.") isn't
   -- always followed by "here" so it's matched on its own.
+  -- Broad fallback added 2026-07-08 (see isCharmedStatusLine comment
+  -- above for the confirmed corpus evidence): charmed/summoned pets use
+  -- many different idle-action verbs before "here"/"in the room" ("sloshes
+  -- around here.", "prances about here.", "looms here.", "burns hotly in
+  -- the room."). Restricted to lines starting with an article (same
+  -- shape isMobName already requires) to avoid misreading ordinary room-
+  -- description prose. Only reached after isLookFixtureLine has already
+  -- ruled out "lies here"/"is lying here" item/corpse lines (see caller).
   local name = rest:match("^(.-) is here%f[%A]")
             or rest:match("^(.-) stands here%f[%A]")
             or rest:match("^(.-) sits here%f[%A]")
             or rest:match("^(.-) hovers%f[%A]")
+            or rest:match("^([Aa]n? .+) here%f[%A]")
+            or rest:match("^([Tt]he .+) here%f[%A]")
+            or rest:match("^([Aa]n? .+) in the room%f[%A]")
+            or rest:match("^([Tt]he .+) in the room%f[%A]")
   if not name then return false end
   name = trim(name)
   if name == "" then return false end
