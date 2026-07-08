@@ -73,42 +73,57 @@ in-game. Full technical detail for any of these: `git log --oneline` +
 - [ ] TargetView/GroupView kill vs murder verb fix — order-all/murder a
       mob should now say "kill", not "murder"
 - [ ] Roller — next character creation
-- [x] **RightHere-on-look — real bug found and fixed 2026-07-08, second
-      round after Steven reported it still not populating.** Steven
-      originally reported it "didnt seem to work in Northeast end of the
-      Clockworks." Round 1 fixed 3 compounding bugs: item lines ("X lies
-      here.") and a genuine mid-listing blank line both incorrectly ended
-      capture early; `parseLookHereLine()` only recognized "is here" when
-      "stands here" (2,740 occurrences) is actually *more* common (1,928)
-      for stationary NPCs. I initially guessed this fully explained
-      Steven's separately-flagged "space after certain followers"/"blank
-      lines after the summoned/follower bear wolf elementals" note too —
-      **wrong.** Steven reported round 1 didn't fix it live, prompting a
-      re-check against a fresh log (`log/2026-07-08#17-15-32.html`,
-      captured *after* round 1 was loaded): a **second, real bug** —
-      charmed/summoned pets' own idle-action lines use wildly varying DSL
-      verb phrasing ("sloshes around here.", "prances about here.", "paces
-      back and forth here.", "looms here.", "is dancing about here.",
-      "burns hotly in the room.", even "follows their client." with no
-      "here"/"room" at all — confirmed via corpus grep across every
-      "(Charmed)" line in the DSL2-era logs). None of these matched
-      `parseLookHereLine`'s verb set, so the *first* charmed pet listed in
-      a room silently ended capture and dropped every real entity after
-      it — this is what "the space after certain followers" actually is,
-      not the blank line (that part was real but harmless, already
-      correctly handled by round 1). Fixed: broadened `parseLookHereLine`'s
-      name match with an article-anchored generic "... here"/"... in the
-      room" fallback, reordered the fixture check before it (item lines
-      like "X lies here." would otherwise satisfy the new broad fallback
-      too), and added `isCharmedStatusLine()` as a safety net — any line
-      carrying a literal "(Charmed)" tag is treated as skip-don't-end
-      regardless of verb phrasing, so future never-seen idle-action verbs
-      can't reintroduce this. Verified via emulation against the exact
-      real captured sequences from both round 1 and round 2 (water
-      elemental/wild bear/stallion/gnomes room, and the no-anchor
-      "follows their client." edge case) — all entities now captured,
-      capture never terminates early. Needs Steven to confirm live in a
-      busy room with charmed pets again.
+- [x] **RightHere-on-look — real bug found and fixed 2026-07-08, third
+      round, this one the actual root cause.** Steven originally reported
+      it "didnt seem to work in Northeast end of the Clockworks." Round 1
+      fixed 3 real bugs in the capture body (item lines, mid-listing blank
+      lines, "stands here" verb coverage). Round 2 fixed a real second bug
+      (charmed pets' varied idle-action verbs like "sloshes around here."/
+      "follows their client." ending capture early, broadened via a
+      generic fallback + `isCharmedStatusLine()` safety net). **Both were
+      real fixes, but Steven reported it was STILL not populating live**,
+      which prompted checking the one thing neither round had actually
+      verified: whether the capture ever starts at all. It doesn't.
+      **Root cause: the trigger that calls `beginLook()` — anchored on
+      `"^\[Exits: .*\]\s*$"` — has never matched a single real line, ever.**
+      Corpus-checked every "Exits:" line across the whole DSL2-era log
+      history (172 distinct room/exit combinations, 100% of them): the
+      real line always has one leading space before the bracket
+      (`" [Exits: north east south west  ]"`), which the trigger's `^\[`
+      start-anchor rejects outright. Every round-1/round-2 fix to the
+      capture *body* logic was real and correct, but moot — the body never
+      ran because the trigger that installs it never fired. My own
+      verification method has a blind spot here: both prior rounds tested
+      via emulation by calling `MyDSL.beginLook()` directly, which
+      bypasses this trigger's pattern entirely and never would have caught
+      this. Fixed the anchor to `"^\s*\[Exits: .*\]\s*$"`. Also hardened
+      the same bug class in `scanAround` (`"Looking around you see:"` —
+      9 of 412 real occurrences have a leading double-space the old exact
+      anchor missed) while in there. Additionally found via a broader
+      corpus sweep (718 candidate "...here."/"...in the room." lines) that
+      the same "unrecognized verb ends capture" problem also silently
+      dropped mobs after common **static room-landmark lines** — much
+      more frequent than charmed pets alone — e.g. "A large beautiful
+      fountain flows here.", "An obsidian statue of a fierce demon stands
+      in the middle of a fountain here.", "A member of the Minotaur Guard
+      stands watch here." — all confirmed via direct log context to sit
+      inside the real presence-listing block, right next to mobs/items.
+      The round-2 broad article-anchored fallback already covers these.
+      Also found and fixed a new false-positive: the broad fallback was
+      catching item lines like "You see a long and sharp Protection Sword
+      here." as a fake mob — added `"^You see .- here"` (9 real
+      occurrences) to `isLookFixtureLine()`. Known remaining gap, not
+      fixed (longer tail, lower value): a handful of proper-named NPCs use
+      non-standard verb phrases with no "A/An/The" prefix to anchor on
+      ("Sorbus the Hermit is sitting here...", "Shilna Sha'enlas stands
+      patiently here...", "Several half-elven girls are here...") — these
+      still end capture early if encountered. Low priority; revisit only
+      if it turns out to matter live. Verified the full fix chain
+      end-to-end via emulation, exercising the actual trigger IDs
+      (anchor → body) rather than calling internal functions directly, to
+      close the exact gap that let this hide through two prior rounds.
+      Needs Steven to confirm live in a busy room again — this time it
+      should actually be exercised at all.
 - [ ] CombatView/History font persistence — `mydsl combat font <n>` /
       `mydsl history font <n>` survive a real restart
 - [ ] Action-button color contrast — Rescue/cure-spell buttons actually

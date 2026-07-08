@@ -1531,6 +1531,8 @@ local function isLookFixtureLine(line)
   return line:match("lies? here%f[%A]") ~= nil
       or line:match("is lying here%f[%A]") ~= nil
       or line:match("are lying here%f[%A]") ~= nil
+      or line:match("has been left here%f[%A]") ~= nil
+      or line:match("^You see .- here%f[%A]") ~= nil
 end
 
 -- isCharmedStatusLine() -- added 2026-07-08. Real bug found live: charmed/
@@ -2453,8 +2455,11 @@ MyDSL._triggers.weather = tempRegexTrigger(
 -- "scan <dir>" (directional). Both call beginScan() which resets
 -- State.scan and installs the body catch-all.
 
+-- Hardened 2026-07-08 (same bug class as the Exits-line fix above):
+-- corpus check found 9 of 412 real occurrences have a leading double-space
+-- ("  Looking around you see:") that the old exact anchor missed.
 MyDSL._triggers.scanAround = tempRegexTrigger(
-  "^Looking around you see:$",
+  "^\\s*Looking around you see:$",
   function()
     if MyDSL and MyDSL.beginScan then MyDSL.beginScan("around", nil) end
   end
@@ -2473,8 +2478,18 @@ MyDSL._triggers.scanDir = tempRegexTrigger(
 -- (or any room reprint's, e.g. after movement) content listing. See the
 -- beginLook() comment above for why this anchor was picked over a fixed
 -- header phrase.
+-- FIX 2026-07-08: this anchor never fired, ever -- confirmed via corpus
+-- grep across every single "Exits:" line in the DSL2-era logs (172
+-- distinct room/exit combos, 100% of them), the real line always has one
+-- leading space before "[Exits:" (e.g. " [Exits: north east south west
+-- ]"), which the old "^\[Exits: ..." pattern's start anchor rejects. This
+-- means beginLook() has never actually been triggered by real gameplay --
+-- every fix made to the capture body logic today was real but moot, since
+-- capture never started in the first place. My emulation testing missed
+-- this because it called MyDSL.beginLook() directly, never exercising
+-- this trigger's own pattern against real text.
 MyDSL._triggers.lookExits = tempRegexTrigger(
-  "^\\[Exits: .*\\]\\s*$",
+  "^\\s*\\[Exits: .*\\]\\s*$",
   function()
     if MyDSL and MyDSL.beginLook then MyDSL.beginLook() end
   end
