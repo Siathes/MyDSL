@@ -1559,6 +1559,7 @@ local function isCharmedStatusLine(line)
 end
 
 function MyDSL.beginLook()
+  cecho("<yellow>[DEBUG] beginLook() running\n")  -- TEMP DEBUG 2026-07-08, see lookExits comment
   MyDSL.State.scan = MyDSL.State.scan or {
     mode = nil, direction = nil, rows = {}, rightHere = {}, byName = {}, last_updated = 0,
   }
@@ -1589,9 +1590,13 @@ function MyDSL.beginLook()
     -- "X lies here." also satisfy parseLookHereLine's broad "here"
     -- fallback below, and would otherwise get miscaptured as mobs.
     if isLookFixtureLine(ln) then return end  -- item/corpse/fixture, keep capturing
-    if MyDSL.parseLookHereLine(ln) then return end
+    if MyDSL.parseLookHereLine(ln) then
+      cecho("<yellow>[DEBUG] captured: " .. ln .. "\n")  -- TEMP DEBUG 2026-07-08
+      return
+    end
     if isCharmedStatusLine(ln) then return end  -- see comment above the function
     if t:match("^%l") then return end  -- wrapped continuation, keep capturing
+    cecho("<yellow>[DEBUG] endLook() on: " .. ln .. "\n")  -- TEMP DEBUG 2026-07-08
     MyDSL.endLook()
   end)
 end
@@ -2488,9 +2493,15 @@ MyDSL._triggers.scanDir = tempRegexTrigger(
 -- capture never started in the first place. My emulation testing missed
 -- this because it called MyDSL.beginLook() directly, never exercising
 -- this trigger's own pattern against real text.
+-- TEMP DEBUG 2026-07-08: `mydsl righthere dump` showed 0 entries/capture
+-- inactive after a real look, even after the leading-space anchor fix, and
+-- static analysis found no further bug. This trace answers the one
+-- question static analysis can't: does this trigger actually fire live.
+-- Remove once resolved either way.
 MyDSL._triggers.lookExits = tempRegexTrigger(
   "^\\s*\\[Exits: .*\\]\\s*$",
   function()
+    cecho("<yellow>[DEBUG] lookExits anchor fired\n")
     if MyDSL and MyDSL.beginLook then MyDSL.beginLook() end
   end
 )

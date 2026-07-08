@@ -178,19 +178,22 @@ tempAlias("^mydsl scan ungag$",
 -- table straight to the main console, bypassing the RightHere window
 -- entirely -- lets us tell a capture problem from a display problem in
 -- one command instead of guessing from logs alone.
+-- Uses decho() (RGB-triple syntax), not cecho() (named-color syntax only)
+-- -- confirmed 2026-07-08 live: cecho() with a bare "<r,g,b>" tag doesn't
+-- get parsed as a color at all, it just echoes the literal characters.
 function SV.dumpRightHere()
   local scan = MyDSL.State and MyDSL.State.scan
   if not scan or not scan.rightHere then
-    cecho("<255,136,68>[MyDSL] scan.rightHere not initialized (no look/scan run yet this session?)\n")
+    decho("<255,136,68>[MyDSL] scan.rightHere not initialized (no look/scan run yet this session?)\n")
     return
   end
   local n = 0
   for key, entry in pairs(scan.rightHere) do
     n = n + 1
-    cecho(string.format("<255,255,68>%s<r> = \"%s\" (is_mob=%s, count=%s)\n",
+    decho(string.format("<255,255,68>%s<255,255,255> = \"%s\" (is_mob=%s, count=%s)\n",
       key, entry.name, tostring(entry.is_mob), tostring(entry.count)))
   end
-  cecho(string.format("<136,204,255>[MyDSL] rightHere total: %d entries. Capture active: %s\n",
+  decho(string.format("<136,204,255>[MyDSL] rightHere total: %d entries. Capture active: %s\n",
     n, tostring(MyDSL._triggers.lookBody ~= nil)))
 end
 tempAlias("^mydsl righthere dump$",
