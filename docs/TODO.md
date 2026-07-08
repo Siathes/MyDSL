@@ -124,6 +124,22 @@ in-game. Full technical detail for any of these: `git log --oneline` +
       close the exact gap that let this hide through two prior rounds.
       Needs Steven to confirm live in a busy room again — this time it
       should actually be exercised at all.
+- [ ] **RightHere still reported not updating after the round-3 anchor
+      fix — needs live diagnostic, not more static log analysis.**
+      Checked a fresh post-fix log (`2026-07-08#17-42-15.html`) against
+      the exact anchor+body chain via emulation, including the newly-seen
+      "(Charmed) A wild wolverine is foaming at the mouth." (no here/room
+      anchor at all, same class as "follows their client.") — all correctly
+      handled, capture never terminates early. Also re-checked: dofile
+      path in the newest native XML resolves to the identical file (same
+      inode, confirmed via `diff`), and Kien's persisted window state has
+      `MyDSL_RightHere = true` (visible). No further bug found from static
+      analysis. Added `mydsl righthere dump` (`MyDSL_ScanView.lua`) — a
+      one-shot alias that echoes `MyDSL.State.scan.rightHere`'s raw
+      contents straight to the main console, bypassing the window
+      entirely, so a `look` followed by this command tells us definitively
+      whether this is still a capture problem or a display/render problem.
+      Waiting on Steven to run it and report what it shows.
 - [ ] CombatView/History font persistence — `mydsl combat font <n>` /
       `mydsl history font <n>` survive a real restart
 - [ ] Action-button color contrast — Rescue/cure-spell buttons actually
