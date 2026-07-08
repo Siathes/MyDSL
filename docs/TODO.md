@@ -20,16 +20,17 @@ wasn't running.
 **Resolved 2026-07-08 for 3 of the 4** — Steven added the Script entries
 for `ChatTriggers`, `CharacterAssist`, and `Roller` (confirmed via
 `current/autosave.xml`). Nothing critical remains blocked on this.
-**`MyDSL_RawCapture.lua` — confirmed via screenshot 2026-07-08
-(`Screenshot_20260708_155236.png`)**: now the very first item in the
-whole script tree (above even "Startups"), checked/enabled, correct
-`dofile(".../MyDSL_RawCapture.lua")` line — exactly right placement, runs
-before any other script/trigger. **Still not in `current/autosave.xml`
-on disk** — this is Mudlet's live in-memory Script Editor state, not yet
-persisted. Needs Steven to click "Save Profile" in the Editor toolbar;
-until then a real Mudlet restart would likely lose this change entirely
-(Mudlet loads from the on-disk file at startup, not the editor's live
-state). Re-check `current/autosave.xml` after that's done.
+**`MyDSL_RawCapture.lua` — fully confirmed saved to disk 2026-07-08.**
+Screenshot (`Screenshot_20260708_155236.png`) showed it as the very first
+item in the whole script tree (above even "Startups"), checked/enabled,
+correct `dofile(".../MyDSL_RawCapture.lua")` line. After Steven clicked
+"Save Profile" and closed the profile, `current/autosave.xml` *itself*
+still didn't show it (stale — see the new gotcha in `CLAUDE.md`'s Key
+Paths section) — checking the newest timestamped file in `current/`
+instead (`2026-07-08#15-55-17.xml`, saved right after) confirmed
+`MyDSL_RawCapture` really is there, first in the tree, `dofile()` count
+24 (up from 23). Fully done — nothing left blocking on the script-wiring
+front.
 
 ---
 

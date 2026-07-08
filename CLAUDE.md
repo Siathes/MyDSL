@@ -178,8 +178,25 @@ themes are user-creatable named presets, shared across all characters.
 ## Key paths
 - Profile root: this directory
 - Scripts are loose `.lua` files on disk in this directory, loaded via
-  `dofile()` wrappers registered in Mudlet's Script editor — not embedded in
-  autosave.xml (that file is stale/not the source of truth as of Phase B)
+  `dofile()` wrappers registered in Mudlet's Script editor, saved into
+  `current/*.xml`.
+  **Gotcha confirmed twice (2026-07-07 and 2026-07-08): the literal file
+  `current/autosave.xml` is not reliably the most current snapshot.**
+  Mudlet writes numbered timestamped files into `current/` (e.g.
+  `current/2026-07-08#15-55-17.xml`) on save/close, and `autosave.xml`
+  itself can sit stale for tens of minutes without being refreshed to
+  match — confirmed directly 2026-07-08 when a Script Editor change
+  (moving `MyDSL_RawCapture.lua` to load first) showed 0 hits in
+  `autosave.xml` even after Steven clicked "Save Profile" and closed the
+  profile, while the newest timestamped file in the same directory had it
+  correctly. **Always check the most-recently-modified file in
+  `current/` (`ls -t current/*.xml | head -1`), not the fixed filename,
+  when verifying whether a native Script/Trigger/Alias change actually
+  persisted.** (Narrows the older, cruder claim this note used to make —
+  "autosave.xml is stale, not the source of truth" — which wasn't quite
+  right either: autosave.xml correctly reflected the dofile list checked
+  2026-07-07. The real rule is about *which file*, not whether the
+  mechanism works at all.)
 - Docs: `docs/` — see the Workflow section above for what's actually there
   now (just `TODO.md`, `CHANGELOG.md`, `DSL_CommandRef.md`, and reference
   material like `MyDSL_MudletAPIReference*.md`, `templates_*.txt`,
