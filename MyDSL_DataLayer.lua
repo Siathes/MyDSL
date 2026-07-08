@@ -1559,7 +1559,6 @@ local function isCharmedStatusLine(line)
 end
 
 function MyDSL.beginLook()
-  cecho("<yellow>[DEBUG] beginLook() running\n")  -- TEMP DEBUG 2026-07-08, see lookExits comment
   MyDSL.State.scan = MyDSL.State.scan or {
     mode = nil, direction = nil, rows = {}, rightHere = {}, byName = {}, last_updated = 0,
   }
@@ -1586,17 +1585,26 @@ function MyDSL.beginLook()
     -- look has no reliable terminator at all (see the header comment
     -- above) -- skip blanks silently and keep waiting for real content.
     if t == "" then return end
+    -- REAL ROOT CAUSE, found 2026-07-08 via a live debug trace (static
+    -- analysis alone couldn't catch this): this catch-all gets installed
+    -- by lookExits's callback WHILE that same "[Exits: ...]" line is still
+    -- being processed, and Mudlet evaluates newly-registered triggers
+    -- against that same current line in the same pass -- so this trigger
+    -- immediately re-fires on the very "[Exits: ...]" line that just
+    -- created it, before any real content line is ever seen. Confirmed
+    -- via trace: every single look showed anchor-fired -> beginLook() ->
+    -- endLook(), zero entities, every time, with the "unrelated event"
+    -- endLook() blamed on turned out to be the Exits line itself. This is
+    -- why RightHere showed 0 entries/capture-inactive on every real test
+    -- despite the anchor and body logic both being individually correct.
+    if t:match("^%[Exits: .*%]$") then return end  -- the anchor line re-seeing itself, not content
     -- Fixture check MUST run before parseLookHereLine -- item lines like
     -- "X lies here." also satisfy parseLookHereLine's broad "here"
     -- fallback below, and would otherwise get miscaptured as mobs.
     if isLookFixtureLine(ln) then return end  -- item/corpse/fixture, keep capturing
-    if MyDSL.parseLookHereLine(ln) then
-      cecho("<yellow>[DEBUG] captured: " .. ln .. "\n")  -- TEMP DEBUG 2026-07-08
-      return
-    end
+    if MyDSL.parseLookHereLine(ln) then return end
     if isCharmedStatusLine(ln) then return end  -- see comment above the function
     if t:match("^%l") then return end  -- wrapped continuation, keep capturing
-    cecho("<yellow>[DEBUG] endLook() on: " .. ln .. "\n")  -- TEMP DEBUG 2026-07-08
     MyDSL.endLook()
   end)
 end
@@ -2493,15 +2501,12 @@ MyDSL._triggers.scanDir = tempRegexTrigger(
 -- capture never started in the first place. My emulation testing missed
 -- this because it called MyDSL.beginLook() directly, never exercising
 -- this trigger's own pattern against real text.
--- TEMP DEBUG 2026-07-08: `mydsl righthere dump` showed 0 entries/capture
--- inactive after a real look, even after the leading-space anchor fix, and
--- static analysis found no further bug. This trace answers the one
--- question static analysis can't: does this trigger actually fire live.
--- Remove once resolved either way.
+-- Round 4, found via a live debug trace 2026-07-08 (see beginLook()'s
+-- catch-all comment for the actual root cause -- a self-retrigger on this
+-- same anchor line, not this trigger's own pattern).
 MyDSL._triggers.lookExits = tempRegexTrigger(
   "^\\s*\\[Exits: .*\\]\\s*$",
   function()
-    cecho("<yellow>[DEBUG] lookExits anchor fired\n")
     if MyDSL and MyDSL.beginLook then MyDSL.beginLook() end
   end
 )

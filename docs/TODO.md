@@ -124,22 +124,38 @@ in-game. Full technical detail for any of these: `git log --oneline` +
       close the exact gap that let this hide through two prior rounds.
       Needs Steven to confirm live in a busy room again — this time it
       should actually be exercised at all.
-- [ ] **RightHere still reported not updating after the round-3 anchor
-      fix — needs live diagnostic, not more static log analysis.**
-      Checked a fresh post-fix log (`2026-07-08#17-42-15.html`) against
-      the exact anchor+body chain via emulation, including the newly-seen
-      "(Charmed) A wild wolverine is foaming at the mouth." (no here/room
-      anchor at all, same class as "follows their client.") — all correctly
-      handled, capture never terminates early. Also re-checked: dofile
-      path in the newest native XML resolves to the identical file (same
-      inode, confirmed via `diff`), and Kien's persisted window state has
-      `MyDSL_RightHere = true` (visible). No further bug found from static
-      analysis. Added `mydsl righthere dump` (`MyDSL_ScanView.lua`) — a
-      one-shot alias that echoes `MyDSL.State.scan.rightHere`'s raw
-      contents straight to the main console, bypassing the window
-      entirely, so a `look` followed by this command tells us definitively
-      whether this is still a capture problem or a display/render problem.
-      Waiting on Steven to run it and report what it shows.
+- [ ] **RightHere-on-look — round 4, actual real root cause found via live
+      trace 2026-07-08, fix applied, needs one more live confirmation
+      before closing.** `mydsl righthere dump` (added as a live
+      diagnostic after round 3's static checks all came back clean) showed
+      0 entries / capture inactive on every single real `look`, so a
+      temporary debug trace was added directly to the trigger chain
+      (anchor fire, `beginLook()` entry, capture success, `endLook()`
+      entry) and Steven ran one more real test. **The trace nailed it
+      immediately: `endLook()` was firing on the exact same "[Exits: ...]"
+      line that had just fired `lookExits` and installed the capture body,
+      every single time, before any real content line was ever seen.**
+      Root cause: `lookBody`'s `.*` catch-all gets installed by
+      `lookExits`'s callback *while that same line is still being
+      processed*, and Mudlet evaluates newly-registered triggers against
+      the current line in the same pass — so the brand-new `lookBody`
+      immediately re-fires on the very "[Exits: ...]" line that created
+      it, which isn't recognized as fixture/mob/charm/continuation, so it
+      falls through to "unrelated event, end capture" and closes
+      immediately. This is why rounds 1-3 were all individually correct
+      but the feature never worked even once, ever, in real gameplay —
+      capture always self-terminated before reaching any content.
+      Fixed with one line: `lookBody` now explicitly ignores a line
+      matching the Exits-line shape itself (`^%[Exits: .*%]$`) as a
+      keep-capturing no-op, same treatment as a wrapped continuation line.
+      Verified via emulation reproducing the exact self-retrigger
+      (installing the body then immediately firing it again against the
+      same anchor line) — capture survives, all real entities after it
+      get captured. Removed the temporary debug traces. This is the
+      fourth and (confirmed via live trace, not just static analysis)
+      actual root cause — needs Steven to do one more `look` in a busy
+      room to confirm RightHere finally populates before this closes for
+      real.
 - [ ] CombatView/History font persistence — `mydsl combat font <n>` /
       `mydsl history font <n>` survive a real restart
 - [ ] Action-button color contrast — Rescue/cure-spell buttons actually
