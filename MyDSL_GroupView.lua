@@ -47,6 +47,20 @@ end
 ------------------------------------------------------------------------
 -- Thresholds follow the standard DSL convention: green → yellow → orange → red.
 
+-- cutText(s, width) -- truncates with a trailing "~" instead of a flat
+-- mid-word cut. Fixed 2026-07-07: found sampling logs, a 22-char mob name
+-- ("A throughbred stallion") was being cut mid-word ("A throughbred
+-- stalli") by the old m.name:sub(1, 20). Same shape as AffectsView's own
+-- cutText() (MyDSL_AffectsView.lua) -- reusing the established convention
+-- rather than inventing a separate word-boundary algorithm.
+local function cutText(s, width)
+  s = tostring(s or "")
+  width = tonumber(width) or #s
+  if #s <= width then return s end
+  if width <= 1 then return s:sub(1, width) end
+  return s:sub(1, width - 1) .. "~"
+end
+
 local function hpColor(pct)
   if     pct >= 76 then return "68,204,68"    -- green
   elseif pct >= 51 then return "204,204,68"   -- yellow
@@ -90,7 +104,7 @@ function GV.render()
 
     -- Name: clickable to set Target; mobs warm tan, players near-white; max 20 chars.
     local name_color = m.is_mob and "204,170,100" or "204,204,204"
-    local display_name = m.name:sub(1, 20)
+    local display_name = cutText(m.name, 20)
     gvLogLink(mc,
       string.format("<%s>%-20s<r>", name_color, display_name),
       string.format("MyDSL.GroupView.setTarget(%d)", idx),
@@ -183,7 +197,10 @@ function GV.quickAction(idx, actionKey)
   local act = MyDSL.TargetView and MyDSL.TargetView.actions
               and MyDSL.TargetView.actions[actionKey]
   if not act then return end
-  local cmd = act.cmd({ name = m.name })
+  -- is_mob included 2026-07-07: TV.actions.murder/order_attack now pick
+  -- their verb (kill vs murder) based on t.is_mob -- omitting it here
+  -- would silently fall back to the player verb for a mob quick-action.
+  local cmd = act.cmd({ name = m.name, is_mob = m.is_mob })
   send(cmd, false)
 end
 
