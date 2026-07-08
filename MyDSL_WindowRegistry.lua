@@ -38,74 +38,6 @@ if MyDSL.Windows._handlers.characterIdentified then
   MyDSL.Windows._handlers.characterIdentified = nil
 end
 
-if MyDSL.Windows._handlers.resizeAutoSave then
-  pcall(killAnonymousEventHandler, MyDSL.Windows._handlers.resizeAutoSave)
-  MyDSL.Windows._handlers.resizeAutoSave = nil
-end
-
-MyDSL.Windows.config = MyDSL.Windows.config or {}
-if MyDSL.Windows.config.autoSaveLayout == nil then MyDSL.Windows.config.autoSaveLayout = true end
-
-------------------------------------------------------------------------
--- Layout auto-save -- added 2026-07-08, per Steven.
-------------------------------------------------------------------------
--- A prior (Claude.ai-era) attempt at this caused docking problems -- the
--- likely failure mode: Mudlet's own sysWindowResizeEvent fires on EVERY
--- dock/undock geometry change, not just a genuine user drag (already
--- documented in MyDSL_LayoutEngine.lua's own SECTION 8 comment: "docking
--- a UserWindow fires sysWindowResizeEvent"), so saving/reflowing directly
--- off that event captures transient mid-operation geometry and can fight
--- the user or corrupt the saved layout. Two safeguards here:
---   1. Suppression window (MyDSL.suppressLayoutAutoSave(seconds)) -- any
---      code that programmatically repositions windows (boot, a
---      character-identified reflow, "mydsl layout reset") calls this
---      first, so resize events fired by OUR OWN code don't get captured
---      as if they were a user drag.
---   2. Debounce -- a resize event schedules a save ~2s in the future,
---      restarting the timer on every further event, so a flurry of dock
---      events (or an in-progress drag) settles before anything is
---      actually captured/written -- only the final, quiet state gets
---      saved, never a mid-drag position.
--- Shared on the base MyDSL table (not MyDSL.Windows/MyDSL.Layout)
--- specifically so LayoutEngine can call it too without ever depending on
--- WindowRegistry internals (see LayoutEngine's own file-header rule).
-function MyDSL.suppressLayoutAutoSave(seconds)
-  MyDSL._layoutAutoSaveSuppressUntil = os.time() + (tonumber(seconds) or 2)
-end
-
-local function layoutAutoSaveSuppressed()
-  return os.time() < (MyDSL._layoutAutoSaveSuppressUntil or 0)
-end
-
-local function scheduleLayoutAutoSave()
-  if not MyDSL.Windows.config.autoSaveLayout then return end
-  if layoutAutoSaveSuppressed() then return end
-  if MyDSL.Windows._autoSaveTimerId then
-    pcall(killTimer, MyDSL.Windows._autoSaveTimerId)
-    MyDSL.Windows._autoSaveTimerId = nil
-  end
-  MyDSL.Windows._autoSaveTimerId = tempTimer(2, function()
-    MyDSL.Windows._autoSaveTimerId = nil
-    if MyDSL.Windows.config.autoSaveLayout and not layoutAutoSaveSuppressed() then
-      MyDSL.Windows.saveLayout(true)
-    end
-  end)
-end
-
-MyDSL.Windows._handlers.resizeAutoSave = registerAnonymousEventHandler(
-  "sysWindowResizeEvent",
-  scheduleLayoutAutoSave
-)
-
-if not MyDSL.Windows._autosaveAliasInstalled then
-  tempAlias("^mydsl layout autosave (on|off)$", function()
-    MyDSL.Windows.config.autoSaveLayout = (matches[2] == "on")
-    cecho("\n<green>[MyDSL] Layout auto-save: " .. matches[2] .. "\n")
-  end)
-  MyDSL.Windows._autosaveAliasInstalled = true
-end
-
-
 ------------------------------------------------------------------------
 -- SECTION 2: SAVE FILE PATH
 ------------------------------------------------------------------------
@@ -563,30 +495,17 @@ local function patchUserWindowConstructor()
   MyDSL.Windows._constructorPatched = true
 end
 
-function MyDSL.Windows.saveLayout(silent)
-  -- Step 1: capture current positions from live Geyser objects
-  local sw, sh = getMainWindowSize()
-  if sw and sh and sw > 0 and sh > 0 then
-    for name, entry in pairs(MyDSL.Windows.registry) do
-      if entry.obj then
-        local ok, x, y, w, h = pcall(function()
-          return entry.obj:get_x(), entry.obj:get_y(),
-                 entry.obj:get_width(), entry.obj:get_height()
-        end)
-        if ok and x then
-          MyDSL.Layout.set(name, x/sw, y/sh, w/sw, h/sh)
-        end
-      end
-    end
-    -- Step 2: save LayoutEngine positions to disk
-    if MyDSL.Layout.save then MyDSL.Layout.save() end
-  end
-  -- Step 3: save Qt dock state
+-- Simplified 2026-07-08, per Steven: the custom capture-into-percentages-
+-- and-write-our-own-file approach (previously Steps 1-2 here) is dropped
+-- in favor of just Mudlet's own native saveWindowLayout()/saveProfile() --
+-- "its not woking right and i dont want to have that fight again." Layout
+-- persistence is per-profile now (native Qt dock-state save, not
+-- per-character), matching restoreLayout=true/autoDock=true already
+-- patched onto every window in patchUserWindowConstructor().
+function MyDSL.Windows.saveLayout()
   if saveWindowLayout then saveWindowLayout() end
   if saveProfile then saveProfile() end
-  -- silent=true for auto-save, so a settled drag doesn't spam the console --
-  -- manual "mydsl layout save" still gives visible confirmation.
-  if not silent then cecho("\n<green>[MyDSL] Layout saved.\n") end
+  cecho("\n<green>[MyDSL] Layout saved.\n")
 end
 
 if not MyDSL.Windows._saveAliasInstalled then
@@ -604,7 +523,6 @@ end
 if not MyDSL.Windows._resetAliasInstalled then
   tempAlias("^mydsl layout reset$", function()
     if MyDSL.Layout and MyDSL.Layout.resetAll then
-      MyDSL.suppressLayoutAutoSave(2)
       MyDSL.Layout.resetAll()
       if MyDSL.Layout.reflowAll then MyDSL.Layout.reflowAll(MyDSL.Windows.registry) end
       cecho("\n<green>[MyDSL] Layout reset to defaults (run 'mydsl layout save' to persist).\n")
@@ -623,9 +541,6 @@ end
 -- No timers: timers fight the user by snapping windows back mid-session.
 -- To persist a layout: run "mydsl layout save".
 
--- Suppress layout auto-save during the whole boot dock/create cascade --
--- see the auto-save comment near the top of this file.
-MyDSL.suppressLayoutAutoSave(3)
 patchUserWindowConstructor()
 MyDSL.Windows.loadState()
 MyDSL.Windows.ensureAll()
@@ -643,7 +558,6 @@ if loadWindowLayout then loadWindowLayout() end
 MyDSL.Windows._handlers.characterIdentified = registerAnonymousEventHandler(
   "MyDSL.character.identified",
   function()
-    MyDSL.suppressLayoutAutoSave(2)
     MyDSL.Windows.loadState()
     for name, entry in pairs(MyDSL.Windows.registry) do
       if entry.visible then MyDSL.Windows.show(name) else MyDSL.Windows.hide(name) end

@@ -163,30 +163,14 @@ end
 -- This is a local variable — it never needs to be accessed from outside
 -- this file. Declaring it local keeps the global namespace clean.
 
--- Character-bound as of 2026-07-07 (was a single shared file) -- matches
--- the project's recorded decision that all settings should be
--- character-bound. Computed fresh on each call (not a fixed local) since
--- gmcp.login_data may not be populated yet at script-load time, before login.
-local function layoutCharName()
-  if gmcp and gmcp.login_data and gmcp.login_data.name and gmcp.login_data.name ~= "" then
-    return tostring(gmcp.login_data.name)
-  end
-  if MyCore and MyCore.getChar then
-    local ok, name = pcall(MyCore.getChar)
-    if ok and name and name ~= "" then return tostring(name) end
-  end
-  return "Unknown"
-end
-
-local function layoutSafeFileName(s)
-  s = tostring(s or "Unknown"):gsub("[^%w_%-%.]+", "_"):gsub("^_+", ""):gsub("_+$", "")
-  if s == "" then s = "Unknown" end
-  return s
-end
-
-local function SAVE_FILE()
-  return getMudletHomeDir() .. "/MyDSL_layout_" .. layoutSafeFileName(layoutCharName()) .. ".lua"
-end
+-- Reverted 2026-07-08, per Steven: layout is per-profile again, not
+-- per-character -- "we will keep it layout per profile and use lua
+-- saveWindowLayout() ... i dont want to have that fight again." The
+-- percentage-based positions here now only matter for a window's very
+-- first-ever creation; ongoing persistence is native Qt dock-state
+-- (saveWindowLayout()/saveProfile(), see MyDSL_WindowRegistry.lua's
+-- saveLayout()), which is inherently per-profile already.
+local SAVE_FILE = getMudletHomeDir() .. "/MyDSL_layout.lua"
 
 
 ------------------------------------------------------------------------
@@ -201,9 +185,9 @@ end
 -- This is much simpler than writing a custom file format.
 
 function MyDSL.Layout.save()
-  local ok = pcall(table.save, SAVE_FILE(), MyDSL.Layout.positions)
+  local ok = pcall(table.save, SAVE_FILE, MyDSL.Layout.positions)
   if not ok then
-    debugc("[MyDSL] LayoutEngine: failed to save layout to " .. SAVE_FILE())
+    debugc("[MyDSL] LayoutEngine: failed to save layout to " .. SAVE_FILE)
   end
   return ok
 end
@@ -218,7 +202,7 @@ function MyDSL.Layout.load()
   -- io.open is Lua's standard file-open function.
   -- We open in read mode ("r") just to test if the file exists.
   -- If it doesn't exist, io.open returns nil and we skip the load.
-  local f = io.open(SAVE_FILE(), "r")
+  local f = io.open(SAVE_FILE, "r")
   if not f then
     -- No save file found — first run, or file was deleted. Use defaults.
     return
@@ -228,7 +212,7 @@ function MyDSL.Layout.load()
   -- table.load() reads the serialized file and returns the table it contains.
   -- We load into a temporary variable first so that if the load fails
   -- (e.g. the file is corrupt), we don't overwrite good live data.
-  local loaded = table.load(SAVE_FILE())
+  local loaded = table.load(SAVE_FILE)
   if type(loaded) ~= "table" then
     debugc("[MyDSL] LayoutEngine: save file corrupt or unreadable — using defaults.")
     return
@@ -485,32 +469,6 @@ end
 -- If no save file exists, this is a silent no-op and defaults are used.
 
 MyDSL.Layout.load()
-
-
-------------------------------------------------------------------------
--- SECTION 10: RE-LOAD ONCE THE REAL CHARACTER IS KNOWN
-------------------------------------------------------------------------
--- Fixed 2026-07-07: the load() call above runs at script-boot time, which
--- on a genuinely fresh Mudlet start happens before login -- so it loads
--- "Unknown"'s save file (or bare defaults) and would otherwise never pick
--- up this character's real saved layout. MyDSL_DataLayer.lua's
--- gmcp.login_data handler raises "MyDSL.character.identified" once the
--- real name is known; re-load and reflow any windows that already exist.
-
-MyDSL.Layout._handlers.characterIdentified = registerAnonymousEventHandler(
-  "MyDSL.character.identified",
-  function()
-    -- Suppress layout auto-save (added 2026-07-08 in MyDSL_WindowRegistry.lua)
-    -- while reflowAll() below repositions every window -- otherwise the
-    -- resize events that generates would look like a user drag and get
-    -- captured/saved as the "real" layout.
-    if MyDSL.suppressLayoutAutoSave then MyDSL.suppressLayoutAutoSave(2) end
-    MyDSL.Layout.load()
-    if MyDSL.Windows and MyDSL.Windows.registry and MyDSL.Layout.reflowAll then
-      MyDSL.Layout.reflowAll(MyDSL.Windows.registry)
-    end
-  end
-)
 
 
 ------------------------------------------------------------------------
