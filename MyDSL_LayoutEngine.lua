@@ -500,6 +500,11 @@ MyDSL.Layout.load()
 MyDSL.Layout._handlers.characterIdentified = registerAnonymousEventHandler(
   "MyDSL.character.identified",
   function()
+    -- Suppress layout auto-save (added 2026-07-08 in MyDSL_WindowRegistry.lua)
+    -- while reflowAll() below repositions every window -- otherwise the
+    -- resize events that generates would look like a user drag and get
+    -- captured/saved as the "real" layout.
+    if MyDSL.suppressLayoutAutoSave then MyDSL.suppressLayoutAutoSave(2) end
     MyDSL.Layout.load()
     if MyDSL.Windows and MyDSL.Windows.registry and MyDSL.Layout.reflowAll then
       MyDSL.Layout.reflowAll(MyDSL.Windows.registry)
