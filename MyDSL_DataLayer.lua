@@ -364,9 +364,6 @@ MyDSL.State.time    = MyDSL.State.time    or { last_updated = 0 }  -- text: game
 MyDSL.State.weather = MyDSL.State.weather or { last_updated = 0 }  -- text: weather description
 MyDSL.State.who     = MyDSL.State.who     or { last_updated = 0 }  -- text: online player list
 MyDSL.State.group   = MyDSL.State.group   or { last_updated = 0 }  -- text: party members
-MyDSL.State.unread  = MyDSL.State.unread  or { last_updated = 0 }  -- text: unread message counts
-MyDSL.State.inv     = MyDSL.State.inv     or { last_updated = 0 }  -- text: carried item list
-MyDSL.State.map     = MyDSL.State.map     or { last_updated = 0 }  -- text: ASCII map lines
 MyDSL.State.improve = MyDSL.State.improve or { last_updated = 0 }  -- text: skill improve events
 MyDSL.State.flags        = MyDSL.State.flags        or { last_updated = 0 }  -- text: toggle flags from score
 MyDSL.State.scan         = MyDSL.State.scan         or {  -- text: nearby entities from scan command
@@ -1275,66 +1272,6 @@ function MyDSL.endWho()
 end
 
 ------------------------------------------------------------------------
--- 9g  WHOK  (kingdom roster)
-------------------------------------------------------------------------
-
-local whokBlock = {}
-
-function MyDSL.beginWhok() whokBlock = {} end
-
-function MyDSL.parseWhokLine(line)
-  local level, class = line:match("%[(%d+)%s+(%a+)%]")
-  if not level then return end
-  local rest  = line:match("%]%s+(.+)$") or ""
-  local parts = {}
-  for w in rest:gmatch("%S+") do parts[#parts + 1] = w end
-  whokBlock[#whokBlock + 1] = {
-    level        = tonumber(level),
-    class        = trim(class),
-    kingdom      = parts[1],
-    name         = parts[2],
-    rank         = parts[3],
-    is_leader    = line:find("[Ll]eader")    ~= nil,
-    is_recruiter = line:find("[Rr]ecruiter") ~= nil,
-  }
-end
-
-function MyDSL.endWhok()
-  update("who", { kingdom_members = whokBlock })
-  whokBlock = {}
-end
-
-------------------------------------------------------------------------
--- 9h  WHOC  (clan roster)
-------------------------------------------------------------------------
-
-local whocBlock = {}
-
-function MyDSL.beginWhoc() whocBlock = {} end
-
-function MyDSL.parseWhocLine(line)
-  local level, class = line:match("%[(%d+)%s+(%a+)%]")
-  if not level then return end
-  local rest  = line:match("%]%s+(.+)$") or ""
-  local parts = {}
-  for w in rest:gmatch("%S+") do parts[#parts + 1] = w end
-  whocBlock[#whocBlock + 1] = {
-    level        = tonumber(level),
-    class        = trim(class),
-    clan         = parts[1],
-    name         = parts[2],
-    rank         = parts[3],
-    is_leader    = line:find("[Ll]eader")    ~= nil,
-    is_recruiter = line:find("[Rr]ecruiter") ~= nil,
-  }
-end
-
-function MyDSL.endWhoc()
-  update("who", { clan_members = whocBlock })
-  whocBlock = {}
-end
-
-------------------------------------------------------------------------
 -- 9i  GROUP
 ------------------------------------------------------------------------
 -- Example: "[51 War] Olyndros                  100% hp 100% mana 100% mv"
@@ -1392,113 +1329,6 @@ function MyDSL.endGroup()
 end
 
 ------------------------------------------------------------------------
--- 9j  UNREAD
-------------------------------------------------------------------------
--- Single-line.  Game sends this naturally at login and on request.
--- Example: "You have 3 news, 1 note, 0 OOC notes unread."
-
-function MyDSL.parseUnreadLine(line)
-  local fields   = {}
-  local matched  = false
-  local function ex(pattern, key)
-    local n = line:match(pattern)
-    if n then fields[key] = tonumber(n); matched = true end
-  end
-  ex("(%d+) news",             "news")
-  ex("(%d+) note[^s]",         "notes")
-  ex("(%d+) notes[^,]",        "notes")
-  ex("(%d+) [Oo][Oo][Cc]",    "ooc_notes")
-  ex("(%d+) quest",            "quest_notes")
-  ex("(%d+) stor",             "story_notes")
-  ex("(%d+) bloodbath",        "bloodbath_notes")
-  if matched then update("unread", fields) end
-end
-
-------------------------------------------------------------------------
--- 9k  INVENTORY
-------------------------------------------------------------------------
--- Example lines: "a glowing sword (Glowing)(Humming)"
---                "3 silver coins"
-
-local invBlock = {}
-
-function MyDSL.beginInv() invBlock = {} end
-
-function MyDSL.parseInvLine(line)
-  local s = trim(line)
-  if s == "" then return end
-  local count, name = s:match("^(%d+)%s+(.+)$")
-  if not count then count = 1; name = s end
-  local flags = {}
-  for flag in name:gmatch("%(([^%)]+)%)") do flags[#flags + 1] = flag end
-  name = trim(name:gsub("%s*%([^%)]+%)", ""))
-  if name == "" then return end
-  invBlock[#invBlock + 1] = { name = name, count = tonumber(count), flags = flags }
-end
-
-function MyDSL.endInv()
-  update("inv", { items = invBlock, count = #invBlock })
-  invBlock = {}
-end
-
-------------------------------------------------------------------------
--- 9l  MAP
-------------------------------------------------------------------------
--- ASCII map lines captured silently — gagged by triggers, not displayed.
-
-local mapBlock = {}
-
-function MyDSL.beginMap()  mapBlock = {} end
-function MyDSL.parseMapLine(line) mapBlock[#mapBlock + 1] = line end
-
-function MyDSL.endMap()
-  update("map", { lines = mapBlock, row_count = #mapBlock })
-  mapBlock = {}
-end
-
-------------------------------------------------------------------------
--- 9m  AFFECTS  (text fallback, used only when GMCP has not yet arrived)
-------------------------------------------------------------------------
--- Confirmed format (from in-game capture):
---   "Spell: detect hidden     : modifies none by 0 for 32 cycles, (16 hours)"
---   "Spell: detect invis      : modifies none by 0 for 32 cycles, (16 hours)"
--- Old code matched "name affects loc by mod, for N cycles." — completely wrong format.
-
-local affectsTextBlock = {}
-
-function MyDSL.beginAffectsText() affectsTextBlock = {} end
-
-function MyDSL.parseAffectsTextLine(line)
-  if line:find("not affected by any") then
-    affectsTextBlock = {}
-    return
-  end
-  -- "Spell: <name>  : modifies <loc> by <mod> for <cycles> cycles, (<hours> hours)"
-  local name, loc, mod, cycles, hours =
-    line:match("^Spell:%s*(.-)%s*:%s*modifies%s+(%S+)%s+by%s+([%+%-]?%d+)%s+for%s+(%d+)%s+cycles?,%s+%((%d+)%s+hours?%)")
-  if name and trim(name) ~= "" then
-    local key = trim(name):lower()
-    affectsTextBlock[key] = {
-      name     = trim(name),
-      location = trim(loc),
-      modifier = tonumber(mod),
-      duration = tonumber(cycles),
-      hours    = tonumber(hours),
-      source   = "text",
-    }
-  end
-end
-
-function MyDSL.endAffectsText()
-  -- Only apply the text fallback if GMCP affect_data has never arrived.
-  -- last_updated == 0 means no GMCP packet has been received this session.
-  if MyDSL.State.affects.last_updated == 0 then
-    update("affects", { active = affectsTextBlock })
-  end
-  affectsTextBlock = {}
-end
-
-------------------------------------------------------------------------
 -- 9n  IMPROVE
 ------------------------------------------------------------------------
 -- Single-line.  Fires naturally when a skill improves during combat.
@@ -1511,6 +1341,25 @@ function MyDSL.parseImproveLine(line)
   end
   if skill then
     update("improve", { skill = trim(skill), percent = tonumber(pct) })
+  end
+end
+
+-- parseImproveStatusLine() -- added 2026-07-07, per Steven (wants a
+-- LiveView bar showing remaining time for the skill being improved).
+-- A DIFFERENT real message from the completion line above -- the response
+-- to typing "improve" (no args): a status snapshot with a countdown.
+-- Confirmed real text, both trailing-period forms (DSL is inconsistent):
+--   "You are currently improving astrology (100%). (71 online minutes to improvement)"
+--   "You are currently improving blind fighting (91%). (0 online minutes to improvement)."
+-- User-initiated only (typing "improve" yourself) -- MyDSL never sends
+-- this command automatically. The bar shows the last snapshot as-is
+-- between checks rather than a live-ticking countdown ("stale data beats
+-- spam"); `MyDSL.State.improve.last_updated` already records when.
+function MyDSL.parseImproveStatusLine(line)
+  local skill, pct, mins = line:match(
+    "^You are currently improving (.-) %((%d+)%%%)%. %((%d+) online minutes to improvement%)%.?$")
+  if skill then
+    update("improve", { skill = trim(skill), percent = tonumber(pct), remaining = tonumber(mins) })
   end
 end
 
@@ -2846,6 +2695,23 @@ MyDSL._handlers.combatRoundFlush = registerAnonymousEventHandler(
     end
   end
 )
+
+------------------------------------------------------------------------
+-- Improve triggers -- wired 2026-07-07 (both parse functions existed but
+-- nothing called them; see parseImproveLine/parseImproveStatusLine above).
+-- Per Steven: keep this one specifically, feeds a LiveView bar.
+------------------------------------------------------------------------
+
+MyDSL._triggers.improveComplete = tempRegexTrigger(
+  "^Your knowledge of .+ improves to \\d+%\\.?$",
+  function() if MyDSL and MyDSL.parseImproveLine then MyDSL.parseImproveLine(getCurrentLine()) end end)
+MyDSL._triggers.improveGetBetter = tempRegexTrigger(
+  "^You feel yourself getting better at .+\\. \\(\\d+%\\)$",
+  function() if MyDSL and MyDSL.parseImproveLine then MyDSL.parseImproveLine(getCurrentLine()) end end)
+MyDSL._triggers.improveStatus = tempRegexTrigger(
+  "^You are currently improving .+ \\(\\d+%\\)\\. \\(\\d+ online minutes to improvement\\)\\.?$",
+  function() if MyDSL and MyDSL.parseImproveStatusLine then MyDSL.parseImproveStatusLine(getCurrentLine()) end end)
+
 
 ------------------------------------------------------------------------
 -- READY
