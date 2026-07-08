@@ -15,12 +15,47 @@ MyDSL = MyDSL or {}
 MyDSL.Route = MyDSL.Route or {}
 
 -- Per-window font size override -- default 9 for anything not listed here.
--- History dropped to 8 2026-07-05 per Steven (still cramped at 9). This
--- should eventually live in the same in-game-adjustable/persisted config as
--- the other window font sizes -- tracked in TODO.md, not done yet.
+-- History dropped to 8 2026-07-05, then to 7 2026-07-07 per Steven ("history
+-- text 7"). Now persisted character-bound (same pattern as
+-- MyDSL_CombatView.lua/MyDSL_TargetView.lua's configFile()), closing the
+-- "should eventually live in a persisted config" gap noted here before.
 local FONT_SIZE_OVERRIDES = {
-  MyDSL_History = 8,
+  MyDSL_History = 7,
 }
+
+local function historyCharName()
+  if gmcp and gmcp.login_data and gmcp.login_data.name and gmcp.login_data.name ~= "" then
+    return tostring(gmcp.login_data.name)
+  end
+  if MyCore and MyCore.getChar then
+    local ok, name = pcall(MyCore.getChar)
+    if ok and name and name ~= "" then return tostring(name) end
+  end
+  return "Unknown"
+end
+
+local function historySafeFileName(s)
+  s = tostring(s or "Unknown"):gsub("[^%w_%-%.]+", "_"):gsub("^_+", ""):gsub("_+$", "")
+  if s == "" then s = "Unknown" end
+  return s
+end
+
+local function historyFontConfigFile()
+  return getMudletHomeDir() .. "/MyDSL/history_font_" .. historySafeFileName(historyCharName()) .. ".lua"
+end
+
+local function loadHistoryFontConfig()
+  local ok, data = pcall(table.load, historyFontConfigFile())
+  if ok and type(data) == "table" and type(data.fontSize) == "number" then
+    FONT_SIZE_OVERRIDES.MyDSL_History = data.fontSize
+  end
+end
+
+local function saveHistoryFontConfig()
+  pcall(table.save, historyFontConfigFile(), { fontSize = FONT_SIZE_OVERRIDES.MyDSL_History })
+end
+
+loadHistoryFontConfig()
 
 -- getOrCreateConsole(windowName)
 -- Returns the MiniConsole inside a window, creating it if needed.
@@ -121,6 +156,56 @@ function MyDSL.Route.scan(line)      MyDSL.Route.to("MyDSL_Scan",        line) e
 function MyDSL.Route.group(line)     MyDSL.Route.to("MyDSL_Group",       line) end
 function MyDSL.Route.players(line)   MyDSL.Route.to("MyDSL_PlayersNear", line) end
 function MyDSL.Route.righthere(line) MyDSL.Route.to("MyDSL_RightHere",   line) end
-function MyDSL.Route.bloodbath(line) MyDSL.Route.to("MyDSL_Bloodbath",   line) end
+
+-- MyDSL.Route.setHistoryFont(size) + "mydsl history font <n>" -- added
+-- 2026-07-06. Every other routed/module window has its own "mydsl <name>
+-- font <n>" alias (chat/live/tickview all confirmed); History only had a
+-- fixed FONT_SIZE_OVERRIDES entry with no way to change it in-game.
+-- Confirmed real gap: Steven typed "mydsl history font 9" twice in logged
+-- sessions and got "Huh?" both times.
+function MyDSL.Route.setHistoryFont(size)
+  size = tonumber(size)
+  if not size then echo("usage: mydsl history font <size>\n"); return end
+  if size < 6 then size = 6 end
+  if size > 18 then size = 18 end
+  FONT_SIZE_OVERRIDES.MyDSL_History = size
+  local entry = MyDSL.Windows and MyDSL.Windows.registry
+                and MyDSL.Windows.registry.MyDSL_History
+  if entry and entry.console then
+    entry.console:setFontSize(size)
+  end
+  saveHistoryFontConfig()
+  echo("MyDSL_History font=" .. tostring(size) .. "\n")
+end
+
+MyDSL._aliases = MyDSL._aliases or {}
+if MyDSL._aliases.historyFont then pcall(killAlias, MyDSL._aliases.historyFont) end
+MyDSL._aliases.historyFont = tempAlias(
+  "^mydsl history font (\\d+)$",
+  [[MyDSL.Route.setHistoryFont(matches[2])]]
+)
+
+-- Re-load once the real character is known -- fixed 2026-07-07.
+-- loadHistoryFontConfig() above runs at script-boot time, which on a
+-- genuinely fresh Mudlet start happens before login, so it loads
+-- "Unknown"'s font size (or the bare default) and would otherwise never
+-- pick up this character's real saved font. MyDSL_DataLayer.lua's
+-- gmcp.login_data handler raises "MyDSL.character.identified" once the
+-- real name is known.
+MyDSL._handlers = MyDSL._handlers or {}
+if MyDSL._handlers.historyCharacterIdentified then
+  pcall(killAnonymousEventHandler, MyDSL._handlers.historyCharacterIdentified)
+end
+MyDSL._handlers.historyCharacterIdentified = registerAnonymousEventHandler(
+  "MyDSL.character.identified",
+  function()
+    loadHistoryFontConfig()
+    local entry = MyDSL.Windows and MyDSL.Windows.registry
+                  and MyDSL.Windows.registry.MyDSL_History
+    if entry and entry.console then
+      entry.console:setFontSize(FONT_SIZE_OVERRIDES.MyDSL_History)
+    end
+  end
+)
 
 debugc("[MyDSL] RouteHelper loaded.")
