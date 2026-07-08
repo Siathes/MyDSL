@@ -25,10 +25,29 @@ deregisterTriggers()
 -- HELPER  — register one regex trigger that routes to a named tab
 ------------------------------------------------------------------------
 
+-- 2026-07-08, per Steven ("the space after certain followers is known...
+-- never resolved in other scripts people attempted... maybe replace the
+-- line with our own safely?"). Switched from demonnic.chat:append(tabName)
+-- to decho() with a line captured directly in THIS callback. append()'s
+-- "a" mode relies on getCurrentLine()/selectCurrentLine()/copy() -- a
+-- live console-widget selection, not a plain string read -- to preserve
+-- the original line's rich formatting; that selection is what's
+-- susceptible to picking up stray characters from whatever else touches
+-- the console around the same moment (the actual widget-level mechanism
+-- was never fully nailed down, and apparently never has been by anyone
+-- else who's hit this either). getCurrentLine()/getFgColor() here are
+-- plain synchronous reads -- the same reliable pattern every other
+-- trigger in this whole project already uses -- with zero dependency on
+-- console selection state. Trade-off: preserves the line's single
+-- dominant foreground color (matches how chat lines actually render --
+-- one color per line, not per-word like combat text) rather than every
+-- last bit of the original rich formatting.
 local function route(tabName, pattern)
   local id = tempRegexTrigger(pattern, function()
     if demonnic and demonnic.chat then
-      demonnic.chat:append(tabName)
+      local text = getCurrentLine()
+      local fr, fg, fb = getFgColor()
+      demonnic.chat:decho(tabName, string.format("<%d,%d,%d>%s<reset>\n", fr, fg, fb, text))
     end
     -- Restored 2026-07-08 now that routing itself is confirmed working
     -- live (per Steven) -- this is what actually moves the line to the
