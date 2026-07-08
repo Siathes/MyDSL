@@ -46,41 +46,11 @@ in-game. Full technical detail for any of these: `git log --oneline` +
       warning fires
 - [ ] CharacterAssist: rearm (weapon+shield), spellup/setspell,
       blind-vision check
-- [x] CharacterAssist standup — **real gap found + fixed 2026-07-08**: the
-      only standup trigger matched `"knocking you senseless"`; real text
-      Steven hit was a completely different message, `"<actor> bumps into
-      you causing you to lose your balance."` / `"You sit down."` (confirmed
-      via `log/2026-07-08#15-57-13.html`), never covered, so he had to type
-      `stand` manually. New trigger fires on the bump line specifically
-      (not the ambiguous "You sit down." status line, which is almost
-      certainly shared with deliberately typing `sit` to rest). Verified
-      via `test/mudlet_mock.lua` against the real captured line.
-      **Confirmed live 2026-07-08 by Steven** ("the stand up fix make
-      sense, close it also") — closing.
 - [ ] Equipment capture — `eq`/`equipment` populates `MyDSL.State.equipment`
-- [x] TargetView `[Friend]`/`[Enemy]` tag — `dslcolor friend/enemy <name>`,
-      then target them. **Confirmed live 2026-07-08 by Steven** ("works as
-      intended") — closing.
-- [x] `mydsl who <name>` passthrough to `dslcolor show <name>`.
-      **Confirmed live by Steven** — closing.
-- [x] DataLayer fresh-start crash fix — needs a **full Mudlet restart**,
-      not just a script reload, to actually test. **Confirmed live
-      2026-07-08 by Steven** (no crash on fresh restart) — closing.
-- [x] ChatTriggers channel routing (3 rewrite passes) — real chat
-      activity reaches the right EMCO tabs. **Confirmed live by Steven**
-      — closing. (Separate from the still-open "S"/duplicate-line
-      cosmetic bug tracked below — that's a distinct, still-active issue,
-      not this basic routing check.)
-- [x] `mydsl help` / `mydsl history font <n>` commands work. **Confirmed
-      live 2026-07-08 by Steven** — closing.
+      (not built yet — real `eq` text format confirmed via logs 2026-07-08,
+      ready whenever this gets picked up)
 - [ ] `MyDSL_RawCapture.lua` — still needs its `dofile()` entry added
       (see LOW PRIORITY above) before this can be tested at all
-- [x] TargetView group/follower safety guard — target a charmed pet/group
-      member, murder/order-all buttons should be gone. **Confirmed live by
-      Steven** ("murder/order-all buttons gone") — closing.
-- [x] TargetView/GroupView kill vs murder verb fix — order-all/murder a
-      mob should now say "kill", not "murder". **Confirmed live 2026-07-08
-      by Steven** — closing.
 - [ ] Roller — next character creation
 - [ ] **RightHere-on-look — round 4 (self-retrigger) confirmed live via
       screenshots 2026-07-08; round 5 (count + floating-item fixture)
@@ -119,48 +89,7 @@ in-game. Full technical detail for any of these: `git log --oneline` +
       `mydsl history font <n>` survive a real restart
 - [ ] Action-button color contrast — Rescue/cure-spell buttons actually
       readable now
-- [x] **Layout: character-binding + auto-save both reverted 2026-07-08,
-      per Steven** ("revert the layout save and per character layout
-      save. we will keep it layout per profile and use lua
-      saveWindowLayout() cause its not woking right and i dont want to
-      have that fight again"). Full history: character-binding (2026-07-07)
-      caused Kien's UI to snap to generic defaults on login (no
-      per-character file existed yet); recurred 2026-07-08 since `mydsl
-      layout save` was never actually typed either session (confirmed via
-      both logs); auto-save was then built same-day with debounce +
-      suppression safeguards against the specific docking-corruption
-      failure mode a prior attempt hit — verified working via emulation,
-      but reverted anyway per Steven's direct preference for simplicity
-      over continuing to maintain custom layout-persistence logic.
-      **Final state**: `MyDSL_LayoutEngine.lua`'s `SAVE_FILE` is back to
-      the fixed, non-character-bound `MyDSL_layout.lua`; the
-      `MyDSL.character.identified` → `Layout.load()`+`reflowAll()` hook
-      is removed entirely (nothing character-specific to reload anymore);
-      `MyDSL_WindowRegistry.lua`'s `saveLayout()` (`mydsl layout save`)
-      now just calls native `saveWindowLayout()`/`saveProfile()` — the
-      custom capture-into-percentages-and-write-our-own-file steps are
-      gone. `MyDSL.Layout`'s percentage system still exists for a
-      window's first-ever creation coordinates and `mydsl layout reset`,
-      just no longer drives ongoing persistence. Verified via
-      `test/mudlet_mock.lua`: `saveLayout()` calls native
-      `saveWindowLayout()` and does not write a custom file;
-      `character.identified` no longer touches layout. **Confirmed live
-      2026-07-08 by Steven** ("layout seems to be functioning as it
-      should now") — closing.
-- [x] GroupView name truncation (cosmetic). **Confirmed live 2026-07-08 by
-      Steven** — closing.
 - [ ] `considerEasyKill`/`considerNoMatch` text in-game
-- [x] `MyDSL.logWindow()` fragmented-row fix — GroupView/TargetView logs
-      show one line per row, not one word per line. **Confirmed live
-      2026-07-08 by Steven** — closing.
-- [x] LiveView Improve bar — type `improve`, check the bar populates with
-      skill/percent/remaining minutes. **Confirmed live 2026-07-08 by
-      Steven** — closing. Steven separately noted the displayed time
-      "does not count down, must be updated by improve command" — this is
-      the deliberate design, not a bug (see `MyDSL_DataLayer.lua:1355`:
-      "the bar shows the last snapshot as-is... rather than a live-ticking
-      countdown", per "stale data beats spam"). No action needed unless
-      Steven actually wants a live countdown, which would be new scope.
 
 ---
 
