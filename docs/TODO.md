@@ -44,8 +44,18 @@ in-game. Full technical detail for any of these: `git log --oneline` +
       debug-only window's log file
 - [ ] AffectsView countdown paces correctly in real time; near-expiry color
       warning fires
-- [ ] CharacterAssist: rearm (weapon+shield), standup, spellup/setspell,
+- [ ] CharacterAssist: rearm (weapon+shield), spellup/setspell,
       blind-vision check
+- [x] CharacterAssist standup — **real gap found + fixed 2026-07-08**: the
+      only standup trigger matched `"knocking you senseless"`; real text
+      Steven hit was a completely different message, `"<actor> bumps into
+      you causing you to lose your balance."` / `"You sit down."` (confirmed
+      via `log/2026-07-08#15-57-13.html`), never covered, so he had to type
+      `stand` manually. New trigger fires on the bump line specifically
+      (not the ambiguous "You sit down." status line, which is almost
+      certainly shared with deliberately typing `sit` to rest). Verified
+      via `test/mudlet_mock.lua` against the real captured line. Needs
+      Steven to confirm live next time this specific bump happens.
 - [ ] Equipment capture — `eq`/`equipment` populates `MyDSL.State.equipment`
 - [ ] TargetView `[Friend]`/`[Enemy]` tag — `dslcolor friend/enemy <name>`,
       then target them
@@ -158,10 +168,34 @@ Steven: "make it work like PNP, then discuss the additions"):
       prior "likely root cause" was investigated and retracted). Needs a
       live repro: does the duplicate come from `MyDSL_ChatTriggers.lua`
       itself double-appending, EMCO's `allTab` mirroring, or something
-      else. **Note:** `MyDSL_ChatTriggers.lua` currently has no `dofile()`
-      entry at all (see BLOCKING section above) — it isn't running right
-      now, so it can't be the current cause of any live duplication until
-      that's fixed and re-tested.
+      else. `MyDSL_ChatTriggers.lua` is now confirmed wired in and running
+      (2026-07-08) — worth re-testing now that it's actually active.
+- [ ] **Chat capture bug — REOPENED 2026-07-08, much stronger evidence
+      than before.** Previously closed 2026-07-07 on Steven's impression
+      ("I think we fixed it"), no code cause ever found. Confirmed via
+      screenshot + the real `log/MyDSL_EMCO_Chat/2026/07/08/OOC.html` file:
+      **every single routed chat line is followed by a standalone "S" line**
+      in the EMCO tab — 100% reproducible, not intermittent (checked ~16
+      consecutive OOC/auction lines, all had it). Strong circumstantial
+      link: the main console is showing frequent `"System Message: gmcp
+      event <gmcp.X> display(gmcp) to see the full content"` debug lines
+      (visible in `Screenshot_20260708_160103.png`) — likely from a Mudlet
+      Settings-level GMCP debug/inspector toggle, not any of our own
+      scripts or the native trigger tree (grepped both, zero hits). This
+      matches the original bug description exactly ("grabs the first
+      letter of the following line") — "S" is very plausibly the first
+      character of one of these debug lines, caught by EMCO's `xEcho()`
+      (`selectCurrentLine()`/`copy()`, vendored/unmodified upstream code)
+      due to some timing interaction between chat-line and GMCP-event
+      processing. Not fixed — two concrete next steps instead of guessing
+      further: (1) check Mudlet's Settings/Special Options for whatever
+      is producing the `"System Message: gmcp event..."` debug spam and
+      turn it off, which may eliminate the trigger for this regardless of
+      full root-cause understanding; (2) `mydsl rawlog on`, chat
+      something, then check `MyDSL/logs/rawcapture/<Char>/<date>.log` —
+      RawCapture is finally active and loads before everything else, so
+      this is exactly the tool built to settle whether "S" is real
+      server-sent text or a client-side artifact.
 - [ ] **autowhere fires while sleeping** — Steven's own alias, not ours;
       low priority for us specifically.
 
