@@ -126,6 +126,24 @@ function MyDSL.DB.sync()
   -- DataLayer builds this table from gmcp.affect_data / add_affect / remove_affect.
   -- Consumers iterate: for name, entry in pairs(MyDSL.DB.affects) do
   MyDSL.DB.affects = (MyDSL.State.affects and MyDSL.State.affects.active) or {}
+
+  -- DB.improve — added 2026-07-07, per Steven (LiveView's Improve bar,
+  -- already built, was waiting on this). Pre-formats `text` here (skill +
+  -- mastery percent + remaining minutes) so LiveView's existing
+  -- `imp.text or (imp.skill and ...)` fallback picks it up with zero
+  -- changes to LiveView.lua itself.
+  local imp = MyDSL.State.improve or {}
+  if imp.skill then
+    MyDSL.DB.improve = {
+      skill     = imp.skill,
+      percent   = imp.percent,
+      remaining = imp.remaining,
+      text      = tostring(imp.skill) .. " " .. tostring(imp.percent or "?") .. "%"
+                  .. (imp.remaining and (" (" .. tostring(imp.remaining) .. "m)") or ""),
+    }
+  else
+    MyDSL.DB.improve = {}
+  end
 end
 
 
@@ -144,6 +162,7 @@ MyDSL.DB._handlers.tick     = registerAnonymousEventHandler("MyDSL.tick.updated"
 MyDSL.DB._handlers.score    = registerAnonymousEventHandler("MyDSL.score.updated",   onAny)
 MyDSL.DB._handlers.time     = registerAnonymousEventHandler("MyDSL.time.updated",    onAny)
 MyDSL.DB._handlers.affects  = registerAnonymousEventHandler("MyDSL.affects.updated", onAny)
+MyDSL.DB._handlers.improve  = registerAnonymousEventHandler("MyDSL.improve.updated", onAny)
 MyDSL.DB._handlers.gchar    = registerAnonymousEventHandler("gmcp.char_data",        onAny)
 MyDSL.DB._handlers.groom    = registerAnonymousEventHandler("gmcp.room_data",        onAny)
 MyDSL.DB._handlers.gtick    = registerAnonymousEventHandler("gmcp.tick",             onAny)

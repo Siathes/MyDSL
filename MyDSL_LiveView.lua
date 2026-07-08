@@ -676,6 +676,13 @@ function L.installHandlers()
     "MyDSL.Score.Updated",
     "MyDSL.Time.Updated",
     "MyDSL.Improve.Updated",
+    -- Real event DataLayer actually raises (MyDSL.emit() lowercases the
+    -- section name) -- added 2026-07-07 alongside the improve bar wiring.
+    -- The capitalized "MyDSL.Improve.Updated" above has never matched
+    -- anything DataLayer raises; kept rather than removed in case some
+    -- other still-registered listener depends on it, but this is the one
+    -- that actually fires.
+    "MyDSL.improve.updated",
     "MyDSL.Progress.Updated",
     "MyDSL.Timers.Updated",
     "MyDSL.Room.Updated",
