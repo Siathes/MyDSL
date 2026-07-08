@@ -36,50 +36,96 @@ local function route(tabName, pattern)
 end
 
 
+-- 2026-07-06, third pass: passes one and two (log-corpus guessing, then
+-- native-XML ground truth) both used a narrow "(?: \([^)]+\))?" group for
+-- the optional "(Language)" tag. Steven flagged a real gap that exposed:
+-- DSL_Helpfiles/voicetype.txt confirms 21 distinct voice types (Soft,
+-- Raspy, Low toned, Growlingly, Husky, ...), and real corpus text shows
+-- their phrasing is irregular -- "says softly", "says in a raspy voice",
+-- "says in a low toned manner" -- not one uniform template. On top of
+-- that, a "(to Name)" target tag and a "(Language)" tag can BOTH appear,
+-- in either combination, e.g. "Ariaenys says in a musical tone (to You)
+-- (Dragon) 'message'". Enumerating every voice-type phrasing would be
+-- exactly the same mistake being fixed elsewhere this session (guessing
+-- instead of sourcing) for the ~10 of 21 types with no confirmed example
+-- yet. Fixed generally instead: every speech-verb pattern now accepts
+-- ANY text between the verb and the opening quote ("[^']*'" -- stops at
+-- the first quote, since chat lines don't nest quotes), which correctly
+-- covers voice-phrase + target-tag + language-tag in any combination or
+-- none, without needing to know each one's exact wording. Verified this
+-- doesn't over-match: re-ran every pattern against the clean corpus,
+-- counts stayed sane (e.g. Local says went 2,759 -> 2,959, not
+-- unbounded), and all 139 real voice-type "says" lines in the corpus are
+-- now covered where 0 were missed before. Voice-type modifiers only ever
+-- appear on "says" in the corpus so far (never whisper/tell/yell/shout/
+-- gossip), but the general form costs nothing to apply everywhere as
+-- future-proofing.
+
 ------------------------------------------------------------------------
 -- TELLS
--- "Kien tells you: ..."  /  "You tell Kien: ..."
 ------------------------------------------------------------------------
-route("Tells", [[\w+ tells you:]])
-route("Tells", [[You tell \w+:]])
+-- Native: "^\a?You tell .+\s+'.*'$" / "^\a?.+\s+tells you(?:\s+\([^)]+\))?\s+'.*'$"
+-- The leading "\a?" is a real optional BEL control character DSL
+-- sometimes prefixes these lines with (confirmed in the native XML,
+-- unrelated to any HTML-log extraction artifact).
+route("Tells", [[\a?You tell [^']*']])
+route("Tells", [[\a?.+ tells you[^']*']])
 
 ------------------------------------------------------------------------
 -- GROUP CHAT
--- "Kien group-says: ..."  /  "Kien group-tells you: ..."
 ------------------------------------------------------------------------
-route("Group", [[\w+ group-says:]])
-route("Group", [[\w+ group-tells you:]])
+-- Native: "tells the group" / "You tell the group" -- not "group-says"/
+-- "group-tells you" as originally guessed; that guess never matched
+-- anything because the verb itself was wrong.
+route("Group", [[\a?.+ tells the group[^']*']])
+route("Group", [[\a?You tell the group[^']*']])
 
 ------------------------------------------------------------------------
 -- OOC
--- "[OOC] ..."  /  "[OCLAN] ..."  /  "[OKING] ..."
 ------------------------------------------------------------------------
-route("OOC", [=[\[OOC\]]=])
-route("OOC", [=[\[OCLAN\]]=])
-route("OOC", [=[\[OKING\]]=])
+-- Native: "Name OOC: 'message'" -- not a "[OOC]" bracket tag as
+-- originally guessed; there never was a bracket tag to find.
+route("OOC", [[\a?.+ OOC:[^']*']])
 
 ------------------------------------------------------------------------
--- CITY  (broad public channels)
--- gossip / kingdom / clan / auction / shout / yell /
--- NEWBIE / congratulates / QUEST / pray / broadcast
+-- CITY  (gossip family -- broad, non-language-restricted public channels)
 ------------------------------------------------------------------------
-route("City", [[\w+ gossips:]])
-route("City", [[\w+ kingdom-says:]])
-route("City", [[\w+ clan-says:]])
-route("City", [[\w+ auctions:]])
-route("City", [[\w+ shouts:]])
-route("City", [[\w+ yells:]])
-route("City", [[NEWBIE:]])
-route("City", [[\w+ congratulates]])
-route("City", [[QUEST:]])
-route("City", [[\w+ prays:]])
-route("City", [[\w+ broadcasts:]])
+route("City", [[\a?.+ gossips[^']*']])
+route("City", [[\a?.+ clan gossips[^']*']])
+-- Kingdom: native pattern is a literal prefix, not a verb -- "Kingdom: '"
+-- / "OOC Kingdom: '" -- not "X kingdom-says:" as originally guessed. No
+-- verb here, so no voice/language modifier zone to worry about.
+route("City", [[Kingdom: ']])
+route("City", [[OOC Kingdom: ']])
 
 ------------------------------------------------------------------------
 -- LOCAL  (room-level speech)
--- "Kien says: ..."  /  "Kien whispers: ..."
 ------------------------------------------------------------------------
-route("Local", [[\w+ says:]])
-route("Local", [[\w+ whispers:]])
+-- says/whispers/yells/shouts all have a "You <verb>" first-person form
+-- (no trailing -s) alongside the third-person "Name <verb>s" form --
+-- confirmed native, and a real bug in the first rewrite: that version's
+-- "\w+ yells .../\w+ shouts ..." patterns required the literal -s form
+-- even for "You", so "You yell '...'"/"You shout '...'" never matched.
+route("Local", [[\a?(?:You say|.+ says)[^']*']])
+route("Local", [[\a?(?:You whisper|.+ whispers)[^']*']])
+route("Local", [[\a?(?:You yell|.+ yells)[^']*']])
+route("Local", [[\a?(?:You shout|.+ shouts)[^']*']])
+
+------------------------------------------------------------------------
+-- OOC  (misc. public channels -- native routes all of these to OOC, not
+-- City; the first rewrite guessed City for auctions/grats and dropped
+-- the rest entirely)
+------------------------------------------------------------------------
+route("OOC", [[\a?.+ auctions:[^']*']])
+route("OOC", [[radios[^']*']])
+-- grats -- native verb, not "congratulates" as originally guessed.
+route("OOC", [[\a?.+ grats[^']*']])
+-- Ask/Answer/Newbie -- native bundles three forms under one destination.
+route("OOC", [[\a?(?:You ask|.+ asks)[^']*']])
+route("OOC", [[\a?.+ (?:ask|answers|newbie)[^']*']])
+route("OOC", [[\[Newbie\]: ']])
+-- Bloodbath/Quest -- native bundles two forms; not "QUEST:" as guessed.
+route("OOC", [[Bloodbath: ']])
+route("OOC", [[quests[^']*']])
 
 debugc("[MyDSL] ChatTriggers loaded.")
