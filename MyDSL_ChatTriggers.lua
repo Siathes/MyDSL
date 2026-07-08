@@ -30,7 +30,11 @@ local function route(tabName, pattern)
     if demonnic and demonnic.chat then
       demonnic.chat:append(tabName)
     end
-    -- deleteLine() removed for testing — add back once routing confirmed
+    -- Restored 2026-07-08 now that routing itself is confirmed working
+    -- live (per Steven) -- this is what actually moves the line to the
+    -- EMCO tab instead of leaving it duplicated in the main console; not
+    -- an EMCO/gag setting, just this file's own not-yet-finished state.
+    deleteLine()
   end)
   MyDSL.ChatTriggers._triggers[#MyDSL.ChatTriggers._triggers + 1] = id
 end
