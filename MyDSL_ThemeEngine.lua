@@ -239,10 +239,20 @@ end
 --   MyDSL.Theme.setOverride("MyDSL_Chat", "bgColor", {r=10,g=10,b=10,a=255})
 
 function MyDSL.Theme.setOverride(windowName, key, value)
+  -- Key validation added 2026-07-07 (confirmed LOW PRIORITY gap: this
+  -- silently accepted any key, so a typo'd key would set a value that
+  -- nothing ever reads, with no error to notice by). MyDSL.Theme.defaults
+  -- is the canonical key set every real theme property is drawn from, so
+  -- anything not already in there isn't a real theme key.
+  if MyDSL.Theme.defaults[key] == nil then
+    debugc("[MyDSL] ThemeEngine: setOverride() ignored unknown key '" .. tostring(key) .. "'")
+    return false
+  end
   -- If there's no override table for this window yet, create one.
   -- This is the same 'or {}' guard pattern, applied per-window.
   MyDSL.Theme.overrides[windowName] = MyDSL.Theme.overrides[windowName] or {}
   MyDSL.Theme.overrides[windowName][key] = value
+  return true
 end
 
 -- clearOverride(windowName)
