@@ -706,13 +706,38 @@ local function cutText(s, width)
 end
 
 
+-- Fixed 2026-07-07: this used to look up MyDSL.DB.timers.affects[name].text,
+-- but nothing anywhere ever populated that table -- "time"/"both" modes
+-- silently always fell back to the cycles-only display. Compute real
+-- seconds directly from TickSource's own already-published tick-average
+-- instead (same MyDSL.DB.tick.average field MoonWeather's clock already
+-- uses for the same cycles->real-time conversion). Also folds in the
+-- current partial-tick remaining time (MyDSL.DB.tick.remaining) so the
+-- display counts down smoothly between whole-cycle decrements instead of
+-- jumping once every ~40 real seconds.
+local function realSecondsRemaining(cycles)
+  if cycles < 0 then return nil end
+  local db = MyDSL and MyDSL.DB and MyDSL.DB.tick
+  local tickAvg = (db and tonumber(db.average)) or 40
+  if tickAvg <= 10 then tickAvg = 40 end
+  local partial = (db and tonumber(db.remaining)) or 0
+  if cycles == 0 then return partial end
+  return (cycles - 1) * tickAvg + partial
+end
+
+local function formatRealTime(totalSeconds)
+  totalSeconds = math.max(0, math.floor(totalSeconds + 0.5))
+  local mins = math.floor(totalSeconds / 60)
+  local secs = totalSeconds % 60
+  if mins > 0 then return string.format("%dm%02ds", mins, secs) end
+  return string.format("%ds", secs)
+end
+
 local function timerTextForAffect(e)
   local d = tonumber(e and e.duration) or -1
   local cycles = d >= 0 and (tostring(d) .. "c") or "?"
-  local name = lower(e and e.name or "")
-  local timers = MyDSL and MyDSL.DB and MyDSL.DB.timers and MyDSL.DB.timers.affects
-  local t = timers and timers[name]
-  local timeText = t and t.text or nil
+  local secs = d >= 0 and realSecondsRemaining(d) or nil
+  local timeText = secs and formatRealTime(secs) or nil
 
   local mode = A.config.timerMode or "cycles"
   if mode == "time" then
@@ -1035,8 +1060,48 @@ function A.registerHandlerOnce(key, eventName, funcName)
 end
 
 function A.onTimersUpdated()
-  -- TimerSource updates once per second; redraw to show live buff countdowns.
+  -- TimerSource pulses several times a second; redraw to show live buff
+  -- countdowns (the real-time portion recomputes smoothly on every call
+  -- via realSecondsRemaining() above -- this alone was already wired in,
+  -- but nothing ever decremented the whole-cycle count between GMCP
+  -- updates, see onTickUpdated() below).
   A.display()
+end
+
+function A.onTickUpdated()
+  -- Fixed 2026-07-07, then fixed again same day after live testing showed
+  -- affects counting down in ~2-3 real seconds instead of ~40: "MyDSL.Tick.
+  -- Updated" does NOT mean "one real game tick happened" -- MyDSL_TickSource.
+  -- lua's T.publish() raises it unconditionally from every caller, including
+  -- T.updateTimer()'s own ~0.25s internal progress-bar loop (reason="timer"),
+  -- not just T.onGameTick() (reason="tick", the actual once-per-~40s event).
+  -- No reason string is passed through the event, so the only reliable way
+  -- to tell a real tick apart from the frequent pulse is MyDSL.DB.tick.ticks
+  -- itself -- an integer T.onGameTick() increments once per real tick and
+  -- nothing else touches. Guard on that actually changing before
+  -- decrementing, instead of decrementing on every call.
+  local db = MyDSL and MyDSL.DB and MyDSL.DB.tick
+  local ticks = db and tonumber(db.ticks)
+  if not ticks then return end
+  if A._lastTickCount == nil then A._lastTickCount = ticks; return end
+  if ticks == A._lastTickCount then return end
+  A._lastTickCount = ticks
+
+  -- Ported from PNP's DSL_PNP_Affects.bar.lua decrement_affects() (hooked
+  -- to its own "onTick" there). Purely local state -- no server command
+  -- involved. GMCP add/remove events remain authoritative and always
+  -- overwrite this on the next real change (A.add()/A.gmcpRemove() set
+  -- entry.duration directly), so this can never drift permanently, it
+  -- just fills the gap between those events instead of freezing.
+  local changed = false
+  for _, e in pairs(A.list or {}) do
+    local d = tonumber(e.duration)
+    if d and d > 0 then
+      e.duration = d - 1
+      changed = true
+    end
+  end
+  if changed then A.display() end
 end
 
 function A.onCharacterChanged()
@@ -1049,6 +1114,7 @@ function A.registerHandlers()
   A.registerHandlerOnce("char_login_data", "gmcp.login_data", "MyDSL.Affects.onCharacterChanged")
   A.registerHandlerOnce("char_data", "gmcp.char_data", "MyDSL.Affects.onCharacterChanged")
   A.registerHandlerOnce("timers_updated", "MyDSL.Timers.Updated", "MyDSL.Affects.onTimersUpdated")
+  A.registerHandlerOnce("tick_updated", "MyDSL.Tick.Updated", "MyDSL.Affects.onTickUpdated")
   A.registerHandlerOnce("gmcp_affect_data", "gmcp.affect_data", "MyDSL.Affects.onGmcpEvent")
   A.registerHandlerOnce("gmcp_affect_data_affects", "gmcp.affect_data.affects", "MyDSL.Affects.onGmcpEvent")
   A.registerHandlerOnce("gmcp_add_affect", "gmcp.add_affect", "MyDSL.Affects.onGmcpEvent")
