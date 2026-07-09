@@ -40,8 +40,12 @@ Fixed in code, verified via syntax checks and/or the emulation test harness
 in-game. Full technical detail for any of these: `git log --oneline` +
 `docs/CHANGELOG.md`.
 
-- [ ] Logging defaults rework — `mydsl log <category> on` re-enables a
-      debug-only window's log file
+- [x] Logging defaults rework — `mydsl log <category> on` re-enables a
+      debug-only window's log file. **Confirmed live 2026-07-09**: Steven
+      ran `mydsl log righthere on`, then `look`/`scan` a few times —
+      verified `MyDSL/logs/righthere/Qinrathaz/2026-07-09.log` was
+      correctly written with matching content (including count badges)
+      — closing.
 - [ ] AffectsView countdown paces correctly in real time; near-expiry color
       warning fires
 - [ ] CharacterAssist: rearm (weapon+shield), spellup/setspell,
@@ -80,11 +84,11 @@ in-game. Full technical detail for any of these: `git log --oneline` +
       only if it turns out to matter live.
 - [ ] CombatView/History font persistence — `mydsl combat font <n>` /
       `mydsl history font <n>` survive a real restart
-- [ ] **Action-button color contrast — real root cause found and fixed
-      2026-07-09, not yet live-confirmed.** Steven reported the
-      Rescue/cure-spell buttons were "still blue and underlined" despite
-      an earlier color-value fix (`120,210,220` etc. already correctly set
-      in `TV.actions`). Real bug wasn't the color values — it was
+- [x] **Action-button color contrast — real root cause found, fixed, and
+      confirmed live 2026-07-09.** Steven reported the Rescue/cure-spell
+      buttons were "still blue and underlined" despite an earlier
+      color-value fix (`120,210,220` etc. already correctly set in
+      `TV.actions`). Real bug wasn't the color values — it was
       `dechoLink()`'s `useCurrentFormat` parameter (misnamed `underline`
       by the local helper functions) being passed `false` at every call
       site in `MyDSL_TargetView.lua`/`MyDSL_GroupView.lua`, which tells
@@ -92,7 +96,10 @@ in-game. Full technical detail for any of these: `git log --oneline` +
       its own default blue/underlined hyperlink style instead.
       `MyDSL_ScanView.lua`'s RightHere links pass `true` and always
       rendered correctly — that's why only RightHere ever looked right.
-      Fixed all 5 call sites to pass `true`. Needs live confirmation.
+      Fixed all 5 call sites to pass `true`. **Confirmed via screenshot**
+      (`Screenshot_20260709_172053.png`): the MyDSL_Target window's
+      action buttons now show varied colors, not uniform blue/underline
+      — closing.
 - [x] `considerEasyKill`/`considerNoMatch` text in-game. **Confirmed by
       Steven** ("not sure why this is being tested, but the server sends
       the echo fine") — closing, not an actual issue.
