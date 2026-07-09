@@ -36,6 +36,11 @@ local function gvLog(mc, text)
   mc:decho(text)
   if MyDSL.logWindow then MyDSL.logWindow("group", text) end
 end
+-- Bug found live 2026-07-09 (see MyDSL_TargetView.lua's tvLogLink comment
+-- for the full explanation): this is dechoLink()'s useCurrentFormat flag,
+-- not "underline" -- false made every link here ignore its decho color
+-- code and render as Mudlet's default blue/underlined hyperlink. Fixed
+-- both call sites below to pass true.
 local function gvLogLink(mc, text, cmd, hint, underline)
   mc:dechoLink(text, cmd, hint, underline)
   if MyDSL.logWindow then MyDSL.logWindow("group", text) end
@@ -109,7 +114,7 @@ function GV.render()
       string.format("<%s>%-20s<r>", name_color, display_name),
       string.format("MyDSL.GroupView.setTarget(%d)", idx),
       "Click to target: " .. m.name,
-      false)
+      true)
 
     -- HP percentage — always shown, colored by threshold.
     local hp_c = hpColor(m.hp_pct)
@@ -134,7 +139,7 @@ function GV.render()
             string.format(" <%s>[%s]<r>", act.color, act.label),
             string.format("MyDSL.GroupView.quickAction(%d, '%s')", idx, key),
             act.tooltip .. ": " .. m.name,
-            false)
+            true)
         end
       end
     end

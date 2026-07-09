@@ -41,6 +41,15 @@ local function tvLog(mc, text)
   mc:decho(text)
   if MyDSL.logWindow then MyDSL.logWindow("target", text) end
 end
+-- Bug found live 2026-07-09: this parameter is dechoLink()'s
+-- useCurrentFormat flag, not "underline" as the name suggests -- false
+-- makes Mudlet ignore the decho color codes already in `text` and apply
+-- its own default blue/underlined hyperlink style instead, which is
+-- exactly the "still blue and underlined" symptom Steven kept reporting
+-- for the Rescue/cure-spell buttons. Every call site in this file (and
+-- MyDSL_GroupView.lua's equivalent) was passing false; only
+-- MyDSL_ScanView.lua's RightHere links passed true, which is why those
+-- rendered correctly and nothing else did. All callers fixed to pass true.
 local function tvLogLink(mc, text, cmd, hint, underline)
   mc:dechoLink(text, cmd, hint, underline)
   if MyDSL.logWindow then MyDSL.logWindow("target", text) end
@@ -385,13 +394,13 @@ function TV.render()
   local type_tag   = (t and t.is_mob) and "M" or "P"
   local type_color = (t and t.is_mob) and "204,136,68" or "136,170,255"
   tvLogLink(mc, string.format("<%s>[%s]<r>", type_color, type_tag),
-    "MyDSL.Target.toggle()", "Switch mob/player mode", false)
+    "MyDSL.Target.toggle()", "Switch mob/player mode", true)
 
   if not t or not t.name then
     tvLog(mc, " <85,85,85>(no target)<r>\n")
   else
     tvLog(mc, " ")
-    tvLogLink(mc, "<170,68,68>[Clear]<r>", "MyDSL.Target.clear()", "Clear target", false)
+    tvLogLink(mc, "<170,68,68>[Clear]<r>", "MyDSL.Target.clear()", "Clear target", true)
     local rel = dslColorRelation(t.name)
     local relTag = ""
     if rel == "friend" then relTag = " <0,200,0>[Friend]<r>"
@@ -414,7 +423,7 @@ function TV.render()
           if col < 3 then btn_text = btn_text .. " " end
           tvLogLink(mc, btn_text,
             string.format("MyDSL.Target.doAction('%s')", key),
-            act.tooltip .. ": " .. t.name, false)
+            act.tooltip .. ": " .. t.name, true)
         end
       end
       tvLog(mc, "\n")

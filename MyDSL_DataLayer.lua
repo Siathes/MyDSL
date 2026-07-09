@@ -1542,27 +1542,34 @@ local function isLookFixtureLine(line)
       or line:match("floats above the ground%f[%A]") ~= nil
 end
 
--- isCharmedStatusLine() -- added 2026-07-08. Real bug found live: charmed/
--- summoned pets' own idle-action lines use widely varying DSL-side verb
--- phrasing -- confirmed via corpus grep across every "(Charmed)" line in
--- the DSL2-era logs: "sloshes around here.", "prances about here.",
--- "paces back and forth here.", "looms here.", "is dancing about here.",
--- "burns hotly in the room.", even "follows their client." with no "here"
--- at all. None of these matched parseLookHereLine's verb set even after
--- today's broadened fallback (below) -- "follows their client." has no
--- "here"/"room" anchor to catch at all -- so the first charmed pet listed
--- in a room silently ended capture and dropped every real entity listed
--- after it. This is what Steven meant by "the space after certain
--- followers"/"blank lines after the summoned/follower bear wolf
--- elementals" -- not a stray blank line (those are harmless, already
--- handled above), the charmed pet's own status line ending capture.
--- Enumerating every possible idle-action verb is a losing game (new ones
--- keep turning up), so treat the "(Charmed)" tag itself as sufficient
--- proof of a live entity worth skipping past, regardless of what verb
--- phrase follows it -- this is the safety net for whatever
--- parseLookHereLine's broadened fallback still doesn't catch.
-local function isCharmedStatusLine(line)
-  return line:find("(Charmed)", 1, true) ~= nil
+-- isUnparsedPresenceLine() -- broadened 2026-07-09, third confirmed live
+-- instance of the same underlying problem. Originally added 2026-07-08 as
+-- isCharmedStatusLine() for charmed/summoned pets' varying idle-action
+-- verbs ("sloshes around here.", "follows their client." with no "here"
+-- anchor at all -- see git history for the full original writeup; this is
+-- what Steven meant by "the space after certain followers"). That version
+-- only checked for a literal "(Charmed)" tag. Confirmed live 2026-07-09
+-- via screenshot: "A dark elven commoner stands around looking bored."
+-- and "The dark elven scout slips in and out from the shadows unheard."
+-- -- ordinary room NPCs, no "(Charmed)" tag at all, no "here"/"in the
+-- room" anchor either -- caused RightHere to come back completely empty
+-- for that room. Enumerating every possible DSL verb phrase has now
+-- failed three times (round 2's fallback, the Charmed-tag safety net,
+-- now this) -- so generalize: every confirmed example of this whole bug
+-- class, charmed-tagged or not, has always started with an article
+-- ("A"/"An"/"The", the same shape isMobName() already checks) once any
+-- leading parenthetical tags are stripped. Treat that shape alone as
+-- sufficient proof of a live presence line worth skipping past, whether
+-- or not a clean name can be extracted from it -- strictly broader than
+-- the old Charmed-only check, so it subsumes it.
+local function isUnparsedPresenceLine(line)
+  local rest = line
+  while true do
+    local stripped = rest:match("^%([^()]+%)%s*(.+)$")
+    if not stripped then break end
+    rest = stripped
+  end
+  return rest:match("^[Aa]n? ") ~= nil or rest:match("^[Tt]he ") ~= nil
 end
 
 function MyDSL.beginLook()
@@ -1610,7 +1617,7 @@ function MyDSL.beginLook()
     -- fallback below, and would otherwise get miscaptured as mobs.
     if isLookFixtureLine(ln) then return end  -- item/corpse/fixture, keep capturing
     if MyDSL.parseLookHereLine(ln) then return end
-    if isCharmedStatusLine(ln) then return end  -- see comment above the function
+    if isUnparsedPresenceLine(ln) then return end  -- see comment above the function
     if t:match("^%l") then return end  -- wrapped continuation, keep capturing
     MyDSL.endLook()
   end)
@@ -1640,7 +1647,7 @@ function MyDSL.parseLookHereLine(line)
   -- (139 occurrences, e.g. "An air elemental hovers in the room like a
   -- cloud.", "A half elven child hovers nearby, looking for food.") isn't
   -- always followed by "here" so it's matched on its own.
-  -- Broad fallback added 2026-07-08 (see isCharmedStatusLine comment
+  -- Broad fallback added 2026-07-08 (see isUnparsedPresenceLine comment
   -- above for the confirmed corpus evidence): charmed/summoned pets use
   -- many different idle-action verbs before "here"/"in the room" ("sloshes
   -- around here.", "prances about here.", "looms here.", "burns hotly in
