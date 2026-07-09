@@ -21,23 +21,25 @@ check out stat command and vitality
 Full detail for anything here: docs/TODO.md. Check items off as you play;
 tell me what happened and I'll close them out in TODO.md/CHANGELOG.md.
 
-[ ] mydsl log <category> on re-enables a debug window's log file
-[ ] Rearm (weapon+shield), standup, spellup/setspell, blind-vision check
+[ ] mydsl log <category> on -- test commands below (see my reply)
+[ ] Rearm (weapon+shield), standup, spellup/setspell, blind-vision check - still havent done disarm/rearm
 [ ] eq / equipment populates equipment data (not built yet -- real eq
     text format confirmed via logs, ready whenever this gets picked up)
 [ ] Roller -- next character creation
-[ ] Look around a populated room with duplicate mobs -- RightHere now
-    populates (self-retrigger bug fixed) and mob counts should increment
-    correctly now (was always showing count 1, fixed) -- needs one more
-    check to confirm counts display right
-[ ] Rescue/cure-spell buttons actually readable now -  these are still blue and underlined see screenshot
-[ ] Consider text ("easy kill" / "no match") shows correctly
+[ ] Gag promt line1 -- real cause found (pattern got appended instead of
+    replaced, producing one broken regex) -- see my reply for the exact
+    replace-not-append fix to paste into the Trigger Editor
+[ ] Rescue/cure-spell buttons -- real root cause found and fixed (a
+    dechoLink() formatting-flag bug, not a color-value problem) -- needs
+    a look to confirm they render in color now, not blue/underlined
 
-(done since last check: RightHere-on-look actually populates now for the
-first time ever -- self-retrigger bug fixed; two more real bugs found
-from your screenshots and fixed -- mob counts weren't incrementing on
-duplicates, and a floating-dagger item line was silently dropping every
-mob listed after it in one room; GroupView/TargetView log-format fix and
-the quiet-mode prompt gag fix both confirmed live, closed)
+(done since last check: RightHere-on-look confirmed working end to end --
+mob counts display correctly now (x2/x4/x5 badges all seen in your
+screenshots), and a third generalization of the presence-line safety net
+fixed a room going completely empty over two ordinary un-tagged NPC
+lines; TargetView/GroupView link-color bug found and fixed -- affects
+every clickable button in both windows, not just Rescue/cure, root cause
+was a mis-set dechoLink formatting flag; considerEasyKill/considerNoMatch
+closed as a non-issue)
 
 i will use cecho to make comment in the log

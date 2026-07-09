@@ -52,44 +52,50 @@ in-game. Full technical detail for any of these: `git log --oneline` +
 - [ ] `MyDSL_RawCapture.lua` — still needs its `dofile()` entry added
       (see LOW PRIORITY above) before this can be tested at all
 - [ ] Roller — next character creation
-- [ ] **RightHere-on-look — round 4 (self-retrigger) confirmed live via
-      screenshots 2026-07-08; round 5 (count + floating-item fixture)
-      fixed same day, not yet live-confirmed.** Round 4's
-      real root cause: `lookBody`'s `.*` catch-all got installed by
-      `lookExits`'s callback *while that same "[Exits: ...]" line was
-      still being processed*, and Mudlet evaluates newly-registered
-      triggers against the current line in the same pass — so the
-      brand-new `lookBody` immediately re-fired on the very line that
-      created it, which fell through to "unrelated event, end capture"
-      before any real content was ever seen. This is why rounds 1-3 were
-      all individually correct but the feature never worked even once in
-      real gameplay. Fixed with one line: `lookBody` now ignores a line
-      matching the Exits-line shape itself as a keep-capturing no-op.
-      Steven's next live test (5 screenshots, a busy multi-room gnome
-      corridor) confirmed capture finally runs, but surfaced two more real
-      bugs: **(1)** `parseLookHereLine()` unconditionally overwrote
-      `scan.rightHere[key]` with a fresh `count = 1` table on every match,
-      so duplicate mobs (2 identical gnomes in the same room) never
-      incremented — fixed to match `parseScanLine`'s existing
-      increment-if-exists pattern. **(2)** one screenshot showed RightHere
-      completely empty despite 4 real gnomes in the room — traced to
-      `"(Glowing) (Humming) A Parrying dagger floats above the ground."`,
-      a never-seen item verb phrase with no "here"/"in the room" anchor at
-      all, falling through every check straight to "unrelated event, end
-      capture" — added `"floats above the ground"` to
-      `isLookFixtureLine()`. Both verified via emulation against the exact
-      real room sequences from the screenshots. Needs one more `look` in a
-      busy room with duplicate mobs to confirm counts now show correctly
-      before this fully closes. Known low-priority gap, still unfixed: a
-      handful of proper-named NPCs use non-standard verb phrases with no
-      "A/An/The" prefix to anchor on ("Sorbus the Hermit is sitting
-      here...") and still end capture early if encountered — revisit only
-      if it turns out to matter live.
+- [x] **RightHere-on-look — rounds 4-6, all confirmed live 2026-07-09.**
+      Round 4 fixed a self-retrigger where `lookBody`'s catch-all,
+      installed by `lookExits`'s callback while that same "[Exits: ...]"
+      line was still being processed, immediately re-fired on that same
+      line and closed capture before any content was ever seen — this is
+      why the feature had never worked even once in real gameplay before
+      this. Round 5 fixed two more bugs a busy-room screenshot test
+      surfaced: mob counts never incremented on duplicates (fixed to match
+      `parseScanLine`'s pattern), and a floating-dagger item line with no
+      "here" anchor was silently dropping everything listed after it.
+      Round 6 (2026-07-09) generalized the presence-line safety net a
+      third time: `isCharmedStatusLine()` only recognized a literal
+      "(Charmed)" tag, but "A dark elven commoner stands around looking
+      bored."/"The dark elven scout slips in and out from the shadows
+      unheard." (ordinary NPCs, no tag, no "here" anchor) emptied out
+      RightHere for that room too. Every confirmed example of this bug
+      class has started with an article once tags are stripped, so
+      generalized to that shape directly (`isUnparsedPresenceLine()`),
+      which subsumes the old Charmed-only check. **Confirmed live** via 7
+      screenshots of a busy multi-room gnome corridor: mob counts display
+      correctly (`×2`, `×4`, `×5` badges all seen), capture survives
+      unparseable NPC lines. Known low-priority gap, still unfixed:
+      a handful of proper-named NPCs use non-standard verb phrases with no
+      "A/An/The" prefix at all to anchor on ("Sorbus the Hermit is sitting
+      here...") — these still end capture early if encountered. Revisit
+      only if it turns out to matter live.
 - [ ] CombatView/History font persistence — `mydsl combat font <n>` /
       `mydsl history font <n>` survive a real restart
-- [ ] Action-button color contrast — Rescue/cure-spell buttons actually
-      readable now
-- [ ] `considerEasyKill`/`considerNoMatch` text in-game
+- [ ] **Action-button color contrast — real root cause found and fixed
+      2026-07-09, not yet live-confirmed.** Steven reported the
+      Rescue/cure-spell buttons were "still blue and underlined" despite
+      an earlier color-value fix (`120,210,220` etc. already correctly set
+      in `TV.actions`). Real bug wasn't the color values — it was
+      `dechoLink()`'s `useCurrentFormat` parameter (misnamed `underline`
+      by the local helper functions) being passed `false` at every call
+      site in `MyDSL_TargetView.lua`/`MyDSL_GroupView.lua`, which tells
+      Mudlet to ignore the embedded decho color codes entirely and render
+      its own default blue/underlined hyperlink style instead.
+      `MyDSL_ScanView.lua`'s RightHere links pass `true` and always
+      rendered correctly — that's why only RightHere ever looked right.
+      Fixed all 5 call sites to pass `true`. Needs live confirmation.
+- [x] `considerEasyKill`/`considerNoMatch` text in-game. **Confirmed by
+      Steven** ("not sure why this is being tested, but the server sends
+      the echo fine") — closing, not an actual issue.
 
 ---
 
@@ -139,17 +145,29 @@ Steven: "make it work like PNP, then discuss the additions"):
 ---
 
 ## OPEN — Reported bugs, not yet fixed
-- [x] **Quiet-mode prompt gag failure — found and fixed 2026-07-08.**
-      Quiet mode prepends a literal `"[Quiet] "` tag to the vitals prompt,
-      which broke the native prompt-gag trigger's start-anchored pattern
-      (required `[` immediately followed by digits). Fix was in a native
-      Mudlet trigger ("Gag promt line1", sic), not a `.lua` file, so
-      Steven applied the corrected pattern himself in the Trigger Editor.
-      **Confirmed live** ("doesnt gag prompt now after new pattern added")
-      — closing. Unrelated doc/reality drift noticed in passing, not
-      fixed: that trigger's script is a bare `deleteLine()`, not gated by
-      `MyDSL.Prompt.enabled` the way `MyDSL_PromptView.lua`'s own header
-      comment describes.
+- [ ] **Quiet-mode prompt gag failure — REOPENED 2026-07-09, misread
+      Steven's confirmation.** Original bug (2026-07-08): quiet mode
+      prepends a literal `"[Quiet] "` tag to the vitals prompt, breaking
+      the native prompt-gag trigger's start-anchored pattern. Gave Steven
+      the corrected pattern to paste into the Trigger Editor for the
+      native trigger "Gag promt line1" (sic). His reply, "doesnt gag
+      prompt now after new pattern added," was misread as confirmation of
+      success — on reread it's actually reporting it's *still* not
+      gagging. New note 2026-07-09 confirmed it: "The gag1 trigger is
+      broken." **Real cause found by reading the live trigger XML
+      directly**: the new pattern got *appended* after the old one
+      instead of replacing it, producing one garbled regex string —
+      `^\[\d+/\d+HP...\]$^(?:\[Quiet\] )?\[\d+/\d+HP...\]$` — two full
+      `^...$`-anchored patterns mashed together with no separator, which
+      can't match anything sensibly (confirmed live via screenshot: plain
+      *and* Quiet-prefixed vitals lines both flooding the main console
+      unfiltered). This is a native trigger, not something I can edit
+      directly — Steven needs to open "Gag promt line1" in the Trigger
+      Editor and **replace** the entire pattern field (not append) with
+      just: `^(?:\[Quiet\] )?\[\d+/\d+HP \| \d+/\d+M \| \d+/\d+MV \] \[ .*
+      \| .* \| .* \| .* \]$`. Also confirmed via corpus check: only
+      `[Quiet]` ever appears as a prompt tag, no separate `[Deaf]` variant
+      exists, so this one pattern covers it.
 - [x] **GroupView not populating — confirmed fixed 2026-07-07, per Steven
       live.** "groupview works, there have been many edits since that bug
       report." Not independently isolated to one specific fix — resolved
