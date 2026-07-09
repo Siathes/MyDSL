@@ -175,6 +175,27 @@ Steven: "make it work like PNP, then discuss the additions"):
       \| .* \| .* \| .* \]$`. Also confirmed via corpus check: only
       `[Quiet]` ever appears as a prompt tag, no separate `[Deaf]` variant
       exists, so this one pattern covers it.
+      **2026-07-09 update: Steven applied the replace-not-append fix —
+      confirmed correct via the live trigger XML** (`current/*.xml`), a
+      clean single pattern, no more duplication. Checked the next
+      real-gameplay log (`2026-07-09#17-29-11.html`) — zero long-format
+      vitals lines (`[X/Y HP | ...]`) leaked, **but** that whole session
+      turned out to be character creation (a brand-new character, never
+      reached an existing character's prompt), so this doesn't actually
+      prove the fix works — it may just never have been exercised. Real
+      finding from that session instead: brand-new/newbie characters use
+      a **completely different, shorter prompt format**,
+      `"[Quiet] <20hp 100m 100mv>"` (angle brackets, no max values) —
+      confirmed leaking unfiltered, 4 times, not covered by "Gag promt
+      line1" at all (structurally different shape, same trigger can't
+      match both without an alternation). Suggested addition, not yet
+      applied (Steven's call whether it's worth it — only affects
+      brand-new characters before they set a custom prompt):
+      `^(?:\[Quiet\] )?(?:\[\d+/\d+HP \| \d+/\d+M \| \d+/\d+MV \] \[ .* \|
+      .* \| .* \| .* \]|<\d+hp \d+m \d+mv>)\s*$` — verified against both
+      formats. **Still need**: a fresh log from an established character
+      (Kien/Vrokt/Qinrathaz) to actually confirm the original long-format
+      fix works live.
 - [x] **GroupView not populating — confirmed fixed 2026-07-07, per Steven
       live.** "groupview works, there have been many edits since that bug
       report." Not independently isolated to one specific fix — resolved
