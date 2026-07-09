@@ -55,7 +55,27 @@ in-game. Full technical detail for any of these: `git log --oneline` +
       ready whenever this gets picked up)
 - [ ] `MyDSL_RawCapture.lua` — still needs its `dofile()` entry added
       (see LOW PRIORITY above) before this can be tested at all
-- [ ] Roller — next character creation
+- [x] **Roller — confirmed working live 2026-07-09, real duplicate-trigger
+      bug found and resolved.** `MyDSL_Roller.lua` (ported 2026-07-07, not
+      previously known to be live-tested) and a native trigger literally
+      named "roller" were BOTH reacting to every stat-roll line
+      independently, each with its OWN separate goal variable
+      (`MyDSL.Roller.goal` vs. `mydsl.rollGoal`) that could drift out of
+      sync — confirmed via a literal artifact in the log (the native
+      trigger's old-style `</cyan>` closing tag doesn't parse in Mudlet
+      and leaks out as visible text, showing up duplicated on the first
+      ~14 rolls of Steven's test session). If the two goals disagree, one
+      trigger can correctly decide "pause" while the other, still on a
+      stale goal, decides "reject" and sends `n` anyway — silently
+      overriding the pause. Steven independently noticed something was
+      off mid-session and manually deleted the native "roller" trigger
+      himself (confirmed: its log fingerprint vanishes at exactly that
+      point) — from then on `MyDSL_Roller.lua` alone handled every roll
+      correctly (clean single-fire, proper reject/pause behavior, verified
+      through the rest of the session including a real pause event).
+      `set goal <n>` is now the only goal-setting command that matters.
+      Session-only, not persisted — resets to the default (241) on a full
+      Mudlet restart.
 - [x] **RightHere-on-look — rounds 4-6, all confirmed live 2026-07-09.**
       Round 4 fixed a self-retrigger where `lookBody`'s catch-all,
       installed by `lookExits`'s callback while that same "[Exits: ...]"
