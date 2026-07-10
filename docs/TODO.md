@@ -31,6 +31,12 @@ instead (`2026-07-08#15-55-17.xml`, saved right after) confirmed
 `MyDSL_RawCapture` really is there, first in the tree, `dofile()` count
 24 (up from 23). Fully done — nothing left blocking on the script-wiring
 front.
+- [ ] **`MyDSL_PromptSetup.lua` — new module, 2026-07-09, needs its
+      `dofile()` Script entry added by Steven** (same as `ChatTriggers`/
+      `CharacterAssist`/`Roller` needed above) before it can run at all.
+      One-click DSL prompt setup for brand-new characters, per Steven's
+      request. See CHANGELOG for the full design writeup (anchor choice,
+      why it's a click and not an automatic send).
 
 ---
 
@@ -40,6 +46,11 @@ Fixed in code, verified via syntax checks and/or the emulation test harness
 in-game. Full technical detail for any of these: `git log --oneline` +
 `docs/CHANGELOG.md`.
 
+- [ ] `MyDSL_PromptSetup.lua` — needs the `dofile()` entry added first (see
+      LOW PRIORITY above), then a real test: create a new character and
+      confirm the clickable link appears right after "The Gray Mist of
+      Nothingness" and actually sets the prompt when clicked. Also test
+      `mydsl setprompt` standalone on an existing character.
 - [x] Logging defaults rework — `mydsl log <category> on` re-enables a
       debug-only window's log file. **Confirmed live 2026-07-09**: Steven
       ran `mydsl log righthere on`, then `look`/`scan` a few times —
