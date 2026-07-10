@@ -1965,6 +1965,23 @@ local function normalizeKey(name)
   return trim(s)
 end
 
+-- stripLocationPrefix() -- added 2026-07-09. Real bug found via sibling-
+-- profile logs: every combat line fought in the Coliseum is broadcast
+-- with a leading "[ The Center of the Coliseum ]"/"[ Southern Coliseum
+-- Wall ]" location prefix. The trigger-level fix (an optional non-
+-- capturing "(?:\[[^\]]*\]\s*)?" prefix on the PCRE patterns) handles
+-- whether a trigger FIRES at all, but parseCombatDeathLine/
+-- parseCombatConditionLine/parseCombatAvoidLine's sense-trigger path all
+-- do their OWN Lua-pattern name extraction straight off the whole line
+-- (not off trigger capture groups), and Lua's "^(.+) is DEAD!!$"-style
+-- anchors would otherwise swallow the bracket prefix straight into the
+-- extracted name, breaking normalizeKey() matching against already-
+-- tracked combat state. Called at the top of each of those three
+-- functions to strip it from the line first.
+local function stripLocationPrefix(line)
+  return (line:gsub("^%[[^%]]*%]%s*", ""))
+end
+
 local function ensureActive(tKey, tDisplay)
   if not MyDSL.State.combat.active[tKey] then
     MyDSL.State.combat.active[tKey] = {
@@ -2118,7 +2135,7 @@ end
 -- handle_evasion never touches battle_console, only the main-console gag.
 function MyDSL.parseCombatAvoidLine(evader, verb, attacker)
   if not attacker then
-    local line = evader
+    local line = stripLocationPrefix(evader)
     evader, attacker = line:match("^(.+) senses (.+)'s attack coming and avoids")
     if not evader then evader = line:match("^(.+) senses they'?re about to be hit") end
     if not evader then return end
@@ -2154,6 +2171,7 @@ end
 
 -- ---- parseCombatConditionLine (PNP's handle_condition(), close to verbatim) ----
 function MyDSL.parseCombatConditionLine(line)
+  line = stripLocationPrefix(line)
   local name, label
   for _, c in ipairs(CONDITION_PATTERNS) do
     local idx = line:find(c.pat, 1, true)
@@ -2193,6 +2211,7 @@ function MyDSL.parseCombatDeathLine(line)
   -- only one in others -- treat identically. snapshotFight() already
   -- returns nil and no-ops if the target was already cleared, so if both
   -- somehow fire for the same death this doesn't double-snapshot.
+  line = stripLocationPrefix(line)
   local name = line:match("^(.+) is DEAD!!$")
   if not name then name = line:match("^(.+) hits the ground %.%.%. DEAD%.$") end
   if not name then return end
@@ -2203,6 +2222,7 @@ end
 
 -- ---- parseCombatEndLine ---------------------------------------------
 function MyDSL.parseCombatEndLine(line)
+  line = stripLocationPrefix(line)
   -- Escape fail: no state change
   if line:match("^You cannot escape from combat") then return end
 
@@ -2618,9 +2638,19 @@ MyDSL._triggers.equipStart = tempRegexTrigger(
 -- their own gag decision) -- trigger bodies below just call the parser.
 
 -- ---- Unified damage trigger (PNP-derived PCRE, one trigger for all damage types)
+-- Leading "(?:\[[^\]]*\]\s*)?" added 2026-07-09: real, confirmed via sibling-
+-- profile logs (DSL1/log/2026-06-26#17-54-43.html) -- EVERY combat line
+-- fought in the Coliseum is broadcast with a "[ The Center of the Coliseum ]"/
+-- "[ Southern Coliseum Wall ]" location prefix, e.g. "[ The Center of the
+-- Coliseum ] a wild bear's wrath misses Rylae." Since every combat trigger
+-- was `^`-anchored directly to the attacker name, this silently broke ALL
+-- combat tracking for any fight happening in the Coliseum -- not a rare
+-- edge case, the TODO's old "never seen in DSL2-era logs" note was just
+-- because no DSL2-era character had fought there yet, not because the
+-- mechanic is rare. Non-capturing so matches[2..] numbering is unaffected.
 local DAMAGE_VERBS = "miss|scratch|graze|hit|injure|wound|maul|decimate|devastate|maim|MUTILATE|DISEMBOWEL|DISMEMBER|MASSACRE|MANGLE|DEMOLISH|DEVASTATE|OBLITERATE|ANNIHILATE|ERADICATE|GHASTLY|HORRID|DREADFUL|HIDEOUS|INDESCRIBABLE|UNSPEAKABLE"
 MyDSL._triggers.combatDamage = tempRegexTrigger(
-  "^(You|[\\w\\-\\s,']+?)(?:(?<=You)r|'s)?(?:\\s?((?<=Your )[\\w\\s]+?|(?<='s )[\\w\\s]+?|))(?: do[es]*| [\\>\\<\\=\\*]+|) ("
+  "^(?:\\[[^\\]]*\\]\\s*)?(You|[\\w\\-\\s,']+?)(?:(?<=You)r|'s)?(?:\\s?((?<=Your )[\\w\\s]+?|(?<='s )[\\w\\s]+?|))(?: do[es]*| [\\>\\<\\=\\*]+|) ("
     .. DAMAGE_VERBS .. ")[esES]*(?: things to| [\\>\\<\\=\\*]+|) ([\\w\\-\\s,']+)([\\.\\.!]+)$",
   function()
     if MyDSL and MyDSL.parseCombatDamageLine then
@@ -2646,11 +2676,15 @@ MyDSL._triggers.combatParry = tempRegexTrigger(
 MyDSL._triggers.combatBlock = tempRegexTrigger(
   "(You|[\\w\\-\\,\\s']+) (block)[s]? (your|[\\w\\-\\,\\s']+) attack .*\\.$",
   function() if MyDSL and MyDSL.parseCombatAvoidLine then MyDSL.parseCombatAvoidLine(matches[2], matches[3], matches[4]) end end)
+-- Leading "(?:\[[^\]]*\]\s*)?" added to every `^`-anchored pattern below
+-- 2026-07-09 -- see combatDamage's header comment above for the confirmed
+-- Coliseum location-prefix bug this fixes (safe/optional -- lines without
+-- a bracket prefix match exactly as before).
 MyDSL._triggers.combatSense1 = tempRegexTrigger(
-  "^[\\w\\-\\s,']+ senses they.?re about to be hit and deflects the blow\\.",
+  "^(?:\\[[^\\]]*\\]\\s*)?[\\w\\-\\s,']+ senses they.?re about to be hit and deflects the blow\\.",
   function() if MyDSL and MyDSL.parseCombatAvoidLine then MyDSL.parseCombatAvoidLine(getCurrentLine()) end end)
 MyDSL._triggers.combatSense2 = tempRegexTrigger(
-  "^[\\w\\-\\s,']+ senses [\\w\\-\\s,']+'s attack coming and avoids its blow\\.",
+  "^(?:\\[[^\\]]*\\]\\s*)?[\\w\\-\\s,']+ senses [\\w\\-\\s,']+'s attack coming and avoids its blow\\.",
   function() if MyDSL and MyDSL.parseCombatAvoidLine then MyDSL.parseCombatAvoidLine(getCurrentLine()) end end)
 
 -- ---- Condition trigger (excludes DEAD — handled by combatDead below)
@@ -2687,7 +2721,7 @@ MyDSL._triggers.combatRescued = tempRegexTrigger(
   "rescues you!$",
   function() if MyDSL and MyDSL.parseCombatEndLine then MyDSL.parseCombatEndLine(getCurrentLine()) end end)
 MyDSL._triggers.combatTargetFled = tempRegexTrigger(
-  "^[\\w\\-\\s,']+ has fled!$",
+  "^(?:\\[[^\\]]*\\]\\s*)?[\\w\\-\\s,']+ has fled!$",
   function() if MyDSL and MyDSL.parseCombatEndLine then MyDSL.parseCombatEndLine(getCurrentLine()) end end)
 
 -- ---- Weapon-flag proc triggers ----
@@ -2701,74 +2735,80 @@ MyDSL._triggers.combatTargetFled = tempRegexTrigger(
 
 -- C: Frost
 MyDSL._triggers.procFrostFreeze = tempRegexTrigger(
-  "^([\\w\\-\\s,'\"]+) freezes ([\\w\\-\\s,'\"]+)\\.$",
+  "^(?:\\[[^\\]]*\\]\\s*)?([\\w\\-\\s,'\"]+) freezes ([\\w\\-\\s,'\"]+)\\.$",
   function() if MyDSL and MyDSL.parseCombatProcLine then MyDSL.parseCombatProcLine("C") end end)
 MyDSL._triggers.procFrostTouch = tempRegexTrigger(
-  "^The cold touch of ([\\w\\-\\s,']+) surrounds you with ice",
+  "^(?:\\[[^\\]]*\\]\\s*)?The cold touch of ([\\w\\-\\s,']+) surrounds you with ice",
   function() if MyDSL and MyDSL.parseCombatProcLine then MyDSL.parseCombatProcLine("C") end end)
 
 -- F: Flaming
 MyDSL._triggers.procFlameBurn = tempRegexTrigger(
-  "^([\\w\\-\\s,']+) is burned by ([\\w\\-\\s,']+)\\.$",
+  "^(?:\\[[^\\]]*\\]\\s*)?([\\w\\-\\s,']+) is burned by ([\\w\\-\\s,']+)\\.$",
   function() if MyDSL and MyDSL.parseCombatProcLine then MyDSL.parseCombatProcLine("F") end end)
 MyDSL._triggers.procFlameSear = tempRegexTrigger(
-  "^([\\w\\-\\s,']+) sears your flesh",
+  "^(?:\\[[^\\]]*\\]\\s*)?([\\w\\-\\s,']+) sears your flesh",
   function() if MyDSL and MyDSL.parseCombatProcLine then MyDSL.parseCombatProcLine("F") end end)
 
 -- L: Shocking
 MyDSL._triggers.procShockLightning = tempRegexTrigger(
-  "^([\\w\\-\\s,']+) is struck by lightning from ([\\w\\-\\s,']+)\\.$",
+  "^(?:\\[[^\\]]*\\]\\s*)?([\\w\\-\\s,']+) is struck by lightning from ([\\w\\-\\s,']+)\\.$",
   function() if MyDSL and MyDSL.parseCombatProcLine then MyDSL.parseCombatProcLine("L") end end)
 MyDSL._triggers.procShockShocked = tempRegexTrigger(
-  "^([\\w\\-\\s,']+) is shocked by a",
+  "^(?:\\[[^\\]]*\\]\\s*)?([\\w\\-\\s,']+) is shocked by a",
   function() if MyDSL and MyDSL.parseCombatProcLine then MyDSL.parseCombatProcLine("L") end end)
 
 -- H: Vampiric
 MyDSL._triggers.procVampDraw = tempRegexTrigger(
-  "^([\\w\\-\\s,'\"]+) draws life from ([\\w\\-\\s,'\"]+)\\.$",
+  "^(?:\\[[^\\]]*\\]\\s*)?([\\w\\-\\s,'\"]+) draws life from ([\\w\\-\\s,'\"]+)\\.$",
   function() if MyDSL and MyDSL.parseCombatProcLine then MyDSL.parseCombatProcLine("H") end end)
 MyDSL._triggers.procVampDrain = tempRegexTrigger(
-  "^You feel ([\\w\\-\\s,']+) drawing your life away",
+  "^(?:\\[[^\\]]*\\]\\s*)?You feel ([\\w\\-\\s,']+) drawing your life away",
   function() if MyDSL and MyDSL.parseCombatProcLine then MyDSL.parseCombatProcLine("H") end end)
 
 -- S: Stunning
 MyDSL._triggers.procStun = tempRegexTrigger(
-  "^([\\w\\-\\s,'\"]+) is knocked to the ground by ([\\w\\-\\s,'\"]+)\\.$",
+  "^(?:\\[[^\\]]*\\]\\s*)?([\\w\\-\\s,'\"]+) is knocked to the ground by ([\\w\\-\\s,'\"]+)\\.$",
   function() if MyDSL and MyDSL.parseCombatProcLine then MyDSL.parseCombatProcLine("S") end end)
 
 -- M: Mana drain
 MyDSL._triggers.procManaSelf = tempRegexTrigger(
-  "^You feel something drawing your energy away",
+  "^(?:\\[[^\\]]*\\]\\s*)?You feel something drawing your energy away",
   function() if MyDSL and MyDSL.parseCombatProcLine then MyDSL.parseCombatProcLine("M") end end)
 MyDSL._triggers.procManaDraw = tempRegexTrigger(
-  "^([\\w\\-\\s,']+) draws energy from ([\\w\\-\\s,']+)\\.$",
+  "^(?:\\[[^\\]]*\\]\\s*)?([\\w\\-\\s,']+) draws energy from ([\\w\\-\\s,']+)\\.$",
   function() if MyDSL and MyDSL.parseCombatProcLine then MyDSL.parseCombatProcLine("M") end end)
 
 -- O: Holy
 MyDSL._triggers.procHolyWrath = tempRegexTrigger(
-  "^You feel a surge of ([\\w\\-\\s,']+)'s holy wrath race through your body",
+  "^(?:\\[[^\\]]*\\]\\s*)?You feel a surge of ([\\w\\-\\s,']+)'s holy wrath race through your body",
   function() if MyDSL and MyDSL.parseCombatProcLine then MyDSL.parseCombatProcLine("O") end end)
 MyDSL._triggers.procHolyFlash = tempRegexTrigger(
-  "^A flash of holy power erupts from ([\\w\\-\\s,']+) and hits ([\\w\\-\\s,']+)!$",
+  "^(?:\\[[^\\]]*\\]\\s*)?A flash of holy power erupts from ([\\w\\-\\s,']+) and hits ([\\w\\-\\s,']+)!$",
   function() if MyDSL and MyDSL.parseCombatProcLine then MyDSL.parseCombatProcLine("O") end end)
 
 -- U: Unholy
 MyDSL._triggers.procUnholy = tempRegexTrigger(
-  "^You feel a surge of ([\\w\\-\\s,']+)'s unholy wrath race through your body",
+  "^(?:\\[[^\\]]*\\]\\s*)?You feel a surge of ([\\w\\-\\s,']+)'s unholy wrath race through your body",
   function() if MyDSL and MyDSL.parseCombatProcLine then MyDSL.parseCombatProcLine("U") end end)
 
 -- Sharp: TODO — no confirmed trigger text observed in any log to date
 -- Vorpal: confirmed non-functional (produces no echo) — deliberately omitted
 
 -- P: Poison (our own confirmed addition; no PNP equivalent)
+-- procPoisonOnset/procPoisonTick both confirmed live via sibling-profile
+-- logs 2026-07-09 (DSL1/log/2026-06-26#17-54-43.html), both bracket-
+-- prefixed ("[ The Center of the Coliseum ] Rylae is poisoned by the
+-- venom on a flail of eels.", "[ Southern Coliseum Wall ] Rylae shivers
+-- and suffers.") -- direct confirmation the Coliseum-prefix bug this
+-- whole pass fixes is real, not hypothetical.
 MyDSL._triggers.procPoisonSetup = tempRegexTrigger(
-  "^([\\w\\-\\s,']+) coats ([\\w\\-\\s,']+) with deadly lifebane poison\\.$",
+  "^(?:\\[[^\\]]*\\]\\s*)?([\\w\\-\\s,']+) coats ([\\w\\-\\s,']+) with deadly lifebane poison\\.$",
   function() if MyDSL and MyDSL.parseCombatProcLine then MyDSL.parseCombatProcLine("P") end end)
 MyDSL._triggers.procPoisonOnset = tempRegexTrigger(
-  "^([\\w\\-\\s,']+) is poisoned by the venom on ([\\w\\-\\s,']+)\\.$",
+  "^(?:\\[[^\\]]*\\]\\s*)?([\\w\\-\\s,']+) is poisoned by the venom on ([\\w\\-\\s,']+)\\.$",
   function() if MyDSL and MyDSL.parseCombatProcLine then MyDSL.parseCombatProcLine("P") end end)
 MyDSL._triggers.procPoisonTick = tempRegexTrigger(
-  "^([\\w\\-\\s,']+) shivers and suffers\\.$",
+  "^(?:\\[[^\\]]*\\]\\s*)?([\\w\\-\\s,']+) shivers and suffers\\.$",
   function() if MyDSL and MyDSL.parseCombatProcLine then MyDSL.parseCombatProcLine("P") end end)
 
 -- ---- Round-flush handler (PNP's output_damage(), close to verbatim) ----

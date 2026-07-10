@@ -187,20 +187,70 @@ Confirmed broken, FIXED 2026-07-09:
       Sequencing risk to remember when Layer 4 is picked up, not a
       standalone fix.
 
-Unconfirmed in-game (zero occurrences in the log corpus to date, may just
-need a real occurrence):
-- [ ] Sharp proc
-- [ ] Poison sequence (setup/onset/tick) — our own addition, no PNP equivalent
-- [ ] procUnholy/procManaSelf/procVampDrain/procFrostTouch/procShockShocked
-- [ ] combatSense1/2 (sense-based evasion) — also absent from PNP source,
-      can't tell if real-but-rare or invented
-- [ ] procFlameSear/procHolyWrath/procPoisonTick, `A.ids.triggers.song`
-      (AffectsView "Song:" format) — all of their prior "confirmed" matches
-      turned out to be pre-DSL2 log data
-- [ ] Two bracket-prefix line formats (coliseum spectator `[ Wall ]` prefix,
-      PNP Highlighter's `"[51] Name"` rewrite) — both real DSL mechanisms,
-      neither ever seen in DSL2-era logs; low priority unless one shows up
-      live
+- [x] **Coliseum location-prefix bug — real, high-impact bug found via
+      sibling-profile logs 2026-07-09, fixed.** Steven pointed at
+      `log/Archive.zip` and the sibling Mudlet profiles' own logs for more
+      combat data. Found: **every single combat line fought in the
+      Coliseum is broadcast with a leading location prefix**, e.g.
+      `"[ The Center of the Coliseum ] a wild bear's wrath misses
+      Rylae."` — confirmed across dozens of real lines in
+      `DSL1/log/2026-06-26#17-54-43.html` and the PNP sibling profiles,
+      for both regular damage lines AND several procs. Since nearly every
+      combat trigger (`combatDamage`, evasion senses, death, fled, and
+      all weapon-proc triggers) was `^`-anchored directly to the attacker
+      name, **this silently broke ALL combat tracking for any fight
+      happening in the Coliseum** — not the rare edge case the old
+      "never seen in DSL2-era logs" note assumed; no DSL2-era character
+      had simply fought there yet. Fixed two ways: (1) added an optional
+      non-capturing `"(?:\[[^\]]*\]\s*)?"` prefix to every `^`-anchored
+      combat/proc/sense trigger regex (safe — lines without a bracket
+      match exactly as before, and capture-group numbering is
+      unaffected since it's non-capturing); (2) added a shared
+      `stripLocationPrefix()` helper, applied inside
+      `parseCombatDeathLine`/`parseCombatConditionLine`/
+      `parseCombatEndLine`, since those three do their own Lua-pattern
+      name extraction straight off the whole line (not off trigger
+      capture groups) and would otherwise swallow the bracket into the
+      extracted name. Caught and fixed a real self-inflicted mistake
+      while doing this: an early edit accidentally deleted the
+      `local DAMAGE_VERBS = "..."` declaration entirely, which would
+      have made the whole file fail to load — caught by the routine
+      post-edit syntax check, not shipped. Verified via emulation against
+      real bracket-prefixed lines for death/condition/fled/damage-group-
+      extraction.
+- [x] **Nearly every "unconfirmed" proc — real occurrences found via
+      sibling logs 2026-07-09.** 11 of 15 procs confirmed with real text,
+      almost all of it bracket-prefixed (direct confirmation the Coliseum
+      fix above was needed, not hypothetical): `procFrostFreeze`
+      ("freezes"), `procFrostTouch` ("cold touch of"), `procFlameBurn`
+      ("is burned by"), `procFlameSear` ("sears your flesh"),
+      `procShockLightning` ("is struck by lightning from"),
+      `procShockShocked` ("is shocked by a"), `procVampDraw` ("draws life
+      from"), `procVampDrain` ("drawing your life away"), `procStun` ("is
+      knocked to the ground by"), `procManaDraw` ("draws energy from"),
+      `procHolyWrath` ("holy wrath race"), `procHolyFlash` ("flash of
+      holy power"), `procPoisonSetup` ("deadly lifebane poison"),
+      `procPoisonOnset` ("poisoned by the venom"), and `procPoisonTick`
+      ("shivers and suffers") — confirmed across the PNP sibling profiles
+      and (poison procs specifically) `DSL1`/`Qinrathaz-Vaelis` directly.
+      All trigger patterns matched the confirmed real text correctly.
+- [ ] Sharp proc, `procUnholy` ("unholy wrath race"), `procManaSelf`
+      ("drawing your energy away") — still zero occurrences found
+      anywhere, including the full sibling-profile scan.
+- [ ] combatSense1/2 (sense-based evasion) — still zero occurrences found
+      anywhere; also absent from PNP source, can't tell if real-but-rare
+      or invented.
+- [ ] `A.ids.triggers.song` (AffectsView "Song:" format) — prior
+      "confirmed" matches turned out to be pre-DSL2 log data; not
+      re-checked against the sibling-profile logs this pass.
+- [ ] PNP Highlighter's `"[51] Name"` rewrite — confirmed this IS a
+      separate mechanism from the Coliseum location-prefix fixed above
+      (the two stack together in Highlighter-enabled sibling logs, e.g.
+      `"[ Eastern Coliseum Wall ] [51] Melchaleve is shocked by an energy
+      storm."`), and it's Highlighter-specific client-side decoration —
+      per CLAUDE.md, Highlighter was deliberately never ported to DSL2,
+      so this second bracket would never appear in our own real captures
+      regardless. No action needed unless that decision changes.
 
 Discuss once combat is confirmed working (deliberately deferred, per
 Steven: "make it work like PNP, then discuss the additions"):
@@ -286,15 +336,22 @@ Steven: "make it work like PNP, then discuss the additions"):
       mechanism (`emco gag <pattern>`) could potentially suppress the
       artifact directly without touching `route()` at all, once its
       exact shape is confirmed.
-- [ ] **Sibling-profile log scan (2026-07-08) — dead end, don't repeat.**
-      Checked DSL1/Qinrathaz-Vaelis/all 3 PNP profiles for additional
-      room-presence verb patterns (same method that found "stands here").
-      95-99% of sampled files are verbose debug/framework logging, not
-      real game text; the three "PNP"/"PNP1"/"PNP2" profiles' largest log
-      files are byte-identical mirror copies of each other (not
-      independent data). No new verbs found. DSL2's own corpus remains
-      the best source — a live catch during play beats more log
-      archaeology here.
+- [ ] **Sibling-profile log scan — narrower dead end than first thought,
+      corrected 2026-07-09.** The 2026-07-08 scan (checked DSL1/
+      Qinrathaz-Vaelis/all 3 PNP profiles for room-presence verb patterns
+      by sampling each profile's single *largest* log file) found 95-99%
+      debug/framework noise and concluded sibling logs generally weren't
+      worth mining. **That conclusion was too broad.** A 2026-07-09
+      targeted grep for combat proc phrases across *all* files in those
+      same profiles (not just the largest one) found extensive real
+      combat text — 11 procs confirmed, plus the real Coliseum
+      location-prefix bug (see above). The actual lesson: sampling one
+      huge debug-heavy file isn't representative of a whole profile's
+      logs; a `grep -r` for a *specific known phrase* across every file
+      is cheap and can still pay off, even in profiles that look mostly
+      like noise. Worth repeating for other specific phrases in the
+      future — just don't expect a manual per-file read-through to be
+      productive.
 - [ ] **autowhere fires while sleeping** — Steven's own alias, not ours;
       low priority for us specifically.
 
