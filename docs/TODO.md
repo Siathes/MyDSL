@@ -128,17 +128,55 @@ in-game. Full technical detail for any of these: `git log --oneline` +
 
 ## TOP PRIORITY — Combat, needs live-fight testing
 Fixed in code, none of it confirmed against a real sustained fight yet:
-- [ ] Evasion triggers (dodge/parry/block, you-as-subject aware)
-- [ ] Both death forms (`is DEAD!!` / `hits the ground ... DEAD.`)
+- [x] **Evasion triggers (dodge/parry/block, you-as-subject aware) —
+      verified correct against real corpus text 2026-07-09.** Tested all
+      4 trigger patterns (dodge/parry/block/sense) against confirmed real
+      lines in both grammar directions — third-person evader ("A gnome
+      factory worker dodges your attack.") and you-as-evader ("You dodge
+      a gnome factory worker's attack.", including the embedded
+      possessive apostrophe) — all matched correctly. No bug found; just
+      needs a real live fight to confirm end-to-end state tracking, not a
+      code fix.
+- [x] **Both death forms (`is DEAD!!` / `hits the ground ... DEAD.`) —
+      verified correct against real corpus text 2026-07-09.** Both
+      `parseCombatDeathLine` patterns tested directly against confirmed
+      real lines from the corpus, both extract the correct name. No bug
+      found.
 - [ ] Weapon-flag proc attribution via `last_attacker`/`last_target`/`last_noun`
-- [ ] Quoted weapon names (`"Nadrik's Honor"`)
+- [ ] Quoted weapon names (`"Nadrik's Honor"`) — checked the corpus
+      2026-07-09, zero real occurrences of a quoted weapon name in an
+      actual combat line found (only false positives: a shop-name
+      description, unrelated debug text). The damage trigger's capture
+      groups genuinely don't include `"` in their character class, so
+      this is a plausible latent bug if such a name ever comes up in a
+      real fight, but there's no real text to verify the fix against yet
+      — not guessing at a pattern with zero corpus evidence, per this
+      project's established discipline.
 - [ ] PNP-faithful display rewrite (per-swing live feed, round-summary to
       main, `mydsl combat mode raw|condensed|gag`)
 
-Confirmed broken, not yet fixed:
-- [ ] Self-condition never registers — DSL phrases your own condition in
-      second person ("You have some small wounds"); our trigger + PNP's
-      both only match third person
+Confirmed broken, FIXED 2026-07-09:
+- [x] **Self-condition never registered — real bug found, fixed, and
+      corpus-verified.** DSL phrases your own condition in second person
+      ("You have some small wounds", "You are in excellent condition") —
+      a different verb conjugation from the third-person form ("has"/
+      "is"), which neither our old pattern list nor PNP's own equivalent
+      ever matched. Confirmed via corpus for 3 of 7 condition-ladder
+      rungs (excellent, few scratches, big wounds — the confirmed
+      "have"/"are" self-phrasing); the other 4 have no direct self-
+      phrased example in the corpus yet (not enough logged damage taken)
+      but were fixed via the same consistent grammatical transformation,
+      validated against every rung that DOES have direct evidence. Added
+      the self-phrased alternatives to both `CONDITION_PATTERNS` (the
+      parsing table) and the `combatCondition` trigger's regex (which
+      wouldn't even have fired on these lines before). Verified via
+      emulation: all 7 rungs now correctly register against their exact
+      real/inferred self-phrased text. Side finding, not fixed: some
+      self-condition lines in the corpus had a garbled
+      "nasty's...And...(18.5)" suffix that turned out to be **our own**
+      severity-score decorator leaking a formatting bug into the log, not
+      raw DSL text — separate, smaller issue, not investigated further
+      this pass.
 - [ ] Itemstat interference with `$`-anchored combat regex — real,
       native-XML system, not conclusively proven to break our triggers.
       Confirmed via live A/B test that it also decorates `eq`/`in` output

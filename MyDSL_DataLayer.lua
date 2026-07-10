@@ -1917,14 +1917,37 @@ local function calcDamVerb(totalScore, isYou)
 end
 
 -- ---- Condition ladder -----------------------------------------------
+-- Self-phrased ("You are"/"You have"/"You look") entries added 2026-07-09
+-- -- confirmed real bug, TOP PRIORITY item: DSL phrases your OWN condition
+-- in second person, a different verb conjugation from the third-person
+-- form ("has"->"have", "is"->"are", "looks"->"look"), so neither our old
+-- pattern list nor PNP's ever matched it -- self-condition silently never
+-- registered. Corpus-confirmed for 3 of 7 rungs ("You are in excellent
+-- condition.", "You have a few scratches.", "You have some big nasty
+-- wounds and scratches." -- the third one only via its clean third-person
+-- form; the self-phrased instances found in the corpus had a garbled
+-- "nasty's...And...(18.5)" suffix that turned out to be OUR OWN severity-
+-- score decorator leaking into the log, not raw DSL text, so matched on
+-- the clean prefix instead of that artifact). The other 4 rungs have no
+-- direct self-phrased corpus example (Steven/his characters haven't
+-- logged taking that much damage yet) -- inferred via the same
+-- consistent grammatical transformation, confirmed consistent across
+-- every rung that DOES have direct evidence.
 local CONDITION_PATTERNS = {
   { pat = " is in excellent condition",       label = "excellent"    },
+  { pat = " are in excellent condition",      label = "excellent"    },
   { pat = " has a few scratches",             label = "few scratches" },
+  { pat = " have a few scratches",            label = "few scratches" },
   { pat = " has some small wounds",           label = "small wounds"  },
+  { pat = " have some small wounds",          label = "small wounds"  },
   { pat = " has some big nasty wounds",       label = "big wounds"    },
+  { pat = " have some big nasty wounds",      label = "big wounds"    },
   { pat = " has quite a few wounds",          label = "quite a few"   },
+  { pat = " have quite a few wounds",         label = "quite a few"   },
   { pat = " looks pretty hurt",               label = "pretty hurt"   },
+  { pat = " look pretty hurt",                label = "pretty hurt"   },
   { pat = " is in awful condition",           label = "awful"         },
+  { pat = " are in awful condition",          label = "awful"         },
 }
 -- PNP's condition_info percentage-range strings, keyed by our own label
 -- (same content, just reordered by label instead of by pattern text).
@@ -2631,8 +2654,10 @@ MyDSL._triggers.combatSense2 = tempRegexTrigger(
   function() if MyDSL and MyDSL.parseCombatAvoidLine then MyDSL.parseCombatAvoidLine(getCurrentLine()) end end)
 
 -- ---- Condition trigger (excludes DEAD — handled by combatDead below)
+-- Self-phrased alternatives added 2026-07-09 -- see CONDITION_PATTERNS'
+-- header comment above for the confirmed self-condition bug and evidence.
 MyDSL._triggers.combatCondition = tempRegexTrigger(
-  "(?:is in excellent condition|has a few scratches|has some small wounds|has some big nasty wounds|has quite a few wounds|looks pretty hurt|is in awful condition)",
+  "(?:is in excellent condition|are in excellent condition|has a few scratches|have a few scratches|has some small wounds|have some small wounds|has some big nasty wounds|have some big nasty wounds|has quite a few wounds|have quite a few wounds|looks pretty hurt|look pretty hurt|is in awful condition|are in awful condition)",
   function() if MyDSL and MyDSL.parseCombatConditionLine then MyDSL.parseCombatConditionLine(getCurrentLine()) end end)
 
 -- ---- Death trigger (no PNP equivalent for the second form -- own addition)
