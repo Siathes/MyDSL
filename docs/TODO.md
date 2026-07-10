@@ -187,37 +187,46 @@ Confirmed broken, FIXED 2026-07-09:
       Sequencing risk to remember when Layer 4 is picked up, not a
       standalone fix.
 
-- [x] **Coliseum location-prefix bug — real, high-impact bug found via
-      sibling-profile logs 2026-07-09, fixed.** Steven pointed at
-      `log/Archive.zip` and the sibling Mudlet profiles' own logs for more
-      combat data. Found: **every single combat line fought in the
-      Coliseum is broadcast with a leading location prefix**, e.g.
-      `"[ The Center of the Coliseum ] a wild bear's wrath misses
-      Rylae."` — confirmed across dozens of real lines in
-      `DSL1/log/2026-06-26#17-54-43.html` and the PNP sibling profiles,
-      for both regular damage lines AND several procs. Since nearly every
-      combat trigger (`combatDamage`, evasion senses, death, fled, and
-      all weapon-proc triggers) was `^`-anchored directly to the attacker
-      name, **this silently broke ALL combat tracking for any fight
-      happening in the Coliseum** — not the rare edge case the old
-      "never seen in DSL2-era logs" note assumed; no DSL2-era character
-      had simply fought there yet. Fixed two ways: (1) added an optional
-      non-capturing `"(?:\[[^\]]*\]\s*)?"` prefix to every `^`-anchored
-      combat/proc/sense trigger regex (safe — lines without a bracket
-      match exactly as before, and capture-group numbering is
-      unaffected since it's non-capturing); (2) added a shared
-      `stripLocationPrefix()` helper, applied inside
-      `parseCombatDeathLine`/`parseCombatConditionLine`/
-      `parseCombatEndLine`, since those three do their own Lua-pattern
-      name extraction straight off the whole line (not off trigger
-      capture groups) and would otherwise swallow the bracket into the
-      extracted name. Caught and fixed a real self-inflicted mistake
-      while doing this: an early edit accidentally deleted the
-      `local DAMAGE_VERBS = "..."` declaration entirely, which would
-      have made the whole file fail to load — caught by the routine
-      post-edit syntax check, not shipped. Verified via emulation against
-      real bracket-prefixed lines for death/condition/fled/damage-group-
-      extraction.
+- [x] **Coliseum location-prefix — investigated 2026-07-09, deliberately
+      NOT fixed, closing.** Steven pointed at `log/Archive.zip` and the
+      sibling Mudlet profiles' own logs for more combat data. Found:
+      every single combat line fought in the Coliseum is broadcast with a
+      leading location prefix, e.g. `"[ The Center of the Coliseum ] a
+      wild bear's wrath misses Rylae."` — confirmed across dozens of real
+      lines in `DSL1/log/2026-06-26#17-54-43.html` and the PNP sibling
+      profiles, for both regular damage lines and several procs. Initial
+      fix made every `^`-anchored combat/proc/sense trigger tolerate that
+      prefix so Coliseum fights would get tracked — **reverted same-day
+      per Steven**: Coliseum combat (and the Algoron Combat League event)
+      is explicitly out of scope for this regular single-target tracker.
+      It's planned as its **own later module** — a large window with 4
+      floating sub-windows in the cardinal positions matching the
+      Coliseum's wall echoes. The strict `^`-anchor is what naturally
+      excludes Coliseum broadcasts today, so it was left as-is on purpose,
+      with a comment on `combatDamage` explaining why (so this doesn't get
+      "fixed" again without coordinating with that future module). The
+      investigation itself is still valuable and kept: confirmed real text
+      for 11 procs (see below), and confirmed via Steven that the Sharp
+      weapon flag never echoes anything at all (pure damage bonus, no
+      trigger text will ever exist for it). Caught and fixed one real
+      self-inflicted mistake made mid-investigation: an edit briefly
+      deleted the `local DAMAGE_VERBS = "..."` declaration entirely, which
+      would have made the whole file fail to load — caught immediately by
+      the routine post-edit syntax check, never shipped.
+- [ ] **DEFERRED: Algoron Combat League (AGL) / Coliseum combat module —
+      new idea, 2026-07-09, not scoped.** Per Steven: Coliseum and AGL
+      event combat should be captured separately from regular combat, in
+      a large window containing 4 floating sub-windows positioned at the
+      cardinal locations matching the Coliseum's wall echoes ("[ Eastern/
+      Southern/Northern/Western Coliseum Wall ]" / "[ The Center of the
+      Coliseum ]"). Groundwork already exists from this session's
+      investigation: the exact bracket-prefix format is confirmed
+      (`"[ <location> ] "`), and which trigger patterns/procs apply is
+      already cataloged (see the procs entry below) — that work is
+      directly reusable here, just inverted: this module would `^`-anchor
+      *requiring* the bracket (routing to the 4 sub-windows by which
+      location matched) instead of excluding it. Not scoped further —
+      needs its own design pass when picked up.
 - [x] **Nearly every "unconfirmed" proc — real occurrences found via
       sibling logs 2026-07-09.** 11 of 15 procs confirmed with real text,
       almost all of it bracket-prefixed (direct confirmation the Coliseum
@@ -234,9 +243,13 @@ Confirmed broken, FIXED 2026-07-09:
       ("shivers and suffers") — confirmed across the PNP sibling profiles
       and (poison procs specifically) `DSL1`/`Qinrathaz-Vaelis` directly.
       All trigger patterns matched the confirmed real text correctly.
-- [ ] Sharp proc, `procUnholy` ("unholy wrath race"), `procManaSelf`
-      ("drawing your energy away") — still zero occurrences found
-      anywhere, including the full sibling-profile scan.
+- [x] Sharp proc — **resolved, not a gap.** Confirmed by Steven 2026-07-09
+      (from a Discord question): the Sharp weapon flag just adds bonus
+      damage and never echoes anything, so there's no trigger text to
+      write, ever. Working as intended — closing.
+- [ ] `procUnholy` ("unholy wrath race"), `procManaSelf` ("drawing your
+      energy away") — still zero occurrences found anywhere, including
+      the full sibling-profile scan.
 - [ ] combatSense1/2 (sense-based evasion) — still zero occurrences found
       anywhere; also absent from PNP source, can't tell if real-but-rare
       or invented.
