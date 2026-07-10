@@ -250,9 +250,26 @@ Confirmed broken, FIXED 2026-07-09:
 - [ ] `procUnholy` ("unholy wrath race"), `procManaSelf` ("drawing your
       energy away") — still zero occurrences found anywhere, including
       the full sibling-profile scan.
-- [ ] combatSense1/2 (sense-based evasion) — still zero occurrences found
-      anywhere; also absent from PNP source, can't tell if real-but-rare
-      or invented.
+- [ ] **combatSense1/2 (sense-based evasion) — narrowed 2026-07-09, still
+      unconfirmed wording.** Checked `DSL_Helpfiles/danger sense.txt`:
+      the underlying ability is real, not invented — `"Danger Sense
+      Allows you to sense what your opponent is going to do before they
+      do it so you can dodge or deflect their blow. Available to bards
+      and bard reclasses."` So the *mechanic* is confirmed, narrowing the
+      open question to just the exact echo wording, which remains
+      unverified against any real text — searched the full DSL2 corpus,
+      `log/Archive.zip`, all 3 PNP sibling profiles, `DSL1`,
+      `Qinrathaz-Vaelis`, and every other profile on this machine, zero
+      hits anywhere for "senses"/"deflects the blow"/"avoids its blow" in
+      a combat context. Helpfiles document usage/syntax, not raw output
+      text, so this doesn't confirm the trigger's exact wording either
+      way. Likely explanation for the total absence: bard-only skill,
+      and apparently no bard character has used it during any logged
+      session across this whole machine. (Found one look-alike red
+      herring while searching: `"[51] Herbert deflects [51] Archal's
+      charge with a shield."` — a real line, but a different mechanic
+      entirely, a shield-charge defense, not Danger Sense.) Would need a
+      bard specifically playing/logging to ever confirm the real wording.
 - [ ] `A.ids.triggers.song` (AffectsView "Song:" format) — prior
       "confirmed" matches turned out to be pre-DSL2 log data; not
       re-checked against the sibling-profile logs this pass.
