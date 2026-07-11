@@ -847,21 +847,61 @@ re-litigated piecemeal.
 
 ---
 
-## OPEN — Command-surface retrofit (held until combat-pass testing confirmed)
+## OPEN — Command-surface retrofit (hold lifted 2026-07-11, combat now confirmed live)
 Mandate: reuse PNP/EMCO's actual command vocabulary, not just their
 internal logic — see `CLAUDE.md` Philosophy section.
-- [ ] `toggle <module>` — PNP's real universal on/off alias is already
-      live; CombatView/AffectsView/MoonWeather should hook it instead of
-      their own `mydsl <module> gag/show` aliases.
-- [ ] Combat's extra sub-toggles (`show_miss`/`show_evade`/`show_flag`/
-      `show_condition`) have no PNP equivalent — keep a short bespoke form.
+- [x] **`toggle <module>` — built 2026-07-11.** Confirmed PNP's real
+      command directly in source (`DSL_PNP_Support.lua`'s native
+      `dslpnp.aliases.register("Toggle Alias", "^toggle ([\w\.]+)...",
+      ...)`) — bare `toggle <name>`, no `mydsl` prefix. Each PNP module
+      wires its own name into a shared `dslpnp.toggle()` helper
+      (confirmed real names: `"battle"`, `"affects"`, `"moons"`,
+      `"ticktimer"`). Added the same bare alias to each of our own
+      equivalents, reusing WindowRegistry's already-correct generic
+      `MyDSL.Windows.toggle()`/`.registry[name].visible` instead of
+      inventing new visibility tracking: `toggle battle` (**CombatView
+      had no show/hide/toggle at all before this** — a real, separate gap
+      this surfaced; added `CV.show()`/`hide()`/`toggle()`), `toggle
+      affects`, `toggle moons` (`MW.toggle()` already existed, just
+      needed the alias), `toggle ticktimer`. Existing `mydsl <module>
+      show/hide/gag/ungag` aliases are all left in place, unchanged —
+      this adds the PNP-native form alongside them, doesn't replace
+      anything. Verified via emulation: all 4 modules load cleanly with
+      their `^toggle <name>$` pattern correctly registered.
+- [x] Combat's extra sub-toggles (`show_miss`/`show_evade`/`show_flag`/
+      `show_condition`) have no PNP equivalent — confirmed correct as a
+      short bespoke form, no PNP command to reuse here. No action needed.
 - [ ] Scan/Target/Group/CreatureReference are net-new — keep bespoke
-      commands, just trim the `mydsl` prefix.
-- [ ] `emco save`/`load` likely act on a stale disconnected object (traced,
-      not independently re-verified — low priority, requires a command a
-      user's never actually typed before).
-- [ ] Not checked: whether `mydsl chat` duplicates native `gag`/`lock`/
-      `notify`/`title`.
+      commands, just trim the `mydsl` prefix. **Not started** — this is a
+      real rename across every alias in 4 files (`mydsl target ...` →
+      `target ...`, etc.), which changes muscle memory Steven already has
+      for these specific commands, unlike the purely-additive `toggle`
+      work above. Held for an explicit decision on approach (hard rename
+      vs. add the short form alongside the existing `mydsl`-prefixed one)
+      before touching it.
+- [x] **`emco save`/`load` — confirmed acting on a stale disconnected
+      object, 2026-07-11.** No longer just traced — confirmed directly in
+      the native XML (`current/2026-07-11#11-49-37.xml`): the native
+      `emco save`/`emco load` aliases call `demonnic.container:save()`/
+      `:load()`, and `demonnic.container` is the **original** native
+      `Adjustable.Container` that `MyDSL_ChatWrapper.lua`'s
+      `C.hideOldPrebuilt()` deliberately hides forever (MyDSL replaced it
+      with its own `MyDSL_Chat` window — same distinction CLAUDE.md's
+      Philosophy section already draws for `emco show`/`hide`). No fix
+      needed: `MyDSL_ChatWrapper.lua` already has its own real, working
+      persistence (`mydsl chat save`/`mydsl chat reload settings`) that
+      doesn't depend on the native command at all — just worth knowing
+      `emco save`/`load` are a dead end for the actual visible chat
+      window, in case Steven ever reaches for them out of PNP habit.
+- [x] **Whether `mydsl chat` duplicates native `gag`/`lock`/`notify`/
+      `title` — checked 2026-07-11, no overlap.** Every `mydsl chat`
+      sub-command (`status`/`save`/`reload settings`/`show`/`hide`/
+      `clear`/`font`/`wrap`/`timestamp`/`timestamp format`/`rebuild`/
+      `revive`/`echo`/`test`) confirmed via direct grep of
+      `MyDSL_ChatWrapper.lua` — none of them touch gag/lock/notify/title
+      at all. EMCO's native `gag <pattern>`/`lock`/`notify <tab>`/
+      `title <tab> <text>` remain the only way to do those specific
+      things, exactly matching the reuse mandate. Nothing to fix.
 
 ---
 

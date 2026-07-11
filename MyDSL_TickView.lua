@@ -320,6 +320,15 @@ function V.hide()
   V.saveSettings()
 end
 
+-- V.toggle() -- added 2026-07-11, command-surface retrofit (docs/TODO.md
+-- "OPEN — Command-surface retrofit"). Wires PNP's real bare "toggle
+-- <module>" command using PNP's own module name for the tick timer
+-- ("ticktimer", confirmed via DSL_PNP_Ticktimer.lua's
+-- `dslpnp.toggle("ticktimer", ...)` call).
+function V.toggle()
+  if V.config.shown then V.hide() else V.show() end
+end
+
 function V.rebuild()
   if V.ui and V.ui.win then pcall(function() V.ui.win:hide() end) end
   V.ui = {}
@@ -392,6 +401,7 @@ function V.installAliases()
   tempAlias([[^mydsl tickview reload settings$]], [[MyDSL.TickView.loadSettings(); MyDSL.TickView.rebuild(); MyDSL.TickView.status()]])
   tempAlias([[^mydsl tickview show$]], [[MyDSL.TickView.show()]])
   tempAlias([[^mydsl tickview hide$]], [[MyDSL.TickView.hide()]])
+  tempAlias([[^toggle ticktimer$]], [[if MyDSL and MyDSL.TickView then MyDSL.TickView.toggle() end]])
   tempAlias([[^mydsl tickview rebuild$]], [[MyDSL.TickView.rebuild()]])
   tempAlias([[^mydsl tickview font (\d+)$]], [[MyDSL.TickView.setFont(matches[2])]])
   tempAlias([[^mydsl tickview mode (compact|full)$]], [[MyDSL.TickView.setMode(matches[2])]])

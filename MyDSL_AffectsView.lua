@@ -862,6 +862,18 @@ end
 function A.refresh() send("affects") end
 function A.show() A.ensureWindow(); if MyDSL and MyDSL.Windows and MyDSL.Windows.show then pcall(MyDSL.Windows.show, A.config.windowId) end; pcall(function() if A.window and A.window.show then A.window:show() end end); A.display() end
 function A.hide() if MyDSL and MyDSL.Windows and MyDSL.Windows.hide then pcall(MyDSL.Windows.hide, A.config.windowId) end; pcall(function() if A.window and A.window.hide then A.window:hide() end end) end
+-- A.toggle() -- added 2026-07-11, command-surface retrofit (docs/TODO.md
+-- "OPEN — Command-surface retrofit"). Wires PNP's real bare "toggle
+-- <module>" command (DSL_PNP_Support.lua's native Toggle Alias) using
+-- PNP's own module name ("affects", confirmed via DSL_PNP_Affects.lua's
+-- `dslpnp.toggle("affects", ...)` call). Reads current visibility from
+-- WindowRegistry's own registry table (same access pattern already used
+-- in MyDSL_RouteHelper.lua) rather than tracking a second, separate
+-- shown/hidden flag here.
+function A.toggle()
+  local entry = MyDSL.Windows and MyDSL.Windows.registry and MyDSL.Windows.registry[A.config.windowId]
+  if entry and entry.visible then A.hide() else A.show() end
+end
 function A.clear() A.clearList(); A.display(); A.save() end
 
 function A.setTitle(title, silent, localOnly)
@@ -1011,6 +1023,7 @@ function A.installAliases()
     return id
   end
 
+  addAlias([[^toggle affects$]], [[if MyDSL and MyDSL.Affects then MyDSL.Affects.toggle() end]])
   addAlias([[^mydsl affects status$]], [[MyDSL.Affects.status()]])
   addAlias([[^mydsl affects profile$]], [[MyDSL.Affects.profile()]])
   addAlias([[^mydsl affects reload profile$]], [[MyDSL.Affects.loadProfileForCurrentChar(true); MyDSL.Affects.display(); MyDSL.Affects.profile()]])

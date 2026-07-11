@@ -741,6 +741,11 @@ local function _registerAliases()
   reg([[^mydsl moon toggle$]], [[MyDSL.MoonWeather.toggle()]])
   reg([[^mydsl moon on$]],     [[MyDSL.MoonWeather.show()]])
   reg([[^mydsl moon off$]],    [[MyDSL.MoonWeather.hide()]])
+  -- PNP's real bare "toggle <module>" command, added 2026-07-11 (command-
+  -- surface retrofit, docs/TODO.md) -- PNP's own module name for this is
+  -- "moons" (confirmed via DSL_PNP_Moons.lua's `dslpnp.toggle("moons",
+  -- ...)` call), not "moon" or "weather".
+  reg([[^toggle moons$]], [[if MyDSL and MyDSL.MoonWeather then MyDSL.MoonWeather.toggle() end]])
 
   -- Font size: "mydsl moon font 11" → change fontSize, re-apply stylesheet, re-render.
   -- matches[2] is the captured digit group from the PCRE pattern.

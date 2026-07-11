@@ -280,6 +280,25 @@ CV._aliases.combatFont = tempAlias(
   "^mydsl combat font (\\d+)$",
   [[MyDSL.CombatView.setFont(matches[2])]])
 
+-- CV.show()/hide()/toggle() -- added 2026-07-11, command-surface retrofit
+-- (docs/TODO.md "OPEN — Command-surface retrofit"). CombatView was the one
+-- module with no window-visibility function or alias at all (AffectsView/
+-- MoonWeather/TickView all already had show()/hide()). Also wires PNP's
+-- real bare "toggle <module>" command (confirmed native:
+-- `dslpnp.aliases.register("Toggle Alias", "^toggle ([\w\.]+)...", ...)`,
+-- DSL_PNP_Support.lua) using PNP's own module name for this one ("battle",
+-- confirmed via DSL_PNP_Battle.lua's own `dslpnp.toggle("battle", ...)`
+-- call) instead of reinventing a `mydsl combat show/hide` pair -- reuses
+-- WindowRegistry's already-correct generic MyDSL.Windows.toggle(), no new
+-- visibility-tracking needed.
+function CV.show() if MyDSL.Windows then MyDSL.Windows.show(COMBAT_WIN) end end
+function CV.hide() if MyDSL.Windows then MyDSL.Windows.hide(COMBAT_WIN) end end
+function CV.toggle() if MyDSL.Windows then MyDSL.Windows.toggle(COMBAT_WIN) end end
+
+CV._aliases.toggleBattle = tempAlias(
+  "^toggle battle$",
+  [[if MyDSL and MyDSL.CombatView then MyDSL.CombatView.toggle() end]])
+
 CV._aliases.combatClear = tempAlias(
   "^mydsl combat clear$",
   [[if MyDSL and MyDSL.State and MyDSL.State.combat then
