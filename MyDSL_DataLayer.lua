@@ -1731,6 +1731,28 @@ end
 -- beginScan(), and the same "move text, don't rewrite it" observer pattern
 -- (appendBuffer via Route.players(nil), not a reformatted decho).
 
+-- isPlayersNearBodyLine() -- added 2026-07-11, real bug found live via
+-- screenshot: the catch-all below used to accept ANY non-blank line
+-- unconditionally, relying solely on a blank line to end capture. Same
+-- fragile shape as every RightHere-on-look bug fixed earlier this
+-- session -- if DSL interleaves an unrelated broadcast (a combat
+-- condition update, a bare single-letter weapon-flag proc line) before
+-- the real blank-line terminator arrives, it gets vacuumed into
+-- MyDSL_PlayersNear right along with real players. Confirmed live:
+-- "A tinker gnome mage is in awful condition." and bare "S" lines (the
+-- Stunning proc flag's own wire text) both showed up mixed in with real
+-- "Meshkin   A Sloped Hall" / "Uldek   Arena" entries. Real body lines
+-- never end in sentence punctuation and always have a wide column-
+-- padding gap between name and room (confirmed shape, see the header
+-- comment above) -- a condition sentence ends in "." and a bare proc
+-- letter has no gap at all, so both are cheaply distinguishable without
+-- needing to enumerate every possible interrupting broadcast.
+local function isPlayersNearBodyLine(line)
+  if line:match("[%.!?]%s*$") then return false end
+  if not line:match("^%S+%s%s+%S") then return false end
+  return true
+end
+
 function MyDSL.beginPlayersNear()
   if not (MyDSL and MyDSL.Route) then return end
   MyDSL.Route.clear("MyDSL_PlayersNear")
@@ -1745,7 +1767,12 @@ function MyDSL.beginPlayersNear()
   end
   MyDSL._triggers.playersNearBody = tempRegexTrigger(".*", function()
     if not (MyDSL and MyDSL.Route) then return end
-    if trim(getCurrentLine()) == "" then MyDSL.endPlayersNear(); return end
+    local ln = getCurrentLine()
+    if trim(ln) == "" then MyDSL.endPlayersNear(); return end
+    -- Unrelated broadcast interleaved mid-block -- skip it, but keep
+    -- capturing (don't end early): more real player lines may still
+    -- follow before the actual blank-line terminator arrives.
+    if not isPlayersNearBodyLine(ln) then return end
     selectCurrentLine()
     copy()
     MyDSL.Route.players(nil)

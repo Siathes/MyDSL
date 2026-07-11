@@ -55,6 +55,21 @@ function MyDSL.DB.sync()
   -- DataLayer key 'position' → DB key 'posn' (per LiveView contract).
   -- DataLayer key 'class'    → DB key 'class_' (avoids Lua reserved word).
   local sc = MyDSL.State.score or {}
+  -- hp/mana/move fallback added 2026-07-11 -- real bug found live
+  -- (Uldek's LiveView health bars stuck at "-- (0%)" despite `score`
+  -- having been run and correctly parsed): LiveView's L.data() already
+  -- does `live.hp or score.hp` specifically so the score-command text
+  -- parse can cover GMCP not having sent char_data.hp yet, but this
+  -- block never actually forwarded hp/max_hp/mana/max_mana/move/max_move
+  -- from MyDSL.State.score into MyDSL.DB.score at all -- every OTHER
+  -- score field was mapped here except these three pairs, so the
+  -- fallback LiveView was relying on had nothing to fall back to.
+  MyDSL.DB.score.hp          = sc.hp
+  MyDSL.DB.score.maxhp       = sc.max_hp
+  MyDSL.DB.score.mana        = sc.mana
+  MyDSL.DB.score.maxmana     = sc.max_mana
+  MyDSL.DB.score.move        = sc.move
+  MyDSL.DB.score.maxmove     = sc.max_move
   MyDSL.DB.score.align       = sc.align
   MyDSL.DB.score.race        = sc.race
   MyDSL.DB.score.class_      = sc.class

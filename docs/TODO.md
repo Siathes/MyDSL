@@ -90,9 +90,9 @@ in-game. Full technical detail for any of these: `git log --oneline` +
       (32 fast pulses -> 8 slow pulses over a simulated 8s span) and the
       live Improve countdown math (both both smooth mid-countdown values
       and the past-due floor-at-zero case) all confirmed correct.
-- [ ] **Damage-flag colors now match PNP exactly — fixed 2026-07-11, needs a
-      live fight to see it rendered.** Per Steven's note ("change the colors
-      of the damage flags to the same as PNP for community recognition"):
+- [x] **Damage-flag colors now match PNP exactly — CONFIRMED LIVE
+      2026-07-11.** Per Steven's note ("change the colors of the damage
+      flags to the same as PNP for community recognition"):
       `DAM_INFO`/`FLAG_COLOR` in `MyDSL_DataLayer.lua` used our own
       softer/pastel RGB guesses; read PNP's real `dam_info`/`flag_info`
       tables (`DSL_PNP_Battle.lua`) and `color_table` (`DSL_PNP_Support.lua`)
@@ -101,13 +101,14 @@ in-game. Full technical detail for any of these: `git log --oneline` +
       tier bakes a letter-by-letter alternating red/white color effect
       directly into the decorated verb (e.g. `UNSPEAKABLE` renders as
       alternating-color individual letters), which our old flat-single-color
-      version never did. New `alternateLetters()` helper builds this at load
-      time; both `calcDamVerb()` (round-summary) and `parseCombatDamageLine()`
-      (per-swing feed) now use it via a new `info.decorated` field when
-      present. Verified via the emulation harness: `UNSPEAKABLE` renders the
-      correct alternating `<255,0,0>`/`<192,192,192>` sequence, ordinary
-      tiers (e.g. `hit`) render PNP's green. Needs a live fight to confirm
-      visually.
+      version never did. **Confirmed live via screenshot
+      (`Screenshot_20260711_103732.png`)**: Vrokt vs. an insane half elf
+      shows `"Your pierce do GHASTLY things to Insane half elf (163.5)"`
+      and `"Your pierce do HORRID things to Insane half elf (211.5)"`
+      rendering with the real letter-alternating red/white effect, plus
+      `"Your pierce === OBLITERATE === Insane half elf (97)"` showing the
+      correct tier bracket decoration. This was the last unconfirmed piece
+      of the whole damage-color fix — closing.
 - [ ] CharacterAssist: rearm (weapon+shield), spellup/setspell,
       blind-vision check
 - [ ] **Equipment capture — corrected 2026-07-11, was stale.** This item
@@ -619,6 +620,99 @@ re-litigated piecemeal.
       productive.
 - [ ] **autowhere fires while sleeping** — Steven's own alias, not ours;
       low priority for us specifically.
+- [x] **MyDSL_PlayersNear capturing unrelated broadcasts — real bug found
+      and fixed 2026-07-11.** Confirmed via screenshot
+      (`Screenshot_20260711_110142.png`, character Uldek): the PlayersNear
+      window showed real player entries ("Meshkin   A Sloped Hall") mixed
+      with stray standalone "S" lines (the Stunning proc flag's own raw
+      wire text) and a full combat condition sentence ("A tinker gnome
+      mage is in awful condition."). Same bug class as every RightHere-
+      on-look fix this session: `beginPlayersNear()`'s catch-all accepted
+      ANY non-blank line unconditionally, relying solely on a blank line
+      to end capture, so an unrelated broadcast interleaved by the server
+      before that blank line arrived got vacuumed in too. Fixed with
+      `isPlayersNearBodyLine()` — real body lines never end in sentence
+      punctuation and always have a wide column-padding gap between name
+      and room; a condition sentence or bare proc letter matches neither
+      shape. Non-matching lines are skipped (not captured) without ending
+      the block early, since more real player lines could still follow.
+      Verified via emulation against the exact real contaminated sequence
+      from the screenshot — both real players captured, all 5 stray "S"
+      lines and the condition sentence correctly rejected.
+- [x] **LiveView health bars stuck at "-- (0%)" for Uldek — real bug
+      found and fixed 2026-07-11.** Confirmed via 2 screenshots
+      (`Screenshot_20260711_105908.png`, `_110142.png`) taken minutes
+      apart, same result both times. Traced the full chain: `score` was
+      run and `parseScoreLine()` correctly parsed `"Hitpoints: 20 of 20"`
+      into `MyDSL.State.score.hp`/`max_hp` — confirmed via emulation.
+      LiveView's `L.data()` already does `live.hp or score.hp`
+      specifically so this text-parsed fallback can cover GMCP not having
+      sent `char_data.hp` yet (which is apparently what happens for a
+      very new/low-level character), but `MyDSL_DataBridge.lua`'s `sync()`
+      never actually forwarded `hp`/`max_hp`/`mana`/`max_mana`/`move`/
+      `max_move` from `MyDSL.State.score` into `MyDSL.DB.score` at all —
+      every other score field was mapped there except these three pairs,
+      so the fallback had nothing to fall back to. Fixed by adding the
+      missing mapping. Verified via emulation: the full real chain (score
+      text → `MyDSL.State.score` → `MyDSL.DB.score` → LiveView's fallback)
+      now correctly produces `20/20` instead of `--`.
+- [x] **CreatureReference showing raw hex/numbers instead of colors —
+      real bug found and fixed 2026-07-11.** Per Steven's note ("creature
+      lore text seems to have numbers instead of colors? see
+      screenshot"). `MyDSL_CreatureReference.lua` was the only file
+      anywhere in the profile using `cecho()`'s `"<#RRGGBB>"` hex-color
+      tag syntax and `"<reset>"` — neither is valid: Mudlet's `cecho`
+      only recognizes named colors (confirmed working —
+      `MyDSL_AffectsView.lua`'s `wcecho()` uses `"<grey>"` etc.) or the
+      decho-style `"<r,g,b>"` decimal tag, so an unrecognized tag just
+      prints literally — exactly "numbers instead of colors." Converted
+      every hex value to its decimal RGB equivalent and switched
+      `cecho()`→`decho()`/`"<reset>"`→`"<r>"` to match the `"<r,g,b>...
+      <r>"` convention every other module already uses successfully.
+- [ ] **Murder/Consider/Order-All → "They're not here" on look-populated
+      wildlife targets — investigated 2026-07-11, likely NOT a bug.** Per
+      Steven's note ("in uldeks logs i tried to murder/consider/ordr all
+      on the rabbit/weasel and got not heres. this is from look when you
+      ente a room not scan."). Checked the real sequence in
+      `log/2026-07-11#10-43-37.html` around line 593: `"A rabbit is
+      bouncing around here."` appears in the room description, but by the
+      time the action fires the log shows `"A rabbit walks northeast."`
+      immediately before the `"They're not here."` response — same
+      pattern for the snow weasel (`"A snow weasel walks east."` right
+      before its own "not here"). Rabbit/snow weasel are both flavor-
+      texted as restless/wandering ("bouncing around", "scurries around")
+      — this looks like a genuine race: the mob wanders off between when
+      RightHere populated from `look` and when the click's command
+      actually reaches the server, which would make "not here" a
+      legitimate, correct response, not a name-matching bug in
+      TargetView. Not fully ruled out (didn't confirm whether *every*
+      instance of the named mob left, just *a* matching movement line
+      each time) — flagging rather than "fixing" a name-matching change
+      with no clear evidence of what it would even fix.
+- [ ] **"vexgar magic missile did not show in the main display, it di
+      show in the combat window" — could not reproduce from available
+      logs 2026-07-11.** Per Steven's note. Searched all of today's and
+      yesterday's logs for a real magic-missile combat line involving
+      Vexgar (a new mage character) — found only spell-practice/score
+      references, no actual cast-damage line to check against. May
+      already be resolved by the `mydsl combat mode` `show_damage`/
+      `show_miss` fix (see TOP PRIORITY Combat) if the real cause was a
+      miss specifically not showing while hits did — but that's a guess,
+      not a confirmed diagnosis. Needs a fresh log with the actual cast
+      line to investigate further.
+- [ ] **"it seems we have multiple mob health echos in combat... one we
+      create and one form the game, do we need both to echo?" — likely
+      the same already-tracked discussion, not a new bug, 2026-07-11.**
+      Checked for a literal duplicate-echo bug in today's logs — the only
+      repeated HP-percentage lines found are the normal `group` listing
+      refreshing periodically (expected, not a bug). This note's phrasing
+      ("one we create and one from the game... do we need both") matches
+      the already-open, deliberately-deferred TOP PRIORITY Combat
+      discussion item about `renderSummary()`'s persistent "Fight
+      summary" block being our own addition on top of PNP's real
+      condition/summary text — likely the same question, not independently
+      confirmed as a new issue. Flagging the connection rather than
+      duplicating the discussion item.
 
 ---
 

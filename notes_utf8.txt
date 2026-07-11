@@ -12,15 +12,12 @@ look at making new maps like thalos's updated one use shattered book editor? (ma
 
 check out stat command and vitality
 
+vexgar magic missile did not show in the main display, it di show in the combat window, needs to echo (skill/spell/action) to main display also
+
 
 ========== PROJECT NOTES ==========
 check all logs and screenshots for issues, there are some.
-the righthere window is recording my charger on olyndros
 there are others
-
-
-we need something to set the prompt to our desired prompt when a new charcater is created. 1 time at charcater creation only, mnual alias for misses or exiting characters
-prompt {B[{R%h{G/%H{GHP{x {B| {C%m{c/%M{CM{x {B| {G%v{y/%V{yMV{x {B]{x {B[{x {Y%S{x {B|{x %a {B| {G%l{x {B|{x {p%f{x {B]{x%c{B==-{x%d {g- %t{x {B:: [{W%r{x{B] :: [{x%e{x{B]-=={x%c
 
 ========== IDEAS ==========
 

@@ -4,6 +4,18 @@
 -- Listens for "MyDSL.creaturelore.updated" and renders the creature lore record
 -- in the MyDSL_CreatureReference window.  The window is hidden by default and
 -- auto-shows when new lore arrives.  Never sends commands or modifies the DB.
+--
+-- Fixed 2026-07-11, real bug found live ("creature lore text seems to have
+-- numbers instead of colors?"): this was the only file anywhere in the
+-- profile using cecho()'s "<#RRGGBB>" hex-color tag syntax and "<reset>" --
+-- neither is valid here; Mudlet's cecho only recognizes named colors
+-- ("<grey>", confirmed working in MyDSL_AffectsView.lua's wcecho()) or the
+-- decho-style "<r,g,b>" decimal tag, and an unrecognized tag just prints
+-- literally, which is exactly "numbers instead of colors." Converted every
+-- hex value to its decimal RGB equivalent and switched cecho()->decho()/
+-- "<reset>"->"<r>" to match the "<r,g,b>...<r>" convention every other
+-- module in the profile already uses successfully (TargetView, GroupView,
+-- CombatView, etc.).
 -- =============================================================================
 
 MyDSL                  = MyDSL                  or {}
@@ -51,7 +63,7 @@ end
 function CR.render(name)
   clearWindow(CR_MC)
   if not name or name == "" then
-    cecho(CR_MC, "<#444444>No creature selected.\n<reset>")
+    decho(CR_MC, "<68,68,68>No creature selected.\n<r>")
     return
   end
 
@@ -66,89 +78,89 @@ function CR.render(name)
   end
 
   -- Header rule + name
-  cecho(CR_MC, string.format("<#444444>%s\n<reset>", hrule("─")))
-  cecho(CR_MC, string.format("<#ffcc44>%s<reset>\n", name))
-  cecho(CR_MC, string.format("<#444444>%s\n<reset>", hrule("─")))
+  decho(CR_MC, string.format("<68,68,68>%s\n<r>", hrule("─")))
+  decho(CR_MC, string.format("<255,204,68>%s<r>\n", name))
+  decho(CR_MC, string.format("<68,68,68>%s\n<r>", hrule("─")))
 
   if not rec then
-    cecho(CR_MC, "<#888888>No lore data yet.\n<reset>")
-    cecho(CR_MC, "<#666666>Click [Lore] in Target window to capture.\n<reset>")
-    cecho(CR_MC, string.format("<#444444>%s\n<reset>", hrule("─")))
+    decho(CR_MC, "<136,136,136>No lore data yet.\n<r>")
+    decho(CR_MC, "<102,102,102>Click [Lore] in Target window to capture.\n<r>")
+    decho(CR_MC, string.format("<68,68,68>%s\n<r>", hrule("─")))
     return
   end
 
   -- Race / Alignment
   local race_str  = rec.race          or "?"
   local align_str = rec.alignmentText or "?"
-  cecho(CR_MC, string.format(
-    "<#888888>Race: <#cccccc>%-14s <#888888>Align: <#cccccc>%s<reset>\n",
+  decho(CR_MC, string.format(
+    "<136,136,136>Race: <204,204,204>%-14s <136,136,136>Align: <204,204,204>%s<r>\n",
     race_str, align_str))
 
   -- HP / Kill count
   local hp_str    = formatNumber(rec.hp)
   local kills_str = rec.killCount and tostring(rec.killCount) or "0"
-  cecho(CR_MC, string.format(
-    "<#888888>HP:   <#cccccc>%-14s <#888888>Kills: <#cccccc>%s<reset>\n",
+  decho(CR_MC, string.format(
+    "<136,136,136>HP:   <204,204,204>%-14s <136,136,136>Kills: <204,204,204>%s<r>\n",
     hp_str, kills_str))
 
   -- Avg XP / Last XP
   local avg_xp  = formatNumber(rec.avgXP)
   local last_xp = formatNumber(rec.lastXP)
-  cecho(CR_MC, string.format(
-    "<#888888>Avg XP: <#ffcc44>%-12s <#888888>Last XP: <#ffcc44>%s<reset>\n",
+  decho(CR_MC, string.format(
+    "<136,136,136>Avg XP: <255,204,68>%-12s <136,136,136>Last XP: <255,204,68>%s<r>\n",
     avg_xp, last_xp))
 
-  cecho(CR_MC, "\n")
+  decho(CR_MC, "\n")
 
   -- Rooms seen
   if rec.roomsFound and next(rec.roomsFound) then
-    cecho(CR_MC, "<#888888>Rooms seen:<reset>\n")
+    decho(CR_MC, "<136,136,136>Rooms seen:<r>\n")
     for room, count in pairs(rec.roomsFound) do
-      cecho(CR_MC, string.format(
-        "  <#88aaff>%s <#888888>(%d)<reset>\n", room, count))
+      decho(CR_MC, string.format(
+        "  <136,170,255>%s <136,136,136>(%d)<r>\n", room, count))
     end
-    cecho(CR_MC, "\n")
+    decho(CR_MC, "\n")
   end
 
   -- Immunities / Resists / Vulns / Affects
   local function listLine(label, tbl, color)
-    local c = color or "#44ccaa"
+    local c = color or "68,204,170"
     if type(tbl) == "table" and #tbl > 0 then
-      cecho(CR_MC, string.format("<#888888>%-12s<%s>%s<reset>\n",
+      decho(CR_MC, string.format("<136,136,136>%-12s<%s>%s<r>\n",
         label, c, table.concat(tbl, ", ")))
     else
-      cecho(CR_MC, string.format("<#888888>%-12s<#444444>(none)<reset>\n", label))
+      decho(CR_MC, string.format("<136,136,136>%-12s<68,68,68>(none)<r>\n", label))
     end
   end
-  listLine("Immunities:", rec.immunities, "#44ccaa")
-  listLine("Resists:",    rec.resists,    "#44ccaa")
-  listLine("Vulns:",      rec.vulns,      "#cc4444")
-  listLine("Affects:",    rec.affects,    "#aaaaff")
+  listLine("Immunities:", rec.immunities, "68,204,170")
+  listLine("Resists:",    rec.resists,    "68,204,170")
+  listLine("Vulns:",      rec.vulns,      "204,68,68")
+  listLine("Affects:",    rec.affects,    "170,170,255")
 
-  cecho(CR_MC, "\n")
+  decho(CR_MC, "\n")
 
   -- Drops
   if rec.drops and next(rec.drops) then
-    cecho(CR_MC, "<#888888>Drops:<reset>\n")
+    decho(CR_MC, "<136,136,136>Drops:<r>\n")
     for item, count in pairs(rec.drops) do
-      cecho(CR_MC, string.format(
-        "  <#ffcc44>%s <#888888>(%d kills)<reset>\n", item, count))
+      decho(CR_MC, string.format(
+        "  <255,204,68>%s <136,136,136>(%d kills)<r>\n", item, count))
     end
-    cecho(CR_MC, "\n")
+    decho(CR_MC, "\n")
   end
 
   -- Last lored date
   if rec.lastLore and rec.lastLore > 0 then
-    cecho(CR_MC, string.format(
-      "<#888888>Last lored: <#cccccc>%s<reset>\n",
+    decho(CR_MC, string.format(
+      "<136,136,136>Last lored: <204,204,204>%s<r>\n",
       os.date("%Y-%m-%d", rec.lastLore)))
   elseif rec.last_updated and rec.last_updated > 0 then
-    cecho(CR_MC, string.format(
-      "<#888888>Last lored: <#cccccc>%s<reset>\n",
+    decho(CR_MC, string.format(
+      "<136,136,136>Last lored: <204,204,204>%s<r>\n",
       os.date("%Y-%m-%d", rec.last_updated)))
   end
 
-  cecho(CR_MC, string.format("<#444444>%s\n<reset>", hrule("─")))
+  decho(CR_MC, string.format("<68,68,68>%s\n<r>", hrule("─")))
 end
 
 
