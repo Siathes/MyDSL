@@ -102,6 +102,25 @@ in-game. Full technical detail for any of these: `git log --oneline` +
       "A/An/The" prefix at all to anchor on ("Sorbus the Hermit is sitting
       here...") — these still end capture early if encountered. Revisit
       only if it turns out to matter live.
+      **Round 7 (2026-07-10), real bug found live: leading whitespace
+      broke every `^`-anchored check.** Steven's note "the righthere
+      window is recording my ch[a]r[a]cter [read: charger, a mount] on
+      olyndros" turned out to describe a screenshot showing RightHere
+      completely empty in "The Hill-lands," despite the room clearly
+      having a charmed mount and 2 hill dwarves. Root cause confirmed via
+      the same log: the room's static landmark lines are sometimes
+      indented (`"     A twisted and gnarled pine tree grows crookedly
+      here."`), and both `parseLookHereLine()` and
+      `isUnparsedPresenceLine()` ran their `^`-anchored pattern checks
+      against the raw, untrimmed line — the leading spaces meant "A"
+      was never at position 1, so every check failed and capture ended
+      on the very first indented line, before ever reaching the mount or
+      dwarves. `isLookFixtureLine()` never had this problem since its
+      checks are unanchored substring matches. Fixed by trimming the line
+      before pattern-matching in both functions. Verified via emulation
+      against the exact real Hill-lands sequence from the log — all 4
+      entities (2 landmark trees, the charmed mount, 2 dwarves collapsed
+      to count=2) now captured correctly, capture stays alive throughout.
 - [ ] CombatView/History font persistence — `mydsl combat font <n>` /
       `mydsl history font <n>` survive a real restart
 - [x] **Action-button color contrast — real root cause found, fixed, and

@@ -1563,7 +1563,17 @@ end
 -- or not a clean name can be extracted from it -- strictly broader than
 -- the old Charmed-only check, so it subsumes it.
 local function isUnparsedPresenceLine(line)
-  local rest = line
+  -- trim() added 2026-07-09 -- real bug found live: static room-landmark
+  -- lines are sometimes indented with leading whitespace (e.g. "     A
+  -- twisted and gnarled pine tree grows crookedly here."), which broke
+  -- this function's `^`-anchored article check even though the *content*
+  -- is identical in shape to every other confirmed presence line. This
+  -- silently ended capture (RightHere showed completely empty) the
+  -- moment an indented landmark line like this was the first thing after
+  -- "[Exits: ...]" in the listing. isLookFixtureLine()'s unanchored
+  -- substring checks never had this problem; only the `^`-anchored ones
+  -- here and in parseLookHereLine() did.
+  local rest = trim(line)
   while true do
     local stripped = rest:match("^%([^()]+%)%s*(.+)$")
     if not stripped then break end
@@ -1629,7 +1639,10 @@ function MyDSL.parseLookHereLine(line)
   -- Strip ALL leading parenthetical tags, not just one -- confirmed real
   -- multi-tag stacking, e.g. "(Glowing) (Humming) (Green Aura) A ..." and
   -- "(Translucent) (White Aura) An air elemental ...".
-  local rest = line
+  -- trim() added 2026-07-09 -- see isUnparsedPresenceLine()'s comment
+  -- above for the confirmed bug this fixes (indented landmark lines
+  -- breaking every `^`-anchored check in this function).
+  local rest = trim(line)
   while true do
     local stripped = rest:match("^%([^()]+%)%s*(.+)$")
     if not stripped then break end
