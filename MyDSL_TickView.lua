@@ -307,8 +307,25 @@ function V.render(reason)
   V.lastReason = reason or "render"
 end
 
+-- Fixed 2026-07-11, code-review finding: V.config.shown used to be the ONLY
+-- visibility flag toggle() consulted, but it's independently persisted (its
+-- own settings file, V.saveSettings()/loadSettings()) from WindowRegistry's
+-- real state (MyDSL.Windows.registry["MyDSL_Tick"].visible, saved to a
+-- SEPARATE state file and applied directly to the underlying Geyser object
+-- by MyDSL.Windows.loadState() -- confirmed this bypasses V.show()/hide()
+-- entirely, since MyDSL_Tick is a real WindowRegistry entry). Two
+-- independently-persisted flags for one window can drift apart across a
+-- reload. Now writes into the registry too (not just its own settings
+-- file), so a later "toggle ticktimer" sees the same state WindowRegistry
+-- itself last set, not a possibly-stale local copy.
+local function syncRegistryVisible(visible)
+  local entry = MyDSL.Windows and MyDSL.Windows.registry and MyDSL.Windows.registry["MyDSL_Tick"]
+  if entry then entry.visible = visible end
+end
+
 function V.show()
   V.config.shown = true
+  syncRegistryVisible(true)
   if V.ui and V.ui.win then pcall(function() V.ui.win:show() end) end
   V.render("show")
   V.saveSettings()
@@ -316,6 +333,7 @@ end
 
 function V.hide()
   V.config.shown = false
+  syncRegistryVisible(false)
   if V.ui and V.ui.win then pcall(function() V.ui.win:hide() end) end
   V.saveSettings()
 end
@@ -324,9 +342,15 @@ end
 -- "OPEN — Command-surface retrofit"). Wires PNP's real bare "toggle
 -- <module>" command using PNP's own module name for the tick timer
 -- ("ticktimer", confirmed via DSL_PNP_Ticktimer.lua's
--- `dslpnp.toggle("ticktimer", ...)` call).
+-- `dslpnp.toggle("ticktimer", ...)` call). Prefers WindowRegistry's real
+-- state over the local flag when both exist, since WindowRegistry is the
+-- one other code (loadState() at startup, any other module) can actually
+-- change without going through V.show()/hide().
 function V.toggle()
-  if V.config.shown then V.hide() else V.show() end
+  local entry = MyDSL.Windows and MyDSL.Windows.registry and MyDSL.Windows.registry["MyDSL_Tick"]
+  local shown = entry and entry.visible
+  if shown == nil then shown = V.config.shown end
+  if shown then V.hide() else V.show() end
 end
 
 function V.rebuild()

@@ -71,7 +71,12 @@ end
 -- Config persistence path -- character-bound as of 2026-07-05 (was a single
 -- shared file; different characters may want different default buttons).
 -- Same charName()/safeFileName() pattern as MyDSL_AffectsView.lua.
+-- Delegates to MyDSL.charName()/MyDSL.safeFileName() (MyDSL_DataLayer.lua,
+-- added 2026-07-11, code-review reuse finding -- this file's own copy was
+-- one of 4 identical ones). Falls back to the same logic locally only if
+-- DataLayer somehow hasn't loaded yet.
 local function charName()
+  if MyDSL and MyDSL.charName then return MyDSL.charName() end
   if gmcp and gmcp.login_data and gmcp.login_data.name and gmcp.login_data.name ~= "" then
     return tostring(gmcp.login_data.name)
   end
@@ -83,6 +88,7 @@ local function charName()
 end
 
 local function safeFileName(s)
+  if MyDSL and MyDSL.safeFileName then return MyDSL.safeFileName(s) end
   s = tostring(s or "Unknown"):gsub("[^%w_%-%.]+", "_"):gsub("^_+", ""):gsub("_+$", "")
   if s == "" then s = "Unknown" end
   return s
@@ -316,14 +322,15 @@ function TV.defineAction(key, label, color, template)
 end
 
 -- Reset a button set back to the true original defaults -- the "clear
--- button" Steven asked for. table.unpack copies the values, not the
+-- button" Steven asked for. MyDSL.copyArray() (MyDSL_DataLayer.lua, added
+-- 2026-07-11, code-review reuse finding) copies the values, not the
 -- reference, so a later mobset/playerset call can't accidentally mutate
 -- TV.defaults itself.
 function TV.resetButtons(kind)
   if kind == "mob" then
-    TV.config.mob_buttons = { table.unpack(TV.defaults.mob_buttons) }
+    TV.config.mob_buttons = MyDSL.copyArray(TV.defaults.mob_buttons)
   elseif kind == "player" then
-    TV.config.player_buttons = { table.unpack(TV.defaults.player_buttons) }
+    TV.config.player_buttons = MyDSL.copyArray(TV.defaults.player_buttons)
   end
 end
 
@@ -594,6 +601,19 @@ function TV.init()
   -- the one that had to change, per the "consistent across all commands"
   -- ask. Old "mydsl target ..." forms are gone, not kept as a fallback --
   -- this is for general use, not just Steven's own muscle memory.
+  --
+  -- TV._focusReserved -- fixed 2026-07-11, code-review finding: this used
+  -- to be a table hardcoded INSIDE the "focus (.+)$" catch-all's own alias
+  -- body, completely independent of the specific sub-command aliases below
+  -- it -- exactly the kind of two-list desync that already caused this
+  -- same bug once before (the pre-rename version of this guard only
+  -- excluded "clear", missing 3 other reserved words). Now built on the
+  -- module table, with each specific sub-command alias immediately below
+  -- adding its own first word right next to its own registration --
+  -- forgetting to add a new sub-command's word here is now a one-line,
+  -- local omission at the exact point of the new code, not a separate,
+  -- easy-to-forget list elsewhere in the file.
+  TV._focusReserved = { clear = true }
   TV._aliases.targetSet = tempAlias(
     "^focus clear$",
     "if MyDSL and MyDSL.Target then MyDSL.Target.clear() end"
@@ -615,9 +635,9 @@ function TV.init()
     "^focus (.+)$",
     [[
       local name = matches[2]
-      local reserved = { clear=true, mobset=true, playerset=true, action=true }
       local firstWord = name:match("^(%S+)")
-      if not reserved[firstWord] and MyDSL and MyDSL.Target then
+      local isReserved = MyDSL and MyDSL.TargetView and MyDSL.TargetView._focusReserved and MyDSL.TargetView._focusReserved[firstWord]
+      if not isReserved and MyDSL and MyDSL.Target then
         local function isM(n)
           return n:match("^[Aa]n? ") ~= nil or n:match("^[Tt]he ") ~= nil
         end
@@ -625,6 +645,7 @@ function TV.init()
       end
     ]]
   )
+  TV._focusReserved.mobset = true
   TV._aliases.targetMobset = tempAlias(
     "^focus mobset\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)$",
     [[
@@ -638,6 +659,7 @@ function TV.init()
       end
     ]]
   )
+  TV._focusReserved.playerset = true
   TV._aliases.targetPlayerset = tempAlias(
     "^focus playerset\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)$",
     [[
@@ -652,7 +674,9 @@ function TV.init()
   )
   -- "reset" variants added 2026-07-11, per Steven's "clear button" ask --
   -- separate exact-match aliases, not a conflict with the 6-arg patterns
-  -- above since "reset" alone never satisfies six \S+ groups.
+  -- above since "reset" alone never satisfies six \S+ groups. (mobset/
+  -- playerset already reserved above -- "focus mobset reset"'s first word
+  -- is still "mobset", already covered, no new reserved word needed here.)
   TV._aliases.targetMobsetReset = tempAlias(
     "^focus mobset reset$",
     [[
@@ -682,6 +706,7 @@ function TV.init()
   --   focus action scan "Scan" 204,204,204 scan
   -- Then assign it to a slot like any built-in action name:
   --   focus mobset getitem murder consider creaturelore rescue flee
+  TV._focusReserved.action = true
   TV._aliases.targetAction = tempAlias(
     "^focus action (\\S+) \"([^\"]+)\" (\\S+) (.+)$",
     [[

@@ -46,6 +46,74 @@ in-game. Full technical detail for any of these: `git log --oneline` +
       verified `MyDSL/logs/righthere/Qinrathaz/2026-07-09.log` was
       correctly written with matching content (including count badges)
       — closing.
+- [x] **Code review pass (`/code-review`, base `ce7ea20`) — 7 findings, all
+      fixed 2026-07-11.** Ran an 8-angle high-effort review against this
+      whole session's work (12 commits, ~900 lines across 13 files). Two
+      candidates were fully refuted with real evidence (a `PlayersNear`
+      long-name concern — checked 391 real examples, huge margin; a
+      `DataBridge` nil-ordering worry — every consumer already nil-guards)
+      and dropped. Fixed all 7 that survived verification:
+      - **CRITICAL, confirmed via Mudlet's actual bundled Lua library**:
+        `table.unpack()` (`MyDSL_TargetView.lua`, `MyDSL_GroupView.lua`)
+        doesn't exist in Mudlet's real embedded Lua runtime — only the
+        Lua-5.1-style bare `unpack` global does, confirmed by mounting
+        the real Mudlet AppImage and grepping its bundled `mudlet-lua`
+        core library (zero `table.unpack` anywhere, `unpack(...)` used
+        dozens of times, matching every one of the 46 vendored PNP
+        files). The standalone `luajit` binary used for this whole
+        session's emulation testing apparently provides `table.unpack`
+        as an extra global Mudlet's sandbox doesn't have — every
+        emulation test passed while this would have crashed for real.
+        `focus mobset reset`/`focus playerset reset`/`group quickset
+        reset` would have thrown "attempt to call a nil value" the first
+        time anyone used them. Fixed: `unpack` instead of `table.unpack`.
+      - **Real, confirmed, reachable**: `toggle moons`/`toggle
+        ticktimer` could get permanently stuck doing the opposite of
+        what's needed after a reload. `MyDSL_MoonWeather.lua`'s
+        `MW.toggle()` and `MyDSL_TickView.lua`'s `V.toggle()` decided
+        show-vs-hide from a local `config.shown` flag instead of
+        WindowRegistry's real state — confirmed `MyDSL.Windows.
+        loadState()` shows/hides both windows directly on the real
+        Geyser object, bypassing `MW.show()`/`hide()`/`V.show()`/`hide()`
+        entirely, and `V.config.shown` has its own separately-persisted
+        settings file (a second save file for the same window's
+        visibility). Fixed: `MW.show()`/`hide()`/`toggle()` now delegate
+        entirely to `MyDSL.Windows.show/hide/toggle("MyDSL_MoonWeather")`
+        (matching `MyDSL_CombatView.lua`'s already-correct `CV.toggle()`);
+        `V.toggle()` now prefers the real registry state when available,
+        and `V.show()`/`hide()` sync it back. Verified via emulation
+        against the exact desync scenario (registry says hidden, stale
+        local flag says shown) — both now correctly show instead of
+        hiding again.
+      - **Confirmed structural fragility**: `MyDSL_TargetView.lua`'s
+        `focus (.+)$` catch-all guard (the fix for the target-clobbering
+        bug found earlier this session) was a hardcoded reserved-word
+        table completely independent of the actual registered
+        sub-command aliases — the exact same desync had already happened
+        once (the pre-fix version only excluded "clear," missing 3
+        others). Fixed: reserved words now live in one place
+        (`TV._focusReserved`), with each specific sub-command alias
+        adding its own word immediately next to its own registration, so
+        a future omission is a local, one-line gap at the point of the
+        new code, not a separate list elsewhere in the file.
+      - **Cleanup**: `MyDSL_CombatView.lua`'s `combatMode` alias
+        collapsed from 3 near-identical if/elseif blocks into one lookup
+        table. `MyDSL.charName()`/`MyDSL.safeFileName()` (new, in
+        `MyDSL_DataLayer.lua`) replace 3 independent copies of the same
+        fallback-chain logic in `MyDSL_CombatView.lua`/`MyDSL_TargetView.
+        lua`/`MyDSL_GroupView.lua` (a 4th copy in `MyDSL_ChatWrapper.lua`
+        left untouched — pre-existing, out of this session's diff).
+        `MyDSL.copyArray()` (new, same file) replaces 2 independent
+        copies of the same reset-to-defaults array-copy logic in
+        `MyDSL_TargetView.lua`/`MyDSL_GroupView.lua`.
+      - **Docs**: `docs/MyDSL_MudletAPIReference.md`'s dated (2026-07-03)
+        bug-fix table still showed the pre-rename `mydsl target mobset/
+        playerset`/`mydsl group quickset` command strings — added a note
+        clarifying the current names without rewriting the historical
+        table.
+      All fixes verified via syntax check + emulation before commit.
+      Needs a live session to confirm the toggle/reset behavior end to
+      end (same as everything else in this section).
 - [ ] AffectsView countdown paces correctly in real time; near-expiry color
       warning fires
 - [ ] **Timer consolidation + Improve live countdown — implemented

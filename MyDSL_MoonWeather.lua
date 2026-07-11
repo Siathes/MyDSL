@@ -31,7 +31,6 @@ local MW = MyDSL.MoonWeather
 -- Config persists across reloads — only assign missing fields.
 -- This means a user's font change survives a script reload.
 MW.config = MW.config or {}
-if MW.config.shown    == nil then MW.config.shown    = true                end
 if MW.config.font     == nil then MW.config.font     = "DejaVu Sans Mono"  end
 if MW.config.fontSize == nil then MW.config.fontSize = 9                   end
 if MW.config.opacity  == nil then MW.config.opacity  = 210                 end
@@ -531,19 +530,23 @@ end
 -- PUBLIC: show(), hide(), toggle()
 ------------------------------------------------------------------------
 
-function MW.show()
-  MW.config.shown = true
-  if MW.ui.container then MW.ui.container:show() end
-end
-
-function MW.hide()
-  MW.config.shown = false
-  if MW.ui.container then MW.ui.container:hide() end
-end
-
-function MW.toggle()
-  if MW.config.shown then MW.hide() else MW.show() end
-end
+-- Fixed 2026-07-11, code-review finding (confirmed via WindowRegistry's own
+-- loadState(), which shows/hides MyDSL_MoonWeather directly on the real
+-- Geyser object and updates registry.visible -- completely bypassing
+-- whatever these functions did with a separate MW.config.shown flag): this
+-- used to track visibility in its own local config.shown, independent of
+-- WindowRegistry's real state. Any visibility change made through
+-- WindowRegistry (loadState() at startup, or any other code calling
+-- MyDSL.Windows.show/hide/toggle("MyDSL_MoonWeather") directly) left
+-- config.shown stale, so a subsequent MW.toggle() could do the opposite of
+-- what the window's actual on-screen state called for. Delegating entirely
+-- to MyDSL.Windows.show/hide/toggle() (the same already-correct mechanism
+-- MyDSL_CombatView.lua's CV.show()/hide()/toggle() use) makes
+-- registry.visible the single source of truth instead of two independently
+-- -tracked flags.
+function MW.show() if MyDSL.Windows then MyDSL.Windows.show("MyDSL_MoonWeather") end end
+function MW.hide() if MyDSL.Windows then MyDSL.Windows.hide("MyDSL_MoonWeather") end end
+function MW.toggle() if MyDSL.Windows then MyDSL.Windows.toggle("MyDSL_MoonWeather") end end
 
 
 -- Removed 2026-07-07 (full dead-code audit, per Steven): MW.onLunarUpdate/
@@ -820,8 +823,15 @@ function MW.init()
   MW.setClockAnchor(tickStr)   -- prefer gmcp at startup; falls back to State.time
   MW.setLunarAnchor()          -- seed countdown if lunar data already loaded
 
-  -- Apply visibility from config (hide immediately if saved as hidden).
-  if not MW.config.shown then
+  -- Apply visibility from WindowRegistry's real saved state (not a second,
+  -- independently-tracked flag -- see the show()/hide()/toggle() comment
+  -- above). _buildUI() creates the container directly (Adjustable.Container:
+  -- new()) rather than via MyDSL.Windows.ensure(), so it doesn't get
+  -- WindowRegistry's automatic "hide if saved hidden" applied at creation
+  -- the way a window created purely through ensure() would -- this is the
+  -- real place that needs to happen for MoonWeather specifically.
+  local entry = MyDSL.Windows and MyDSL.Windows.registry and MyDSL.Windows.registry["MyDSL_MoonWeather"]
+  if entry and not entry.visible then
     MW.ui.container:hide()
   end
 

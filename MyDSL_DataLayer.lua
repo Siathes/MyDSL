@@ -418,6 +418,49 @@ function MyDSL.Char()
   return login and login.name or nil
 end
 
+-- MyDSL.charName()/MyDSL.safeFileName() -- added 2026-07-11, code-review
+-- reuse finding: this exact fallback chain (gmcp.login_data.name ->
+-- MyCore.getChar() -> "Unknown") existed as an independent copy-pasted
+-- local function in MyDSL_CombatView.lua, MyDSL_ChatWrapper.lua,
+-- MyDSL_TargetView.lua, and (added this session) MyDSL_GroupView.lua --
+-- 4 identical copies. NOT the same thing as MyDSL.Char() above: that one
+-- only reads DataLayer's own parsed State.login (nil until GMCP login_data
+-- has actually arrived and been captured), with no MyCore fallback and no
+-- "Unknown" default -- callers that need a guaranteed-non-nil name safe to
+-- use in a filename (every per-character config-persistence path in this
+-- profile) need this different, more defensive version, so it's kept
+-- separate rather than changing MyDSL.Char()'s own behavior. Consolidated
+-- the modules touched by this session's diff (CombatView/TargetView/
+-- GroupView) to call this shared version instead of their own copies;
+-- MyDSL_ChatWrapper.lua's pre-existing copy is untouched (out of this
+-- session's diff, lower priority to touch unprompted).
+function MyDSL.charName()
+  if gmcp and gmcp.login_data and gmcp.login_data.name and gmcp.login_data.name ~= "" then
+    return tostring(gmcp.login_data.name)
+  end
+  if MyCore and MyCore.getChar then
+    local ok, name = pcall(MyCore.getChar)
+    if ok and name and name ~= "" then return tostring(name) end
+  end
+  return "Unknown"
+end
+
+function MyDSL.safeFileName(s)
+  s = tostring(s or "Unknown"):gsub("[^%w_%-%.]+", "_"):gsub("^_+", ""):gsub("_+$", "")
+  if s == "" then s = "Unknown" end
+  return s
+end
+
+-- MyDSL.copyArray() -- added 2026-07-11, code-review reuse finding:
+-- MyDSL_TargetView.lua's TV.resetButtons() and MyDSL_GroupView.lua's
+-- GV.resetQuickActions() both independently implemented "shallow-copy an
+-- array's values (not the reference) via unpack" for their own
+-- reset-to-defaults commands. Shared here so a future 3rd reset command
+-- doesn't add a 3rd copy.
+function MyDSL.copyArray(t)
+  return { unpack(t) }
+end
+
 
 ------------------------------------------------------------------------
 -- SECTION 5: EVENT BUS

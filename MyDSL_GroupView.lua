@@ -62,9 +62,15 @@ end
 -- resetting to {"heal","rescue"} on every script reload/relog. Mirrors
 -- MyDSL_TargetView.lua's charName()/safeFileName()/configFile() pattern
 -- exactly (same per-character-bound convention every other module uses).
+-- charName()/safeFileName() delegate to MyDSL.charName()/MyDSL.
+-- safeFileName() (MyDSL_DataLayer.lua, added 2026-07-11, code-review
+-- reuse finding -- this was the 4th identical copy of the same logic in
+-- the codebase). Falls back to the same logic locally only if DataLayer
+-- somehow hasn't loaded yet.
 ------------------------------------------------------------------------
 
 local function charName()
+  if MyDSL and MyDSL.charName then return MyDSL.charName() end
   if gmcp and gmcp.login_data and gmcp.login_data.name and gmcp.login_data.name ~= "" then
     return tostring(gmcp.login_data.name)
   end
@@ -76,6 +82,7 @@ local function charName()
 end
 
 local function safeFileName(s)
+  if MyDSL and MyDSL.safeFileName then return MyDSL.safeFileName(s) end
   s = tostring(s or "Unknown"):gsub("[^%w_%-%.]+", "_"):gsub("^_+", ""):gsub("_+$", "")
   if s == "" then s = "Unknown" end
   return s
@@ -102,8 +109,11 @@ end
 -- saveConfig is local, alias bodies run in a separate chunk).
 GV._saveConfig = saveConfig
 
+-- MyDSL.copyArray() -- MyDSL_DataLayer.lua, added 2026-07-11, code-review
+-- reuse finding (this was one of 2 identical copy-the-defaults-array
+-- implementations, the other being MyDSL_TargetView.lua's TV.resetButtons()).
 function GV.resetQuickActions()
-  GV.config.quickActions = { table.unpack(GV.defaults.quickActions) }
+  GV.config.quickActions = MyDSL.copyArray(GV.defaults.quickActions)
 end
 
 

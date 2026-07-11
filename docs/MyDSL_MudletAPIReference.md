@@ -64,6 +64,12 @@ in the Lua string literal so the single `\` reaches the PCRE engine:
 | TargetView `targetPlayerset` | `"^mydsl target playerset%s+(%S+)..."` | same | `"^mydsl target playerset\\s+(\\S+)..."` |
 | GroupView `quickset` | `"^mydsl group quickset%s+(%S+)%s+(%S+)$"` | same | `"^mydsl group quickset\\s+(\\S+)\\s+(\\S+)$"` |
 
+**Command names above are historical (2026-07-03)** — the command-surface
+retrofit (2026-07-11) dropped the `mydsl` prefix and renamed TargetView's
+root verb: these are now `focus mobset ...`, `focus playerset ...`, and
+`group quickset ...`. The regex-fix lesson each row illustrates is
+unaffected by the rename; only the literal command strings are dated.
+
 ---
 
 ## Rule of thumb

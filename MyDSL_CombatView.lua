@@ -66,7 +66,14 @@ local COMBAT_MC  = "MyDSL_Combat_MC"
 -- MyDSL_TargetView.lua/MyDSL_AffectsView.lua's charName()/safeFileName().
 ------------------------------------------------------------------------
 
+-- Delegates to MyDSL.charName()/MyDSL.safeFileName() (MyDSL_DataLayer.lua,
+-- added 2026-07-11, code-review reuse finding -- this file's own copy was
+-- one of 4 identical ones). Falls back to the same logic locally only if
+-- DataLayer somehow hasn't loaded yet (DataLayer is Layer 1, always
+-- loaded first in practice, but this matches the defensive
+-- "if MyDSL and MyDSL.X" style already used throughout this codebase).
 local function charName()
+  if MyDSL and MyDSL.charName then return MyDSL.charName() end
   if gmcp and gmcp.login_data and gmcp.login_data.name and gmcp.login_data.name ~= "" then
     return tostring(gmcp.login_data.name)
   end
@@ -78,6 +85,7 @@ local function charName()
 end
 
 local function safeFileName(s)
+  if MyDSL and MyDSL.safeFileName then return MyDSL.safeFileName(s) end
   s = tostring(s or "Unknown"):gsub("[^%w_%-%.]+", "_"):gsub("^_+", ""):gsub("_+$", "")
   if s == "" then s = "Unknown" end
   return s
@@ -383,21 +391,26 @@ CV._aliases.combatHide = tempAlias(
 -- show_damage must have been left `true` from some earlier, unrelated
 -- in-memory session (CombatView's config was never actually reset by a
 -- real Mudlet restart) rather than by design.
+-- Collapsed 2026-07-11, code-review cleanup finding: the 3 mode branches
+-- used to repeat the same 5 field assignments with only the boolean values
+-- differing -- a future 4th mode or 6th flag meant editing 3 separate
+-- if/elseif blocks by hand, and a partial edit (2 of 3 updated) would ship
+-- a mode that only half-matches its intended behavior. One data table now
+-- holds the mapping; a future mode/flag is one new/edited table entry, not
+-- N near-duplicate branches. (Table has to live inside this same alias-body
+-- string, not as a file-level local -- Mudlet tempAlias bodies are separate
+-- script chunks with no access to the surrounding file's locals.)
 CV._aliases.combatMode = tempAlias(
   "^mydsl combat mode\\s+(raw|condensed|gag)$",
   [[if MyDSL and MyDSL.CombatView then
     local mode = matches[2]
     local cfg = MyDSL.CombatView.config
-    if mode == "raw" then
-      cfg.gag_combat = false; cfg.gag_non_damage = false; cfg.summarize_damage = false
-      cfg.show_damage = true; cfg.show_miss = true
-    elseif mode == "condensed" then
-      cfg.gag_combat = true; cfg.gag_non_damage = true; cfg.summarize_damage = true
-      cfg.show_damage = false; cfg.show_miss = false
-    elseif mode == "gag" then
-      cfg.gag_combat = true; cfg.gag_non_damage = true; cfg.summarize_damage = false
-      cfg.show_damage = false; cfg.show_miss = false
-    end
+    local MODES = {
+      raw       = { gag_combat=false, gag_non_damage=false, summarize_damage=false, show_damage=true,  show_miss=true  },
+      condensed = { gag_combat=true,  gag_non_damage=true,  summarize_damage=true,  show_damage=false, show_miss=false },
+      gag       = { gag_combat=true,  gag_non_damage=true,  summarize_damage=false, show_damage=false, show_miss=false },
+    }
+    for k, v in pairs(MODES[mode]) do cfg[k] = v end
     echo("Combat mode: " .. mode .. "\n")
   end]])
 
