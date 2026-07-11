@@ -26,6 +26,13 @@ GV._mc       = GV._mc or {}   -- persists across reloads to avoid duplicate Mini
 GV.config    = GV.config or { gagGroup = false }
 GV.config.quickActions = GV.config.quickActions or {"heal", "rescue"}
 
+-- Deliberately a fresh literal every load, not "GV.defaults or {...}" --
+-- same reasoning as MyDSL_TargetView.lua's TV.defaults (see that file's
+-- comment): GV persists across reloads, so an or-pattern here would risk
+-- "reset" restoring an already-customized value instead of the true
+-- original default.
+GV.defaults = { quickActions = {"heal", "rescue"} }
+
 -- Window and MiniConsole name constants.
 local GROUP_WIN = "MyDSL_Group"
 local GROUP_MC  = "MyDSL_Group_MC"
@@ -44,6 +51,59 @@ end
 local function gvLogLink(mc, text, cmd, hint, underline)
   mc:dechoLink(text, cmd, hint, underline)
   if MyDSL.logWindow then MyDSL.logWindow("group", text) end
+end
+
+
+------------------------------------------------------------------------
+-- Config persistence -- added 2026-07-11, per Steven wanting the quick
+-- buttons manually configurable "even the group buttons." quickset
+-- already existed (see the alias section below) but had NO persistence
+-- at all -- GV.config.quickActions only ever lived in memory, silently
+-- resetting to {"heal","rescue"} on every script reload/relog. Mirrors
+-- MyDSL_TargetView.lua's charName()/safeFileName()/configFile() pattern
+-- exactly (same per-character-bound convention every other module uses).
+------------------------------------------------------------------------
+
+local function charName()
+  if gmcp and gmcp.login_data and gmcp.login_data.name and gmcp.login_data.name ~= "" then
+    return tostring(gmcp.login_data.name)
+  end
+  if MyCore and MyCore.getChar then
+    local ok, name = pcall(MyCore.getChar)
+    if ok and name and name ~= "" then return tostring(name) end
+  end
+  return "Unknown"
+end
+
+local function safeFileName(s)
+  s = tostring(s or "Unknown"):gsub("[^%w_%-%.]+", "_"):gsub("^_+", ""):gsub("_+$", "")
+  if s == "" then s = "Unknown" end
+  return s
+end
+
+local function configFile()
+  return getMudletHomeDir() .. "/MyDSL/groupview_config_" .. safeFileName(charName()) .. ".lua"
+end
+
+local function loadConfig()
+  local ok, data = pcall(table.load, configFile())
+  if ok and type(data) == "table" then
+    if type(data.quickActions) == "table" and #data.quickActions == 2 then
+      GV.config.quickActions = data.quickActions
+    end
+  end
+end
+
+local function saveConfig()
+  pcall(table.save, configFile(), GV.config)
+end
+
+-- Expose for the alias bodies below (same indirection TargetView uses --
+-- saveConfig is local, alias bodies run in a separate chunk).
+GV._saveConfig = saveConfig
+
+function GV.resetQuickActions()
+  GV.config.quickActions = { table.unpack(GV.defaults.quickActions) }
 end
 
 
@@ -243,6 +303,21 @@ function GV.init()
     function() GV.render() end
   )
 
+  -- Load quickActions config from disk now, and again once the real
+  -- character is known -- same fix as MyDSL_TargetView.lua's identical
+  -- problem (see that file's TV.init() comment): loadConfig() here runs
+  -- at script-boot time, which on a genuinely fresh Mudlet start happens
+  -- before login, so it would otherwise load "Unknown"'s config and never
+  -- pick up this character's real saved buttons.
+  loadConfig()
+  GV._handlers.characterIdentified = registerAnonymousEventHandler(
+    "MyDSL.character.identified",
+    function()
+      loadConfig()
+      GV.render()
+    end
+  )
+
   -- Restore gag triggers if the config flag was set before this reload.
   if GV.config.gagGroup then GV.setGag(true) end
 
@@ -261,10 +336,24 @@ tempAlias("^mydsl group gag$",
   "if MyDSL and MyDSL.GroupView then MyDSL.GroupView.setGag(true) end")
 tempAlias("^mydsl group ungag$",
   "if MyDSL and MyDSL.GroupView then MyDSL.GroupView.setGag(false) end")
+-- Fixed 2026-07-11: this used to only ever set config.quickActions in
+-- memory -- no saveConfig() call existed anywhere in this file until now,
+-- so it silently reset to {"heal","rescue"} on every reload/relog. Any
+-- action name here can be a built-in from MyDSL.TargetView.actions OR a
+-- custom one defined via "mydsl target action ..." (MyDSL_TargetView.lua)
+-- -- both tables are the same one, shared by construction (GV.quickAction
+-- already looks up MyDSL.TargetView.actions[actionKey]).
 tempAlias("^mydsl group quickset\\s+(\\S+)\\s+(\\S+)$",
   [[if MyDSL and MyDSL.GroupView then
     MyDSL.GroupView.config.quickActions = {matches[2], matches[3]}
+    MyDSL.GroupView._saveConfig()
     echo("Group quick buttons: " .. matches[2] .. ", " .. matches[3] .. "\n")
+  end]])
+tempAlias("^mydsl group quickset reset$",
+  [[if MyDSL and MyDSL.GroupView then
+    MyDSL.GroupView.resetQuickActions()
+    MyDSL.GroupView._saveConfig()
+    echo("Group quick buttons reset to defaults.\n")
   end]])
 
 

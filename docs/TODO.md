@@ -569,21 +569,58 @@ Steven: "make it work like PNP, then discuss the additions"):
 ---
 
 ## OPEN — Needs Steven's decision before building
-- [ ] **AffectsView "missing" list treats `stealth` like a trackable
-      spell.** Confirmed real mismatch (unlike `riot`, which is fine):
-      `stealth` is a %-based skill with no "Spell: stealth" duration line,
-      so it can never register "active" the way armor/riot/bless do.
-      Decision needed: drop it from the tracked/spellup list, or build a
-      separate %-skill active-detection path.
-- [ ] **GroupView Heal button needs to pick the right tier.** Confirmed
-      real hierarchy: `cure light → refresh → cure serious → cure
-      critical → heal → mass healing` (`cast '<spell>' <char>`). Needs a
-      "does this character know spell X" detection approach before the
-      button can auto-pick the highest tier a follower actually knows.
-- [ ] **TargetView murder-button alternate-command option** (e.g. waylay
-      instead of murder for PvP-style openers, "for vrokt as example").
-      Needs a design call: dropdown vs. long-press vs. a saved
-      per-character opener command.
+- [x] **AffectsView "missing" list treats `stealth` like a trackable
+      spell — resolved 2026-07-11, no code change needed.** Confirmed real
+      mismatch (unlike `riot`, which is fine): `stealth` is a %-based
+      skill with no "Spell: stealth" duration line, so it can never
+      register "active" the way armor/riot/bless do. **Decided per
+      Steven: drop it from the tracked list** ("i will remove stealth
+      from tracking but this is not a big issue for me") — `stealth` was
+      never a code-level default, it's per-character saved data
+      (`MyDSL/affects/<Name>.lua`, confirmed present for Vrokt/Kien only)
+      that Steven added himself via `mydsl affects track stealth` — the
+      matching `mydsl affects untrack stealth` alias already exists
+      (`MyDSL_AffectsView.lua:1039`), so this is just a command for him to
+      run in-game, not something for me to build.
+- [x] **Fully configurable action buttons — built 2026-07-11, per Steven's
+      answer to the GroupView-heal/murder-alt-command questions** ("all
+      the buttons should be user configurable... even non standard
+      commands like scan, look, get item etc... manually be able to set
+      all buttons, even the group buttons... there should be a clear
+      button and the mob/player toggle"). Turned out most of the mechanism
+      already existed (`mydsl target mobset/playerset <6 names>`, a
+      mob/player toggle already live as a clickable `[M]`/`[P]` tag,
+      `mydsl group quickset <2 names>`) — the real gaps were: (1) every
+      button could only reference a name from the fixed `TV.actions`
+      Lua-table catalog, no way to define an arbitrary custom command;
+      (2) no reset-to-default ("clear button"); (3) GroupView's
+      `quickset` had **no persistence at all** — silently reset to
+      `{"heal","rescue"}` on every reload/relog, a real bug found while
+      implementing this. Added: `MyDSL.TargetView.defineAction()` +
+      `mydsl target action <key> "<label>" <color> <command>` (command
+      may use `%t` for the target's name, or omit it for stateless
+      commands like `scan`) — new actions are stored in
+      `TV.config.custom_actions` and merged into the live `TV.actions`
+      table every reload, so GroupView's quickset (which already looks up
+      the same shared table) gets them for free, no duplicate mechanism
+      needed. Added `mydsl target mobset/playerset reset` and `mydsl group
+      quickset reset`, all restoring true hardcoded defaults captured in a
+      fresh `TV.defaults`/`GV.defaults` table (not derived from the live,
+      possibly-already-customized config). Fixed GroupView's missing
+      persistence by giving it the same `configFile()`/`loadConfig()`/
+      `saveConfig()` pattern TargetView already has (per-character-bound,
+      matching every other module). Verified via emulation: stateless and
+      `%t`-substituted custom actions both produce the right command,
+      reset restores true defaults without mutating the defaults table
+      itself, GroupView's quickActions round-trip through reset correctly.
+      Needs a live session to confirm the new aliases end-to-end.
+- [x] **GroupView Heal button / TargetView murder-alt-command — resolved
+      2026-07-11 by the above, not built as originally scoped.** Both
+      original questions (spell-tier auto-detection, dropdown/long-press/
+      saved-command for an alt verb) are moot once every button is freely
+      user-settable — Steven can now just point the Heal button at
+      whichever cure tier a character actually knows, or set murder's
+      slot to `waylay` directly, no auto-detection machinery needed.
 - [x] **Unwired DataLayer capture pipelines — resolved 2026-07-07, per
       Steven** ("i agree with you on all but the improve"). `whok`, `whoc`,
       `unread`, `inv`, `map`, `affectsText` — all 6 fully deleted

@@ -30,6 +30,19 @@ TV.config = TV.config or {
   mob_buttons    = { "murder", "consider", "order_attack", "creaturelore", "rescue", "flee" },
   player_buttons = { "murder", "glance", "rescue", "look", "heal", "flee" },
 }
+TV.config.custom_actions = TV.config.custom_actions or {}
+
+-- TV.defaults -- added 2026-07-11, per Steven's "there should be a clear
+-- button" ask. Deliberately a fresh literal every load (NOT "TV.defaults or
+-- {...}") since TV itself persists across script reloads (MyDSL.TargetView
+-- = MyDSL.TargetView or {}) -- if this used the same or-pattern as
+-- TV.config, a reset after TV.config had already been customized once
+-- would just restore whatever was already saved instead of the TRUE
+-- original defaults.
+TV.defaults = {
+  mob_buttons    = { "murder", "consider", "order_attack", "creaturelore", "rescue", "flee" },
+  player_buttons = { "murder", "glance", "rescue", "look", "heal", "flee" },
+}
 
 -- Window / MiniConsole names.
 local TARGET_WIN = "MyDSL_Target"
@@ -257,6 +270,65 @@ TV.actions = {
 
 
 ------------------------------------------------------------------------
+-- User-defined custom actions -- added 2026-07-11, per Steven: "all the
+-- buttons should be user configurable... even non standard commands like
+-- scan, look, get item etc." The fixed TV.actions catalog above only ever
+-- covered PNP-style combat/cure verbs -- this lets a button be set to
+-- ANY raw command, not just a name from that catalog. Stored in
+-- TV.config.custom_actions (key -> {label, color, template}) so they
+-- survive reload/relog like everything else in TV.config, then merged
+-- into the live TV.actions table (a fresh literal every reload) via
+-- applyCustomActions() -- same lookup path mobset/playerset/GroupView's
+-- quickset already use, so nothing downstream needs to know a button is
+-- custom vs. built-in.
+------------------------------------------------------------------------
+
+-- %t in the template is replaced with the target's name (DSL-keyword-
+-- reduced the same way every built-in action already does via
+-- commandArg()); a template with no %t is sent completely unchanged --
+-- lets stateless commands like "scan" or "flee" be defined too, not just
+-- target-taking ones.
+local function applyCustomActions()
+  for key, def in pairs(TV.config.custom_actions or {}) do
+    TV.actions[key] = {
+      cmd = function(t)
+        if def.template:find("%t", 1, true) then
+          return (def.template:gsub("%%t", commandArg(t.name)))
+        end
+        return def.template
+      end,
+      label   = def.label,
+      color   = def.color,
+      tooltip = "Custom: " .. def.template,
+    }
+  end
+end
+
+function TV.defineAction(key, label, color, template)
+  if not key or key == "" or not template or template == "" then return false end
+  TV.config.custom_actions[key] = {
+    label    = (label and label ~= "") and label or key,
+    color    = (color and color ~= "") and color or "204,204,204",
+    template = template,
+  }
+  applyCustomActions()
+  return true
+end
+
+-- Reset a button set back to the true original defaults -- the "clear
+-- button" Steven asked for. table.unpack copies the values, not the
+-- reference, so a later mobset/playerset call can't accidentally mutate
+-- TV.defaults itself.
+function TV.resetButtons(kind)
+  if kind == "mob" then
+    TV.config.mob_buttons = { table.unpack(TV.defaults.mob_buttons) }
+  elseif kind == "player" then
+    TV.config.player_buttons = { table.unpack(TV.defaults.player_buttons) }
+  end
+end
+
+
+------------------------------------------------------------------------
 -- Config persistence
 ------------------------------------------------------------------------
 
@@ -269,7 +341,11 @@ local function loadConfig()
     if type(data.player_buttons) == "table" and #data.player_buttons == 6 then
       TV.config.player_buttons = data.player_buttons
     end
+    if type(data.custom_actions) == "table" then
+      TV.config.custom_actions = data.custom_actions
+    end
   end
+  applyCustomActions()
 end
 
 local function saveConfig()
@@ -544,6 +620,52 @@ function TV.init()
         }
         MyDSL.TargetView._saveConfig()
         echo("Player buttons updated.\n")
+      end
+    ]]
+  )
+  -- "reset" variants added 2026-07-11, per Steven's "clear button" ask --
+  -- separate exact-match aliases, not a conflict with the 6-arg patterns
+  -- above since "reset" alone never satisfies six \S+ groups.
+  TV._aliases.targetMobsetReset = tempAlias(
+    "^mydsl target mobset reset$",
+    [[
+      if MyDSL and MyDSL.TargetView then
+        MyDSL.TargetView.resetButtons("mob")
+        MyDSL.TargetView._saveConfig()
+        echo("Mob buttons reset to defaults.\n")
+      end
+    ]]
+  )
+  TV._aliases.targetPlayersetReset = tempAlias(
+    "^mydsl target playerset reset$",
+    [[
+      if MyDSL and MyDSL.TargetView then
+        MyDSL.TargetView.resetButtons("player")
+        MyDSL.TargetView._saveConfig()
+        echo("Player buttons reset to defaults.\n")
+      end
+    ]]
+  )
+  -- Define/overwrite a custom action -- added 2026-07-11, per Steven:
+  -- "even non standard commands like scan, look, get item etc." Label
+  -- must be quoted (allows spaces); command is everything after the
+  -- color and may contain %t for the target's name, or nothing for a
+  -- stateless command. Usage:
+  --   mydsl target action getitem "Get Item" 204,204,204 get %t
+  --   mydsl target action scan "Scan" 204,204,204 scan
+  -- Then assign it to a slot like any built-in action name:
+  --   mydsl target mobset getitem murder consider creaturelore rescue flee
+  TV._aliases.targetAction = tempAlias(
+    "^mydsl target action (\\S+) \"([^\"]+)\" (\\S+) (.+)$",
+    [[
+      if MyDSL and MyDSL.TargetView and MyDSL.TargetView.defineAction then
+        local ok = MyDSL.TargetView.defineAction(matches[2], matches[3], matches[4], matches[5])
+        if ok then
+          MyDSL.TargetView._saveConfig()
+          echo("Action '" .. matches[2] .. "' defined: " .. matches[5] .. "\n")
+        else
+          echo("Failed to define action -- check the syntax.\n")
+        end
       end
     ]]
   )
