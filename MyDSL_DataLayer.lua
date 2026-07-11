@@ -1852,44 +1852,65 @@ local DAM_LADDER_ORDER = {
   "DEMOLISH","DEVASTATE","OBLITERATE","ANNIHILATE","ERADICATE",
   "GHASTLY","HORRID","DREADFUL","HIDEOUS","INDESCRIBABLE","UNSPEAKABLE",
 }
+
+-- Colors below are PNP's exact color_table RGB values (DSL_PNP_Support.lua),
+-- confirmed 2026-07-11 per Steven's "match PNP for community recognition"
+-- request -- our previous values were our own softer/pastel guesses.
+local DSL_LT_RED = "255,0,0"
+local DSL_WHITE  = "192,192,192"
+
+-- PNP's GHASTLY..UNSPEAKABLE tier bakes a letter-by-letter alternating
+-- dsl_lt_red/dsl_white color effect directly into the decorated verb text
+-- (DSL_PNP_Battle.lua's dam_info literals, e.g.
+-- "<dsl_lt_red>G<dsl_white>H<dsl_lt_red>A..."), not a single flat color --
+-- this is the distinctive visual signature real DSL/PNP players recognize.
+-- Our previous implementation had no equivalent at all (flat single color).
+local function alternateLetters(word, colorA, colorB)
+  local out = {}
+  for i = 1, #word do
+    out[#out + 1] = "<" .. (i % 2 == 1 and colorA or colorB) .. ">" .. word:sub(i, i)
+  end
+  return table.concat(out)
+end
+
 local DAM_INFO = {
-  miss          = { score=0,   color="204,204,68", suffix="es", pre=" ",     suf=" " },
-  scratch       = { score=2.5, color="68,204,68",  suffix="es", pre=" ",     suf=" " },
-  graze         = { score=6.5, color="68,204,68",  suffix="s",  pre=" ",     suf=" " },
-  hit           = { score=10.5,color="68,204,68",  suffix="s",  pre=" ",     suf=" " },
-  injure        = { score=14.5,color="68,204,68",  suffix="s",  pre=" ",     suf=" " },
-  wound         = { score=18.5,color="68,204,68",  suffix="s",  pre=" ",     suf=" " },
-  maul          = { score=22.5,color="68,204,68",  suffix="s",  pre=" ",     suf=" " },
-  decimate      = { score=26.5,color="68,204,68",  suffix="s",  pre=" ",     suf=" " },
-  devastate     = { score=30.5,color="68,204,68",  suffix="s",  pre=" ",     suf=" " },
-  maim          = { score=34.5,color="68,204,68",  suffix="s",  pre=" ",     suf=" " },
-  MUTILATE      = { score=38.5,color="255,215,65", suffix="S",  pre=" ",     suf=" " },
-  DISEMBOWEL    = { score=42.5,color="255,215,65", suffix="S",  pre=" ",     suf=" " },
-  DISMEMBER     = { score=46.5,color="255,215,65", suffix="S",  pre=" ",     suf=" " },
-  MASSACRE      = { score=50.5,color="255,215,65", suffix="S",  pre=" ",     suf=" " },
-  MANGLE        = { score=54.5,color="255,215,65", suffix="S",  pre=" ",     suf=" " },
-  DEMOLISH      = { score=58.5,color="255,68,68",  suffix="ES", pre=" *** ", suf=" *** " },
-  DEVASTATE     = { score=68,  color="255,68,68",  suffix="S",  pre=" *** ", suf=" *** " },
-  OBLITERATE    = { score=88,  color="255,68,68",  suffix="S",  pre=" === ", suf=" === " },
-  ANNIHILATE    = { score=113, color="255,68,68",  suffix="S",  pre=" >>> ", suf=" <<< " },
-  ERADICATE     = { score=138, color="255,68,68",  suffix="S",  pre=" <<< ", suf=" >>> " },
-  GHASTLY       = { score=163, color="255,68,68",  suffix="",   pre=" does ", suf=" things to ", things=true },
-  HORRID        = { score=188, color="255,68,68",  suffix="",   pre=" does ", suf=" things to ", things=true },
-  DREADFUL      = { score=213, color="255,68,68",  suffix="",   pre=" does ", suf=" things to ", things=true },
-  HIDEOUS       = { score=238, color="255,68,68",  suffix="",   pre=" does ", suf=" things to ", things=true },
-  INDESCRIBABLE = { score=263, color="255,68,68",  suffix="",   pre=" does ", suf=" things to ", things=true },
-  UNSPEAKABLE   = { score=276, color="255,68,68",  suffix="",   pre=" does ", suf=" things to ", things=true },
+  miss          = { score=0,   color="128,128,0", suffix="es", pre=" ",     suf=" " },
+  scratch       = { score=2.5, color="0,179,0",   suffix="es", pre=" ",     suf=" " },
+  graze         = { score=6.5, color="0,179,0",   suffix="s",  pre=" ",     suf=" " },
+  hit           = { score=10.5,color="0,179,0",   suffix="s",  pre=" ",     suf=" " },
+  injure        = { score=14.5,color="0,179,0",   suffix="s",  pre=" ",     suf=" " },
+  wound         = { score=18.5,color="0,179,0",   suffix="s",  pre=" ",     suf=" " },
+  maul          = { score=22.5,color="0,179,0",   suffix="s",  pre=" ",     suf=" " },
+  decimate      = { score=26.5,color="0,179,0",   suffix="s",  pre=" ",     suf=" " },
+  devastate     = { score=30.5,color="0,179,0",   suffix="s",  pre=" ",     suf=" " },
+  maim          = { score=34.5,color="0,179,0",   suffix="s",  pre=" ",     suf=" " },
+  MUTILATE      = { score=38.5,color="255,255,0", suffix="S",  pre=" ",     suf=" " },
+  DISEMBOWEL    = { score=42.5,color="255,255,0", suffix="S",  pre=" ",     suf=" " },
+  DISMEMBER     = { score=46.5,color="255,255,0", suffix="S",  pre=" ",     suf=" " },
+  MASSACRE      = { score=50.5,color="255,255,0", suffix="S",  pre=" ",     suf=" " },
+  MANGLE        = { score=54.5,color="255,255,0", suffix="S",  pre=" ",     suf=" " },
+  DEMOLISH      = { score=58.5,color="255,0,0",   suffix="ES", pre=" *** ", suf=" *** " },
+  DEVASTATE     = { score=68,  color="255,0,0",   suffix="S",  pre=" *** ", suf=" *** " },
+  OBLITERATE    = { score=88,  color="255,0,0",   suffix="S",  pre=" === ", suf=" === " },
+  ANNIHILATE    = { score=113, color="255,0,0",   suffix="S",  pre=" >>> ", suf=" <<< " },
+  ERADICATE     = { score=138, color="255,0,0",   suffix="S",  pre=" <<< ", suf=" >>> " },
+  GHASTLY       = { score=163, color="255,0,0", decorated=alternateLetters("GHASTLY", DSL_LT_RED, DSL_WHITE),             suffix="", pre=" does ", suf=" things to ", things=true },
+  HORRID        = { score=188, color="255,0,0", decorated=alternateLetters("HORRID", DSL_LT_RED, DSL_WHITE),              suffix="", pre=" does ", suf=" things to ", things=true },
+  DREADFUL      = { score=213, color="255,0,0", decorated=alternateLetters("DREADFUL", DSL_LT_RED, DSL_WHITE),            suffix="", pre=" does ", suf=" things to ", things=true },
+  HIDEOUS       = { score=238, color="255,0,0", decorated=alternateLetters("HIDEOUS", DSL_LT_RED, DSL_WHITE),             suffix="", pre=" does ", suf=" things to ", things=true },
+  INDESCRIBABLE = { score=263, color="255,0,0", decorated=alternateLetters("INDESCRIBABLE", DSL_LT_RED, DSL_WHITE),       suffix="", pre=" does ", suf=" things to ", things=true },
+  UNSPEAKABLE   = { score=276, color="255,0,0", decorated=alternateLetters("UNSPEAKABLE", DSL_LT_RED, DSL_WHITE),         suffix="", pre=" does ", suf=" things to ", things=true },
 }
 
 local SEVERITY_SCORE = {}
 for word, info in pairs(DAM_INFO) do SEVERITY_SCORE[word] = info.score end
 
--- Weapon-flag color map (PNP's flag_info table) -- used in the round-
--- summary %f token. P (Poison) has no PNP color since Poison is our own
--- addition; picked a distinct purple.
+-- Weapon-flag color map (PNP's flag_info table, PNP's exact color_table RGB
+-- values as of 2026-07-11). P (Poison) has no PNP equivalent since Poison is
+-- our own addition; kept our existing purple.
 local FLAG_COLOR = {
-  L = "255,215,65", F = "255,68,68", C = "68,204,204", H = "255,68,255",
-  M = "68,136,255", S = "68,204,68", U = "68,68,68",   O = "255,255,255",
+  L = "255,255,0", F = "255,0,0", C = "0,255,255",   H = "255,0,255",
+  M = "0,0,255",   S = "0,179,0", U = "128,128,128", O = "192,192,192",
   P = "170,68,204",
 }
 
@@ -1926,7 +1947,8 @@ local function calcDamVerb(totalScore, isYou)
   local info   = DAM_INFO[bestWord]
   local pre    = (isYou and info.pre == " does ") and " do " or info.pre
   local suffix = isYou and "" or info.suffix
-  return trim(pre .. "<" .. info.color .. ">" .. bestWord .. suffix .. "<r>" .. info.suf)
+  local decoratedWord = info.decorated or ("<" .. info.color .. ">" .. bestWord)
+  return trim(pre .. decoratedWord .. suffix .. "<r>" .. info.suf)
 end
 
 -- ---- Condition ladder -----------------------------------------------
@@ -2033,7 +2055,7 @@ function MyDSL.parseCombatDamageLine(attacker, noun, verb, target, punct)
   -- but its own suffix is always "" anyway) -- this is a different,
   -- simpler rule than calc_dam_verb's You-based one below, ported as its
   -- own thing to match PNP's actual (slightly redundant) two rules.
-  local damVerb = "<" .. info.color .. ">" .. verb
+  local damVerb = info.decorated or ("<" .. info.color .. ">" .. verb)
   if attacker ~= "You" or noun ~= "" then damVerb = damVerb .. info.suffix end
   damVerb = info.pre .. damVerb .. "<r>" .. info.suf
 

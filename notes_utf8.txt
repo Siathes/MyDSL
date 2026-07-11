@@ -14,6 +14,15 @@ check out stat command and vitality
 
 
 ========== PROJECT NOTES ==========
+check all logs and screenshots for issues, there are some.
+affects seems very inefficient on the timers countingdown, see bug window screenshot.
+there are others
+improve timer not counting down. is there a wy to have all timers run off the tick bar? discuss this.
+follower not showing in group for vaelis (untrained guardhand)
+
+
+we need something to set the prompt to our desired prompt when a new charcater is created. 1 time at charcater creation only, mnual alias for misses or exiting characters
+prompt {B[{R%h{G/%H{GHP{x {B| {C%m{c/%M{CM{x {B| {G%v{y/%V{yMV{x {B]{x {B[{x {Y%S{x {B|{x %a {B| {G%l{x {B|{x {p%f{x {B]{x%c{B==-{x%d {g- %t{x {B:: [{W%r{x{B] :: [{x%e{x{B]-=={x%c
 
 ========== IDEAS ==========
 
@@ -24,23 +33,16 @@ tell me what happened and I'll close them out in TODO.md/CHANGELOG.md.
 [ ] Rearm (weapon+shield), standup, spellup/setspell, blind-vision check - still havent done disarm/rearm
 [ ] eq / equipment populates equipment data (not built yet -- real eq
     text format confirmed via logs, ready whenever this gets picked up)
-[ ] Gag promt line1 -- pattern confirmed correctly applied, but still need
-    a real test from an EXISTING character's prompt (Kien/Vrokt/Qinrathaz)
-    to be sure -- the last log I checked was character creation, which
-    never generates the long-format prompt this fix targets
-[ ] MyDSL_PromptSetup.lua -- new file, needs a dofile() Script entry added
-    (same as ChatTriggers/CharacterAssist/Roller before it) before it can
-    run at all. Once wired: create a new character and confirm a clickable
-    "[Click here to set your DSL prompt]" link appears right after "The
-    Gray Mist of Nothingness", and that clicking it actually sends your
-    prompt string. Also try "mydsl setprompt" standalone on an existing
-    character.
+[ ] Roller -- next character creation
+[ ] Gag promt line1 -- real cause found (pattern got appended instead of
+    replaced, producing one broken regex) -- see my reply for the exact
+    replace-not-append fix to paste into the Trigger Editor
 
-(done since last check: Roller confirmed working well, tested and logged
-by Steven -- closed; built MyDSL_PromptSetup.lua per Steven's request for
-one-click prompt setup on new characters -- checked PNP's approach first
-as directed, chose "detect + clickable link" over auto-send per Steven's
-own pick, since auto-sending on its own would violate the project's
-never-auto-send-game-commands rule)
+(done since last check: notes_utf8.txt confirmed saving correctly --
+diffed the committed version against the working file, nothing lost;
+mydsl log <category> on confirmed working end to end (righthere log file
+verified with correct content); Rescue/cure-spell + all other TargetView/
+GroupView action buttons confirmed showing real colors now, not blue/
+underlined, per your latest screenshot)
 
 i will use cecho to make comment in the log

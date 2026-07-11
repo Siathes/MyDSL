@@ -48,6 +48,24 @@ in-game. Full technical detail for any of these: `git log --oneline` +
       — closing.
 - [ ] AffectsView countdown paces correctly in real time; near-expiry color
       warning fires
+- [ ] **Damage-flag colors now match PNP exactly — fixed 2026-07-11, needs a
+      live fight to see it rendered.** Per Steven's note ("change the colors
+      of the damage flags to the same as PNP for community recognition"):
+      `DAM_INFO`/`FLAG_COLOR` in `MyDSL_DataLayer.lua` used our own
+      softer/pastel RGB guesses; read PNP's real `dam_info`/`flag_info`
+      tables (`DSL_PNP_Battle.lua`) and `color_table` (`DSL_PNP_Support.lua`)
+      and matched every tier/flag to PNP's exact values. Also added
+      something we were missing entirely: PNP's GHASTLY-through-UNSPEAKABLE
+      tier bakes a letter-by-letter alternating red/white color effect
+      directly into the decorated verb (e.g. `UNSPEAKABLE` renders as
+      alternating-color individual letters), which our old flat-single-color
+      version never did. New `alternateLetters()` helper builds this at load
+      time; both `calcDamVerb()` (round-summary) and `parseCombatDamageLine()`
+      (per-swing feed) now use it via a new `info.decorated` field when
+      present. Verified via the emulation harness: `UNSPEAKABLE` renders the
+      correct alternating `<255,0,0>`/`<192,192,192>` sequence, ordinary
+      tiers (e.g. `hit`) render PNP's green. Needs a live fight to confirm
+      visually.
 - [ ] CharacterAssist: rearm (weapon+shield), spellup/setspell,
       blind-vision check
 - [ ] Equipment capture — `eq`/`equipment` populates `MyDSL.State.equipment`
