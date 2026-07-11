@@ -52,7 +52,6 @@ MW.ui = MW.ui or {}
 MW._clock = MW._clock or {
   anchor_game_min = nil,   -- total DSL minutes 0-1439 at last anchor
   anchor_real     = nil,   -- os.time() at last anchor
-  timer_id        = nil,   -- 1-second update timer ID
 }
 
 -- Live lunar phase countdown state — persists across reloads.
@@ -235,21 +234,6 @@ function MW.clockStr()
   return string.format("%d:%02d %s", h12, min, ap)
 end
 
-function MW.startClockTimer()
-  MW.stopClockTimer()
-  local function loop()
-    if MW.ui and MW.ui.label then MW.render() end
-    MW._clock.timer_id = tempTimer(1, loop)
-  end
-  MW._clock.timer_id = tempTimer(1, loop)
-end
-
-function MW.stopClockTimer()
-  if MW._clock and MW._clock.timer_id then
-    killTimer(MW._clock.timer_id)
-    MW._clock.timer_id = nil
-  end
-end
 
 function MW.setLunarAnchor()
   local lunar = MyDSL.State and MyDSL.State.lunar
@@ -683,6 +667,14 @@ local function _registerHandlers()
     MW.render()
   end)
   reg("MyDSL.login.updated",   function() MW.render() end)
+  -- Added 2026-07-11, per Steven's "can we pull all timers off one tick"
+  -- question: this replaces MW.startClockTimer()'s own independent
+  -- tempTimer(1, loop) self-reschedule chain -- the exact same once/sec
+  -- cadence, just riding TickSource's shared MyDSL.Timers.Slow event
+  -- instead of running a second, separate timer loop for it. Confirmed via
+  -- audit this was the only other self-perpetuating timer loop anywhere in
+  -- the profile besides TickSource's own; now there's just the one.
+  reg("MyDSL.Timers.Slow", function() if MW.ui.label then MW.render() end end)
 end
 
 
@@ -783,7 +775,6 @@ end
 
 function MW.init()
   -- Step 1: Kill everything from the previous load to prevent duplicate listeners.
-  MW.stopClockTimer()
   for _, id in ipairs(MW._handlers) do pcall(killAnonymousEventHandler, id) end
   MW._handlers = {}
   for _, id in ipairs(MW._triggers) do pcall(killTrigger, id) end
@@ -816,12 +807,13 @@ function MW.init()
   MW.render()
   tempTimer(0.5, function() if MW.ui.label then MW.render() end end)
 
-  -- Seed live clock from State.time (if already available at startup)
-  -- then start the 1-second render loop so the clock counts forward in real-time.
+  -- Seed live clock from State.time (if already available at startup).
+  -- The clock is kept moving forward in real-time by the MyDSL.Timers.Slow
+  -- handler registered in _registerHandlers() above (shared 1/sec heartbeat
+  -- from TickSource, not a separate timer loop -- see that handler's comment).
   local tickStr = gmcp and gmcp.tick and gmcp.tick.time
   MW.setClockAnchor(tickStr)   -- prefer gmcp at startup; falls back to State.time
   MW.setLunarAnchor()          -- seed countdown if lunar data already loaded
-  MW.startClockTimer()
 
   -- Apply visibility from config (hide immediately if saved as hidden).
   if not MW.config.shown then

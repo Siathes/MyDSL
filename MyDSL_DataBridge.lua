@@ -29,7 +29,6 @@ function MyDSL.DB.sync()
   local char  = MyDSL.State and MyDSL.State.char  or {}
   local login = MyDSL.State and MyDSL.State.login or {}
   local room  = MyDSL.State and MyDSL.State.room  or {}
-  local tick  = MyDSL.State and MyDSL.State.tick  or {}
 
   MyDSL.DB.live = {
     hp      = char.hp,      maxhp      = char.max_hp,
@@ -83,7 +82,16 @@ function MyDSL.DB.sync()
   -- Gap 2 fixed: 'area' never existed in DataLayer — replaced with 'sector'.
   MyDSL.DB.room = { name = room.name, exits = room.exits, sector = room.sector }
 
-  MyDSL.DB.tick = { remaining = tick.remaining, average = tick.average or 40, percent = tick.percent }
+  -- MyDSL.DB.tick is NOT rebuilt here (real bug fixed 2026-07-11) --
+  -- MyDSL.State.tick only ever holds a `time` string (DataLayer's
+  -- update("tick", {time=gmcp.tick.time}), never `remaining`/`average`/
+  -- `percent`), so this used to unconditionally clobber TickSource's own
+  -- correctly-maintained MyDSL.DB.tick (real smoothed average, live
+  -- remaining/percent, set directly in T.publish()) with a mostly-nil
+  -- table on every sync() -- including sync() calls fired by the very same
+  -- gmcp.tick event TickSource itself was just reacting to, discarding its
+  -- just-computed smoothed average right after computing it. TickSource is
+  -- the sole authority for MyDSL.DB.tick; just alias it here.
   MyDSL.DB.timers          = MyDSL.DB.timers or {}
   MyDSL.DB.timers.tick     = MyDSL.DB.tick
   MyDSL.DB.xp              = { tnl = char.tnl }
@@ -128,18 +136,21 @@ function MyDSL.DB.sync()
   MyDSL.DB.affects = (MyDSL.State.affects and MyDSL.State.affects.active) or {}
 
   -- DB.improve — added 2026-07-07, per Steven (LiveView's Improve bar,
-  -- already built, was waiting on this). Pre-formats `text` here (skill +
-  -- mastery percent + remaining minutes) so LiveView's existing
-  -- `imp.text or (imp.skill and ...)` fallback picks it up with zero
-  -- changes to LiveView.lua itself.
+  -- already built, was waiting on this).
+  -- last_updated added 2026-07-11: `text` used to be pre-formatted here as a
+  -- static snapshot ("skill 91% (12m)") that never changed between actual
+  -- server updates, but the real DSL text ("<N> online minutes to
+  -- improvement") is a countdown to the next percentage tick, not a label.
+  -- LiveView's improveLiveText() now recomputes the remaining time live from
+  -- `remaining` + `last_updated` on every render instead, so this just
+  -- passes the raw fields through.
   local imp = MyDSL.State.improve or {}
   if imp.skill then
     MyDSL.DB.improve = {
-      skill     = imp.skill,
-      percent   = imp.percent,
-      remaining = imp.remaining,
-      text      = tostring(imp.skill) .. " " .. tostring(imp.percent or "?") .. "%"
-                  .. (imp.remaining and (" (" .. tostring(imp.remaining) .. "m)") or ""),
+      skill        = imp.skill,
+      percent      = imp.percent,
+      remaining    = imp.remaining,
+      last_updated = imp.last_updated,
     }
   else
     MyDSL.DB.improve = {}

@@ -258,6 +258,30 @@ local function exitsText(exits)
   return tostring(exits or "--")
 end
 
+-- improveLiveText() -- added 2026-07-11, per Steven: the "(<N> online
+-- minutes to improvement)" value from `improve` (see DSL_Helpfiles/improve
+-- improvement.txt + the confirmed real status line in DataLayer's
+-- parseImproveStatusLine()) is a countdown to the NEXT percentage tick, not
+-- a static label, but the bar just froze at whatever value was last read
+-- from the server. "Online minutes" is real wall-clock time connected, NOT
+-- a DSL server-tick interval (that conversion belongs to TickSource's
+-- tick.average, a different quantity entirely) -- so this recomputes
+-- directly from elapsed real seconds since imp.last_updated, no tick data
+-- involved. Recomputed fresh on every call, so it only visibly counts down
+-- because L.render() now gets a real once/sec heartbeat (MyDSL.Timers.Slow,
+-- see installHandlers() below) to call it from.
+local function improveLiveText(imp)
+  if not imp or not imp.skill then return nil end
+  local base = tostring(imp.skill) .. " " .. tostring(imp.percent or "?") .. "%"
+  local remaining = tonumber(imp.remaining)
+  if not remaining then return base end
+  local elapsed = os.time() - (tonumber(imp.last_updated) or os.time())
+  local secsLeft = math.max(0, remaining * 60 - elapsed)
+  local mins = math.floor(secsLeft / 60)
+  local secs = math.floor(secsLeft % 60)
+  return base .. string.format(" (%dm%02ds)", mins, secs)
+end
+
 function L.data()
   local db = MyDSL and MyDSL.DB or {}
   local live = db.live or {}
@@ -300,7 +324,7 @@ function L.data()
     mana = mana, maxmana = maxmana,
     move = move, maxmove = maxmove,
     xp = xptotal, xpPercent = xppct, xpToLevel = xpToLevel,
-    improveText = imp.text or (imp.skill and (tostring(imp.skill) .. " " .. tostring(imp.percent or "?") .. "%")),
+    improveText = improveLiveText(imp),
     improveSkill = imp.skill,
     improvePercent = imp.percent,
     improveRemaining = imp.remaining,
@@ -684,7 +708,13 @@ function L.installHandlers()
     -- that actually fires.
     "MyDSL.improve.updated",
     "MyDSL.Progress.Updated",
-    "MyDSL.Timers.Updated",
+    -- Switched from "MyDSL.Timers.Updated" (0.25s, TickView's own bar-
+    -- animation cadence) to "MyDSL.Timers.Slow" (throttled to 1/sec in
+    -- TickSource) 2026-07-11 -- render() rebuilds every bar/label on each
+    -- call, and nothing this window shows changes faster than once/sec, so
+    -- 4x/sec was wasted work. Also gives the Improve bar's live-computed
+    -- countdown text (see L.data()) a real heartbeat to count down against.
+    "MyDSL.Timers.Slow",
     "MyDSL.Room.Updated",
     "gmcp.room_data",
     "gmcp.Room.Info",

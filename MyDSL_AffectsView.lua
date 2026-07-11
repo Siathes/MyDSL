@@ -1060,11 +1060,11 @@ function A.registerHandlerOnce(key, eventName, funcName)
 end
 
 function A.onTimersUpdated()
-  -- TimerSource pulses several times a second; redraw to show live buff
-  -- countdowns (the real-time portion recomputes smoothly on every call
-  -- via realSecondsRemaining() above -- this alone was already wired in,
-  -- but nothing ever decremented the whole-cycle count between GMCP
-  -- updates, see onTickUpdated() below).
+  -- Fires once/sec (MyDSL.Timers.Slow, see MyDSL_TickSource.lua) -- redraw
+  -- to show live buff countdowns (the real-time portion recomputes smoothly
+  -- on every call via realSecondsRemaining() above -- this alone was
+  -- already wired in, but nothing ever decremented the whole-cycle count
+  -- between GMCP updates, see onTickUpdated() below).
   A.display()
 end
 
@@ -1113,7 +1113,13 @@ end
 function A.registerHandlers()
   A.registerHandlerOnce("char_login_data", "gmcp.login_data", "MyDSL.Affects.onCharacterChanged")
   A.registerHandlerOnce("char_data", "gmcp.char_data", "MyDSL.Affects.onCharacterChanged")
-  A.registerHandlerOnce("timers_updated", "MyDSL.Timers.Updated", "MyDSL.Affects.onTimersUpdated")
+  -- Switched from "MyDSL.Timers.Updated" (0.25s, TickView's own animation
+  -- cadence) to "MyDSL.Timers.Slow" (throttled to 1/sec in TickSource) --
+  -- confirmed real inefficiency 2026-07-11: A.display() is a full window
+  -- clear+redraw plus an up-to-300-line link-rescan, and the countdown text
+  -- only ever shows whole seconds anyway, so redrawing faster than 1/sec
+  -- was pure wasted work with zero visible difference.
+  A.registerHandlerOnce("timers_updated", "MyDSL.Timers.Slow", "MyDSL.Affects.onTimersUpdated")
   A.registerHandlerOnce("tick_updated", "MyDSL.Tick.Updated", "MyDSL.Affects.onTickUpdated")
   A.registerHandlerOnce("gmcp_affect_data", "gmcp.affect_data", "MyDSL.Affects.onGmcpEvent")
   A.registerHandlerOnce("gmcp_affect_data_affects", "gmcp.affect_data.affects", "MyDSL.Affects.onGmcpEvent")

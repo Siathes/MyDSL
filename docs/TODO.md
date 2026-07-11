@@ -48,6 +48,48 @@ in-game. Full technical detail for any of these: `git log --oneline` +
       — closing.
 - [ ] AffectsView countdown paces correctly in real time; near-expiry color
       warning fires
+- [ ] **Timer consolidation + Improve live countdown — implemented
+      2026-07-11, needs live confirmation.** Per Steven: "is there a way to
+      have all timers run off the tick bar?" and "improve timer not
+      counting down." Audited every `tempTimer(` call across the whole
+      profile — found exactly 2 self-perpetuating timer loops total:
+      TickSource's own 0.25s `T.loop()` (needed for TickView's smooth
+      progress-bar animation, left untouched) and MoonWeather's completely
+      separate `tempTimer(1, loop)` clock chain. Added a new
+      `MyDSL.Timers.Slow` event, throttled to 1/sec inside
+      `T.updateTimer()`, and moved every listener that only ever displays
+      whole-second/whole-minute values onto it: AffectsView's redraw
+      (was redrawing 4x/sec via `MyDSL.Timers.Updated` for a countdown that
+      only ever shows whole seconds), LiveView's `render()` (same issue,
+      found while auditing), and MoonWeather's clock (deleted its own
+      separate `startClockTimer()`/`stopClockTimer()` timer chain entirely
+      — now just listens to the shared event, same visible cadence). Also
+      built the actual "improve timer not counting down" fix: DSL's real
+      `improve` status line ("You are currently improving X (N%). (M
+      online minutes to improvement)" — see `DSL_Helpfiles/improve
+      improvement.txt`) is a countdown to the *next* percentage tick, not a
+      static label, but the LiveView Improve bar just froze at whatever `M`
+      was last read. New `improveLiveText()` in `MyDSL_LiveView.lua`
+      recomputes the remaining time live from elapsed real seconds (`os.
+      time() - last_updated`) — "online minutes" is wall-clock time
+      connected, not a DSL server-tick interval, so this deliberately does
+      NOT use TickSource's tick-average conversion (that would be the wrong
+      quantity). Now ticks down smoothly via the same 1/sec heartbeat.
+      **Bonus real bug found and fixed while auditing this same plumbing**:
+      `MyDSL_DataBridge.lua`'s `sync()` was unconditionally rebuilding
+      `MyDSL.DB.tick` from `MyDSL.State.tick` (which only ever holds a
+      `time` string, never `remaining`/`average`/`percent`) on every
+      sync() call — including sync() calls fired by the very same
+      `gmcp.tick` event TickSource itself reacts to, so TickSource's
+      correctly-smoothed average was getting clobbered back to a bare
+      `40` default immediately after being computed, on every real tick.
+      Fixed by making DataBridge alias the already-correct `MyDSL.DB.tick`
+      (TickSource is the sole authority for it) instead of rebuilding it.
+      This one directly explains erratic-feeling countdown behavior, not
+      just wasted redraws. Verified via emulation: the 1/sec throttle
+      (32 fast pulses -> 8 slow pulses over a simulated 8s span) and the
+      live Improve countdown math (both both smooth mid-countdown values
+      and the past-due floor-at-zero case) all confirmed correct.
 - [ ] **Damage-flag colors now match PNP exactly — fixed 2026-07-11, needs a
       live fight to see it rendered.** Per Steven's note ("change the colors
       of the damage flags to the same as PNP for community recognition"):

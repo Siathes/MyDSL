@@ -156,6 +156,22 @@ function T.updateTimer()
   T.publish("timer")
   safeRaise("MyDSL.Timers.Pulse")
   safeRaise("MyDSL.Timers.Updated")
+
+  -- MyDSL.Timers.Slow -- added 2026-07-11, per Steven's "can we pull all
+  -- timers off one tick" question. T.loop() fires every 0.25s so TickView's
+  -- own progress-bar animation stays smooth, but that's overkill for any
+  -- listener that only displays whole-second/whole-minute values (Affects
+  -- countdown, LiveView's bars, MoonWeather's clock) -- they were all either
+  -- redrawing 4x/sec for zero visible benefit, or (MoonWeather) running
+  -- their own completely separate 1s tempTimer chain to get the same
+  -- once-a-second cadence this already produces internally. Throttled here,
+  -- once, so every non-TickView listener can share this single real-time
+  -- heartbeat instead of each inventing its own.
+  local nowT = now()
+  if not T.state.lastSlowPulseAt or (nowT - T.state.lastSlowPulseAt) >= 1 then
+    T.state.lastSlowPulseAt = nowT
+    safeRaise("MyDSL.Timers.Slow")
+  end
 end
 
 function T.loop()
