@@ -235,7 +235,30 @@ Fixed in code, none of it confirmed against a real sustained fight yet:
       `parseCombatDeathLine` patterns tested directly against confirmed
       real lines from the corpus, both extract the correct name. No bug
       found.
-- [ ] Weapon-flag proc attribution via `last_attacker`/`last_target`/`last_noun`
+- [x] **Weapon-flag proc attribution via `last_attacker`/`last_target`/
+      `last_noun` — verified correct 2026-07-11 via emulation.** Traced
+      `parseCombatProcLine()` against PNP's `handle_flag()` directly (even
+      found we fixed a real bug in PNP's own source along the way — PNP's
+      drowning/freeze guard compares its `flag` parameter to the literal
+      string `"freeze"` *after* already reassigning it to the single-letter
+      code via `flag_list[flag]`, so that comparison can never be true in
+      PNP itself; our version compares the letter code `"C"` directly,
+      which actually works). Verified end-to-end via emulation: a damage
+      line sets `last_attacker`/`last_target`/`last_noun`, a following proc
+      line correctly attaches its flag to both `combat.active[target].
+      by_attacker[attacker][noun].flags` and the round-summary
+      `round_data` entry, keyed exactly right. **Known inherent
+      limitation, confirmed via emulation, NOT a bug**: this is PNP's own
+      exact technique — one shared last-event slot, not per-combatant
+      tracking — so in a busy multi-combatant fight, if an unrelated
+      swing lands between the real cause and its proc echo, the proc
+      misattributes to whoever swung most recently instead of the true
+      source (reproduced directly: Kien hits the ogre, Bob hits a troll,
+      the ogre's fire proc arrives after Bob's swing → flag wrongly lands
+      on Bob). This is faithful to PNP, not a regression — fixing it would
+      mean diverging from PNP with per-noun tracking, which is real new
+      scope, not a bug fix. Flagging for Steven's call, not building it
+      unprompted.
 - [ ] Quoted weapon names (`"Nadrik's Honor"`) — checked the DSL2/sibling
       corpus 2026-07-09 (zero hits), then 2026-07-10 checked ~9,000 real
       lines across **24** full AGL tournament fight transcripts spanning
@@ -250,8 +273,17 @@ Fixed in code, none of it confirmed against a real sustained fight yet:
       latent bug, but there's still no real text to verify a fix against
       — not guessing at a pattern with zero corpus evidence. Lower
       priority than before given the now-quite-large negative sample.
-- [ ] PNP-faithful display rewrite (per-swing live feed, round-summary to
-      main, `mydsl combat mode raw|condensed|gag`)
+- [x] **PNP-faithful display rewrite — confirmed already built 2026-07-11.**
+      Traced main-console gag/replace logic and the round-summary flush
+      handler directly against PNP's `handle_damage()`/`output_damage()` —
+      both are close, deliberate ports (same boolean gate formula, same
+      per-swing Combat-window feed, same round-summary aggregation by
+      attacker/target pair). `mydsl combat mode raw|condensed|gag` already
+      exists (`MyDSL_CombatView.lua:349-360`) and maps directly onto PNP's
+      own `gag_combat`/`summarize_damage` flags — PNP's own default
+      (`gag_combat=true, summarize_damage=true`) is literally what we call
+      "condensed." This item was stale — already done, just never checked
+      off.
 
 Confirmed broken, FIXED 2026-07-09:
 - [x] **Self-condition never registered — real bug found, fixed, and
