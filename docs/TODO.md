@@ -110,11 +110,23 @@ in-game. Full technical detail for any of these: `git log --oneline` +
       visually.
 - [ ] CharacterAssist: rearm (weapon+shield), spellup/setspell,
       blind-vision check
-- [ ] Equipment capture — `eq`/`equipment` populates `MyDSL.State.equipment`
-      (not built yet — real `eq` text format confirmed via logs 2026-07-08,
-      ready whenever this gets picked up)
-- [ ] `MyDSL_RawCapture.lua` — still needs its `dofile()` entry added
-      (see LOW PRIORITY above) before this can be tested at all
+- [ ] **Equipment capture — corrected 2026-07-11, was stale.** This item
+      said "not built yet" but `MyDSL.beginEquip()`/`parseEquipLine()`/
+      `endEquip()` (`MyDSL_DataLayer.lua` Section 9r) are fully
+      implemented and wired to the real `"^You are using:$"` trigger —
+      apparently built in an earlier pass and never checked off. Verified
+      via emulation against the real confirmed corpus format (see the
+      section's own comment): slot normalization (`finger1`/`finger2`,
+      `wrist1`/`wrist2`, `neck1`), leading flag-parens correctly stripped
+      from decorated items (`"(Blue Aura) (Glowing) a Guiding jewel..."`),
+      `"(nothing)"` correctly leaves an empty slot, and a stat-block
+      parenthetical INSIDE an item's own text (`"a long robe... (W)-1S,2D
+      (R) 4Con,2H"`) is correctly NOT mistaken for a leading flag. Needs a
+      live `eq` to confirm end-to-end (`MyDSL.State.equipment` isn't
+      wired to any display window yet — that part genuinely isn't built).
+- [x] `MyDSL_RawCapture.lua` dofile() entry — **stale, removed 2026-07-11.**
+      Already confirmed fully resolved in the LOW PRIORITY section above
+      (2026-07-08) — this line contradicted that and was never pruned.
 - [x] **Roller — confirmed working live 2026-07-09, real duplicate-trigger
       bug found and resolved.** `MyDSL_Roller.lua` (ported 2026-07-07, not
       previously known to be live-tested) and a native trigger literally
