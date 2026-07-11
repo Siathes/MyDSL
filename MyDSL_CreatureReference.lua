@@ -215,9 +215,13 @@ function CR.init()
     function() CR.onLoreUpdate() end
   )
 
-  -- Aliases
+  -- Aliases -- renamed 2026-07-11, command-surface retrofit (docs/TODO.md
+  -- "OPEN — Command-surface retrofit"), per Steven. Dropped the "mydsl"
+  -- prefix -- confirmed real DSL "lore" (DSL_Helpfiles/lore.txt) is a
+  -- fully passive/automatic skill with no typed syntax at all, so bare
+  -- "lore <name>" has nothing to collide with.
   CR._aliases.loreLookup = tempAlias(
-    "^mydsl lore (.+)$",
+    "^lore (.+)$",
     [[
       local name = matches[2]
       if name == "hide" then

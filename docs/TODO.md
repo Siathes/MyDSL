@@ -871,14 +871,46 @@ internal logic — see `CLAUDE.md` Philosophy section.
 - [x] Combat's extra sub-toggles (`show_miss`/`show_evade`/`show_flag`/
       `show_condition`) have no PNP equivalent — confirmed correct as a
       short bespoke form, no PNP command to reuse here. No action needed.
-- [ ] Scan/Target/Group/CreatureReference are net-new — keep bespoke
-      commands, just trim the `mydsl` prefix. **Not started** — this is a
-      real rename across every alias in 4 files (`mydsl target ...` →
-      `target ...`, etc.), which changes muscle memory Steven already has
-      for these specific commands, unlike the purely-additive `toggle`
-      work above. Held for an explicit decision on approach (hard rename
-      vs. add the short form alongside the existing `mydsl`-prefixed one)
-      before touching it.
+- [x] **Scan/Target/Group/CreatureReference `mydsl` prefix trimmed —
+      built 2026-07-11, per Steven** ("muscle memory is not a concern...
+      needs to be consistent across all commands, and human speak/
+      readable"). Hard rename, old `mydsl`-prefixed forms removed
+      entirely (not kept as a fallback) — this is for general use, not
+      just personal muscle memory. **Real collision caught before
+      shipping**: bare `target` would have collided with a genuine DSL
+      swashbuckler combat skill (`target head`/`body`/`legs`, confirmed
+      via `DSL_Helpfiles/target.txt`) — a bare `^target (.+)$` catch-all
+      would have silently swallowed that skill before it ever reached the
+      server. Checked `scan`/`group`/`lore` against their own real
+      helpfiles too: `scan`/`group` are safe (our additions all need
+      extra arguments the real commands never take), `lore` is fully
+      passive/automatic in real DSL (no typed syntax to collide with) —
+      only `target` needed a different word. Steven picked **`focus`**
+      for the whole TargetView module (not just the one collision-prone
+      verb) to keep it consistent — every TargetView sub-command now
+      reads `focus <name>` / `focus clear` / `focus mobset ...` /
+      `focus playerset ...` / `focus mobset reset` / `focus playerset
+      reset` / `focus action ...`. GroupView: `group gag/ungag/quickset
+      .../quickset reset`. ScanView: `scan gag/ungag` (`mydsl righthere
+      dump`, a debug diagnostic, deliberately left alone — out of this
+      retrofit's scope). CreatureReference: `lore <name|hide|show>`.
+      Updated `mydsl help`'s static command list to match. **Second real
+      bug found and fixed while renaming**: the bare `focus (.+)$`
+      catch-all also matched every one of TargetView's own specific
+      sub-commands (`focus mobset ...`, `focus action ...`, etc.) since
+      `.+` matches their arguments too — Mudlet fires every alias whose
+      pattern matches, not just the most specific one, so a real `focus
+      mobset murder consider ...` command was ALSO silently setting the
+      target to a mob literally named "mobset murder consider ..." every
+      time. This existed under the old `mydsl target (.+)$` name too,
+      just never surfaced — the old guard only excluded the literal word
+      "clear," missing the other three reserved sub-command words. Fixed
+      by checking the first word against the full reserved list. Verified
+      via emulation (both Python `re` against all 7 patterns, and the
+      fixed guard logic directly): all 4 modules load cleanly with the
+      renamed aliases correctly registered, and the reserved-word guard
+      now correctly excludes every sub-command from the catch-all while
+      still setting real targets normally.
 - [x] **`emco save`/`load` — confirmed acting on a stale disconnected
       object, 2026-07-11.** No longer just traced — confirmed directly in
       the native XML (`current/2026-07-11#11-49-37.xml`): the native

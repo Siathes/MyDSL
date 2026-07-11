@@ -581,16 +581,43 @@ function TV.init()
     end
   )
 
-  -- Aliases
+  -- Aliases -- renamed 2026-07-11, command-surface retrofit (docs/TODO.md
+  -- "OPEN — Command-surface retrofit"), per Steven: "consistent across all
+  -- commands, and human speak/readable (in the same style as DSL
+  -- commands)." Dropped the "mydsl" prefix, but NOT onto bare "target" --
+  -- confirmed via DSL_Helpfiles/target.txt this collides with a real
+  -- swashbuckler combat skill ("target head/body/legs"); a bare
+  -- "^target (.+)$" catch-all would have silently swallowed that skill
+  -- before it ever reached the server. Renamed the whole module's command
+  -- root to "focus" instead (Steven's choice, confirmed no collision in
+  -- DSL_Helpfiles) -- applied consistently to every sub-command, not just
+  -- the one that had to change, per the "consistent across all commands"
+  -- ask. Old "mydsl target ..." forms are gone, not kept as a fallback --
+  -- this is for general use, not just Steven's own muscle memory.
   TV._aliases.targetSet = tempAlias(
-    "^mydsl target clear$",
+    "^focus clear$",
     "if MyDSL and MyDSL.Target then MyDSL.Target.clear() end"
   )
+  -- Real bug found and fixed 2026-07-11 while renaming this: this bare
+  -- catch-all ALSO matches every specific sub-command below it ("focus
+  -- mobset ...", "focus playerset ...", "focus mobset reset", "focus
+  -- action ..."), since ".+" matches any of their arguments too -- Mudlet
+  -- fires every alias whose pattern matches, not just the most specific
+  -- one, so a real "focus mobset murder consider ..." command was ALSO
+  -- silently setting the target to a mob literally named "mobset murder
+  -- consider ..." every single time (confirmed via Python re against all
+  -- 7 patterns: 6 of 7 specific commands multi-matched this one). Existed
+  -- under the old "mydsl target (.+)$" name too, just never surfaced --
+  -- the old guard only excluded "clear" by exact match, missing every
+  -- other reserved sub-command word. Fixed by checking the first word
+  -- against the full reserved list instead of just "clear".
   TV._aliases.targetClear = tempAlias(
-    "^mydsl target (.+)$",
+    "^focus (.+)$",
     [[
       local name = matches[2]
-      if name ~= "clear" and MyDSL and MyDSL.Target then
+      local reserved = { clear=true, mobset=true, playerset=true, action=true }
+      local firstWord = name:match("^(%S+)")
+      if not reserved[firstWord] and MyDSL and MyDSL.Target then
         local function isM(n)
           return n:match("^[Aa]n? ") ~= nil or n:match("^[Tt]he ") ~= nil
         end
@@ -599,7 +626,7 @@ function TV.init()
     ]]
   )
   TV._aliases.targetMobset = tempAlias(
-    "^mydsl target mobset\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)$",
+    "^focus mobset\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)$",
     [[
       if MyDSL and MyDSL.TargetView then
         MyDSL.TargetView.config.mob_buttons = {
@@ -612,7 +639,7 @@ function TV.init()
     ]]
   )
   TV._aliases.targetPlayerset = tempAlias(
-    "^mydsl target playerset\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)$",
+    "^focus playerset\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)$",
     [[
       if MyDSL and MyDSL.TargetView then
         MyDSL.TargetView.config.player_buttons = {
@@ -627,7 +654,7 @@ function TV.init()
   -- separate exact-match aliases, not a conflict with the 6-arg patterns
   -- above since "reset" alone never satisfies six \S+ groups.
   TV._aliases.targetMobsetReset = tempAlias(
-    "^mydsl target mobset reset$",
+    "^focus mobset reset$",
     [[
       if MyDSL and MyDSL.TargetView then
         MyDSL.TargetView.resetButtons("mob")
@@ -637,7 +664,7 @@ function TV.init()
     ]]
   )
   TV._aliases.targetPlayersetReset = tempAlias(
-    "^mydsl target playerset reset$",
+    "^focus playerset reset$",
     [[
       if MyDSL and MyDSL.TargetView then
         MyDSL.TargetView.resetButtons("player")
@@ -651,12 +678,12 @@ function TV.init()
   -- must be quoted (allows spaces); command is everything after the
   -- color and may contain %t for the target's name, or nothing for a
   -- stateless command. Usage:
-  --   mydsl target action getitem "Get Item" 204,204,204 get %t
-  --   mydsl target action scan "Scan" 204,204,204 scan
+  --   focus action getitem "Get Item" 204,204,204 get %t
+  --   focus action scan "Scan" 204,204,204 scan
   -- Then assign it to a slot like any built-in action name:
-  --   mydsl target mobset getitem murder consider creaturelore rescue flee
+  --   focus mobset getitem murder consider creaturelore rescue flee
   TV._aliases.targetAction = tempAlias(
-    "^mydsl target action (\\S+) \"([^\"]+)\" (\\S+) (.+)$",
+    "^focus action (\\S+) \"([^\"]+)\" (\\S+) (.+)$",
     [[
       if MyDSL and MyDSL.TargetView and MyDSL.TargetView.defineAction then
         local ok = MyDSL.TargetView.defineAction(matches[2], matches[3], matches[4], matches[5])

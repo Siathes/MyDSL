@@ -332,24 +332,32 @@ end
 -- Aliases  (registered as tempAlias so they survive script reloads)
 ------------------------------------------------------------------------
 
-tempAlias("^mydsl group gag$",
+-- Renamed 2026-07-11, command-surface retrofit (docs/TODO.md "OPEN —
+-- Command-surface retrofit"), per Steven: "consistent across all
+-- commands, and human speak/readable." Dropped the "mydsl" prefix --
+-- confirmed bare "group" is safe (real DSL "group" command is always
+-- typed with no arguments in every real usage seen; these all require
+-- extra words, so no collision). Old "mydsl group ..." forms are gone,
+-- not kept as a fallback -- this is for general use, not just muscle
+-- memory.
+tempAlias("^group gag$",
   "if MyDSL and MyDSL.GroupView then MyDSL.GroupView.setGag(true) end")
-tempAlias("^mydsl group ungag$",
+tempAlias("^group ungag$",
   "if MyDSL and MyDSL.GroupView then MyDSL.GroupView.setGag(false) end")
 -- Fixed 2026-07-11: this used to only ever set config.quickActions in
 -- memory -- no saveConfig() call existed anywhere in this file until now,
 -- so it silently reset to {"heal","rescue"} on every reload/relog. Any
 -- action name here can be a built-in from MyDSL.TargetView.actions OR a
--- custom one defined via "mydsl target action ..." (MyDSL_TargetView.lua)
--- -- both tables are the same one, shared by construction (GV.quickAction
+-- custom one defined via "focus action ..." (MyDSL_TargetView.lua) --
+-- both tables are the same one, shared by construction (GV.quickAction
 -- already looks up MyDSL.TargetView.actions[actionKey]).
-tempAlias("^mydsl group quickset\\s+(\\S+)\\s+(\\S+)$",
+tempAlias("^group quickset\\s+(\\S+)\\s+(\\S+)$",
   [[if MyDSL and MyDSL.GroupView then
     MyDSL.GroupView.config.quickActions = {matches[2], matches[3]}
     MyDSL.GroupView._saveConfig()
     echo("Group quick buttons: " .. matches[2] .. ", " .. matches[3] .. "\n")
   end]])
-tempAlias("^mydsl group quickset reset$",
+tempAlias("^group quickset reset$",
   [[if MyDSL and MyDSL.GroupView then
     MyDSL.GroupView.resetQuickActions()
     MyDSL.GroupView._saveConfig()

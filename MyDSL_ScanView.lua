@@ -166,9 +166,15 @@ end
 -- Aliases  (registered as tempAlias so they survive script reloads)
 ------------------------------------------------------------------------
 
-tempAlias("^mydsl scan gag$",
+-- Renamed 2026-07-11, command-surface retrofit (docs/TODO.md "OPEN —
+-- Command-surface retrofit"), per Steven. Dropped the "mydsl" prefix --
+-- confirmed bare "scan"/"scan <dir>" is the real DSL command
+-- (DSL_Helpfiles/scan.txt), but "gag"/"ungag" aren't valid directions, so
+-- no functional collision. ("mydsl righthere dump" below is left alone --
+-- a debug diagnostic, not part of this retrofit's scope.)
+tempAlias("^scan gag$",
   "if MyDSL and MyDSL.ScanView then MyDSL.ScanView.setGag(true) end")
-tempAlias("^mydsl scan ungag$",
+tempAlias("^scan ungag$",
   "if MyDSL and MyDSL.ScanView then MyDSL.ScanView.setGag(false) end")
 
 -- mydsl righthere dump -- added 2026-07-08 as a one-shot live diagnostic,
