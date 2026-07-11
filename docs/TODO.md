@@ -160,6 +160,20 @@ in-game. Full technical detail for any of these: `git log --oneline` +
 - [x] `considerEasyKill`/`considerNoMatch` text in-game. **Confirmed by
       Steven** ("not sure why this is being tested, but the server sends
       the echo fine") — closing, not an actual issue.
+- [ ] **GroupView "follower not showing" — real bug found and fixed
+      2026-07-11, needs live confirmation.** Steven's note: "follower not
+      showing in group for vaelis (untrained guardhand)." Root cause found
+      directly in `log/2026-07-11#07-41-33.html`: DSL right-justifies the
+      level in a fixed-width field, so a level-1 member's line reads
+      `"[ 1 Mob] An untrained guardhand ..."` (leading space) instead of
+      `"[51 War] Olyndros ..."` (no space) — `parseGroupLine()`'s pattern
+      required a digit immediately after `[`, so it silently failed to
+      match, **not just for the follower but for Vaelis herself too**
+      (also level 1, same line shape) — the whole group was empty, Steven
+      just noticed the follower's absence first. Fixed with `%s*` after
+      `[`. Verified via emulation against the exact real 3-line group
+      block (guardhand/Vaelis/a level-51 no-space control line) — all 3
+      now parse correctly.
 
 ---
 

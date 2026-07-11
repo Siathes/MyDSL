@@ -18,7 +18,6 @@ check all logs and screenshots for issues, there are some.
 affects seems very inefficient on the timers countingdown, see bug window screenshot.
 there are others
 improve timer not counting down. is there a wy to have all timers run off the tick bar? discuss this.
-follower not showing in group for vaelis (untrained guardhand)
 
 
 we need something to set the prompt to our desired prompt when a new charcater is created. 1 time at charcater creation only, mnual alias for misses or exiting characters

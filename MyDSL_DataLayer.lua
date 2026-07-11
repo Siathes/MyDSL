@@ -1304,8 +1304,16 @@ function MyDSL.beginGroup()
 end
 
 function MyDSL.parseGroupLine(line)
+  -- %s* after "[" added 2026-07-11 -- real bug found live: DSL right-justifies
+  -- the level in a fixed-width field, so single-digit levels get a leading
+  -- space ("[ 1 Mob] An untrained guardhand ...") instead of none
+  -- ("[51 War] Olyndros ..."). The old pattern required a digit immediately
+  -- after "[", so it silently failed to match ANY line (self included) once
+  -- a group member's level dropped below 10 -- confirmed via
+  -- Vaelis's real "[ 1 Mob]"/"[ 1 Mag]" group listing, which is what caused
+  -- the reported "follower not showing in group" symptom.
   local level, class, name, hp, mana, mv =
-    line:match("%[(%d+)%s+(%a+)%]%s+(.-)%s+(%d+)%%%s+hp%s+(%d+)%%%s+mana%s+(%d+)%%%s+mv")
+    line:match("%[%s*(%d+)%s+(%a+)%]%s+(.-)%s+(%d+)%%%s+hp%s+(%d+)%%%s+mana%s+(%d+)%%%s+mv")
   if not level then return end
   groupBlock[#groupBlock + 1] = {
     level    = tonumber(level),
