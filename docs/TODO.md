@@ -232,7 +232,41 @@ in-game. Full technical detail for any of these: `git log --oneline` +
 ---
 
 ## TOP PRIORITY — Combat, needs live-fight testing
-Fixed in code, none of it confirmed against a real sustained fight yet:
+Fixed in code; per-swing main-console display now confirmed against a
+real fight (2026-07-11, see below) — high-severity color tiers, the
+letter-alternating top tier, death-line text, and the round-summary
+sentence still haven't shown up in anything logged yet (this was a
+low-level fight, nobody died on-screen).
+- [x] **Per-swing main-console damage display — CONFIRMED LIVE 2026-07-11,
+      real bug found and fixed along the way.** `log/2026-07-11#09-23-09.
+      html` (Vaelis, a real fight — untrained guardhand + Vaelis vs. a
+      blue jay) shows real lines like `"Your slash scratch Blue jay
+      (2.5)"` / `"Blue jay's peck grazes Untrained guardhand (6.5)"` —
+      exactly matching `battleFormat()`'s `"%a%r %n %v %t (%d)"` output
+      shape, confirming the decorated in-place `replace()`+`decho()` path
+      genuinely works end-to-end in a live fight, not just in emulation.
+      Condition tracking also confirmed working (`"A blue jay has some
+      small wounds and bruises."` appearing repeatedly, correctly parsed
+      each time). **Real bug found in the process**: `mydsl combat mode
+      raw|condensed|gag` (`MyDSL_CombatView.lua`) never actually touched
+      `show_damage`/`show_miss` — only `gag_combat`/`gag_non_damage`/
+      `summarize_damage` — but the damage-line show/hide decision in
+      `parseCombatDamageLine()` is gated *entirely* by `show_damage`/
+      `show_damage_by_me`/`show_damage_to_me`/`show_miss` (confirmed
+      directly in PNP source too — `gag_combat`/`gag_non_damage` only ever
+      govern evasion/flag/condition lines there, never the damage line
+      itself). So "raw" mode's own promise ("every raw swing left
+      untouched") was structurally impossible before this fix — it
+      behaved identically to "condensed" for the one thing its name is
+      about. (The raw swings visible in this session weren't from the
+      mode alias at all — no `mydsl combat`-family command was ever typed
+      that session per the log; `show_damage` had apparently been left
+      `true` in memory from some earlier, untracked toggle, since
+      CombatView's config only persists `fontSize` to disk, nothing else
+      survives an actual Mudlet restart.) Fixed: `raw` now also sets
+      `show_damage=true, show_miss=true`; `condensed`/`gag` now also set
+      them `false`. Verified via emulation: all 3 modes now produce the
+      correct show/hide decision for both hits and misses.
 - [x] **Evasion triggers (dodge/parry/block, you-as-subject aware) —
       verified correct against real corpus text 2026-07-09.** Tested all
       4 trigger patterns (dodge/parry/block/sense) against confirmed real

@@ -345,6 +345,25 @@ CV._aliases.combatHide = tempAlias(
 --                console at all; the Combat window still shows everything.
 -- The Combat window's live per-swing feed is unaffected by this mode in all
 -- three cases -- it always shows every non-miss swing, matching PNP.
+--
+-- Real bug fixed 2026-07-11, found via live-log verification: this alias
+-- never touched show_damage/show_miss, but PNP's own handle_damage() (and
+-- our port of it, MyDSL_DataLayer.lua's parseCombatDamageLine) gates
+-- whether a raw swing appears on main console ENTIRELY by show_damage/
+-- show_damage_by_me/show_damage_to_me/show_miss -- gag_combat/gag_non_damage
+-- only ever govern evasion/flag/condition lines, never the damage line
+-- itself (confirmed directly in PNP source, DSL_PNP_Battle.lua's own
+-- handle_damage()/handle_evasion()/handle_flag()/handle_condition() use
+-- different formulas). So "raw" mode's own promise ("every raw swing left
+-- untouched") was structurally impossible before this fix -- show_damage
+-- defaults false and nothing else ever set it true, so raw mode behaved
+-- identically to condensed for the damage-line case specifically. Caught
+-- because a real live fight (log/2026-07-11#09-23-09.html) showed
+-- correctly-decorated raw swings on main console with none of the
+-- mode/show aliases ever having been typed that session -- meaning
+-- show_damage must have been left `true` from some earlier, unrelated
+-- in-memory session (CombatView's config was never actually reset by a
+-- real Mudlet restart) rather than by design.
 CV._aliases.combatMode = tempAlias(
   "^mydsl combat mode\\s+(raw|condensed|gag)$",
   [[if MyDSL and MyDSL.CombatView then
@@ -352,10 +371,13 @@ CV._aliases.combatMode = tempAlias(
     local cfg = MyDSL.CombatView.config
     if mode == "raw" then
       cfg.gag_combat = false; cfg.gag_non_damage = false; cfg.summarize_damage = false
+      cfg.show_damage = true; cfg.show_miss = true
     elseif mode == "condensed" then
       cfg.gag_combat = true; cfg.gag_non_damage = true; cfg.summarize_damage = true
+      cfg.show_damage = false; cfg.show_miss = false
     elseif mode == "gag" then
       cfg.gag_combat = true; cfg.gag_non_damage = true; cfg.summarize_damage = false
+      cfg.show_damage = false; cfg.show_miss = false
     end
     echo("Combat mode: " .. mode .. "\n")
   end]])
