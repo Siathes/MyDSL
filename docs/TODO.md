@@ -463,6 +463,25 @@ re-litigated piecemeal.
 - [ ] **`A.ids.triggers.song`** (AffectsView "Song:" format) — prior
       "confirmed" matches turned out to be pre-DSL2 log data; not
       re-checked against the sibling-profile logs.
+- [ ] **Mage-cast `poison` spell's onset text — new candidate found
+      2026-07-11, not confirmed.** Per Steven: "i see some echos from
+      actions/skills but i didnt see the actual 'gets poisoned/shivers
+      and suffer' successlines, are we gaging any actions in combat
+      besides swings?" Checked `log/2026-07-11#12-15-16.html` directly:
+      **confirmed nothing in our code gags this** — no trigger recognizes
+      poison-spell text at all (doesn't match `CONDITION_PATTERNS` or any
+      proc pattern), so it just passes through untouched like any other
+      unhandled line, same as everything else we don't have a parser for.
+      The `"gets poisoned"`/`"shivers and suffers"` text confirmed earlier
+      this session is specifically the **weapon-proc** version (a
+      poisoned weapon landing a hit) — Vexgar's `c poison` here is the
+      **spell-cast** version, a different mechanic that apparently uses
+      different text. Real candidate spotted right after the successful
+      cast: `"A gnome in a protective heat suit looks very ill."` —
+      doesn't match anything in our condition ladder, only occurred once
+      so far (not enough to confirm it's the
+      real onset line vs. coincidence). Not acting on one occurrence —
+      parking here pending another confirmed poison-spell cast.
 
 ---
 
@@ -911,6 +930,17 @@ internal logic — see `CLAUDE.md` Philosophy section.
       renamed aliases correctly registered, and the reserved-word guard
       now correctly excludes every sub-command from the catch-all while
       still setting real targets normally.
+      **Correction, same day, per Steven: "lore is a game command and
+      sholdnt be used as an alias."** The reasoning above ("`lore` is
+      passive/automatic, no typed syntax to collide with") was the wrong
+      bar — `lore` is still real DSL vocabulary (a skill name,
+      `DSL_Helpfiles/lore.txt`), and claiming it for a different purpose
+      is exactly the confusion this retrofit is supposed to avoid,
+      whether or not there's a hard syntax collision. Renamed to
+      **`bestiary <name|hide|show>`** instead (Steven's pick; confirmed
+      not real DSL vocabulary anywhere in `DSL_Helpfiles`). Updated
+      `mydsl help` to match. Verified via emulation: loads cleanly,
+      `^bestiary (.+)$` correctly registered.
 - [x] **`emco save`/`load` — confirmed acting on a stale disconnected
       object, 2026-07-11.** No longer just traced — confirmed directly in
       the native XML (`current/2026-07-11#11-49-37.xml`): the native

@@ -217,11 +217,16 @@ function CR.init()
 
   -- Aliases -- renamed 2026-07-11, command-surface retrofit (docs/TODO.md
   -- "OPEN — Command-surface retrofit"), per Steven. Dropped the "mydsl"
-  -- prefix -- confirmed real DSL "lore" (DSL_Helpfiles/lore.txt) is a
-  -- fully passive/automatic skill with no typed syntax at all, so bare
-  -- "lore <name>" has nothing to collide with.
+  -- prefix. CORRECTED same day, per Steven: originally renamed to bare
+  -- "lore <name>" on the reasoning that real DSL "lore" (DSL_Helpfiles/
+  -- lore.txt) has no typed syntax to collide with -- Steven pointed out
+  -- that's the wrong bar: "lore" is still real DSL vocabulary (a skill
+  -- name), and claiming it for something else is exactly the confusion
+  -- this retrofit is supposed to avoid, syntax collision or not. Renamed
+  -- to "bestiary" instead -- not real DSL vocabulary anywhere in
+  -- DSL_Helpfiles.
   CR._aliases.loreLookup = tempAlias(
-    "^lore (.+)$",
+    "^bestiary (.+)$",
     [[
       local name = matches[2]
       if name == "hide" then

@@ -10,14 +10,11 @@ make start satchels for dragons and new characters with a parchment explaining w
 
 look at making new maps like thalos's updated one use shattered book editor? (mapper work is deferred -- see docs/TODO.md DEFERRED section)
 
+
+========== PROJECT NOTES ==========
 check out stat command and vitality
 
 vexgar magic missile did not show in the main display, it di show in the combat window, needs to echo (skill/spell/action) to main display also
-
-
-========== PROJECT NOTES ==========
-check all logs and screenshots for issues, there are some.
-there are others
 
 ========== IDEAS ==========
 
