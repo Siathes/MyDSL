@@ -143,15 +143,19 @@ Fixed in code, none of it confirmed against a real sustained fight yet:
       real lines from the corpus, both extract the correct name. No bug
       found.
 - [ ] Weapon-flag proc attribution via `last_attacker`/`last_target`/`last_noun`
-- [ ] Quoted weapon names (`"Nadrik's Honor"`) — checked the corpus
-      2026-07-09, zero real occurrences of a quoted weapon name in an
-      actual combat line found (only false positives: a shop-name
-      description, unrelated debug text). The damage trigger's capture
-      groups genuinely don't include `"` in their character class, so
-      this is a plausible latent bug if such a name ever comes up in a
-      real fight, but there's no real text to verify the fix against yet
-      — not guessing at a pattern with zero corpus evidence, per this
-      project's established discipline.
+- [ ] Quoted weapon names (`"Nadrik's Honor"`) — checked the DSL2/sibling
+      corpus 2026-07-09 (zero hits), then 2026-07-10 checked ~2,000 real
+      lines across 6 full AGL tournament fight transcripts (see
+      `log/AGL/`) — still zero occurrences of a quoted name attached to a
+      weapon in an actual damage line. Did confirm quoted item names are
+      a real DSL convention (`"A black serpent shaped vial, inscribed
+      \"Stoning\"."` — a potion, seen repeatedly), so the format itself
+      exists, just apparently never on a *weapon* in any fight logged
+      anywhere available. The damage trigger's capture groups genuinely
+      don't include `"` in their character class, so this remains a
+      plausible latent bug, but there's still no real text to verify a
+      fix against — not guessing at a pattern with zero corpus evidence.
+      Lower priority than before given the much larger negative sample.
 - [ ] PNP-faithful display rewrite (per-swing live feed, round-summary to
       main, `mydsl combat mode raw|condensed|gag`)
 
@@ -249,7 +253,15 @@ Confirmed broken, FIXED 2026-07-09:
       write, ever. Working as intended — closing.
 - [ ] `procUnholy` ("unholy wrath race"), `procManaSelf` ("drawing your
       energy away") — still zero occurrences found anywhere, including
-      the full sibling-profile scan.
+      the full sibling-profile scan and (2026-07-10) 6 full AGL
+      tournament fight transcripts (`log/AGL/`, ~7,000 lines combined,
+      fetched via forum login). One near-miss in the AGL data worth
+      noting: `"Paklop's energy drain hits Lohla."` — not procManaSelf,
+      just a regular damage line where "energy drain" is the weapon-noun
+      (already covered by the main damage trigger, not a special proc).
+      Also saw `"Zecnys stops using unholy robes."` — an armor name
+      containing "unholy," not the `procUnholy` trigger text. Still
+      nothing for either real proc.
 - [ ] **combatSense1/2 (sense-based evasion) — narrowed 2026-07-09, still
       unconfirmed wording.** Checked `DSL_Helpfiles/danger sense.txt`:
       the underlying ability is real, not invented — `"Danger Sense
@@ -259,13 +271,14 @@ Confirmed broken, FIXED 2026-07-09:
       open question to just the exact echo wording, which remains
       unverified against any real text — searched the full DSL2 corpus,
       `log/Archive.zip`, all 3 PNP sibling profiles, `DSL1`,
-      `Qinrathaz-Vaelis`, and every other profile on this machine, zero
-      hits anywhere for "senses"/"deflects the blow"/"avoids its blow" in
-      a combat context. Helpfiles document usage/syntax, not raw output
-      text, so this doesn't confirm the trigger's exact wording either
-      way. Likely explanation for the total absence: bard-only skill,
-      and apparently no bard character has used it during any logged
-      session across this whole machine. (Found one look-alike red
+      `Qinrathaz-Vaelis`, every other profile on this machine, and
+      (2026-07-10) 6 full AGL tournament fights, zero hits anywhere for
+      "senses"/"deflects the blow"/"avoids its blow" in a combat context.
+      Helpfiles document usage/syntax, not raw output text, so this
+      doesn't confirm the trigger's exact wording either way. Likely
+      explanation for the total absence: bard-only skill, and apparently
+      no bard character (or bard-classed AGL fighter) has used it during
+      any logged session available anywhere. (Found one look-alike red
       herring while searching: `"[51] Herbert deflects [51] Archal's
       charge with a shield."` — a real line, but a different mechanic
       entirely, a shield-charge defense, not Danger Sense.) Would need a

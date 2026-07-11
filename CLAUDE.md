@@ -59,6 +59,15 @@ only hold what git history and the code can't already tell you.** That's:
 - `log/` (this directory) — the full combat-log archive (578 files, 414MB),
   including AGL/coliseum character reports. Raw-grep this for anything
   correctness-critical (trigger text, message formats).
+- `log/AGL/` — 6 full AGL tournament fight transcripts (~7,000 lines),
+  fetched 2026-07-10 from the DSL forums (members-only, needs a cookie
+  jar — see Steven if a fresh fetch is ever needed) after the Google
+  Sheets "Leveraged Rankings" link Steven shared turned out to be just a
+  win/loss scoreboard, not raw text. Real, useful combat data, but every
+  line is Coliseum-broadcast-prefixed (`"[ <Wall> ] "`), so it's reference
+  material for the future AGL/Coliseum module (see TODO.md DEFERRED
+  section), not directly usable for the regular combat tracker, which
+  deliberately excludes that prefix.
 - `docs/templates_by_freq.txt` / `docs/templates_with_examples.txt` —
   pre-distilled combat-message shapes, fast first pass only. Confirmed to
   have real gaps (missing entire message categories) — absence there is not
