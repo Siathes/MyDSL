@@ -17,8 +17,6 @@ check out stat command and vitality
 check all logs and screenshots for issues, there are some.
 the righthere window is recording my charger on olyndros
 there are others
-follower not showing in group for vaelis (untrained guardhand)
-not able to ungag say or other chats. want says, tells,shouts,yell to echo and not be gagged. is it better to move chat capture gag into a trigger rather than script capture it?
 
 
 we need something to set the prompt to our desired prompt when a new charcater is created. 1 time at charcater creation only, mnual alias for misses or exiting characters

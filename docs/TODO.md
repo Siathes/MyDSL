@@ -448,34 +448,73 @@ Steven: "make it work like PNP, then discuss the additions"):
       live.** "groupview works, there have been many edits since that bug
       report." Not independently isolated to one specific fix — resolved
       as a side effect of everything else touched this session.
-- [ ] **EMCO chat bug (the "S"/duplicate-line issue) — REOPENED
-      2026-07-08, closed prematurely.** Closed same-day on Steven's live
-      impression ("i see no problems now" / "is resolved"). While
-      investigating the (unrelated) RightHere-on-look bug in the same
-      session, directly checked the actual chat log instead of taking the
-      confirmation at face value: **`log/MyDSL_EMCO_Chat/2026/07/08/
-      All.html` shows 54 standalone "S" lines and 25 consecutive duplicate
-      lines across just 153 total segments in this one file** — both
-      still active right up through the most recent entries. Needs a
-      fresh live check: is the duplicate chat-trigger set Steven deleted
-      actually gone for good, and is this possibly two genuinely
-      different causes (S only ever seen after OOC-family lines;
-      duplicates only ever seen on gossip/tells/group/says) rather than
-      one shared root cause. **Tried switching `route()` from `append()`
-      to `decho()` with a directly-captured line — reverted per Steven**
-      ("revert the decho, that was not what i was try to convey... i do
-      not want to modify the chat till ive had more time to test it").
-      `route()` is back to the original `append()` + `deleteLine()` form
-      (the `deleteLine()` restoration itself is confirmed correct/needed
-      and unaffected by the revert). **Confirmed 2026-07-08 unrelated to
-      the "follower extra line" bug** (that turned out to be the already-
-      fixed RightHere-on-look blank-line bug above, not a chat issue —
-      see that entry). Holding off on any further chat changes until
-      Steven has tested the current reverted state and reports back. One
-      option for later, not yet implemented: EMCO's own native gag-list
-      mechanism (`emco gag <pattern>`) could potentially suppress the
-      artifact directly without touching `route()` at all, once its
-      exact shape is confirmed.
+- [ ] **EMCO chat bug (the "S"/duplicate-line issue) — REAL ROOT CAUSE
+      FOUND AND FIXED 2026-07-11, needs live confirmation.** Reopened
+      again after Steven reported it recurring ("the extra line S has
+      begun to appear again") and asked whether chat should be captured
+      via script or "the append demonnic with deleteline." Investigated
+      via logs first: `log/MyDSL_EMCO_Chat/2026/07/08/All.html` incidentally
+      revealed a real but SEPARATE cosmetic bug — literal `&lt;br&gt;` text
+      visible in the HTML log output — traced to vendored
+      `EMCOChat/demontools.lua`'s `decho2html()` (inserts a literal `<br>`
+      string via `text:gsub("\n","<br>")`, then HTML-escapes the whole
+      thing including that literal string). This is vendored-library code
+      (`EMCOChat/` — "vendored, unmodified" per project philosophy) and is
+      log-file-only, not visible in the live UI, so it's very unlikely to
+      be what Steven's actually seeing — noted here but NOT fixed, out of
+      scope for the vendored library.
+      **The actual live-visible bug**: `MyDSL_ChatTriggers.lua`'s
+      `route()` calls were completely UNANCHORED regex (no leading `^`)
+      using a quote-CROSSING `.+` for the speaker-name prefix — despite
+      the file's own comments already documenting the real native pattern
+      as fully anchored (`"^\a?You tell .+\s+'.*'$"`). This meant a verb
+      word appearing INSIDE a different message's own quoted dialogue
+      could independently match a second, unrelated `route()` pattern —
+      e.g. `"Vaelis tells you 'watch what she says about it'"` matched
+      BOTH the Tells pattern AND the Local "says" pattern. Confirmed via
+      Python `re` against the full 328,643-line clean corpus: **15 real
+      lines matched more than one pattern under the old code** (e.g.
+      `"Manus says 'Please feel free to ask me...'"` hit both Local and
+      OOC), each one causing a double `append()`+`deleteLine()` fire — the
+      second fire operates on whatever's left after the first
+      `deleteLine()` already ran, which is the confirmed mechanism for
+      both a stray fragment/character artifact and an unrelated line
+      getting eaten from the main console. Fixed by anchoring every
+      pattern to line-start and changing every prefix from `.+` to
+      `[^']+`/`[^']*` (can't cross a quote, so a verb can never be "found"
+      inside someone else's dialogue). Also merged 3 same-tab pairs that
+      were separately double-matching identical real text even without
+      any quote-crossing (`gossips`/`clan gossips`, `Kingdom: '`/`OOC
+      Kingdom: '`, and dropped a redundant bare `"ask"` from the
+      answers/newbie catch-all). **Caught one regression before it shipped
+      via the same corpus check**: the first anchored Kingdom pattern
+      required "Kingdom:" to be the very first thing on the line, but all
+      23 real corpus examples have a speaker name first (`"Sofie Kingdom:
+      'What kind of swords?'"`) — fixed to make the name prefix optional
+      instead of assumed-absent. Final verification: 0 multi-matches
+      across the full corpus (down from 15), 0 lost coverage vs. the old
+      patterns. Also answers Steven's architecture question directly: the
+      append+deleteLine mechanism already runs through real Mudlet
+      triggers (`tempRegexTrigger` creates the same kind of trigger the
+      Trigger Editor GUI would, just registered from Lua) — "script vs.
+      trigger" wasn't actually the axis the bug was on; "one line matching
+      N independent triggers at once" was. Did NOT move to EMCO's own
+      native gag-list (`self.gags`/`emco gag <pattern>`) — checked it
+      (`EMCO:matchesGag()`, `EMCOChat/emco.lua:1742`) and confirmed it
+      only supports plain Lua string patterns (no alternation, no
+      lookaround), strictly less expressive than the PCRE these routing
+      patterns need (e.g. `(?:You say|X says)`), and it's a suppress-only
+      mechanism — it can't route to a *different* tab, only hide a line
+      from one. Keeping the current architecture (now fixed) is correct.
+      **New, explicitly requested feature also added**: per Steven ("want
+      says, tells, shouts, yell to echo and not be gagged"), `route()`
+      gained an optional `gag` parameter (default true, unchanged
+      behavior) — set to `false` for exactly the say/tells/shout/yell
+      patterns he named, so those still route to their EMCO tab but also
+      stay visible on the main console. Whisper/group/OOC/city/misc
+      channels are untouched (still gagged from main, as before). Verified
+      via the emulation harness that `gag=false` skips `deleteLine()`
+      while `gag=true` (default) still fires it.
 - [ ] **Sibling-profile log scan — narrower dead end than first thought,
       corrected 2026-07-09.** The 2026-07-08 scan (checked DSL1/
       Qinrathaz-Vaelis/all 3 PNP profiles for room-presence verb patterns
