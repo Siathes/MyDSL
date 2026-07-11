@@ -271,20 +271,6 @@ Fixed in code, none of it confirmed against a real sustained fight yet:
       mean diverging from PNP with per-noun tracking, which is real new
       scope, not a bug fix. Flagging for Steven's call, not building it
       unprompted.
-- [ ] Quoted weapon names (`"Nadrik's Honor"`) — checked the DSL2/sibling
-      corpus 2026-07-09 (zero hits), then 2026-07-10 checked ~9,000 real
-      lines across **24** full AGL tournament fight transcripts spanning
-      05/24/26 through 06/30/26 (see `log/AGL/`) — still zero occurrences
-      of a quoted name attached to a weapon in an actual damage line. Did
-      confirm quoted item names are a real DSL convention (`"A black
-      serpent shaped vial, inscribed \"Stoning\"."` — a potion, seen
-      repeatedly), so the format itself exists, just apparently never on
-      a *weapon* specifically, across every fight logged anywhere
-      available. The damage trigger's capture groups genuinely don't
-      include `"` in their character class, so this remains a plausible
-      latent bug, but there's still no real text to verify a fix against
-      — not guessing at a pattern with zero corpus evidence. Lower
-      priority than before given the now-quite-large negative sample.
 - [x] **PNP-faithful display rewrite — confirmed already built 2026-07-11.**
       Traced main-console gag/replace logic and the round-summary flush
       handler directly against PNP's `handle_damage()`/`output_damage()` —
@@ -389,44 +375,6 @@ Confirmed broken, FIXED 2026-07-09:
       (from a Discord question): the Sharp weapon flag just adds bonus
       damage and never echoes anything, so there's no trigger text to
       write, ever. Working as intended — closing.
-- [ ] `procUnholy` ("unholy wrath race"), `procManaSelf` ("drawing your
-      energy away") — still zero occurrences found anywhere, including
-      the full sibling-profile scan and (2026-07-10) **24** full AGL
-      tournament fight transcripts spanning 05/24/26-06/30/26 (`log/AGL/`,
-      ~9,000 lines combined, fetched via forum login — the DSL forums'
-      AGL board goes back 88 pages, this was a representative sample, not
-      exhaustive). One near-miss in the AGL data worth noting:
-      `"Paklop's energy drain hits Lohla."` — not procManaSelf, just a
-      regular damage line where "energy drain" is the weapon-noun
-      (already covered by the main damage trigger, not a special proc).
-      Also saw `"Zecnys stops using unholy robes."` — an armor name
-      containing "unholy," not the `procUnholy` trigger text. Still
-      nothing for either real proc.
-- [ ] **combatSense1/2 (sense-based evasion) — narrowed 2026-07-09, still
-      unconfirmed wording.** Checked `DSL_Helpfiles/danger sense.txt`:
-      the underlying ability is real, not invented — `"Danger Sense
-      Allows you to sense what your opponent is going to do before they
-      do it so you can dodge or deflect their blow. Available to bards
-      and bard reclasses."` So the *mechanic* is confirmed, narrowing the
-      open question to just the exact echo wording, which remains
-      unverified against any real text — searched the full DSL2 corpus,
-      `log/Archive.zip`, all 3 PNP sibling profiles, `DSL1`,
-      `Qinrathaz-Vaelis`, every other profile on this machine, and
-      (2026-07-10) 24 full AGL tournament fights spanning over a month of
-      matches, zero hits anywhere for "senses"/"deflects the blow"/
-      "avoids its blow" in a combat context.
-      Helpfiles document usage/syntax, not raw output text, so this
-      doesn't confirm the trigger's exact wording either way. Likely
-      explanation for the total absence: bard-only skill, and apparently
-      no bard character (or bard-classed AGL fighter) has used it during
-      any logged session available anywhere. (Found one look-alike red
-      herring while searching: `"[51] Herbert deflects [51] Archal's
-      charge with a shield."` — a real line, but a different mechanic
-      entirely, a shield-charge defense, not Danger Sense.) Would need a
-      bard specifically playing/logging to ever confirm the real wording.
-- [ ] `A.ids.triggers.song` (AffectsView "Song:" format) — prior
-      "confirmed" matches turned out to be pre-DSL2 log data; not
-      re-checked against the sibling-profile logs this pass.
 - [ ] PNP Highlighter's `"[51] Name"` rewrite — confirmed this IS a
       separate mechanism from the Coliseum location-prefix fixed above
       (the two stack together in Highlighter-enabled sibling logs, e.g.
@@ -440,6 +388,46 @@ Discuss once combat is confirmed working (deliberately deferred, per
 Steven: "make it work like PNP, then discuss the additions"):
 - [ ] Whether `renderSummary()`'s persistent "Fight summary" block (our own
       addition, no PNP equivalent) should match PNP's sentence style
+
+---
+
+## PAUSED — needs more captured log data before further progress
+Per Steven 2026-07-11: "lets pause the capture logs phase and the
+associated issues... we will return to them when we have more data to
+scan." These 4 items all hit the same wall — every available log source
+on this machine has already been searched (DSL2's own corpus, all 3 PNP
+sibling profiles, `DSL1`, `Qinrathaz-Vaelis`, `log/Archive.zip`, and 24
+full AGL tournament fight transcripts spanning over a month) with zero
+real occurrences of the text needed to confirm a pattern. Not guessing at
+patterns with zero corpus evidence — parked here as one group instead of
+scattered across sections, so it's easy to re-scan as a batch once
+Steven's own gameplay logs/notes bring in new data, rather than
+re-litigated piecemeal.
+- [ ] **Quoted weapon names** (`"Nadrik's Honor"`) in damage lines — the
+      damage trigger's capture groups don't include `"` in their
+      character class, a plausible latent bug, but zero confirmed
+      examples anywhere of a quoted name attached to a weapon specifically
+      (quoted *item* names are a real, confirmed DSL convention otherwise
+      — e.g. a potion `"inscribed \"Stoning\""` — just never seen on a
+      weapon in any damage line across ~9,000 lines of real fight text).
+- [ ] **`procUnholy`** ("unholy wrath race") / **`procManaSelf`**
+      ("drawing your energy away") — zero occurrences anywhere. Two
+      near-misses found and ruled out, not force-fit: `"Paklop's energy
+      drain hits Lohla."` (a regular damage line, "energy drain" is just
+      the weapon-noun) and `"Zecnys stops using unholy robes."` (an armor
+      name containing "unholy," not the trigger text).
+- [ ] **`combatSense1/2`** (sense-based evasion) — the underlying ability
+      is confirmed real (`DSL_Helpfiles/danger sense.txt`, bard/bard-
+      reclass only), but the exact echo wording is unconfirmed anywhere.
+      Likely explanation: bard-only skill, and no bard character has used
+      it in any logged session available on this machine. Needs a bard
+      specifically playing/logging to ever confirm the real wording — a
+      structurally different kind of gap than the others here (needs a
+      specific class played, not just more general logs), but same
+      "paused pending new data" status.
+- [ ] **`A.ids.triggers.song`** (AffectsView "Song:" format) — prior
+      "confirmed" matches turned out to be pre-DSL2 log data; not
+      re-checked against the sibling-profile logs.
 
 ---
 
