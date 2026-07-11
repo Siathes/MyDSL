@@ -432,8 +432,8 @@ re-litigated piecemeal.
 ---
 
 ## OPEN — Reported bugs, not yet fixed
-- [ ] **Quiet-mode prompt gag failure — REOPENED 2026-07-09, misread
-      Steven's confirmation.** Original bug (2026-07-08): quiet mode
+- [x] **Quiet-mode prompt gag failure — CONFIRMED FIXED 2026-07-11.**
+      Original bug (2026-07-08): quiet mode
       prepends a literal `"[Quiet] "` tag to the vitals prompt, breaking
       the native prompt-gag trigger's start-anchored pattern. Gave Steven
       the corrected pattern to paste into the Trigger Editor for the
@@ -473,15 +473,22 @@ re-litigated piecemeal.
       brand-new characters before they set a custom prompt):
       `^(?:\[Quiet\] )?(?:\[\d+/\d+HP \| \d+/\d+M \| \d+/\d+MV \] \[ .* \|
       .* \| .* \| .* \]|<\d+hp \d+m \d+mv>)\s*$` — verified against both
-      formats. **Still need**: a fresh log from an established character
-      (Kien/Vrokt/Qinrathaz) to actually confirm the original long-format
-      fix works live.
+      formats, not yet applied.
+      **CONFIRMED LIVE 2026-07-11, closing.** `log/2026-07-11#09-23-09.html`
+      (an established character, Vaelis) shows Steven directly testing it
+      and leaving himself a marker (`lua cecho("quiet was toggled and
+      gagged properly")`, right after toggling `quiet` on) — matches this
+      project's established cecho-log-marker convention for flagging
+      results as they happen. Independently confirmed via the log itself:
+      zero long-format or angle-bracket vitals lines leaked anywhere in
+      the full ~2900-line session. Real long-format fix confirmed working
+      on an established character at last.
 - [x] **GroupView not populating — confirmed fixed 2026-07-07, per Steven
       live.** "groupview works, there have been many edits since that bug
       report." Not independently isolated to one specific fix — resolved
       as a side effect of everything else touched this session.
-- [ ] **EMCO chat bug (the "S"/duplicate-line issue) — REAL ROOT CAUSE
-      FOUND AND FIXED 2026-07-11, needs live confirmation.** Reopened
+- [x] **EMCO chat bug (the "S"/duplicate-line issue) — CONFIRMED FIXED
+      2026-07-11.** Reopened
       again after Steven reported it recurring ("the extra line S has
       begun to appear again") and asked whether chat should be captured
       via script or "the append demonnic with deleteline." Investigated
@@ -547,6 +554,19 @@ re-litigated piecemeal.
       channels are untouched (still gagged from main, as before). Verified
       via the emulation harness that `gag=false` skips `deleteLine()`
       while `gag=true` (default) still fires it.
+      **CONFIRMED LIVE 2026-07-11, closing.** Checked
+      `log/MyDSL_EMCO_Chat/2026/07/11/All.html` (real gameplay, Vaelis) —
+      the fix committed at `780d7fe` (09:19:54) landed while this exact
+      session was running (main log started 09:23:09, so the reload at
+      login picked up the fixed file). All 11 standalone "S" artifacts in
+      this log cluster in the file's *pre-fix* portion (before the first
+      in-session timestamp, ~08:31:17) — the ~1h45m of continued play
+      logged *after* the fix (08:31 through the file's last entry,
+      10:16:31) shows **zero** "S" artifacts and zero real duplicate
+      lines (one apparent repeat, a merchant NPC's stock "I don't sell
+      that" response firing 4 times, is a real in-game repeat with 4
+      distinct timestamps, correctly not a duplicate-line bug). Clean
+      confirmation the fix works.
 - [ ] **Sibling-profile log scan — narrower dead end than first thought,
       corrected 2026-07-09.** The 2026-07-08 scan (checked DSL1/
       Qinrathaz-Vaelis/all 3 PNP profiles for room-presence verb patterns
