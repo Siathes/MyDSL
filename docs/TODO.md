@@ -144,18 +144,19 @@ Fixed in code, none of it confirmed against a real sustained fight yet:
       found.
 - [ ] Weapon-flag proc attribution via `last_attacker`/`last_target`/`last_noun`
 - [ ] Quoted weapon names (`"Nadrik's Honor"`) — checked the DSL2/sibling
-      corpus 2026-07-09 (zero hits), then 2026-07-10 checked ~2,000 real
-      lines across 6 full AGL tournament fight transcripts (see
-      `log/AGL/`) — still zero occurrences of a quoted name attached to a
-      weapon in an actual damage line. Did confirm quoted item names are
-      a real DSL convention (`"A black serpent shaped vial, inscribed
-      \"Stoning\"."` — a potion, seen repeatedly), so the format itself
-      exists, just apparently never on a *weapon* in any fight logged
-      anywhere available. The damage trigger's capture groups genuinely
-      don't include `"` in their character class, so this remains a
-      plausible latent bug, but there's still no real text to verify a
-      fix against — not guessing at a pattern with zero corpus evidence.
-      Lower priority than before given the much larger negative sample.
+      corpus 2026-07-09 (zero hits), then 2026-07-10 checked ~9,000 real
+      lines across **24** full AGL tournament fight transcripts spanning
+      05/24/26 through 06/30/26 (see `log/AGL/`) — still zero occurrences
+      of a quoted name attached to a weapon in an actual damage line. Did
+      confirm quoted item names are a real DSL convention (`"A black
+      serpent shaped vial, inscribed \"Stoning\"."` — a potion, seen
+      repeatedly), so the format itself exists, just apparently never on
+      a *weapon* specifically, across every fight logged anywhere
+      available. The damage trigger's capture groups genuinely don't
+      include `"` in their character class, so this remains a plausible
+      latent bug, but there's still no real text to verify a fix against
+      — not guessing at a pattern with zero corpus evidence. Lower
+      priority than before given the now-quite-large negative sample.
 - [ ] PNP-faithful display rewrite (per-swing live feed, round-summary to
       main, `mydsl combat mode raw|condensed|gag`)
 
@@ -253,11 +254,13 @@ Confirmed broken, FIXED 2026-07-09:
       write, ever. Working as intended — closing.
 - [ ] `procUnholy` ("unholy wrath race"), `procManaSelf` ("drawing your
       energy away") — still zero occurrences found anywhere, including
-      the full sibling-profile scan and (2026-07-10) 6 full AGL
-      tournament fight transcripts (`log/AGL/`, ~7,000 lines combined,
-      fetched via forum login). One near-miss in the AGL data worth
-      noting: `"Paklop's energy drain hits Lohla."` — not procManaSelf,
-      just a regular damage line where "energy drain" is the weapon-noun
+      the full sibling-profile scan and (2026-07-10) **24** full AGL
+      tournament fight transcripts spanning 05/24/26-06/30/26 (`log/AGL/`,
+      ~9,000 lines combined, fetched via forum login — the DSL forums'
+      AGL board goes back 88 pages, this was a representative sample, not
+      exhaustive). One near-miss in the AGL data worth noting:
+      `"Paklop's energy drain hits Lohla."` — not procManaSelf, just a
+      regular damage line where "energy drain" is the weapon-noun
       (already covered by the main damage trigger, not a special proc).
       Also saw `"Zecnys stops using unholy robes."` — an armor name
       containing "unholy," not the `procUnholy` trigger text. Still
@@ -272,8 +275,9 @@ Confirmed broken, FIXED 2026-07-09:
       unverified against any real text — searched the full DSL2 corpus,
       `log/Archive.zip`, all 3 PNP sibling profiles, `DSL1`,
       `Qinrathaz-Vaelis`, every other profile on this machine, and
-      (2026-07-10) 6 full AGL tournament fights, zero hits anywhere for
-      "senses"/"deflects the blow"/"avoids its blow" in a combat context.
+      (2026-07-10) 24 full AGL tournament fights spanning over a month of
+      matches, zero hits anywhere for "senses"/"deflects the blow"/
+      "avoids its blow" in a combat context.
       Helpfiles document usage/syntax, not raw output text, so this
       doesn't confirm the trigger's exact wording either way. Likely
       explanation for the total absence: bard-only skill, and apparently
