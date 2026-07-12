@@ -264,6 +264,34 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       no confirmed "known" match. `MyDSL_ScanView.lua`'s RightHere render
       now shows a colored `[Known]`/`[Seen]`/`[Unknown]` badge per mob,
       same color scheme as the DSL1 reference (green/cyan/yellow).
+- [ ] **PortraitView: real "contain" (shrink-to-fit) renderer, fixed
+      2026-07-12, needs live confirmation.** Per Steven ("the portrait is
+      supposed to shrink kien's .png to fit the window") after screenshots
+      showed a tiny, blown-up corner of the character art instead of the
+      whole picture shrunk down. Root cause: `imageStyleFill()`'s
+      `border-image: url(...)` CSS paints into the *border* area (a
+      9-slice UI-frame technique), not the label's content area — without
+      matching `border-image-slice`/width values it never actually scaled
+      the whole picture to fit, regardless of Mudlet version. That
+      renderer existed as a deliberate workaround for a real Mudlet
+      4.20.1 issue (`Label:setBackgroundImage()` not reliably repainting
+      inside a docked UserWindow) — but "contain" was being silently
+      coerced to the same broken renderer either way. Built a real
+      contain-fit renderer (`containImageHTML()`) using two genuine
+      Mudlet/Geyser APIs: `getImageSize(path)` (native pixel dimensions
+      of the file) and `label:get_width()/get_height()` (the label's
+      actual live rendered pixel size) to compute a proper aspect-
+      preserving scale, then draws it via an `<img>` tag through
+      `label:echo()` — the same mechanism `MyDSL_MoonWeather.lua` already
+      uses successfully for its moon icons, a completely different
+      Mudlet pathway from `setBackgroundImage()`, so unaffected by that
+      original workaround's reasoning. Default `fit` changed from
+      `"cover"` to `"contain"` (both the in-code default and the already-
+      persisted `MyDSL/portraits/portrait_profiles.lua`, which would
+      otherwise have kept overriding the new default). `cover`/`stretch`
+      still use the old, confirmed-unreliable border-image renderer —
+      not redesigned this pass, since Steven only asked about the
+      shrink-to-fit case specifically.
 - [ ] CharacterAssist: rearm (weapon+shield), spellup/setspell,
       blind-vision check.
 

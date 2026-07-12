@@ -63,7 +63,12 @@ P.config.fontSize = tonumber(P.config.fontSize or 9) or 9
 P.config.debug = P.config.debug == true
 P.config.enabled = P.config.enabled ~= false
 P.config.frame = P.config.frame ~= false
-P.config.fit = P.config.fit or "cover" -- cover|stretch; contain is accepted but mapped to cover on Mudlet/Linux
+-- Default changed 2026-07-12 to "contain" (real, working renderer now --
+-- see containImageHTML()), per Steven ("the portrait is supposed to
+-- shrink kien's .png to fit the window"). cover/stretch still exist but
+-- use the older, confirmed-unreliable border-image renderer -- not fixed
+-- this pass since Steven only asked about the shrink-to-fit behavior.
+P.config.fit = P.config.fit or "contain"
 P.config.defaultExt = P.config.defaultExt or "png"
 P.config.missingMode = P.config.missingMode or "caption" -- caption|blank
 P.config.caption = P.config.caption ~= false
@@ -645,6 +650,39 @@ local function imageStyleContainAfterSetBackground()
   ]]
 end
 
+-- containImageHTML(path) -- added 2026-07-12, real bug fix. Steven: "the
+-- portrait is supposed to shrink kien's .png to fit the window." The old
+-- imageStyleFill()/border-image renderer below doesn't actually scale a
+-- picture to fit its box at all -- CSS border-image paints into the
+-- border area (a 9-slice UI-frame technique), not the label's content area,
+-- so without matching border-image-slice/width values it only ever showed
+-- a small, blown-up sliver of the source image instead of the whole
+-- picture shrunk down (confirmed live via screenshot: a tiny corner of the
+-- portrait, not the whole character). Building the image into the label's
+-- actual rich-text content instead, the same mechanism MyDSL_MoonWeather.lua
+-- already uses successfully for its moon-phase icons (an <img> tag via
+-- echo(), not setBackgroundImage() -- a completely different Mudlet
+-- pathway, so this isn't affected by whatever setBackgroundImage()
+-- reliability issue the old approach was originally working around).
+-- Computes a true aspect-preserving "contain" fit (whole image visible,
+-- shrunk to fit, letterboxed on whichever axis doesn't match) using two
+-- real Mudlet/Geyser APIs: getImageSize(path) (native pixel dimensions of
+-- the file) and label:get_width()/get_height() (the label's actual live
+-- rendered pixel size, confirmed real via Mudlet's own bundled
+-- GeyserContainer.lua).
+local function containImageHTML(label, path)
+  local boxW, boxH = label:get_width(), label:get_height()
+  if not boxW or not boxH or boxW <= 0 or boxH <= 0 then return nil end
+  local ok, imgW, imgH = pcall(getImageSize, path)
+  if not ok or not imgW or not imgH or imgW <= 0 or imgH <= 0 then return nil end
+  local scale  = math.min(boxW / imgW, boxH / imgH)
+  local dispW  = math.max(1, math.floor(imgW * scale))
+  local dispH  = math.max(1, math.floor(imgH * scale))
+  return string.format(
+    '<div align="center" style="padding-top:%dpx;"><img src="file:///%s" width="%d" height="%d"/></div>',
+    math.max(0, math.floor((boxH - dispH) / 2)), cssPath(path), dispW, dispH)
+end
+
 local function updateCaption(text, visible)
   if not P.caption then return end
   if visible == false or P.config.caption == false then
@@ -698,17 +736,30 @@ function P.renderImage(path, reason)
   local renderFit = fit
   local rendered = false
 
-  -- Mudlet 4.20.1 on this Linux/Geyser.UserWindow setup does not reliably
-  -- repaint Label:setBackgroundImage() inside a docked UserWindow. The old
-  -- CharPic-style border-image renderer is the reliable path, so contain is
-  -- accepted for command compatibility but mapped to cover for actual drawing.
-  if renderFit == "contain" then renderFit = "cover" end
+  if renderFit == "contain" then
+    -- Real fix 2026-07-12 -- see containImageHTML()'s comment above for the
+    -- full root-cause writeup. Falls back to the legacy border-image
+    -- renderer only if getImageSize()/get_width()/get_height() genuinely
+    -- fail (e.g. an unreadable file) -- never silently shows nothing.
+    local html = containImageHTML(P.label, path)
+    if html then
+      pcall(function() P.label:setStyleSheet(baseStyle()) end)
+      pcall(function() P.label:echo(html) end)
+      rendered = true
+    end
+  end
 
-  -- cover/stretch/fill/contain all use the working CharPic border-image renderer.
-  pcall(function() P.label:setStyleSheet(imageStyleFill(path)) end)
-  rendered = true
+  if not rendered then
+    -- cover/stretch/fill (and contain, if the real renderer above couldn't
+    -- run) use the old CharPic-style border-image renderer. Confirmed to
+    -- not actually scale-to-fit correctly (see containImageHTML()'s
+    -- comment) -- left as the fallback path since Steven only asked for
+    -- contain to be fixed, not a redesign of cover/stretch too.
+    pcall(function() P.label:setStyleSheet(imageStyleFill(path)) end)
+    pcall(function() P.label:echo("") end)
+    rendered = true
+  end
 
-  pcall(function() P.label:echo("") end)
   updateCaption(P.state.currentName or P.state.charName or P.getCharName(), true)
   P.state.lastReason = reason or "image"
   P.state.renderMode = renderFit
