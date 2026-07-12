@@ -295,10 +295,18 @@ function F.ensureUI()
 
   F.ui.panel  = Geyser.Label:new({ name = F.name .. "_Panel",  x = 0, y = 0, width = "100%", height = "100%" }, F.ui.win)
   F.ui.title  = Geyser.Label:new({ name = F.name .. "_Title",  x = 0, y = "4%", width = "100%", height = "14%" }, F.ui.win)
-  F.ui.tube   = Geyser.Label:new({ name = F.name .. "_Tube",   x = "35%", y = "22%", width = "30%", height = "52%" }, F.ui.win)
-  F.ui.fill   = Geyser.Label:new({ name = F.name .. "_Fill",   x = "38%", y = "25%", width = "24%", height = "46%" }, F.ui.win)
-  F.ui.seconds= Geyser.Label:new({ name = F.name .. "_Seconds",x = 0, y = "43%", width = "100%", height = "16%" }, F.ui.win)
-  F.ui.detail = Geyser.Label:new({ name = F.name .. "_Detail", x = 0, y = "75%", width = "100%", height = "20%" }, F.ui.win)
+  -- Layout reworked 2026-07-12, per Steven ("move the timer to a more
+  -- visible location like bottom above the cycle counter"): tube
+  -- shrunk (52% -> 38% tall, same 3%-top/3%-bottom inset for fill) to
+  -- make room for the countdown text as its own distinct row clear of
+  -- the tube graphic, sitting directly above the cycle-count row --
+  -- confirmed this exact arrangement via AskUserQuestion before
+  -- building it. render()'s fillH/fillY math below uses fill's new max
+  -- height (32, was 46) to stay in sync with this.
+  F.ui.tube   = Geyser.Label:new({ name = F.name .. "_Tube",   x = "35%", y = "22%", width = "30%", height = "38%" }, F.ui.win)
+  F.ui.fill   = Geyser.Label:new({ name = F.name .. "_Fill",   x = "38%", y = "25%", width = "24%", height = "32%" }, F.ui.win)
+  F.ui.seconds= Geyser.Label:new({ name = F.name .. "_Seconds",x = 0, y = "62%", width = "100%", height = "14%" }, F.ui.win)
+  F.ui.detail = Geyser.Label:new({ name = F.name .. "_Detail", x = 0, y = "78%", width = "100%", height = "14%" }, F.ui.win)
   F.ui.strip  = Geyser.Label:new({ name = F.name .. "_Strip",  x = "18%", y = "94%", width = "64%", height = "3%" }, F.ui.win)
 
   F.ui.panel:setStyleSheet(stylePanel())
@@ -337,9 +345,12 @@ function F.render(reason)
   end
 
   local pal = F.palette(cycles, active)
-  local fillH = math.floor(46 * pct + 0.5)
+  -- 32 = fill's max height (was 46 before the 2026-07-12 layout rework
+  -- that shrunk the tube to make room for the countdown row) -- keep in
+  -- sync with F.ensureUI()'s F.ui.fill height above.
+  local fillH = math.floor(32 * pct + 0.5)
   if fillH < 2 and pct > 0 then fillH = 2 end
-  local fillY = 25 + (46 - fillH)
+  local fillY = 25 + (32 - fillH)
 
   pcall(function()
     F.ui.fill:move("38%", tostring(fillY) .. "%")

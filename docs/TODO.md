@@ -113,6 +113,14 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       full-bleed (`x=0, width=100%`) pending Steven's decision: drop this
       ask, or try the text-prepending approach with his live testing to
       verify it behaves.
+- [ ] **Alterform timer repositioned — added 2026-07-12, needs live
+      confirmation.** Per Steven ("move the timer to a more visible
+      location like bottom above the cycle counter"). Confirmed the
+      exact target layout via AskUserQuestion before building: shrunk
+      the tube (52% → 38% tall) to make room for the countdown as its
+      own distinct text row, clear of the tube graphic, sitting directly
+      above the cycle-count row. `MyDSL_AlterformView.lua`'s fill-percent
+      math updated to match the tube's new dimensions.
 - [ ] CharacterAssist: rearm (weapon+shield), spellup/setspell,
       blind-vision check.
 
