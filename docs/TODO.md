@@ -292,6 +292,20 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       still use the old, confirmed-unreliable border-image renderer —
       not redesigned this pass, since Steven only asked about the
       shrink-to-fit case specifically.
+- [ ] **LocationView: same border-image bug as PortraitView, fixed
+      2026-07-12, needs live confirmation.** Per Steven ("should prob
+      check location after targetview, since it has images too") after
+      the Portrait fix above. Confirmed via grep: `MyDSL_LocationView.lua`
+      literally copied "the proven PortraitView/old CharPic render path"
+      (its own header comment), so it inherited the identical bug —
+      room pictures were never actually being scaled into the window
+      either. Applied the same fix: `containImageHTML()` using
+      `getImageSize()`/`label:get_width()/get_height()`, drawn via an
+      `<img>` tag through `label:echo()`. Default `fit` changed from
+      `"cover"` to `"contain"` in the in-code default, the
+      `loadProfiles()` fallback, and the already-persisted
+      `MyDSL/roompics/location_profiles.lua`. `cover`/`stretch` still use
+      the old renderer, unchanged.
 - [ ] CharacterAssist: rearm (weapon+shield), spellup/setspell,
       blind-vision check.
 

@@ -64,7 +64,13 @@ M.config.x = M.config.x or 740
 M.config.y = M.config.y or 80
 M.config.w = M.config.w or 380
 M.config.h = M.config.h or 280
-M.config.fit = M.config.fit or "cover"
+-- Default changed 2026-07-12 to "contain" (real, working renderer now --
+-- see containImageHTML()), matching MyDSL_PortraitView.lua's identical
+-- fix -- this file's own header comment confirms it copied Portrait's
+-- border-image approach verbatim, so it inherited the same never-
+-- actually-scales bug. cover/stretch still exist but use the older,
+-- confirmed-unreliable border-image renderer.
+M.config.fit = M.config.fit or "contain"
 M.config.missing = M.config.missing or "blank"
 M.config.font = M.config.font or 8
 M.config.debug = M.config.debug or false
@@ -197,7 +203,7 @@ function M.loadProfiles()
   ensureDir(M.dir)
   local data = loadTable(M.profileFile()) or {}
   M.roomMap = data.roomMap or M.roomMap or {}
-  M.config.fit = data.fit or M.config.fit or "cover"
+  M.config.fit = data.fit or M.config.fit or "contain"
   M.config.missing = data.missing or M.config.missing or "caption"
   M.title = data.title or M.title or "-= Location =-"
   M.config.shown = (data.shown ~= nil) and data.shown or M.config.shown
@@ -486,6 +492,32 @@ function M.ensureUI()
   return true
 end
 
+-- containImageHTML(label, path) -- added 2026-07-12, same real bug fix as
+-- MyDSL_PortraitView.lua's function of the same name (see its comment for
+-- the full root-cause writeup): border-image CSS paints into the *border*
+-- area (a 9-slice UI-frame technique), not the label's content area, so it
+-- never actually scaled a room picture into the box on any Mudlet version
+-- -- confirmed here too since this file's own header comment says it
+-- copied "the proven PortraitView/old CharPic render path" verbatim,
+-- meaning it inherited the identical bug. Uses the same two real Mudlet/
+-- Geyser APIs Portrait's fix uses: getImageSize(path) (native pixel
+-- dimensions) and label:get_width()/get_height() (live rendered pixel
+-- size), drawn via an <img> tag through label:echo() -- the same
+-- mechanism MyDSL_MoonWeather.lua already uses successfully for its moon
+-- icons.
+local function containImageHTML(label, path)
+  local boxW, boxH = label:get_width(), label:get_height()
+  if not boxW or not boxH or boxW <= 0 or boxH <= 0 then return nil end
+  local ok, imgW, imgH = pcall(getImageSize, path)
+  if not ok or not imgW or not imgH or imgW <= 0 or imgH <= 0 then return nil end
+  local scale  = math.min(boxW / imgW, boxH / imgH)
+  local dispW  = math.max(1, math.floor(imgW * scale))
+  local dispH  = math.max(1, math.floor(imgH * scale))
+  return string.format(
+    '<div align="center" style="padding-top:%dpx;"><img src="file:///%s" width="%d" height="%d"/></div>',
+    math.max(0, math.floor((boxH - dispH) / 2)), cssPath(path), dispW, dispH)
+end
+
 function M.applyBaseStyle()
   if not (M.ui and M.ui.image and M.ui.caption) then return end
   local border = M.config.frame and ("1px solid " .. themeBorder()) or "0px solid rgba(0,0,0,0)"
@@ -546,14 +578,38 @@ function M.render(path, caption, source, room)
 
   local p = cssPath(path)
   local border = M.config.frame and ("1px solid " .. themeBorder()) or "0px solid rgba(0,0,0,0)"
-  -- Reliable path for Mudlet 4.20.1 Linux UserWindows.  Even if the requested
-  -- fit is contain, render with border-image to avoid black/unpainted labels.
-  M.ui.image:setStyleSheet(string.format([[
-    background-color: %s;
-    border: %s;
-    border-radius: 6px;
-    border-image: url("%s");
-  ]], themeBg(), border, p))
+
+  local rendered = false
+  if M.config.fit == "contain" then
+    -- Real fix 2026-07-12 -- see containImageHTML()'s comment above for the
+    -- full root-cause writeup (identical bug to MyDSL_PortraitView.lua).
+    -- Falls back to the legacy border-image renderer only if
+    -- getImageSize()/get_width()/get_height() genuinely fail.
+    local html = containImageHTML(M.ui.image, path)
+    if html then
+      M.ui.image:setStyleSheet(string.format([[
+        background-color: %s;
+        border: %s;
+        border-radius: 6px;
+      ]], themeBg(), border))
+      M.ui.image:echo(html)
+      rendered = true
+    end
+  end
+
+  if not rendered then
+    -- cover/stretch/fill (and contain, if the real renderer above couldn't
+    -- run) use the old CharPic-style border-image renderer. Confirmed to
+    -- not actually scale-to-fit correctly (see containImageHTML()'s
+    -- comment) -- left as the fallback path, matching PortraitView's fix.
+    M.ui.image:setStyleSheet(string.format([[
+      background-color: %s;
+      border: %s;
+      border-radius: 6px;
+      border-image: url("%s");
+    ]], themeBg(), border, p))
+    M.ui.image:echo("")
+  end
 
   M.ui.caption:echo(caption)
   M.currentPath = path
