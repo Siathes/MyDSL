@@ -95,9 +95,17 @@ local function configFile()
   return getMudletHomeDir() .. "/MyDSL/combatview_config_" .. safeFileName(charName()) .. ".lua"
 end
 
+-- REAL BUG, found live 2026-07-11: Mudlet's real table.load(file, target)
+-- does not return anything -- it unpickles INTO an explicit second-
+-- argument table (confirmed in Mudlet's own bundled source). This used
+-- to call table.load(configFile()) with no second argument, so `data`
+-- was always nil -- Combat's font size never actually survived a restart
+-- (same bug found across ~10 call sites project-wide the same day -- see
+-- MyDSL_DataLayer.lua's MyDSL.load() for the full writeup).
 local function loadConfig()
-  local ok, data = pcall(table.load, configFile())
-  if ok and type(data) == "table" and type(data.fontSize) == "number" then
+  local data = {}
+  local ok = pcall(table.load, configFile(), data)
+  if ok and type(data.fontSize) == "number" then
     CV.config.fontSize = data.fontSize
   end
 end
@@ -229,7 +237,14 @@ function CV.init()
       x = 0, y = 0, width = "100%", height = "100%",
       wrapWidth = 400,
       fontSize  = CV.config.fontSize,
-      scrollBar = true,
+      -- scrollBar=false, fixed 2026-07-11 per Steven ("combat window has
+      -- a scroll bar now, please remove") -- this was actually the
+      -- original, never-touched value from Combat's very first version
+      -- (2026-06-04), missed by the 2026-07-11 pass that removed
+      -- scrollbars from History/PlayersNear "matching Scan/RightHere/
+      -- Target/Group" -- Combat should have been included in that same
+      -- consistency pass and wasn't.
+      scrollBar = false,
     }, combatWin)
   end
   if CV._mc.combat then CV._mc.combat:setFontSize(CV.config.fontSize) end
