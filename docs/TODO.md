@@ -332,6 +332,25 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       (`docs/CHANGELOG.md`); the maps haven't been looked at yet. Needs
       its own scoping pass (what format, whether it's per-area images
       like `MyDSL_LocationView.lua`'s room pictures or something else).
+- [ ] **Bestiary show/hide fixed, needs live confirmation.** Per Steven
+      ("bestiary show doesnt work, no window i can see"). `CR.show()`/
+      `CR.hide()`/the auto-show-on-lore-update path all called the raw
+      Geyser window's own `:show()`/`:hide()` directly, never touching
+      `MyDSL.Windows.registry[CR_WIN].visible` — the exact same "own
+      local visibility tracking, independent of WindowRegistry's real
+      state" bug already found and fixed in `MyDSL_MoonWeather.lua`
+      2026-07-11 — so whatever re-syncs windows to their registry-tracked
+      state (e.g. on character-identified) kept finding `visible` stuck
+      at its default `false` and hiding the window right back. `hide()`
+      was worse: it looked up `MyDSL.Windows.windows[CR_WIN]`, a table
+      that's never defined anywhere in `MyDSL_WindowRegistry.lua`
+      (confirmed via grep — referenced in two files, created in none),
+      so it silently did nothing every time regardless. Delegated
+      entirely to `MyDSL.Windows.show()`/`hide()` (same fix pattern as
+      MoonWeather). Confirmed the identical dead `MyDSL.Windows.windows`
+      reference also exists in `MyDSL_PortraitView.lua` but is harmless
+      there — every call site uses `getWindowObject() or P.window`, so
+      the fallback always saves it — not touched.
 - [ ] CharacterAssist: rearm (weapon+shield), spellup/setspell,
       blind-vision check.
 

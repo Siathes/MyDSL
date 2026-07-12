@@ -182,23 +182,39 @@ function CR.onLoreUpdate()
   if not lore or not lore.name then return end
   CR.render(lore.name)
   -- Auto-show window when fresh lore arrives.
-  local win = MyDSL.Windows.ensure(CR_WIN)
-  if win and win.show then pcall(win.show, win) end
+  if MyDSL.Windows then MyDSL.Windows.show(CR_WIN) end
 end
 
 
 ------------------------------------------------------------------------
 -- show() / hide()
 ------------------------------------------------------------------------
+-- Real bug, found live 2026-07-12 (Steven: "bestiary show doesnt work,
+-- no window i can see"): both of these (and the auto-show above) used to
+-- call the raw Geyser window object's own :show()/:hide() directly,
+-- never touching MyDSL.Windows.registry[CR_WIN].visible -- the exact
+-- same "own local visibility tracking, independent of WindowRegistry's
+-- real state" bug already found and fixed in MyDSL_MoonWeather.lua
+-- 2026-07-11. Whatever re-syncs all windows to their registry-tracked
+-- visible state (e.g. on "MyDSL.character.identified") would see this
+-- entry's visible still stuck at its default false and hide the window
+-- right back, even though :show() had just been called directly.
+-- hide() specifically was worse: it looked up
+-- MyDSL.Windows.windows[CR_WIN], a table that is never defined anywhere
+-- in MyDSL_WindowRegistry.lua (confirmed via grep -- only ever referenced,
+-- never created) -- so hide() could never even find the window object at
+-- all and silently did nothing every time. Delegating entirely to
+-- MyDSL.Windows.show()/hide() (the same already-correct mechanism
+-- MyDSL_CombatView.lua's CV.show()/hide() already use) makes
+-- registry.visible the single source of truth instead of two
+-- independently-tracked, out-of-sync flags.
 
 function CR.show()
-  local win = MyDSL.Windows.ensure(CR_WIN)
-  if win and win.show then pcall(win.show, win) end
+  if MyDSL.Windows then MyDSL.Windows.show(CR_WIN) end
 end
 
 function CR.hide()
-  local win = MyDSL.Windows and MyDSL.Windows.windows and MyDSL.Windows.windows[CR_WIN]
-  if win and win.hide then pcall(win.hide, win) end
+  if MyDSL.Windows then MyDSL.Windows.hide(CR_WIN) end
 end
 
 
