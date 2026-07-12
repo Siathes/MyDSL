@@ -854,8 +854,16 @@ function P.installAliases()
   installAlias("missing", [[^mydsl portrait missing\s+(caption|blank)$]], function() P.setMissing(matches[2]) end)
   installAlias("title", [[^mydsl portrait title\s+(.+)$]], function() P.setTitle(matches[2]) end)
   installAlias("dump", [[^mydsl portrait dump$]], function() P.dump() end)
+  -- Added 2026-07-12, per Steven ("undock a window and have it expand so
+  -- i can see pictures better, then when i push the redock button it
+  -- goes back to place... its really only for location and portrait") --
+  -- see MyDSL_WindowRegistry.lua's Section 8c for the real API and its
+  -- researched constraints (command-driven, not native-drag-detected;
+  -- size remembered on redock, position only best-effort).
+  installAlias("undock", [[^mydsl portrait undock$]], function() MyDSL.Windows.undock("MyDSL_Portrait", 500, 650) end)
+  installAlias("dock", [[^mydsl portrait dock$]], function() MyDSL.Windows.dock("MyDSL_Portrait") end)
   installAlias("help", [[^mydsl portrait(?: help)?$]], function()
-    ce("commands: status | show | hide | refresh | rebuild | set <path> | clear | font <size> | frame on|off | fit stretch|contain|cover (contain maps to cover) | dir [path] | name <character> | probe [character] | missing caption|blank | title <text>")
+    ce("commands: status | show | hide | refresh | rebuild | set <path> | clear | font <size> | frame on|off | fit stretch|contain|cover (contain maps to cover) | dir [path] | name <character> | probe [character] | missing caption|blank | title <text> | undock | dock")
   end)
 
   -- CharPic compatibility wrappers from the old script. These intentionally

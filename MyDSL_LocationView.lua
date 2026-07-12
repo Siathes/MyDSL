@@ -744,6 +744,7 @@ function M.help()
   mydsl location missing caption|blank
   mydsl location title <title text>
   mydsl location debug on|off
+  mydsl location undock|dock
 ]])
 end
 
@@ -798,6 +799,14 @@ local function locationCommand(rest)
   local miss = rest:match("^missing%s+(%S+)$"); if miss then M.setMissing(miss); return end
   local title = rest:match("^title%s+(.+)$"); if title then M.setTitle(title); return end
   local dbg = rest:match("^debug%s+(%S+)$"); if dbg then M.setDebug(dbg); return end
+  -- Added 2026-07-12, per Steven ("undock a window and have it expand so
+  -- i can see pictures better, then when i push the redock button it
+  -- goes back to place... its really only for location and portrait") --
+  -- see MyDSL_WindowRegistry.lua's Section 8c for the real API and its
+  -- researched constraints (command-driven, not native-drag-detected;
+  -- size remembered on redock, position only best-effort).
+  if rest == "undock" then MyDSL.Windows.undock("MyDSL_Location", 700, 550); return end
+  if rest == "dock" then MyDSL.Windows.dock("MyDSL_Location"); return end
   echoR("Unknown command. Try: mydsl location help")
 end
 

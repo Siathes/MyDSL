@@ -565,6 +565,138 @@ echo("[MyDSL] WindowRegistry: font sizes loaded from " .. FONT_FILE() .. " (" ..
 
 
 ------------------------------------------------------------------------
+-- SECTION 8c: DOCK/UNDOCK WITH REMEMBERED FLOATING GEOMETRY
+------------------------------------------------------------------------
+-- Added 2026-07-12, per Steven ("is there a way to save both window
+-- positions, the docked shape size locations, then the undocked shape
+-- size and location. i want to be able to undock a window and have it
+-- expand so i can see pictures better, then when i push the redock
+-- button it goes back to place, and stays persistent across loads and
+-- characters... having it save off the dock/undock button is fine...
+-- its really only for location and portrait, but it has use cases for
+-- all windows"). Built as a shared, reusable WindowRegistry API (any
+-- UserWindow can call it), wired specifically for Location and Portrait
+-- in their own modules.
+--
+-- Researched first (per Steven's explicit ask) rather than guessed at:
+-- confirmed Mudlet's native UserWindow layout system remembers exactly
+-- ONE saved geometry per window (openUserWindow()'s own restoreLayout),
+-- not separate docked/undocked profiles, and confirmed there is no
+-- reliable Lua-exposed event for detecting a NATIVE drag-to-dock
+-- transition (checked Mudlet's own bundled GeyserUserWindow.lua and its
+-- C++ TDockWidget.h, neither has one; corroborated by a Mudlet forum
+-- thread reporting the same gap). That rules out fully-automatic
+-- detection. What IS reliable: Geyser.UserWindow:setDockPosition()
+-- (dock to a border or "floating") and :move()/:resize() (only take
+-- effect while floating -- a docked window's size is governed by
+-- Mudlet's own dock layout, not something to fight or remember
+-- ourselves). So this is command/button-driven, not drag-triggered --
+-- matches how Steven himself already described it ("push the redock
+-- button"), not a limitation introduced here.
+--
+-- Position is remembered on a best-effort basis: confirmed
+-- getUserWindowSize(name) is real and returns a floating window's
+-- current size (so a native drag-RESIZE, not just our own :resize()
+-- calls, gets captured the next time dock() runs) -- but no
+-- getUserWindowPosition()-equivalent exists in Mudlet's Lua API (checked
+-- its bundled source and the public function list), so a native
+-- drag-MOVE's exact position can't be read back; only positions set via
+-- undock()'s own :move() call are remembered. Steven confirmed this
+-- partial version ("if you can do it with dragging also thats a bonus
+-- but not necessary if we get partially there") is acceptable.
+--
+-- Persisted profile-level (not character-bound), matching font sizes/
+-- theme/layout above -- "stays persistent across loads and characters"
+-- was explicit in the ask.
+
+local function FLOAT_FILE()
+  return getMudletHomeDir() .. "/MyDSL_windowfloat.lua"
+end
+
+MyDSL.Windows.floatGeometry = MyDSL.Windows.floatGeometry or {}
+
+function MyDSL.Windows.loadFloatGeometry()
+  local f = io.open(FLOAT_FILE(), "r")
+  if not f then return end
+  f:close()
+  local loaded = {}
+  local ok = pcall(table.load, FLOAT_FILE(), loaded)
+  if ok and next(loaded) then
+    MyDSL.Windows.floatGeometry = loaded
+  else
+    debugc("[MyDSL] WindowRegistry: float-geometry file exists but failed to load")
+  end
+end
+
+function MyDSL.Windows.saveFloatGeometry()
+  local ok = pcall(table.save, FLOAT_FILE(), MyDSL.Windows.floatGeometry)
+  if not ok then
+    debugc("[MyDSL] WindowRegistry: failed to save float geometry to " .. FLOAT_FILE())
+  end
+  return ok
+end
+
+-- undock(windowName, defaultW, defaultH) -- floats the window and
+-- restores its last-remembered size/position, or defaultW/defaultH (a
+-- deliberately bigger size than the docked default, per "have it expand
+-- so i can see pictures better") centered-ish on first use.
+function MyDSL.Windows.undock(windowName, defaultW, defaultH)
+  local entry = MyDSL.Windows.registry[windowName]
+  if not entry then return false end
+  local winObj = entry.obj or MyDSL.Windows.ensure(windowName)
+  if not winObj or not winObj.setDockPosition then return false end
+
+  local geo = MyDSL.Windows.floatGeometry[windowName] or {}
+  local w = geo.w or defaultW or 500
+  local h = geo.h or defaultH or 500
+  local x = geo.x or 200
+  local y = geo.y or 150
+
+  pcall(function() winObj:setDockPosition("floating") end)
+  pcall(function() winObj:move(x, y) end)
+  pcall(function() winObj:resize(w, h) end)
+  return true
+end
+
+-- dock(windowName, dockPosition) -- captures the window's CURRENT size
+-- (real, even after a native drag-resize -- see getUserWindowSize()
+-- note above) before re-docking, so whatever size Steven left it at is
+-- what comes back next time he undocks. Position isn't re-captured here
+-- (no reliable getter -- see header comment); only what undock() itself
+-- last set is remembered. Re-docks to dockPosition (default "right",
+-- matching Geyser.UserWindow's own default) -- Mudlet's own dock layout
+-- governs the actual docked size, nothing to save for that part.
+function MyDSL.Windows.dock(windowName, dockPosition)
+  local entry = MyDSL.Windows.registry[windowName]
+  if not entry then return false end
+  local winObj = entry.obj
+  if not winObj or not winObj.setDockPosition then return false end
+
+  local ok, w, h = pcall(getUserWindowSize, windowName)
+  if ok and w and h then
+    MyDSL.Windows.floatGeometry[windowName] = MyDSL.Windows.floatGeometry[windowName] or {}
+    MyDSL.Windows.floatGeometry[windowName].w = w
+    MyDSL.Windows.floatGeometry[windowName].h = h
+    MyDSL.Windows.saveFloatGeometry()
+  end
+
+  pcall(function() winObj:setDockPosition(dockPosition or "right") end)
+  return true
+end
+
+-- Deliberately no toggleDock(): there's no reliable way to ask Mudlet
+-- which state a window is currently in (see header comment), so a
+-- toggle could only guess -- e.g. inferring from whether floatGeometry
+-- has ever been set, which stays true forever after the first undock
+-- and would silently call the wrong one on the very next press. Separate
+-- explicit dock()/undock() (and separate "mydsl <window> dock"/"undock"
+-- aliases) are the honest interface -- callers/keybinds know which one
+-- they mean.
+
+MyDSL.Windows.loadFloatGeometry()
+
+
+------------------------------------------------------------------------
 -- SECTION 9: EVENT HANDLER — MyDSL.windows.toggle
 ------------------------------------------------------------------------
 -- This handler lets triggers and aliases toggle windows without needing

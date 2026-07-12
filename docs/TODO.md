@@ -191,6 +191,34 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       replaces the non-dragon "Prestige hours:" field). Paired onto the
       Vitality row via the same extraHtml slot every other attr row
       already uses (STR/Armor, DEX/TNL, etc.) since row 6 was full.
+- [ ] **Dock/undock with remembered floating geometry — added
+      2026-07-12, needs live confirmation.** Per Steven ("is there a way
+      to save both window positions... i want to undock a window and
+      have it expand... when i push the redock button it goes back to
+      place, and stays persistent across loads and characters...
+      really only for location and portrait, but it has use cases for
+      all windows"). Researched first, per his explicit ask: confirmed
+      Mudlet's native UserWindow layout remembers exactly ONE geometry
+      per window (not separate docked/undocked profiles), and confirmed
+      there is no reliable Lua event for detecting a *native* drag-to-
+      dock transition (checked Mudlet's own bundled
+      `GeyserUserWindow.lua`/`TDockWidget.h`, corroborated by a Mudlet
+      forum thread) — so this is command/button-driven
+      (`mydsl location undock`/`dock`, `mydsl portrait undock`/`dock`),
+      matching how Steven himself already described it ("push the
+      redock button"), not a limitation introduced here. Size is
+      genuinely remembered even after a native drag-resize (confirmed
+      `getUserWindowSize()` is real, captured on every `dock()` call);
+      position is best-effort only — no `getUserWindowPosition()`
+      equivalent exists in Mudlet's API, so only positions set via
+      `undock()`'s own call are remembered, not native drag-moves.
+      Steven confirmed this partial version is acceptable. Built as a
+      shared, reusable API (`MyDSL.Windows.undock/dock`,
+      `MyDSL_WindowRegistry.lua` Section 8c, new profile-level
+      `MyDSL_windowfloat.lua`), wired for Location and Portrait.
+      Deliberately no single "toggle" command — there's no reliable way
+      to ask Mudlet which state a window is currently in, so a toggle
+      could only guess and would get it wrong on the second press.
 - [ ] CharacterAssist: rearm (weapon+shield), spellup/setspell,
       blind-vision check.
 
