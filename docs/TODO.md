@@ -44,10 +44,9 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       show/hide state. Fixed by calling the real API,
       `lockContainer("light")`, after creation — Mudlet's own documented
       style for hiding just the min/restore and close labels. Needs one
-      more live look. **`MyDSL_MoonWeather.lua` has the identical
-      `lockStyle = "padding"` pattern and almost certainly has the same
-      latent bug** — not touched yet, pending Steven's confirmation he
-      wants it fixed there too.
+      more live look. Same fix also applied to `MyDSL_MoonWeather.lua`
+      (identical dead `lockStyle = "padding"` pattern) — also needs live
+      confirmation.
 - [ ] Timer consolidation (shared `MyDSL.Timers.Slow` heartbeat) — implemented
       2026-07-11, needs live confirmation (Improve countdown ticking live is
       confirmed as of 2026-07-12; the shared-heartbeat mechanism itself

@@ -612,7 +612,6 @@ local function _buildUI()
       y             = defY,
       width         = defW,
       height        = defH,
-      lockStyle     = "padding",
       adjLabelstyle = "background-color: rgba(0,0,0,0); border: none; padding: 0px;",
     })
   end)
@@ -630,6 +629,19 @@ local function _buildUI()
   MW.ui.container = container
 
   pcall(function() container:setTitle(" ") end)   -- minimize title bar chrome
+  -- REAL BUG, found live 2026-07-12 in MyDSL_AlterformView.lua's identical
+  -- pattern (Steven: "you can see the min/close buttons"), same fix
+  -- applied here: the old "lockStyle = 'padding'" constructor field did
+  -- nothing at all -- confirmed by reading Mudlet's actual bundled
+  -- GeyserAdjustableContainer.lua -- a container is only ever locked at
+  -- creation if locked=true is ALSO passed (never was), and "padding"
+  -- isn't even one of Mudlet's real lockStyle names ("standard"/"border"/
+  -- "full"/"light") -- it silently fell back to fully unlocked, all
+  -- native chrome (min/restore, close, lock, save, load buttons) live and
+  -- visible. lockContainer("light") is Mudlet's own documented style for
+  -- hiding just the min/restore and close labels, borders/margin
+  -- untouched.
+  pcall(function() container:lockContainer("light") end)
   pcall(function() container:setAutoSave(true) end)
   pcall(function() container:setAutoLoad(true) end)
 
