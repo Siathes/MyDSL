@@ -282,6 +282,25 @@ end
 function V.render(reason)
   if not V.ensureUI() then return end
 
+  -- Real bug, found live 2026-07-12 via screenshot sequence (Steven:
+  -- "tick bar 'blank'... opening further and further till it snaps into
+  -- center, then back to docked"): the docked window showed nothing at
+  -- all (or a near-zero-width sliver), but rendered perfectly the moment
+  -- it was manually dragged to a larger floating size. Geyser.Container:
+  -- reposition() (confirmed via Mudlet's own bundled GeyserContainer.lua)
+  -- is the function that recomputes a window's own geometry and cascades
+  -- the recompute down to every percentage-sized child Label -- its own
+  -- doc comment says it's "called on window resize events." A real
+  -- native drag-resize reliably fires that event; whatever event a
+  -- UserWindow settling into its *docked* size fires apparently doesn't,
+  -- at least not reliably under this Mudlet version, leaving every
+  -- percentage-based child (tube/fill/seconds/detail/strip) stuck with
+  -- whatever geometry existed at creation time. Forcing reposition() here
+  -- -- every render(), which already fires once/sec off MyDSL.Timers.Slow
+  -- -- means the layout self-corrects the moment the window's real size
+  -- is available, without requiring the user to manually drag it.
+  pcall(function() V.ui.win:reposition() end)
+
   local t = tickData()
   local rem = tonumber(t.remaining)
   local avg = tonumber(t.average or t.configured) or 40

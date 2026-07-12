@@ -774,8 +774,14 @@ function TV.render()
 
     if lore then
       tvRule(statsMc)
+      -- Real bug, found live 2026-07-12 via screenshot ("Race: tinker
+      -- gnomeLvl: 45", no space at all): %-12s only guarantees a MINIMUM
+      -- width, it doesn't add padding once the value is already at or
+      -- past that width -- "tinker gnome" is exactly 12 characters, so it
+      -- got zero trailing spaces and ran straight into "Lvl:". Widened to
+      -- %-14s so even a race name this long still gets a real gap.
       tvLog(statsMc, string.format(
-        "<136,136,136>Race: <204,204,204>%-12s<136,136,136>Lvl: <204,204,204>%-4s<136,136,136>Align: <204,204,204>%s<r>\n",
+        "<136,136,136>Race: <204,204,204>%-14s<136,136,136>Lvl: <204,204,204>%-4s<136,136,136>Align: <204,204,204>%s<r>\n",
         tostring(lore.race or "?"),
         lore.trainingCycle and tostring(lore.trainingCycle) or "?",
         tostring(lore.alignmentText or "?")))

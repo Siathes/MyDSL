@@ -306,6 +306,38 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       `loadProfiles()` fallback, and the already-persisted
       `MyDSL/roompics/location_profiles.lua`. `cover`/`stretch` still use
       the old renderer, unchanged.
+- [ ] **TargetView stat block: same %-12s padding bug found, fixed
+      2026-07-12, needs live confirmation.** Per screenshot ("Race: tinker
+      gnomeLvl: 45", no space). `%-12s` only guarantees a *minimum* width
+      — "tinker gnome" is exactly 12 characters, so it got zero trailing
+      padding and ran straight into "Lvl:". Widened to `%-14s`.
+- [ ] **Systemic theory found: docked UserWindows don't get percentage-
+      child geometry recomputed, only floating/manually-resized ones do —
+      one targeted test fix in `MyDSL_TickView.lua`, needs live
+      confirmation before generalizing.** Per Steven's screenshot
+      sequence: Tick showed completely blank (or a near-zero-width
+      sliver) both docked and freshly undocked-but-small, then rendered
+      perfectly the instant it was manually dragged to a larger floating
+      size, then apparently vanished again after re-docking. Also
+      consistent with the Focus/TargetView button-grid bug above (M/X/
+      nameplate — coded 8%/8%/82% — all rendering as ~equal thirds
+      instead). Root cause candidate: `Geyser.Container:reposition()`
+      (confirmed via Mudlet's own bundled `GeyserContainer.lua`) is what
+      recomputes a window's own geometry AND cascades that recompute down
+      to every percentage-sized child — its own doc comment says it's
+      "called on window resize events." A real native drag-resize
+      reliably fires that event; whatever event a `UserWindow` settling
+      into its *docked* size fires apparently doesn't, at least not
+      reliably under this Mudlet version, leaving every percentage-based
+      child stuck with whatever geometry existed at creation time. Added
+      one test call — `V.ui.win:reposition()` inside `MyDSL_TickView.lua`'s
+      `V.render()`, which already fires once/sec off `MyDSL.Timers.Slow`
+      — as the smallest possible experiment to confirm the theory before
+      touching every other window. **If this fixes Tick, the real fix
+      belongs in `MyDSL_WindowRegistry.lua`** (one place, applied to every
+      managed window) instead of patching each module individually —
+      not done yet, deliberately waiting for confirmation this specific
+      mechanism is really the cause first.
 - [ ] CharacterAssist: rearm (weapon+shield), spellup/setspell,
       blind-vision check.
 
