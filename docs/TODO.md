@@ -35,16 +35,16 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       2026-07-11, needs live confirmation (Improve countdown ticking live is
       confirmed as of 2026-07-12; the shared-heartbeat mechanism itself
       still needs a general check across the other windows that use it).
-- [ ] **Improve bar text overflow — fixed 2026-07-12, needs live look.**
-      Per Steven ("the improve bar need to be shrunk horizontally to allow
-      the text to display... prefer text on the improve bar, that was the
-      old design"): the bar's percent/skill text (`"<skill> NN%"`) sat in
-      a narrow 7%-wide slot past the track's right edge and could run past
-      the window edge for longer skill names. Restored the pre-v1A15
-      centered-text-on-the-fill look for this bar only (new
-      `styleBarNumCentered()`, `MyDSL_LiveView.lua`) — text now overlays
-      the track itself instead of sitting in a separate slot. HP/Mana/Move
-      bars untouched (no overflow issue there).
+- [ ] **Improve bar — text overlay confirmed live 2026-07-12, countdown
+      bug found and fixed same session, needs one more live look.** The
+      "skill NN%" text overlay itself confirmed working (see previous
+      overflow fix). Steven immediately caught a second bug: the live
+      "(Mm SSs)" countdown text (`improveLiveText()`, built 2026-07-11)
+      was being computed every render but never actually displayed — the
+      render call rebuilt a bare "skill NN%" string instead of using the
+      already-computed `d.improveText`. Fixed in `MyDSL_LiveView.lua`.
+      Unconfirmed whether the longer combined string ("skill NN%
+      (Mm SSs)") now clips — may need the bar widened further.
 - [ ] CharacterAssist: rearm (weapon+shield), spellup/setspell,
       blind-vision check.
 - [ ] Equipment capture — parser is real and tested, but

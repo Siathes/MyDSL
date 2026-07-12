@@ -948,7 +948,14 @@ function L.render(reason)
   L.setBar("mana", d.mana, d.maxmana, fmtNum(d.mana) .. "/" .. fmtNum(d.maxmana) .. " (" .. tostring(math.floor(pct(d.mana,d.maxmana)*100+0.5)) .. "%)")
   L.setBar("move", d.move, d.maxmove, fmtNum(d.move) .. "/" .. fmtNum(d.maxmove) .. " (" .. tostring(math.floor(pct(d.move,d.maxmove)*100+0.5)) .. "%)")
 
-  local impText = d.improveSkill and (tostring(d.improveSkill) .. " " .. tostring(d.improvePercent or "?") .. "%") or "--"
+  -- Real bug fixed 2026-07-12, found live (Steven: "i dont see the
+  -- countdown now, just skill and percent"): L.data() already computes
+  -- the live-ticking "(Mm SSs)" countdown into d.improveText via
+  -- improveLiveText() (see its own comment above, added 2026-07-11 for
+  -- exactly this), but this rebuilt a bare "skill NN%" string from
+  -- d.improveSkill/d.improvePercent instead of using it -- the countdown
+  -- was computed every render and just never displayed.
+  local impText = d.improveText or (d.improveSkill and (tostring(d.improveSkill) .. " " .. tostring(d.improvePercent or "?") .. "%")) or "--"
   L.setBarPercent("improve", tonumber(d.improvePercent) or 0, impText)
 
   -- Identity + personal-info rows (left column).
