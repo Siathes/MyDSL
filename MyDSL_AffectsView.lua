@@ -1139,6 +1139,21 @@ function A.onTimersUpdated()
   -- on every call via realSecondsRemaining() above -- this alone was
   -- already wired in, but nothing ever decremented the whole-cycle count
   -- between GMCP updates, see onTickUpdated() below).
+  --
+  -- Narrowed 2026-07-12, per Steven asking (after seeing a debug dump full
+  -- of repeated identical Affects selectSection()/link-rescan calls) "does
+  -- affects need to update that often also?" -- the default display mode
+  -- is "cycles" (timerTextForAffect() just shows the bare "Nc" count),
+  -- which only actually changes once per real game tick (~40s, decremented
+  -- by onTickUpdated() below, which already redraws itself when it does).
+  -- Forcing the full A.display() -- "a full window clear+redraw plus an
+  -- up-to-300-line link-rescan" per its own registerHandlers() comment --
+  -- every single real second in that mode was pure wasted repaint with the
+  -- displayed text unchanged ~39 times out of 40. Only "time"/"both" modes
+  -- actually show a real-time-interpolated seconds countdown that needs
+  -- this 1/sec redraw to look smooth.
+  local mode = A.config.timerMode or "cycles"
+  if mode ~= "time" and mode ~= "both" then return end
   A.display()
 end
 
