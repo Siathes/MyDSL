@@ -9,9 +9,11 @@ run-lua-code
 autolog
 autotimestamp
 description
+discordmode
 port
 profile.aff
 profile.dic
+ssl_tsl
 profile.ini
 url
 

@@ -36,6 +36,7 @@ is there a way to save both window positions, the docked shape size locations, t
 would like the vitals bar text on either side to be larger (font 9?). HP/Mana/Move and hp/hpmax, mana/manamax, move,movemax. im only changing font size nothing else in there
 
 the moonweather bonus line is not acting right.
+room title line wraps, it needs to not, and spread across the top row, thats why its so long
 
 ========== IDEAS ==========
 
