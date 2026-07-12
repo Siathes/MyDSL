@@ -926,6 +926,41 @@ function MyDSL.parseScoreLine(line)
 
   local v  -- reused temp
 
+  -- Created: <weekday> <month> <day> <hh:mm:ss> <year>  -- added
+  -- 2026-07-12 for LiveView's in-game age display, per Steven. Real
+  -- current format confirmed in docs/DSL_CommandRef.md and live corpus
+  -- (e.g. "Created: Wed May 21 15:20:26 2025", Kien's own real score
+  -- output). A bare numeric fallback ("Created:  07.28.2024", no
+  -- time-of-day) also seen in older captures -- handled too, in case any
+  -- character still shows it. Stores a real Lua timestamp
+  -- (created_ts), not the raw string -- age is computed live from this
+  -- in MyDSL_LiveView.lua, same "store the anchor, compute fresh on
+  -- render" pattern as improveLiveText().
+  do
+    local MONTH_NUM = {
+      Jan=1, Feb=2, Mar=3, Apr=4, May=5, Jun=6,
+      Jul=7, Aug=8, Sep=9, Oct=10, Nov=11, Dec=12,
+    }
+    local _, cmonth, cday, chh, cmin, csec, cyear =
+      line:match("^Created:%s*(%a+)%s+(%a+)%s+(%d+)%s+(%d+):(%d+):(%d+)%s+(%d+)")
+    if cmonth and MONTH_NUM[cmonth] then
+      local ok, ts = pcall(os.time, {
+        year = tonumber(cyear), month = MONTH_NUM[cmonth], day = tonumber(cday),
+        hour = tonumber(chh), min = tonumber(cmin), sec = tonumber(csec),
+      })
+      if ok and ts then scoreBlock.created_ts = ts end
+    else
+      local nmonth, nday, nyear = line:match("^Created:%s*(%d+)%.(%d+)%.(%d+)")
+      if nmonth then
+        local ok, ts = pcall(os.time, {
+          year = tonumber(nyear), month = tonumber(nmonth), day = tonumber(nday),
+          hour = 0, min = 0, sec = 0,
+        })
+        if ok and ts then scoreBlock.created_ts = ts end
+      end
+    end
+  end
+
   -- LEVEL: 051  Race: High Elf  Played: 1234
   local lv, race, played =
     line:match("LEVEL:%s*(%d+)%s+Race%s*:%s*(.-)%s+Played:%s*(%d+)")
@@ -1021,7 +1056,15 @@ function MyDSL.parseScoreLine(line)
   v = line:match("Pos'n:%s*(%S+)");       if v then scoreBlock.position = trim(v) end
   v = line:match("Stance:%s*(%S+)");       if v then scoreBlock.stance      = v end
   v = line:match("Speaking:%s*(%S+)");    if v then scoreBlock.language   = v end
-  v = line:match("Religion:%s*(.+)$");    if v then scoreBlock.religion   = trim(v) end
+  -- Fixed 2026-07-12, per Steven (LiveView identity row overflowing):
+  -- real format is "Religion: Cliath -=- the God of Creation -=-"
+  -- (confirmed via corpus grep across every god name seen: Cliath/
+  -- Devion/Dragoth/Drakkara/Fatale/Kwainin/Nadrik/Raije/Zandrey/
+  -- Zandreya) -- capturing "(.+)$" grabbed the whole trailing title
+  -- along with the name. Every real god name is a single word (cross-
+  -- checked against DSL_Helpfiles' own god files), so just the first
+  -- token is the name.
+  v = line:match("Religion:%s*(%S+)");    if v then scoreBlock.religion   = v end
   v = line:match("PROFESSION:%s*(.+)$")
   if v then scoreBlock.profession = trim(v); scoreBlock._saw_profession = true end
 

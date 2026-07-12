@@ -81,6 +81,11 @@ function MyDSL.DB.sync()
   MyDSL.DB.score.trains      = sc.trains
   MyDSL.DB.score.bank        = sc.bank
   MyDSL.DB.score.qpoints     = sc.qpoints
+  -- Real Lua timestamp from score's "Created:" line, added 2026-07-12
+  -- for LiveView's in-game age display -- see MyDSL_DataLayer.lua's
+  -- parseScoreLine() for the parsing, MyDSL_LiveView.lua for the actual
+  -- age-from-timestamp math.
+  MyDSL.DB.score.createdTs   = sc.created_ts
   -- Real bug fixed 2026-07-11, found while scoping the Live HUD expansion:
   -- these 8 read from key names (hitroll/hitrollBase/armorPierce/etc) that
   -- parseScoreLine() has never produced -- the real keys on MyDSL.State.score

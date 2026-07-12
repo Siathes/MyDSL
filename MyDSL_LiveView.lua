@@ -352,6 +352,47 @@ local function improveLiveText(imp)
   return base .. string.format(" (%dm%02ds)", mins, secs)
 end
 
+-- ageText(createdTs) -- added 2026-07-12, per Steven ("looks at score
+-- creation date and uses in-game time to tell you when your ingame
+-- birthday is and ingame age"). DSL's real-time-to-game-time ratio and
+-- calendar shape aren't documented anywhere (checked DSL_Helpfiles and
+-- docs/DSL_CommandRef.md) -- empirically derived instead, from the full
+-- log/ archive: every month name that ever appears across the whole
+-- corpus (Dragon/Sun/Heat/Battle/Nature/Futility/Dark Shades/Old Forces/
+-- Grand Struggle/Spring -- exactly 10, confirmed via grep) gives 10
+-- months/year; day numbers run 1-35 before rolling to the next month,
+-- giving 35 days/month (350 days/year). The real-time-per-game-day rate
+-- itself came from 64 clean single-in-game-day-step samples timestamped
+-- against their source log files' real mtimes (trimmed mean of the
+-- middle 70%, discarding outliers from AFK/offline gaps where the game
+-- clock kept advancing but wasn't observed as often) -- ~35 real minutes
+-- = 1 in-game day. Steven explicitly confirmed "approximate" is fine
+-- (in-game day/month *names* aren't continuous across resets, so this
+-- deliberately reports elapsed duration, not an absolute in-game date).
+local REAL_MINUTES_PER_GAME_DAY = 35
+local GAME_DAYS_PER_MONTH       = 35
+local GAME_MONTHS_PER_YEAR      = 10
+local GAME_DAYS_PER_YEAR        = GAME_DAYS_PER_MONTH * GAME_MONTHS_PER_YEAR
+
+local function ageText(createdTs)
+  createdTs = tonumber(createdTs)
+  if not createdTs then return nil end
+  local elapsedReal = os.time() - createdTs
+  if elapsedReal < 0 then return nil end
+  local gameDaysTotal = math.floor(elapsedReal / (REAL_MINUTES_PER_GAME_DAY * 60))
+  local years  = math.floor(gameDaysTotal / GAME_DAYS_PER_YEAR)
+  local rem    = gameDaysTotal % GAME_DAYS_PER_YEAR
+  local months = math.floor(rem / GAME_DAYS_PER_MONTH)
+  local days   = rem % GAME_DAYS_PER_MONTH
+  if years > 0 then
+    return string.format("%dy %dm", years, months)
+  elseif months > 0 then
+    return string.format("%dm %dd", months, days)
+  else
+    return string.format("%dd", days)
+  end
+end
+
 function L.data()
   local db = MyDSL and MyDSL.DB or {}
   local live = db.live or {}
@@ -433,6 +474,7 @@ function L.data()
     class_  = score.class_,
     align   = score.align,
     god     = score.religion,
+    createdTs = score.createdTs,
     str = score.str, strBase = score.str_base,
     int_ = score.int, intBase = score.int_base,
     wis = score.wis, wisBase = score.wis_base,
@@ -851,6 +893,14 @@ local function identityLine(d)
 
   if d.god and d.god ~= "" then
     table.insert(parts, "<span style='font-size:" .. sz .. "pt; color:#d9a259;'>" .. html(d.god) .. "</span>")
+  end
+
+  -- Age, added 2026-07-12 per Steven -- fits in the row's freed space
+  -- now that god only shows the name (see the Religion: parsing fix in
+  -- MyDSL_DataLayer.lua), not the full "-=- the God of ..." title.
+  local age = ageText(d.createdTs)
+  if age then
+    table.insert(parts, "<span style='font-size:" .. pillSz .. "pt; color:#b8a4d4;'>" .. html(age) .. "</span>")
   end
 
   return table.concat(parts, SPACER)

@@ -143,6 +143,30 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       content, ~6 days apart — kept the later (2026-07-03) capture per
       the rule. Image files themselves are gitignored (runtime data),
       only the code change is tracked.
+- [ ] **LiveView in-game age display — added 2026-07-12, needs live
+      confirmation.** Per Steven ("looks at score creation date and uses
+      in-game time to tell you when your ingame birthday is and ingame
+      age"), confirmed via AskUserQuestion to build the "in-game
+      calendar math" version specifically (approximate is fine — day/
+      month *names* aren't continuous across resets). DSL's real-time-to
+      -game-time ratio isn't documented anywhere — empirically derived
+      from the full `log/` archive: exactly 10 distinct month names ever
+      appear across the whole corpus (10 months/year), day numbers run
+      1–35 before rolling over (35 days/month), and ~35 real minutes = 1
+      in-game day (trimmed mean of 64 clean single-day-step samples
+      timestamped against real log mtimes). Parses `score`'s `Created:`
+      line (both the current full-date format and an older bare-numeric
+      form seen in some captures) in `MyDSL_DataLayer.lua`, bridges the
+      timestamp through `MyDSL_DataBridge.lua`, computes the age fresh
+      on every render in `MyDSL_LiveView.lua` (`ageText()`, same
+      store-the-anchor pattern as `improveLiveText()`). Added to the
+      identity row per Steven's placement choice — which also meant
+      fixing a real space problem he flagged: the `Religion:` (god)
+      field was capturing the full trailing title text
+      (`"Cliath -=- the God of Creation -=-"`) instead of just the name,
+      overflowing the row. Fixed to capture just the name (every real
+      god name confirmed single-word, cross-checked against
+      `DSL_Helpfiles`), freeing the space age now uses.
 - [ ] CharacterAssist: rearm (weapon+shield), spellup/setspell,
       blind-vision check.
 
