@@ -366,12 +366,25 @@ end
 -- Checked in order (most specific first) since some real sentences
 -- contain more than one candidate word (e.g. rain's "...clouded sky"
 -- also contains "cloud").
+-- Icons fixed 2026-07-12, found live (Steven: "no icons" -- text label
+-- showed, symbol didn't). 🌧/🌨 (U+1F327/U+1F328) are in Unicode's newer
+-- "Supplemental Symbols and Pictographs" block (introduced 2014), which
+-- doesn't have guaranteed font coverage on Linux without a full emoji
+-- font installed. Replaced with symbols from the much older, near-
+-- universally-supported "Miscellaneous Symbols"/"Dingbats" blocks
+-- (Unicode 1.1/3.0, 1993-1999) -- same family as the ⚡/❄/☀/⛅/☁ that
+-- were already working. Sleet reuses the snow symbol since there's no
+-- equivalently old sleet-specific character -- the text label
+-- ("Sleet" vs "Snow") is what actually disambiguates, matching why
+-- Steven picked "symbol + short text" over symbol-only in the first
+-- place. Clear-night switched from ✨ (also newer, Unicode 6.0) to ☆
+-- (Unicode 1.1) for the same reason.
 local WEATHER_KEYWORDS = {
   { "lightning", "⚡", "Storm" },
   { "thunder",   "⚡", "Storm" },
   { "snow",      "❄", "Snow" },
-  { "sleet",     "🌨", "Sleet" },
-  { "rain",      "🌧", "Rain" },
+  { "sleet",     "❄", "Sleet" },
+  { "rain",      "☂", "Rain" },
   { "cloud",     nil,  "Cloudy" },  -- icon picked below (day/night differ)
   { "clear",     nil,  "Clear" },   -- icon picked below (day/night differ)
   { "stars shine",    nil, "Clear" },
@@ -389,7 +402,7 @@ local function buildWeatherText()
     if lc:find(word, 1, true) then
       if not icon then
         if label == "Cloudy" then icon = isNight and "☁" or "⛅"
-        else icon = isNight and "✨" or "☀" end
+        else icon = isNight and "☆" or "☀" end
       end
       return string.format('<span style="font-size:9pt;">%s</span> %s', icon, label)
     end

@@ -181,10 +181,23 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       captured `weather` outputs: Clear/Scattered clouds/
       Lightning-Storm/Rain/Sleet/Snow, each with day and night wording.
       Presented 3 display options via AskUserQuestion; Steven picked
-      symbol + short label (e.g. `🌧 Rain`). Added `buildWeatherText()`
+      symbol + short label. Added `buildWeatherText()`
       (`MyDSL_MoonWeather.lua`), a new row above the moon circles,
       row-height proportions rebalanced (was 50/20/30, now
-      12/44/18/26) to fit it.
+      12/44/18/26) to fit it. **Icon fix, same day**: Steven reported
+      "no icons" live — root cause was 🌧/🌨 (Unicode's newer
+      "Supplemental Symbols and Pictographs" block, 2014) not having
+      guaranteed font coverage on Linux; switched the whole set to the
+      much older, near-universal "Miscellaneous Symbols"/"Dingbats"
+      blocks (1993–1999) — same family as ⚡/❄/☀/⛅/☁, which were already
+      confirmed working. Sleet now reuses the snow symbol (text label
+      disambiguates); clear-night switched ✨→☆ for the same font-age
+      reason. Separately noted, not fixed (doesn't affect the weather
+      *type* icon, which is all that's displayed): the live wind detail
+      ("a cold gentle breeze blows in from the north") arrives on its
+      own line starting lowercase "and", which the weather trigger
+      (`^[A-Z][^.]+\.$`) doesn't currently match — low priority since
+      wind isn't shown at all right now.
 - [ ] CharacterAssist: rearm (weapon+shield), spellup/setspell,
       blind-vision check.
 
