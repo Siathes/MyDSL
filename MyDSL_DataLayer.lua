@@ -1672,6 +1672,26 @@ local function isUnparsedPresenceLine(line)
 end
 
 function MyDSL.beginLook()
+  -- REAL GOTCHA, found live 2026-07-12 -- Steven discovered GMCP is not
+  -- enabled by default for newly created DSL characters (confirmed on
+  -- Vexgar: traced a full real play session, autowhere/improve/scan/look
+  -- all working normally, but zero MyDSL debug output past boot and zero
+  -- character-bound files ever created). MyDSL.character.identified only
+  -- ever fires from the gmcp.login_data handler above -- if GMCP itself
+  -- is off for that character, it silently never fires, and NOTHING
+  -- per-character loads, saves, or persists for the whole session, with
+  -- no visible sign anything's wrong. This warns once: beginLook() fires
+  -- on plain text ("[Exits: ...]"), no GMCP dependency, so it still
+  -- fires even with GMCP fully off -- and by the time real room content
+  -- is displaying, login/MOTD/character-select are long done, so a still-
+  -- nil MyDSL.Char() here is a real signal, not normal startup timing.
+  if not MyDSL.Char() and not MyDSL._gmcpWarnedNoChar then
+    MyDSL._gmcpWarnedNoChar = true
+    cecho("\n<red>[MyDSL] WARNING: no character identified yet (GMCP login_data never arrived).<reset>\n"
+       .. "<yellow>If this is a newly created character, GMCP may be OFF by default for it -- "
+       .. "check/enable GMCP, or none of MyDSL's per-character saving/loading will work this session.<reset>\n")
+  end
+
   MyDSL.State.scan = MyDSL.State.scan or {
     mode = nil, direction = nil, rows = {}, rightHere = {}, byName = {}, last_updated = 0,
   }
