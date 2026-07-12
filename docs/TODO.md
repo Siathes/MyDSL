@@ -91,18 +91,17 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       automatically on resize) already recalculates it — no extra resize
       wiring needed. Applied to History only (`MyDSL_RouteHelper.lua`),
       not the other routed windows.
-- [ ] **Window right-edge padding — added 2026-07-12, needs live
-      confirmation.** Per Steven ("can we add a small padding space on
-      the right side of our windows... to make it look less cramped on
-      the border/window edge"). Inset the console's right edge by a
-      fixed 8px (Geyser's relative-width sizing, same trick
-      `Adjustable.Container`'s own padding uses) — reads as a consistent
-      one-character gap regardless of window size. Applied to every
-      window routed through `MyDSL_RouteHelper.lua`'s shared console
-      (Combat/History/Scan/Group/PlayersNear/RightHere). Focus/Affects/
-      Live and the other Label-based windows use their own bespoke
-      layouts, not this function — not covered yet, flag if you want
-      those matched too.
+- [ ] **Window left-edge padding — corrected 2026-07-12, needs live
+      confirmation.** Per Steven, correcting the original ask same day
+      ("did i say right hand padding, i meant left to take the first
+      letter off the edge of the window"). Inset the console's left edge
+      by a fixed 8px (`x=8` + Geyser's relative `width="-8"`, same trick
+      `Adjustable.Container`'s own padding uses) — right edge back flush,
+      matching the original request. Applied to every window routed
+      through `MyDSL_RouteHelper.lua`'s shared console (Combat/History/
+      Scan/Group/PlayersNear/RightHere). Focus/Affects/Live and the other
+      Label-based windows use their own bespoke layouts, not this
+      function — not covered yet, flag if you want those matched too.
 - [ ] CharacterAssist: rearm (weapon+shield), spellup/setspell,
       blind-vision check.
 
