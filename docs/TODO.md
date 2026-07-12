@@ -34,16 +34,76 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       nameplate merged with the mob name, graphical `Geyser.Button`
       action grid, auto-advance/clear on target death, several
       creaturelore parsing fixes). Full history in `CHANGELOG.md` — search
-      "TargetView"/"Focus"/"nameplate"/"CreatureLore". Two open items:
-      - **Unresolved persistence report**: Steven says the font setting
-        and creaturelore stats don't survive a reload — save side is
-        confirmed correct on disk, load side passes every constructed
-        test, root cause not found yet. Latest changes (io.open-precheck
-        pattern matching ThemeEngine/WindowRegistry, loud `echo()`
-        boot-time confirmation lines) need a genuine full Mudlet restart
-        to get real evidence — not yet done.
+      "TargetView"/"Focus"/"nameplate"/"CreatureLore". One open item:
       - Needs the `MyDSL_CreatureLore.lua` `dofile()` entry (see LOW
-        PRIORITY above) before any of the above can be tested for real.
+        PRIORITY above) before any of the below can be tested for real.
+- [ ] **CRITICAL, project-wide: `table.load()` was called wrong almost
+      everywhere — found live 2026-07-11, fixed in ~10 places, needs live
+      confirmation.** Steven's direct question ("are the settings loading
+      at creating from save files or they saving and never
+      reading/updating?") led to checking Mudlet's own bundled source
+      (`mudlet-lua/lua/Other.lua`) directly. Real finding: `table.load(file,
+      target)` **returns nothing at all** — it unpickles the saved data
+      INTO an explicit second-argument table (or into `_G` if none is
+      given). Confirmed independently via PNP's own real source
+      (`PNP files/DSL_PNP_Data.lua`) and EMCO's own vendored source
+      (`EMCOChat/emco.lua`) — both always call it with a destination
+      table, never rely on a return value. Almost every persistence
+      function in this codebase did `local data = table.load(path)` (no
+      second argument) and then checked `type(data) == "table"` — always
+      false, always silently "no saved data," every single time, project-
+      wide. This means the "confirmed working" theme-persistence and
+      window-visibility-persistence claims recorded earlier this session
+      were only ever confirmed WITHIN a live session (setting and
+      re-checking without a real restart in between) — neither ever
+      actually survived a genuine restart either. **Fixed in**:
+      `MyDSL_DataLayer.lua` (`MyDSL.load()` — the central character-data
+      restore), `MyDSL_ThemeEngine.lua` (active theme), `MyDSL_
+      WindowRegistry.lua` (window visibility state AND the new font-size
+      store), `MyDSL_CreatureLore.lua` (the persistent creature DB),
+      `MyDSL_TargetView.lua` (button-set config), `MyDSL_GroupView.lua`
+      (quickset config), `MyDSL_CombatView.lua` (font size),
+      `MyDSL_LayoutEngine.lua` (window layout positions),
+      `MyDSL_PromptView.lua` (prompt-setup toggle). Also found the root
+      cause of why NONE of this session's own persistence tests ever
+      caught it: every test used a hand-rolled `table.save`/`table.load`
+      stub that (unlike the real thing) DID return the loaded data
+      directly — a well-intentioned but wrong stand-in. Built a byte-for-
+      byte replica of Mudlet's actual algorithm (copied directly from its
+      bundled source, confirmed to reproduce the exact real on-disk file
+      format) and re-ran every persistence test against it — several
+      (theme, creaturelore DB, the new font store) failed against the old
+      code and pass against the fix, proving both the bug and the repair
+      are real. `MyDSL_TickView.lua`/`MyDSL_LiveView.lua`/`MyDSL_
+      AlterformView.lua` were checked too and are NOT affected — they use
+      their own hand-rolled `io.open`+`dofile()` persistence instead of
+      `table.load()`, which doesn't have this problem. Needs a genuine
+      full Mudlet restart to confirm live: theme choice, window
+      visibility, Focus/History font, Focus button customization, Group
+      quickset, and any saved window layout should now all actually
+      survive it.
+- [ ] **Font-size persistence (Focus + History) — architecture change
+      2026-07-11, separate from the table.load() bug above.** After
+      Steven repeatedly reported "focus font"/"history font" not
+      surviving a reload, moved font-size persistence out of each
+      module's own character-bound file entirely and into
+      `MyDSL_WindowRegistry.lua`'s new shared, PROFILE-level store
+      (`MyDSL.Windows.getFontSize`/`setFontSize`, one file,
+      `MyDSL_windowfonts.lua`) — matching Layout/Theme's own persistence.
+      This alone wasn't the fix (the table.load() bug above was), but is
+      still a real simplification worth keeping — removes the character-
+      name dependency entirely. Old per-character font files
+      (`targetview_config_<Char>.lua`'s fontSize field, `history_font_
+      <Char>.lua`) are now dead/unused, harmless to leave on disk.
+- [x] Combat scrollbar removed (was the original, never-touched value
+      from its first version — missed by the earlier History/PlayersNear/
+      Scan/RightHere/Target/Group consistency pass).
+- [x] Native title-bar/border CSS (`windowChromeCSS()`) — confirmed live
+      2026-07-12: works while floating, does not apply while docked
+      (matches a documented Mudlet/Qt limitation, GitHub PR #4046). Since
+      MyDSL's UserWindows normally run docked, Steven decided not to
+      pursue it — `windowChromeCSS()` removed, `applyTheme()` reverted to
+      plain `panelCSS()`.
 - [ ] AlterformView timer — built 2026-07-11 (auto-hide when inactive,
       Adjustable.Container matching MoonWeather), needs live confirmation.
 - [ ] LiveView v1A15 rebuild — full score-info layout rebuilt per Steven's
