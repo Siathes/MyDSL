@@ -84,6 +84,10 @@ function MyDSL.DB.sync()
   MyDSL.DB.score.trains      = sc.trains
   MyDSL.DB.score.bank        = sc.bank
   MyDSL.DB.score.qpoints     = sc.qpoints
+  -- Dragon-only breath-weapon charge, added 2026-07-12 -- see
+  -- MyDSL_DataLayer.lua's Chamber: parsing and MyDSL_LiveView.lua's
+  -- attrVit row (paired alongside Vitality).
+  MyDSL.DB.score.chamber     = sc.chamber
   -- Real Lua timestamp from score's "Created:" line, added 2026-07-12
   -- for LiveView's in-game age display -- see MyDSL_DataLayer.lua's
   -- parseScoreLine() for the parsing, MyDSL_LiveView.lua for the actual

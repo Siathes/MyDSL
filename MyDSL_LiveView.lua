@@ -463,6 +463,7 @@ function L.data()
     flying = score.flying,
     fighting = score.fighting,
     vitality = score.vitality,
+    chamber = score.chamber,
 
     -- Added 2026-07-11: the "populate Live with the score info" pass,
     -- per Steven's own hand-sketched layout (Downloads/"liveview layout").
@@ -1071,9 +1072,14 @@ function L.render(reason)
   -- since d.vitality only ever gets set by actually seeing a real `stat`
   -- line with a Vit: field in it (dragons only -- confirmed via
   -- DSL_Helpfiles/dragons.txt, "Dragons will lose vitality with every
-  -- death").
+  -- death"). Chamber (breath-weapon charge, added same day) paired onto
+  -- this row via the same extraHtml slot every other attr row already
+  -- uses (STR/Armor, INT/Hit-Dam, WIS/Stance, DEX/TNL) -- row 6 was full
+  -- after Vitality took it, so Chamber rides alongside rather than
+  -- needing its own row.
   if L.ui.attrVit then
-    L.ui.attrVit:echo(d.vitality and attrLine("VIT", d.vitality, nil, "") or "")
+    local chamberExtra = d.chamber and kv("Chamber", d.chamber, "#7fd6cc") or ""
+    L.ui.attrVit:echo(d.vitality and attrLine("VIT", d.vitality, nil, chamberExtra) or "")
   end
 
   L.lastReason = reason or "render"

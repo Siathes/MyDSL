@@ -182,7 +182,15 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       for anyone else) in `MyDSL_DataLayer.lua`, bridged through
       `MyDSL_DataBridge.lua`, displayed in LiveView's previously-blank
       row 6 (right column, directly below CON) — blank for every
-      non-dragon character, same as that row always was.
+      non-dragon character, same as that row always was. Chamber
+      (breath-weapon charge) added alongside same day, per Steven ("we
+      need the chamber stat for breath weapon shown in score as
+      Chamber:") — real format confirmed via corpus grep, same DEX/Align
+      row in `score`'s own output (`"DEX  : 060(060)    Align: True
+      Neutral         Chamber: 100"`, the dragon-only variant that
+      replaces the non-dragon "Prestige hours:" field). Paired onto the
+      Vitality row via the same extraHtml slot every other attr row
+      already uses (STR/Armor, DEX/TNL, etc.) since row 6 was full.
 - [ ] CharacterAssist: rearm (weapon+shield), spellup/setspell,
       blind-vision check.
 

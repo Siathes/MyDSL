@@ -1051,6 +1051,16 @@ function MyDSL.parseScoreLine(line)
   v = line:match("TNL:%s*(%d+)");         if v then scoreBlock.tnl      = tonumber(v) end
   -- Align: stops at double-space so "Prestige hours: 460" on the same line is excluded
   v = line:match("Align:%s*(.-)%s%s");    if v then scoreBlock.align    = trim(v) end
+  -- Dragon-only, added 2026-07-12 per Steven ("for dragons/Qin only, we
+  -- need the chamber stat for breath weapon shown in score as
+  -- Chamber:"). Real format confirmed via corpus grep: same DEX/Align
+  -- row, dragon-only variant that replaces the non-dragon "Prestige
+  -- hours:" field -- "DEX  : 060(060)    Align: True Neutral
+  -- Chamber: 100". DSL_Helpfiles/dragons.txt: dragons "chamber their
+  -- breath until such a time that they wish to unleash it" -- this is
+  -- that charge level. Only ever present for dragons, so no race check
+  -- needed here either, same as Vitality above.
+  v = line:match("Chamber:%s*(%d+)");     if v then scoreBlock.chamber  = tonumber(v) end
   v = line:match("Wimpy:%s*(%d+)");       if v then scoreBlock.wimpy    = tonumber(v) end
   -- Pos'n: single-word value (Standing/Sleeping/etc.) followed by flag columns
   v = line:match("Pos'n:%s*(%S+)");       if v then scoreBlock.position = trim(v) end
