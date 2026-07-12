@@ -64,13 +64,14 @@ M.config.x = M.config.x or 740
 M.config.y = M.config.y or 80
 M.config.w = M.config.w or 380
 M.config.h = M.config.h or 280
--- Default changed 2026-07-12 to "contain" (real, working renderer now --
--- see containImageHTML()), matching MyDSL_PortraitView.lua's identical
--- fix -- this file's own header comment confirms it copied Portrait's
--- border-image approach verbatim, so it inherited the same never-
--- actually-scales bug. cover/stretch still exist but use the older,
--- confirmed-unreliable border-image renderer.
-M.config.fit = M.config.fit or "contain"
+-- Default changed 2026-07-12 to "contain" then same day to "stretch" --
+-- see containImageHTML()/stretchImageHTML() above, matching
+-- MyDSL_PortraitView.lua's identical fix. Steven tried contain
+-- (letterboxed) live and preferred the image filling the whole window
+-- exactly ("i prefer the old images stretching to fill, not fond of this
+-- border lookin location and portrait"). cover still exists but uses the
+-- older, confirmed-unreliable border-image renderer.
+M.config.fit = M.config.fit or "stretch"
 M.config.missing = M.config.missing or "blank"
 M.config.font = M.config.font or 8
 M.config.debug = M.config.debug or false
@@ -203,7 +204,7 @@ function M.loadProfiles()
   ensureDir(M.dir)
   local data = loadTable(M.profileFile()) or {}
   M.roomMap = data.roomMap or M.roomMap or {}
-  M.config.fit = data.fit or M.config.fit or "contain"
+  M.config.fit = data.fit or M.config.fit or "stretch"
   M.config.missing = data.missing or M.config.missing or "caption"
   M.title = data.title or M.title or "-= Location =-"
   M.config.shown = (data.shown ~= nil) and data.shown or M.config.shown
@@ -518,6 +519,20 @@ local function containImageHTML(label, path)
     math.max(0, math.floor((boxH - dispH) / 2)), cssPath(path), dispW, dispH)
 end
 
+-- stretchImageHTML(label, path) -- added 2026-07-12, per Steven ("i prefer
+-- the old images stretching to fill, not fond of this border lookin
+-- location and portrait") -- same fix as MyDSL_PortraitView.lua's
+-- function of the same name: fills the whole label exactly (no
+-- letterboxing, no cropping), even if that distorts the picture's
+-- proportions slightly to match the window's own shape.
+local function stretchImageHTML(label, path)
+  local boxW, boxH = label:get_width(), label:get_height()
+  if not boxW or not boxH or boxW <= 0 or boxH <= 0 then return nil end
+  return string.format(
+    '<img src="file:///%s" width="%d" height="%d"/>',
+    cssPath(path), math.floor(boxW), math.floor(boxH))
+end
+
 function M.applyBaseStyle()
   if not (M.ui and M.ui.image and M.ui.caption) then return end
   local border = M.config.frame and ("1px solid " .. themeBorder()) or "0px solid rgba(0,0,0,0)"
@@ -595,13 +610,27 @@ function M.render(path, caption, source, room)
       M.ui.image:echo(html)
       rendered = true
     end
+  elseif M.config.fit == "stretch" or M.config.fit == "fill" then
+    -- Real fix 2026-07-12, per Steven ("i prefer the old images stretching
+    -- to fill, not fond of this border lookin location and portrait") --
+    -- see stretchImageHTML()'s comment above.
+    local html = stretchImageHTML(M.ui.image, path)
+    if html then
+      M.ui.image:setStyleSheet(string.format([[
+        background-color: %s;
+        border: %s;
+        border-radius: 6px;
+      ]], themeBg(), border))
+      M.ui.image:echo(html)
+      rendered = true
+    end
   end
 
   if not rendered then
-    -- cover/stretch/fill (and contain, if the real renderer above couldn't
+    -- cover (and contain/stretch, if the real renderers above couldn't
     -- run) use the old CharPic-style border-image renderer. Confirmed to
     -- not actually scale-to-fit correctly (see containImageHTML()'s
-    -- comment) -- left as the fallback path, matching PortraitView's fix.
+    -- comment) -- left as the fallback path, not redesigned this pass.
     M.ui.image:setStyleSheet(string.format([[
       background-color: %s;
       border: %s;

@@ -63,12 +63,14 @@ P.config.fontSize = tonumber(P.config.fontSize or 9) or 9
 P.config.debug = P.config.debug == true
 P.config.enabled = P.config.enabled ~= false
 P.config.frame = P.config.frame ~= false
--- Default changed 2026-07-12 to "contain" (real, working renderer now --
--- see containImageHTML()), per Steven ("the portrait is supposed to
--- shrink kien's .png to fit the window"). cover/stretch still exist but
--- use the older, confirmed-unreliable border-image renderer -- not fixed
--- this pass since Steven only asked about the shrink-to-fit behavior.
-P.config.fit = P.config.fit or "contain"
+-- Default changed 2026-07-12 to "contain" then same day to "stretch" --
+-- see containImageHTML()/stretchImageHTML() above. Steven tried contain
+-- (letterboxed) live and preferred the image filling the whole window
+-- exactly ("i prefer the old images stretching to fill, not fond of this
+-- border lookin location and portrait"), even with minor distortion.
+-- cover still exists but uses the older, confirmed-unreliable border-image
+-- renderer -- not fixed this pass.
+P.config.fit = P.config.fit or "stretch"
 P.config.defaultExt = P.config.defaultExt or "png"
 P.config.missingMode = P.config.missingMode or "caption" -- caption|blank
 P.config.caption = P.config.caption ~= false
@@ -683,6 +685,23 @@ local function containImageHTML(label, path)
     math.max(0, math.floor((boxH - dispH) / 2)), cssPath(path), dispW, dispH)
 end
 
+-- stretchImageHTML(label, path) -- added 2026-07-12, per Steven ("i prefer
+-- the old images stretching to fill, not fond of this border lookin
+-- location and portrait") -- he tried "contain" (letterboxed, whole image
+-- visible) and preferred the image filling the whole window exactly, even
+-- if that means the picture's proportions get slightly distorted to match
+-- the window's own shape. Same reliable <img>-via-echo() mechanism as
+-- containImageHTML() above, just without any aspect-ratio math at all --
+-- width/height are simply the label's own live pixel size, so the image
+-- always exactly fills the box with no letterboxing and no cropping.
+local function stretchImageHTML(label, path)
+  local boxW, boxH = label:get_width(), label:get_height()
+  if not boxW or not boxH or boxW <= 0 or boxH <= 0 then return nil end
+  return string.format(
+    '<img src="file:///%s" width="%d" height="%d"/>',
+    cssPath(path), math.floor(boxW), math.floor(boxH))
+end
+
 local function updateCaption(text, visible)
   if not P.caption then return end
   if visible == false or P.config.caption == false then
@@ -747,14 +766,23 @@ function P.renderImage(path, reason)
       pcall(function() P.label:echo(html) end)
       rendered = true
     end
+  elseif renderFit == "stretch" or renderFit == "fill" then
+    -- Real fix 2026-07-12, per Steven ("i prefer the old images stretching
+    -- to fill, not fond of this border lookin location and portrait") --
+    -- see stretchImageHTML()'s comment above.
+    local html = stretchImageHTML(P.label, path)
+    if html then
+      pcall(function() P.label:setStyleSheet(baseStyle()) end)
+      pcall(function() P.label:echo(html) end)
+      rendered = true
+    end
   end
 
   if not rendered then
-    -- cover/stretch/fill (and contain, if the real renderer above couldn't
+    -- cover (and contain/stretch, if the real renderers above couldn't
     -- run) use the old CharPic-style border-image renderer. Confirmed to
     -- not actually scale-to-fit correctly (see containImageHTML()'s
-    -- comment) -- left as the fallback path since Steven only asked for
-    -- contain to be fixed, not a redesign of cover/stretch too.
+    -- comment) -- left as the fallback path, not redesigned this pass.
     pcall(function() P.label:setStyleSheet(imageStyleFill(path)) end)
     pcall(function() P.label:echo("") end)
     rendered = true

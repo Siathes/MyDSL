@@ -264,48 +264,36 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       no confirmed "known" match. `MyDSL_ScanView.lua`'s RightHere render
       now shows a colored `[Known]`/`[Seen]`/`[Unknown]` badge per mob,
       same color scheme as the DSL1 reference (green/cyan/yellow).
-- [ ] **PortraitView: real "contain" (shrink-to-fit) renderer, fixed
-      2026-07-12, needs live confirmation.** Per Steven ("the portrait is
-      supposed to shrink kien's .png to fit the window") after screenshots
-      showed a tiny, blown-up corner of the character art instead of the
-      whole picture shrunk down. Root cause: `imageStyleFill()`'s
-      `border-image: url(...)` CSS paints into the *border* area (a
-      9-slice UI-frame technique), not the label's content area — without
-      matching `border-image-slice`/width values it never actually scaled
-      the whole picture to fit, regardless of Mudlet version. That
-      renderer existed as a deliberate workaround for a real Mudlet
-      4.20.1 issue (`Label:setBackgroundImage()` not reliably repainting
-      inside a docked UserWindow) — but "contain" was being silently
-      coerced to the same broken renderer either way. Built a real
-      contain-fit renderer (`containImageHTML()`) using two genuine
-      Mudlet/Geyser APIs: `getImageSize(path)` (native pixel dimensions
-      of the file) and `label:get_width()/get_height()` (the label's
-      actual live rendered pixel size) to compute a proper aspect-
-      preserving scale, then draws it via an `<img>` tag through
-      `label:echo()` — the same mechanism `MyDSL_MoonWeather.lua` already
-      uses successfully for its moon icons, a completely different
-      Mudlet pathway from `setBackgroundImage()`, so unaffected by that
-      original workaround's reasoning. Default `fit` changed from
-      `"cover"` to `"contain"` (both the in-code default and the already-
-      persisted `MyDSL/portraits/portrait_profiles.lua`, which would
-      otherwise have kept overriding the new default). `cover`/`stretch`
-      still use the old, confirmed-unreliable border-image renderer —
-      not redesigned this pass, since Steven only asked about the
-      shrink-to-fit case specifically.
-- [ ] **LocationView: same border-image bug as PortraitView, fixed
-      2026-07-12, needs live confirmation.** Per Steven ("should prob
-      check location after targetview, since it has images too") after
-      the Portrait fix above. Confirmed via grep: `MyDSL_LocationView.lua`
-      literally copied "the proven PortraitView/old CharPic render path"
-      (its own header comment), so it inherited the identical bug —
-      room pictures were never actually being scaled into the window
-      either. Applied the same fix: `containImageHTML()` using
-      `getImageSize()`/`label:get_width()/get_height()`, drawn via an
-      `<img>` tag through `label:echo()`. Default `fit` changed from
-      `"cover"` to `"contain"` in the in-code default, the
-      `loadProfiles()` fallback, and the already-persisted
-      `MyDSL/roompics/location_profiles.lua`. `cover`/`stretch` still use
-      the old renderer, unchanged.
+- [ ] **PortraitView + LocationView: real image-scaling renderer built,
+      default settled on "stretch," fixed 2026-07-12, needs live
+      confirmation.** Per Steven ("the portrait is supposed to shrink
+      kien's .png to fit the window") after screenshots showed a tiny,
+      blown-up corner of the image instead of the whole picture. Root
+      cause (both modules — `MyDSL_LocationView.lua`'s own header
+      comment confirms it copied Portrait's approach verbatim):
+      `imageStyleFill()`'s `border-image: url(...)` CSS paints into the
+      *border* area (a 9-slice UI-frame technique), not the label's
+      content area — without matching `border-image-slice`/width values
+      it never actually scaled the picture to fit, on any Mudlet
+      version. Built two real renderers using genuine Mudlet/Geyser
+      APIs — `getImageSize(path)` (native pixel dimensions) and
+      `label:get_width()/get_height()` (live rendered pixel size) —
+      drawn via an `<img>` tag through `label:echo()` (the same
+      mechanism `MyDSL_MoonWeather.lua` already uses for its moon icons,
+      a completely different Mudlet pathway from `setBackgroundImage()`,
+      unaffected by whatever that old renderer was working around):
+      `containImageHTML()` (aspect-preserving shrink-to-fit, letterboxed)
+      and `stretchImageHTML()` (fills the box exactly, distorts
+      proportions if needed). Steven tried `contain` live first and
+      preferred the old fill-the-window look ("i prefer the old images
+      stretching to fill, not fond of this border lookin location and
+      portrait"), so default `fit` settled on `"stretch"` — changed in
+      both modules' in-code default, `MyDSL_LocationView.lua`'s
+      `loadProfiles()` fallback, and both already-persisted settings
+      files (`MyDSL/portraits/portrait_profiles.lua`,
+      `MyDSL/roompics/location_profiles.lua`). `cover` still uses the
+      old, confirmed-unreliable border-image renderer — not redesigned
+      this pass.
 - [ ] **TargetView stat block: same %-12s padding bug found, fixed
       2026-07-12, needs live confirmation.** Per screenshot ("Race: tinker
       gnomeLvl: 45", no space). `%-12s` only guarantees a *minimum* width
