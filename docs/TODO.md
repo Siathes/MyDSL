@@ -121,6 +121,28 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       own distinct text row, clear of the tube graphic, sitting directly
       above the cycle-count row. `MyDSL_AlterformView.lua`'s fill-percent
       math updated to match the tube's new dimensions.
+- [ ] **Location image filenames standardized — added 2026-07-12, needs
+      live confirmation.** Per Steven ("id like to be able to match the
+      room name and file without appending _ for spaces, then rename all
+      the files to match"). `M.fileForRoom()`
+      (`MyDSL_LocationView.lua`) now uses the literal room name (spaces,
+      apostrophes, capitalization preserved), only stripping genuinely
+      filesystem-illegal characters — was underscore-joined +
+      alphanumeric-only. `candidatePathsForRoom()`'s lookup order flipped
+      to match (new convention tried first, old underscore convention
+      kept only as a fallback). Renamed all 248 files in
+      `MyDSL/roompics/` down to 215: 117 straight underscore→space
+      renames, 32 exact-duplicate pairs deduped (byte-identical content,
+      kept the space-named one), and 3 pairs needed a real decision —
+      Steven's rule ("if renaming with duplicates, take the latest file
+      and overwrite") resolved all 3: 2 were identical-content
+      case-only duplicates (`east_mystic_crystal_fields.png` /
+      `East_Mystic_Crystal_Fields.png` and `extreme_cases.png` /
+      `Extreme_Cases.png`), 1 (`The_wing_of_the_Stone_Dragon.png` /
+      `The_Wing_of_the_Stone_Dragon.png`) was genuinely different
+      content, ~6 days apart — kept the later (2026-07-03) capture per
+      the rule. Image files themselves are gitignored (runtime data),
+      only the code change is tracked.
 - [ ] CharacterAssist: rearm (weapon+shield), spellup/setspell,
       blind-vision check.
 

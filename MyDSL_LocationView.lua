@@ -342,19 +342,29 @@ function M.currentRoomName()
 end
 
 function M.fileForRoom(room)
-  -- Project-safe filename.  This is the preferred v4C filename.
+  -- Preferred filename convention, changed 2026-07-12 per Steven ("id
+  -- like to be able to match the room name and file without appending _
+  -- for spaces, then rename all the files to match"). Was underscore-
+  -- joined + alphanumeric-only; now the literal room name (spaces,
+  -- apostrophes, capitalization preserved) with only genuinely
+  -- filesystem-illegal characters stripped -- matches every real
+  -- MyDSL/roompics/ filename after the same-day rename pass (confirmed
+  -- via directory audit: 248 files -> 215 after removing exact-duplicate
+  -- underscore/space pairs, all renamed to this convention).
   room = safeStr(room)
   if not room then return nil end
-  local file = room:gsub("%s+", "_")
-  file = file:gsub("[^%w_%-]", "")
-  file = file:gsub("_+", "_")
-  file = file:gsub("^_+", ""):gsub("_+$", "")
+  local file = room:gsub('[/\\:%*%?"<>|]', "")
+  file = trim(file)
   if file == "" then return nil end
   return file .. ".png"
 end
 
 function M.legacyFileForRoom(room)
-  -- Old RoomPic convention: only spaces become underscores.
+  -- Old RoomPic/pre-2026-07-12 convention: spaces become underscores.
+  -- Kept as a fallback lookup only -- every real file on disk was
+  -- renamed off this convention 2026-07-12, but this costs nothing to
+  -- leave in place in case a not-yet-captured room's image ever shows
+  -- up in this shape from an external source.
   room = safeStr(room)
   if not room then return nil end
   local file = room:gsub("%s+", "_")
@@ -382,11 +392,14 @@ function M.candidatePathsForRoom(room)
   local primaryDir = M.dir or M.defaultDir()
   local legacyDir = join(profileDir(), "RoomPics")
 
-  -- Try old RoomPic-compatible names first, then safer v4C names.
-  add(join(primaryDir, legacyFile), "auto", legacyFile)
+  -- Order flipped 2026-07-12 alongside M.fileForRoom()'s convention
+  -- change -- safeFile (the literal-room-name convention) now matches
+  -- every real file on disk, so it's tried first; legacyFile
+  -- (underscore-joined) is the fallback now, not the primary.
   add(join(primaryDir, safeFile), "auto-safe", safeFile)
-  add(join(legacyDir, legacyFile), "legacy", legacyFile)
+  add(join(primaryDir, legacyFile), "auto", legacyFile)
   add(join(legacyDir, safeFile), "legacy-safe", safeFile)
+  add(join(legacyDir, legacyFile), "legacy", legacyFile)
   return out
 end
 
