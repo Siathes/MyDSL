@@ -207,6 +207,17 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       overwriting the precipitation description already captured.
       `MoonWeather`'s `windLabel()` renders it as a compact 2-word label
       (e.g. `Cold Breeze`) appended after the precipitation icon+label.
+      Live-confirmed working — screenshot showed `Cloudy • Cold Breeze`
+      with the wind label exactly right, but caught a second icon-font
+      miss: ⛅ (Cloudy/day) showed no glyph at all, same failure mode as
+      the earlier 🌧. Traced the actual cause this time instead of
+      re-guessing: ⛅ (U+26C5) is Unicode 5.2 (2009), wrongly grouped
+      earlier with the genuinely old (1993) ☀/☁/❄/☂/☆ — verified all 5 of
+      those individually via compart.com this time, all real Unicode 1.1.
+      Fixed by using plain ☁ for both day and night Cloudy (no old-block
+      day-specific sun+cloud glyph exists). ⚡ (Storm) is Unicode 4.0
+      (2003) — probably fine, but genuinely not yet live-tested (no storm
+      weather hit during testing) — flagged, not swapped preemptively.
 - [ ] CharacterAssist: rearm (weapon+shield), spellup/setspell,
       blind-vision check.
 

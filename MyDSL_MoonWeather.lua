@@ -421,7 +421,16 @@ local function buildWeatherText()
     local word, icon, label = entry[1], entry[2], entry[3]
     if lc:find(word, 1, true) then
       if not icon then
-        if label == "Cloudy" then icon = isNight and "☁" or "⛅"
+        -- REAL BUG, found live 2026-07-12 (screenshot showed "Cloudy"
+        -- with no icon at all, exactly like the 🌧/🌨 miss before it):
+        -- ⛅ (U+26C5, SUN BEHIND CLOUD) is Unicode 5.2 (2009), not the
+        -- Unicode-1.1-era (1993) symbol I assumed it was when I called
+        -- it "already working" -- wrongly grouped it with ☀/☁, which
+        -- really are that old. No day-specific "sun+cloud" glyph exists
+        -- in the actually-safe 1990s block, so both day and night
+        -- cloudy now share plain ☁ (confirmed old/safe, already used
+        -- for the night case).
+        if label == "Cloudy" then icon = "☁"
         else icon = isNight and "☆" or "☀" end
       end
       local wind = windLabel(MyDSL.State.weather.windDescription)
