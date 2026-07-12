@@ -169,47 +169,6 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       `DSL_Helpfiles`), freeing the space age now uses. Font size fixed
       same day (was the small badge size, now matches the rest of the
       row).
-- [ ] **Dock/undock with remembered floating geometry — added
-      2026-07-12, needs live confirmation.** Per Steven ("is there a way
-      to save both window positions... i want to undock a window and
-      have it expand... when i push the redock button it goes back to
-      place, and stays persistent across loads and characters...
-      really only for location and portrait, but it has use cases for
-      all windows"). Researched first, per his explicit ask: confirmed
-      Mudlet's native UserWindow layout remembers exactly ONE geometry
-      per window (not separate docked/undocked profiles), and confirmed
-      there is no reliable Lua event for detecting a *native* drag-to-
-      dock transition (checked Mudlet's own bundled
-      `GeyserUserWindow.lua`/`TDockWidget.h`, corroborated by a Mudlet
-      forum thread) — so this is command/button-driven
-      (`mydsl location undock`/`dock`, `mydsl portrait undock`/`dock`),
-      matching how Steven himself already described it ("push the
-      redock button"), not a limitation introduced here. Size is
-      genuinely remembered even after a native drag-resize (confirmed
-      `getUserWindowSize()` is real, captured on every `dock()` call);
-      position is best-effort only — no `getUserWindowPosition()`
-      equivalent exists in Mudlet's API, so only positions set via
-      `undock()`'s own call are remembered, not native drag-moves.
-      Steven confirmed this partial version is acceptable. Built as a
-      shared, reusable API (`MyDSL.Windows.undock/dock`,
-      `MyDSL_WindowRegistry.lua` Section 8c, new profile-level
-      `MyDSL_windowfloat.lua`), wired for Location and Portrait.
-      Deliberately no single "toggle" command — there's no reliable way
-      to ask Mudlet which state a window is currently in, so a toggle
-      could only guess and would get it wrong on the second press.
-      **Two real bugs found and fixed live 2026-07-12, needs another
-      look**: (1) redock was landing in the lower-right corner instead
-      of back in place — `dock()` was calling `setDockPosition("right")`,
-      which Geyser's own source confirms passes `restoreLayout=false` to
-      Mudlet, forcing a generic edge-dock instead of the actual saved
-      position; fixed by calling `openUserWindow(name, true, autoDock)`
-      directly instead, same pattern `Geyser.UserWindow:enableAutoDock()`
-      itself uses. (2) undock inconsistently skipped resizing — best
-      theory is a race between `setDockPosition("floating")` starting the
-      transition and `:move()`/`:resize()` requiring it to have already
-      finished; added a 0.2s `tempTimer` delay before applying saved
-      geometry. This second fix is the less certain of the two — if it
-      still misses sometimes, that points away from a timing issue.
 - [ ] CharacterAssist: rearm (weapon+shield), spellup/setspell,
       blind-vision check.
 
