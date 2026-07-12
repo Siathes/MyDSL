@@ -229,6 +229,41 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       `MyDSL/live_settings.lua` (which would otherwise have overridden the
       new default on next load) from 8→9. No other styling touched, per
       Steven's explicit scope limit.
+- [ ] **RightHere Known/Seen/Unknown mob tagging + name accuracy — added
+      2026-07-12, needs live confirmation.** Per Steven ("as we identify
+      mobs, it should create a table to look up and find more accurate
+      tags for targets... mob names are the most important... if we need
+      to use an identifier alias, where we look then creaturelore, that
+      could be an option"). Corpus research first: extracted 30 real
+      `look`-vs-`scan` mob text pairs, confirmed the common case (plain
+      unnamed mobs) already matches word-for-word after normalization, and
+      that DSL's own target keyword matching only uses the *last word* of
+      whatever name is sent (`commandArg()`, `MyDSL_TargetView.lua`) — so
+      most surface-level wording differences don't actually change the
+      command sent. Real divergence is narrower: named NPCs (deprioritized
+      per Steven — "shopkeepers are not important") and generic/truncated
+      `look` descriptions for mobs DSL never names specifically in room
+      text (e.g. "A gnome is here using levers..." never says which gnome
+      type). Found and adapted a prior *working* implementation for
+      exactly this from the `DSL1` sibling profile's
+      `MyDSL.CreatureDB`/`MyDSL.TargetCompact` (embedded in its
+      `current/*.xml`): a single table classifies each mob as "known" (has
+      real lore data), "seen" (sighted via look/scan, never lored), or
+      "unknown" (no record) — derived from field presence, not a separate
+      flag. Reused our own already-existing, already-persistent, already-
+      shared `MyDSL_CreatureLore.lua` DB for this instead of building a
+      second table: added `CL.hasLore()`/`CL.knownState()`/`CL.markSeen()`.
+      `MyDSL_DataLayer.lua`'s `parseLookHereLine()`/`parseScanLine()` now
+      call `markSeen()` for every mob capture, and resolve to
+      CreatureLore's stored name (`resolveMobName()`) whenever that mob is
+      "known" — this is what actually improves targeting accuracy, since a
+      known name came from a real successful `lore` cast. Never guesses
+      between multiple possible matches for a generic/truncated name (per
+      Steven: "if we are unable to guess then a generic is better than
+      none") — falls back to the captured text unchanged whenever there's
+      no confirmed "known" match. `MyDSL_ScanView.lua`'s RightHere render
+      now shows a colored `[Known]`/`[Seen]`/`[Unknown]` badge per mob,
+      same color scheme as the DSL1 reference (green/cyan/yellow).
 - [ ] CharacterAssist: rearm (weapon+shield), spellup/setspell,
       blind-vision check.
 

@@ -1547,6 +1547,31 @@ local function isMobName(name)
   return name:match("^[Aa]n? ") ~= nil or name:match("^[Tt]he ") ~= nil
 end
 
+-- resolveMobName(key, capturedName) -- added 2026-07-12, per Steven ("mob
+-- names are the most important... if we need to use an identifier alias,
+-- where we look then creaturelore, that could be an option"). Confirmed
+-- via corpus research that a room's `look` text usually already matches
+-- `scan`'s own noun phrase word-for-word, but real divergence does happen
+-- (generic/truncated look descriptions, e.g. "A gnome is here using
+-- levers..." vs. a specific creaturelore-known "gnome machinist") --
+-- `MyDSL_CreatureLore.lua`'s DB is already keyed and populated exactly
+-- this way from real `creaturelore` captures, so a "known" hit there is
+-- a definitively-correct name, better than whatever got truncated out of
+-- a room description. Falls back to the captured name whenever there's no
+-- "known" (real lore data) match -- never guesses between multiple
+-- possible creaturelore entries sharing a generic prefix (e.g. several
+-- different "gnome ..." types) since that's not actually resolvable from
+-- a generic captured name alone -- per Steven ("if we are unable to guess
+-- then a generic is better than none").
+local function resolveMobName(key, capturedName)
+  local cl = MyDSL.CreatureLore
+  if cl and cl.knownState and cl.knownState(key) == "known" then
+    local rec = cl.get(key)
+    if rec and rec.name then return rec.name end
+  end
+  return capturedName
+end
+
 function MyDSL.beginScan(mode, direction)
   -- Fresh table replaces any stale scan state.
   MyDSL.State.scan = {
@@ -1599,10 +1624,18 @@ function MyDSL.parseScanLine(line)
   name         = trim(name)
   local key    = name:lower():gsub("^[Aa]n? ", ""):gsub("^[Tt]he ", "")
   local is_mob = isMobName(name)
+  -- Mark seen + resolve to CreatureLore's canonical name if known -- see
+  -- resolveMobName()'s comment above for the full reasoning. Mobs only
+  -- (not players) -- CreatureLore is a creature DB, "lore"-ing a player
+  -- isn't a real thing.
+  if is_mob and MyDSL.CreatureLore and MyDSL.CreatureLore.markSeen then
+    MyDSL.CreatureLore.markSeen(key, name)
+  end
+  local dispName = is_mob and resolveMobName(key, name) or name
   local row = {
     raw     = line,
-    name    = name,
-    display = name,
+    name    = dispName,
+    display = dispName,
     key     = key,
     where   = where,
     is_mob  = is_mob,
@@ -1614,8 +1647,8 @@ function MyDSL.parseScanLine(line)
   else
     scan.byName[key] = {
       raw     = line,
-      name    = name,
-      display = name,
+      name    = dispName,
+      display = dispName,
       key     = key,
       where   = where,
       is_mob  = is_mob,
@@ -1628,8 +1661,8 @@ function MyDSL.parseScanLine(line)
     else
       scan.rightHere[key] = {
         raw     = line,
-        name    = name,
-        display = name,
+        name    = dispName,
+        display = dispName,
         key     = key,
         where   = where,
         is_mob  = is_mob,
@@ -1870,6 +1903,16 @@ function MyDSL.parseLookHereLine(line)
   if name == "" then return false end
   local key    = name:lower():gsub("^[Aa]n? ", ""):gsub("^[Tt]he ", "")
   local is_mob = isMobName(name)
+  -- Mark seen + resolve to CreatureLore's canonical name if known -- see
+  -- resolveMobName()'s comment (above beginScan()) for the full reasoning.
+  -- This is exactly where a `look`-derived name is most likely to be
+  -- generic/truncated relative to `scan`'s fuller noun phrase (e.g. "A
+  -- gnome is here using levers..." only captures "A gnome" here), so this
+  -- is the primary place CreatureLore's better-identified name helps.
+  if is_mob and MyDSL.CreatureLore and MyDSL.CreatureLore.markSeen then
+    MyDSL.CreatureLore.markSeen(key, name)
+  end
+  local dispName = is_mob and resolveMobName(key, name) or name
   -- Fixed 2026-07-08, per Steven ("not updating correctly on mob
   -- counts"): this used to unconditionally overwrite scan.rightHere[key]
   -- with a fresh count=1 table every time, so a room with 3 identical
@@ -1882,7 +1925,7 @@ function MyDSL.parseLookHereLine(line)
     scan.rightHere[key].count = scan.rightHere[key].count + 1
   else
     scan.rightHere[key] = {
-      raw = line, name = name, display = name, key = key,
+      raw = line, name = dispName, display = dispName, key = key,
       where = "right here", is_mob = is_mob, count = 1,
     }
   end

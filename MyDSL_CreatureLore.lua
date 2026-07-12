@@ -97,6 +97,55 @@ function CL.merge(rec)
   CL.save()
 end
 
+-- hasLore(rec) / knownState(key) / markSeen(key, name) -- added 2026-07-12,
+-- per Steven ("as we identify mobs, it should create a table to look up
+-- and find more accurate tags for targets... mob names are the most
+-- important"). Adapted from a prior working implementation found in the
+-- DSL1 sibling profile (MyDSL.CreatureDB/MyDSL.TargetCompact, embedded in
+-- its current/*.xml) -- same three-state design: a record with real lore
+-- fields is "known", a record that exists but has none yet (created by a
+-- mere scan/look sighting) is "seen", and no record at all is "unknown".
+-- Reuses this same CL.db table for both purposes rather than keeping a
+-- second "seen" table, matching that reference's design.
+
+-- hasLore(rec) -- true if this record has any field that only a real
+-- "creaturelore <name>" capture (not a bare sighting) could have filled in.
+function CL.hasLore(rec)
+  if type(rec) ~= "table" then return false end
+  return rec.race ~= nil or rec.hp ~= nil or rec.magic ~= nil or rec.damage ~= nil
+      or rec.damageType ~= nil or rec.immunities ~= nil or rec.resists ~= nil
+      or rec.vulns ~= nil or rec.affects ~= nil or rec.tactics ~= nil
+      or rec.trainingCycle ~= nil
+end
+
+-- knownState(key) -- "known" (has real lore data) / "seen" (sighted via
+-- look or scan, never lored) / "unknown" (no record at all).
+function CL.knownState(key)
+  local rec = CL.get(key)
+  if not rec then return "unknown" end
+  return CL.hasLore(rec) and "known" or "seen"
+end
+
+-- markSeen(key, name) -- called from MyDSL_DataLayer.lua whenever a mob is
+-- captured via `look` or `scan` (not the `creaturelore` command itself).
+-- Creates a bare stub (no lore fields) if this key has never been seen at
+-- all, so knownState() can report "seen" instead of "unknown" -- never
+-- touches an existing record's real lore fields if it already has any.
+-- Only saves to disk on the first-ever sighting of a given key, not on
+-- every repeat sighting (every room re-look/re-scan would otherwise
+-- trigger a full table.save() -- "stale data beats spam").
+function CL.markSeen(key, name)
+  if not key or key == "" then return end
+  local existing = CL.db[key]
+  if existing then
+    existing.lastSeen = os.time()
+    if not existing.name and name then existing.name = name end
+    return
+  end
+  CL.db[key] = { key = key, name = name, firstSeen = os.time(), lastSeen = os.time() }
+  CL.save()
+end
+
 CL.load()
 
 -- echo(), not just debugc() -- 2026-07-11, per the same live-persistence

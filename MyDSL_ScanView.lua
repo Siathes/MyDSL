@@ -68,7 +68,28 @@ function SV.renderRightHere()
     local cnt = entry.count or 1
     local count_str = cnt > 1
       and string.format(" <255,204,68>×%d<r>", cnt) or ""
-    local text = string.format("  <%s>%s%s<r>\n", c, entry.display, count_str)
+    -- Known/Seen/Unknown badge -- added 2026-07-12, per Steven ("as we
+    -- identify mobs, it should create a table to look up and find more
+    -- accurate tags for targets"). Adapted from a prior working
+    -- implementation found in the DSL1 sibling profile
+    -- (MyDSL.TargetCompact's renderRightHere patch): green "Known" means
+    -- MyDSL_CreatureLore.lua has real lore data for this mob (its stored
+    -- name is what's actually being targeted -- see resolveMobName() in
+    -- MyDSL_DataLayer.lua), cyan "Seen" means it's been sighted before but
+    -- never lored, yellow "Unknown" means this is the first sighting ever.
+    -- Mobs only -- players/NPCs don't have creaturelore entries.
+    local badge = ""
+    if entry.is_mob and MyDSL.CreatureLore and MyDSL.CreatureLore.knownState then
+      local state = MyDSL.CreatureLore.knownState(entry.key)
+      if state == "known" then
+        badge = " <68,221,68>[Known]<r>"
+      elseif state == "seen" then
+        badge = " <68,204,221>[Seen]<r>"
+      else
+        badge = " <221,204,68>[Unknown]<r>"
+      end
+    end
+    local text = string.format("  <%s>%s%s%s<r>\n", c, entry.display, count_str, badge)
     -- Escape any embedded quotes in the creature name for the Lua callback string.
     local safe_name = entry.display:gsub('"', '\\"')
     local cmd  = string.format(
