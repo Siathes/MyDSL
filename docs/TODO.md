@@ -311,58 +311,6 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       gnomeLvl: 45", no space). `%-12s` only guarantees a *minimum* width
       — "tinker gnome" is exactly 12 characters, so it got zero trailing
       padding and ran straight into "Lvl:". Widened to `%-14s`.
-- [ ] **Root cause confirmed: a real Mudlet C++ bug, not ours — docked
-      UserWindows can get permanently wrong reported sizes; global layout
-      files reset 2026-07-12, needs live confirmation the fix actually
-      took.** Per Steven's screenshot sequence (Tick blank when docked,
-      correct only after being dragged to a much larger floating size,
-      blank again after re-docking) plus a diagnostic
-      (`mydsl tickview status`) that showed `V.ui.win:get_width()` =
-      1187px while the window's real docked slot was nowhere near that
-      wide. Traced into Mudlet's actual C++ source
-      (`TMainConsole::getUserWindowSize()`, added by upstream PR #9334,
-      part of the 4.21/4.22 upgrade): it deliberately *rejects* a
-      genuinely-smaller-than-cached size as "suspicious shrinkage" and
-      returns the old cached (larger) size instead, on the theory that
-      big shrinks mean "layout hasn't settled," not "this window is
-      just supposed to be small." Every percentage-based child (Tick's
-      bars, Focus's button grid) gets positioned against that wrong
-      number, landing outside the tiny real visible area — this is also
-      what the Focus/TargetView button-grid bug (M/X/nameplate — coded
-      8%/8%/82% — rendering as ~equal thirds) was. The `V.ui.win:
-      reposition()` test added earlier didn't help (confirmed no visible
-      change) because `reposition()` reads the *same* poisoned
-      `get_width()`/`get_height()` internally, so it just re-applied the
-      same wrong number.
-      **Survived a full Mudlet restart**, which narrowed it down: the
-      poisoned size isn't just in-memory (that would clear on restart),
-      it's re-applied by Mudlet's own native window-layout persistence on
-      every single launch. Traced to two files, both confirmed via
-      Mudlet's own C++ source (`mudlet::saveWindowLayout()`/
-      `loadWindowLayout()`/`saveFloatingDockGeometries()`) to live
-      *outside any profile folder* — `getMudletPath(mainDataItemPath,
-      ...)` resolves to Mudlet's shared config root, not
-      `profiles/DSL2/` — so this is one shared layout state across every
-      Mudlet profile on the machine, not something scoped to DSL2:
-        - `~/.config/mudlet/windowLayout.dat` — Qt's native main-window
-          dock-state blob (6.6KB, real saved data).
-        - `~/.config/mudlet/windowLayoutGeometry.dat` — floating-window
-          geometries specifically (was only 4 bytes — effectively
-          empty — at the time this was found).
-      Backed both up to `.bak` (per Steven's explicit choice) and
-      deleted the originals so Mudlet rebuilds a fresh layout state with
-      no poisoned remembered sizes to restore. This resets *every*
-      profile's remembered window layout/positions on next launch, not
-      just DSL2's — cosmetic only, no character/game data touched.
-      **Not yet confirmed this actually clears the bug** — needs a
-      restart + re-test of Tick/Focus docked at their normal small size.
-      `MyDSL_TickView.lua`'s `V.ui.win:reposition()` test call and the
-      temporary `mydsl tickview status` size diagnostic are still in
-      place; safe to remove once this is confirmed resolved (or revisit
-      if resetting the layout files *doesn't* fix it, which would mean
-      the poisoning source is something else, e.g. Mudlet's own
-      `restoreState()` blob format itself rather than a stale on-disk
-      value).
 - [ ] CharacterAssist: rearm (weapon+shield), spellup/setspell,
       blind-vision check.
 
@@ -523,6 +471,21 @@ Timers. Real candidates for future integration, none urgent:
 ---
 
 ## DECISIONS RECORDED
+- **Staying on Mudlet 4.20.1, not 4.21/4.22** — confirmed 2026-07-12 real
+  upstream bug: `TMainConsole::getUserWindowSize()` (added by PR #9334)
+  rejects a docked `UserWindow`'s real size as "suspicious shrinkage"
+  once it's shrunk enough from a previously-cached larger size, and
+  returns the stale larger size instead — every percentage-positioned
+  child (Tick's bars, Focus's button grid) then gets placed against
+  that wrong number. Confirmed this survives a full Mudlet restart
+  (Mudlet's own `windowLayout.dat`/`windowLayoutGeometry.dat`, outside
+  any profile folder, re-poison it on every launch) and that resetting
+  those files doesn't cleanly fix it (made the whole panel layout
+  collapse instead). Reverting to 4.20.1 fixed everything immediately.
+  **Don't re-investigate Tick/Focus/other-docked-window sizing bugs as
+  a MyDSL problem without first checking the installed Mudlet version**
+  — if a future upgrade is considered, check whether this shrinkage
+  guard has been revised upstream first.
 - Most settings (theme, visibility, chat, fonts, TargetView/AffectsView)
   are character-bound. **Window layout is the one deliberate exception**:
   layout is per-profile (single shared `MyDSL_layout.lua` + native Qt
