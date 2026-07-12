@@ -451,7 +451,7 @@ local function buildWeatherText()
         else icon = isNight and "☆" or "☀" end
       end
       local wind = windLabel(MyDSL.State.weather.windDescription)
-      local text = string.format('<span style="font-size:10pt;">%s</span> %s', icon, label)
+      local text = string.format('<span style="font-size:9pt;">%s</span> %s', icon, label)
       if wind then text = text .. " • " .. wind end
       return text
     end
@@ -622,14 +622,19 @@ function MW.render()
 
   -- Row heights rebalanced 2026-07-12 to fit the new weather row above
   -- the moons (12%): was 50/20/30, now 44/18/26 -- still sums to 100%.
-  -- Row font sizes bumped +1pt same day, per Steven ("fonts need to go up
-  -- one"): weather/time rows 8pt->9pt, focal (bonus) row 7pt->8pt.
+  -- Row font sizes bumped +1pt 2026-07-12, per Steven ("fonts need to go
+  -- up one"): weather/time rows 8pt->9pt, focal (bonus) row 7pt->8pt.
+  -- Weather row knocked back down to 8pt same day (separate ask, after
+  -- the +1 bump): "the actual weather line at the top of moonweather
+  -- needs to be on font size smaller to match the info below" -- it was
+  -- left at the same 9pt as the time row, one size bigger than the focal/
+  -- bonus row's 8pt directly below it; now matches.
   local html = string.format(
     '<table width="100%%" height="100%%" cellpadding="0" cellspacing="0"' ..
     ' style="table-layout:fixed;">' ..
     '<tr style="height:12%%;">' ..
       '<td colspan="3" style="text-align:center; vertical-align:middle;' ..
-      ' font-size:9pt; color:#aaaaaa;">%s</td>' ..
+      ' font-size:8pt; color:#aaaaaa;">%s</td>' ..
     '</tr>' ..
     '<tr style="height:44%%;">' ..
       '<td width="22%%" style="text-align:center; vertical-align:middle;">%s</td>' ..
@@ -781,18 +786,34 @@ local function _buildUI()
 
   pcall(function() container:setTitle(" ") end)   -- minimize title bar chrome
   -- REAL BUG, found live 2026-07-12 in MyDSL_AlterformView.lua's identical
-  -- pattern (Steven: "you can see the min/close buttons"), same fix
-  -- applied here: the old "lockStyle = 'padding'" constructor field did
-  -- nothing at all -- confirmed by reading Mudlet's actual bundled
+  -- pattern (Steven: "you can see the min/close buttons"): the old
+  -- "lockStyle = 'padding'" constructor field did nothing at all --
+  -- confirmed by reading Mudlet's actual bundled
   -- GeyserAdjustableContainer.lua -- a container is only ever locked at
   -- creation if locked=true is ALSO passed (never was), and "padding"
   -- isn't even one of Mudlet's real lockStyle names ("standard"/"border"/
   -- "full"/"light") -- it silently fell back to fully unlocked, all
   -- native chrome (min/restore, close, lock, save, load buttons) live and
-  -- visible. lockContainer("light") is Mudlet's own documented style for
-  -- hiding just the min/restore and close labels, borders/margin
-  -- untouched.
-  pcall(function() container:lockContainer("light") end)
+  -- visible.
+  --
+  -- SECOND REAL BUG, found live 2026-07-12 (same day, Steven: "since we
+  -- locked the window i cant resize the moonweather to fit all the
+  -- text"): the fix above used container:lockContainer("light"), which
+  -- I wrongly documented as "hiding just the min/restore and close
+  -- labels, borders/margin untouched" -- that's only true of the visual
+  -- style. Mudlet's own doc comment on lockContainer() in
+  -- GeyserAdjustableContainer.lua is unambiguous: "lock means that your
+  -- container is no longer moveable/resizable by mouse" -- ANY lockStyle
+  -- sets self.locked = true, and self.locked (not lockStyle) is what the
+  -- mouse-resize/move handlers actually check. So "light" was silently
+  -- disabling manual resize the whole time, on top of hiding the buttons.
+  -- Fixed by never locking the container at all -- exitLabel (close) and
+  -- minimizeLabel (min/restore) are just plain Geyser.Label children
+  -- created unconditionally in the container's constructor, so hiding
+  -- them directly leaves self.locked = false (mouse move/resize fully
+  -- functional) while still removing the button clutter.
+  pcall(function() container.exitLabel:hide() end)
+  pcall(function() container.minimizeLabel:hide() end)
   pcall(function() container:setAutoSave(true) end)
   pcall(function() container:setAutoLoad(true) end)
 
@@ -976,6 +997,20 @@ function MW.init()
     debugc("[MoonWeather] init() aborted — container or label unavailable.")
     return
   end
+
+  -- Force-unlock on every reload, not just first creation. Fixed
+  -- 2026-07-12, per Steven ("since we locked the window i cant resize the
+  -- moonweather to fit all the text"): _buildUI() (Step 2 above) only runs
+  -- once -- the container is a Geyser object that survives script
+  -- reloads, so anyone who already hit the old lockContainer("light") bug
+  -- (see _buildUI()'s comment) is stuck locked even after this fix reloads,
+  -- since _buildUI() never runs again to apply the corrected code. Calling
+  -- unlockContainer() unconditionally here, every init(), fixes an
+  -- already-locked live container immediately without needing a full
+  -- profile restart, and is a harmless no-op if it was never locked.
+  pcall(function() MW.ui.container:unlockContainer() end)
+  pcall(function() MW.ui.container.exitLabel:hide() end)
+  pcall(function() MW.ui.container.minimizeLabel:hide() end)
 
   -- Step 3: Re-apply label stylesheet (picks up any config changes between reloads).
   MW._applyTextStyle()

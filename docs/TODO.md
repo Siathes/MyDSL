@@ -259,6 +259,41 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       7pt→8pt, weather icon 9pt→10pt, base `config.fontSize` default
       9→10 (no persisted settings file for this module, so the default
       alone is sufficient, unlike LiveView's `barFont`).
+- [ ] **MoonWeather/Alterform: locking disabled manual resize entirely —
+      real bug, fixed 2026-07-12, needs live confirmation.** Per Steven
+      ("since we locked the window i cant resize the moonweather to fit
+      all the text"). Root cause: both modules' earlier "hide the min/
+      close buttons" fix (same day) called `container:lockContainer
+      ("light")`, which I documented at the time as only hiding those
+      buttons with "borders/margin not affected." That's only true of the
+      *visual style* — confirmed by downloading Mudlet's actual
+      `GeyserAdjustableContainer.lua` from GitHub
+      (`src/mudlet-lua/lua/geyser/`): its own doc comment on
+      `lockContainer()` says point-blank "lock means that your container
+      is no longer moveable/resizable by mouse," and the mouse-event
+      handlers gate purely on `self.locked` (set `true` by *every*
+      lockStyle, "light" included) — not on lockStyle at all. So "light"
+      was silently disabling resize/move the whole time, in both
+      `MyDSL_MoonWeather.lua` and `MyDSL_AlterformView.lua`. Fixed by
+      never locking the container at all: `exitLabel` (close) and
+      `minimizeLabel` (min/restore) are just plain `Geyser.Label`
+      children created unconditionally in the constructor, so hiding
+      them directly (`container.exitLabel:hide()` /
+      `container.minimizeLabel:hide()`) removes the button clutter while
+      leaving `self.locked = false` — mouse resize/move fully functional.
+      Also added an unconditional `unlockContainer()` call on every
+      script reload (MoonWeather's `init()`, Alterform's `boot()`), not
+      just first creation — the container is a Geyser object that
+      survives script reloads, so `_buildUI()`/`ensureUI()` (where the
+      original bug lived) never re-runs for anyone already stuck locked;
+      without this, reloading the fixed script alone wouldn't have
+      unstuck an already-locked live window. Also, per Steven's separate
+      screenshot-confirmed ask same message ("the actual weather line at
+      the top of moonweather needs to be on font size smaller to match
+      the info below"): the weather row was left at 9pt from the earlier
+      +1pt bump, same as the time row, one size bigger than the focal/
+      bonus row's 8pt directly beneath it — knocked back to 8pt to match,
+      icon span 10pt→9pt to keep the same relative sizing.
 - [ ] **AffectsView redundant per-second redraw, fixed 2026-07-12, needs
       live confirmation.** Steven shared a raw Mudlet debug-window dump
       while asking "does affects need to update that often also?" (same

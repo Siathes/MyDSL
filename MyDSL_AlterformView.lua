@@ -285,13 +285,25 @@ function F.ensureUI()
   -- isn't even one of Mudlet's real lockStyle names ("standard"/"border"/
   -- "full"/"light") -- it silently fell back to unlocked, full native
   -- chrome (min/restore, close, lock, save, load buttons all live and
-  -- visible). Calling the real API here instead: lockContainer("light")
-  -- is Mudlet's own documented style for "only hides the min/restore and
-  -- close labels, borders/margin not affected" -- exactly what's wanted
-  -- for a small fixed countdown widget. Same latent bug likely affects
-  -- MyDSL_MoonWeather.lua (identical lockStyle="padding" pattern) --
-  -- not touched here, flagged in TODO.md pending Steven's confirmation.
-  pcall(function() F.ui.win:lockContainer("light") end)
+  -- visible).
+  --
+  -- SECOND REAL BUG, found live 2026-07-12 (same day, in MyDSL_MoonWeather
+  -- .lua's identical pattern, Steven: "since we locked the window i cant
+  -- resize... to fit all the text"): calling lockContainer("light") here
+  -- was wrongly documented as only hiding the min/restore/close labels --
+  -- that's just the *visual style*. Mudlet's own doc comment on
+  -- lockContainer() in GeyserAdjustableContainer.lua is unambiguous:
+  -- "lock means that your container is no longer moveable/resizable by
+  -- mouse" -- ANY lockStyle sets self.locked = true, and self.locked (not
+  -- lockStyle) is what the mouse-resize/move handlers actually check. So
+  -- "light" was silently disabling manual resize/move here too the whole
+  -- time. Fixed by never locking the container at all -- exitLabel
+  -- (close) and minimizeLabel (min/restore) are just plain Geyser.Label
+  -- children created unconditionally in the constructor, so hiding them
+  -- directly leaves self.locked = false (mouse move/resize fully
+  -- functional) while still removing the button clutter.
+  pcall(function() F.ui.win.exitLabel:hide() end)
+  pcall(function() F.ui.win.minimizeLabel:hide() end)
 
   F.ui.panel  = Geyser.Label:new({ name = F.name .. "_Panel",  x = 0, y = 0, width = "100%", height = "100%" }, F.ui.win)
   F.ui.title  = Geyser.Label:new({ name = F.name .. "_Title",  x = 0, y = "4%", width = "100%", height = "14%" }, F.ui.win)
@@ -508,6 +520,21 @@ function F.boot()
   F.installAliases()
   F.installHandlers()
   F.ensureUI()
+  -- Force-unlock on every boot (script reload), not just first creation.
+  -- Fixed 2026-07-12, per Steven's identical complaint about MoonWeather
+  -- ("since we locked the window i cant resize... to fit all the text"):
+  -- F.ensureUI()'s container-build code (where the lockContainer fix
+  -- lives) only runs once -- the container is a Geyser object that
+  -- survives script reloads, so anyone who already hit the old
+  -- lockContainer("light") bug is stuck locked even after this fix
+  -- reloads. Calling unlockContainer() unconditionally here, every boot(),
+  -- fixes an already-locked live container immediately without needing a
+  -- full profile restart, and is a harmless no-op if it was never locked.
+  if F.ui and F.ui.win then
+    pcall(function() F.ui.win:unlockContainer() end)
+    pcall(function() F.ui.win.exitLabel:hide() end)
+    pcall(function() F.ui.win.minimizeLabel:hide() end)
+  end
   F.render("boot")
   if MyDSL and MyDSL.Alpha and MyDSL.Alpha.verbose then ce("loaded " .. F.version) end
 end
