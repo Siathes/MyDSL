@@ -82,22 +82,6 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       Fixed by reading all 3 from `score` instead. `riding`/`flying`
       aren't consumed by any renderer currently (confirmed via grep) —
       fixed for correctness, not a second visible bug.
-- [ ] **No-GMCP warning — added 2026-07-12, needs live confirmation.**
-      Root-caused Steven's "why is there no data for Vexgar/Uldek"
-      question: **GMCP is not enabled by default for newly created DSL
-      characters** — confirmed on Vexgar (traced his actual live session
-      transcript: autowhere/improve/scan/look all worked normally, but
-      zero MyDSL debug output past boot and zero character-bound files
-      ever created; Steven then found and enabled GMCP for the character
-      himself in-game). Not a MyDSL bug — every per-character
-      load/save/persist path hangs on `MyDSL.character.identified`, which
-      only ever fires from the `gmcp.login_data` handler, so if GMCP is
-      off, nothing per-character works all session, completely silently.
-      Added a one-time warning in `MyDSL.beginLook()` (fires on plain
-      text, no GMCP dependency, so it still fires with GMCP off) that
-      fires if `MyDSL.Char()` is still nil once real room content is
-      displaying — by then login/MOTD/character-select are long done, so
-      it's a real signal, not startup timing.
 - [ ] CharacterAssist: rearm (weapon+shield), spellup/setspell,
       blind-vision check.
 
