@@ -24,11 +24,24 @@ across all the logs do we have enough weather info to add it to the top of the m
 
 fight summary for kien didnt capture his spells like faerie fire, weaken,poison
 
-the improve bar need to be shrunk horizontally to allow the text to display( its fallen of the window) or put the text on the improve bar (prefer text on the improve bar, that was the old design)
-
 in liveview pos'n doesnt update on changing without score, it should update with the gmcp
 
-alterform window should only be visible when affect is active, not just blank
+alterform window should only be visible when affect is active, not just blank. move the timer to a more visible location like bottom above the cycle counter.
+
+history needs adaptive word wrap, so it text wraps with the size of the window.
+
+it would be great if the location window took files without the "_" for spaces just regular name matches (but we would have to change all the current file names for consistency, i dont want half with psaces and half with "_"
+
+something broke the autowhere alias and it now displays none instead of gaging it. scrrenshot shows and logs...correction something in "The Grand Archway of the Verminasian Amphitheatre" room description or name caused and error in autowhere that showed the none.
+
+as we identify mobs, it should create a table to look up and find more accurate tags for targets. example. when you walk in a room and look righthere populates with mobs in the room. however those mob names are inaccurate for targeting. If we created a table saying "A gnome machinist is here, replacing parts where needed." is the same as the scan "a gnome machinist" then using the propper scan name, the the populating of righthere would be much more affective and accurate
+
+be cool to have an age counter in live view. looks at score creation date and uses in-game time to tell you when your ingame birthday is and ingame age
+
+can we add a small padding space on the right side of our windows, like one charcater space, to make it look less ramped on the border/window edge
+
+wimpy should update when its changed as well and gmcp, or how it collects info. but also with the manual wimpy command
+
 
 ========== IDEAS ==========
 
