@@ -905,9 +905,13 @@ local function identityLine(d)
   -- Age, added 2026-07-12 per Steven -- fits in the row's freed space
   -- now that god only shows the name (see the Religion: parsing fix in
   -- MyDSL_DataLayer.lua), not the full "-=- the God of ..." title.
+  -- Font size fixed same day (Steven: "the age text is too small and
+  -- should match the rest of the font size for live info text") -- was
+  -- pillSz (the smaller READY/FIGHTING badge size), now sz like every
+  -- other field on this row (level/name/class/align/god).
   local age = ageText(d.createdTs)
   if age then
-    table.insert(parts, "<span style='font-size:" .. pillSz .. "pt; color:#b8a4d4;'>" .. html(age) .. "</span>")
+    table.insert(parts, "<span style='font-size:" .. sz .. "pt; color:#b8a4d4;'>" .. html(age) .. "</span>")
   end
 
   return table.concat(parts, SPACER)

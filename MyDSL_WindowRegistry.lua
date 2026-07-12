@@ -640,6 +640,16 @@ end
 -- restores its last-remembered size/position, or defaultW/defaultH (a
 -- deliberately bigger size than the docked default, per "have it expand
 -- so i can see pictures better") centered-ish on first use.
+--
+-- FIX 2026-07-12, found live (Steven: "the alias works for resizing and
+-- placement of undock, but t[he] undock just undocs and doesnt change
+-- position or size" -- inconsistent, not every time): setDockPosition()
+-- starts the docked->floating transition asynchronously; Geyser's own
+-- :move()/:resize() docstrings say they "only work if your UserWindow is
+-- in floating state", so calling them immediately afterward raced the
+-- transition -- worked when Mudlet finished fast enough, silently no-op
+-- otherwise. A short tempTimer lets the transition actually complete
+-- first.
 function MyDSL.Windows.undock(windowName, defaultW, defaultH)
   local entry = MyDSL.Windows.registry[windowName]
   if not entry then return false end
@@ -653,24 +663,38 @@ function MyDSL.Windows.undock(windowName, defaultW, defaultH)
   local y = geo.y or 150
 
   pcall(function() winObj:setDockPosition("floating") end)
-  pcall(function() winObj:move(x, y) end)
-  pcall(function() winObj:resize(w, h) end)
+  tempTimer(0.2, function()
+    pcall(function() winObj:move(x, y) end)
+    pcall(function() winObj:resize(w, h) end)
+  end)
   return true
 end
 
--- dock(windowName, dockPosition) -- captures the window's CURRENT size
--- (real, even after a native drag-resize -- see getUserWindowSize()
--- note above) before re-docking, so whatever size Steven left it at is
--- what comes back next time he undocks. Position isn't re-captured here
--- (no reliable getter -- see header comment); only what undock() itself
--- last set is remembered. Re-docks to dockPosition (default "right",
--- matching Geyser.UserWindow's own default) -- Mudlet's own dock layout
--- governs the actual docked size, nothing to save for that part.
-function MyDSL.Windows.dock(windowName, dockPosition)
+-- dock(windowName) -- captures the window's CURRENT size (real, even
+-- after a native drag-resize -- see getUserWindowSize() note above)
+-- before re-docking, so whatever size Steven left it at is what comes
+-- back next time he undocks. Position isn't re-captured here (no
+-- reliable getter -- see header comment); only what undock() itself
+-- last set is remembered.
+--
+-- FIX 2026-07-12, found live (Steven: "when 'redocking' it places it in
+-- the lower right corner above focus, and i had to manually put it back
+-- in its position"): this used to call winObj:setDockPosition("right")
+-- -- but Geyser's own setDockPosition() explicitly passes
+-- restoreLayout=false to Mudlet's native openUserWindow() (confirmed in
+-- its bundled GeyserUserWindow.lua), forcing a generic right-edge dock
+-- instead of restoring the actual saved layout position -- landing
+-- wherever Mudlet's own stacking order puts a fresh right-dock request,
+-- not back where it actually was. Fixed by calling the raw
+-- openUserWindow(name, true, autoDock) directly instead (same pattern
+-- Geyser.UserWindow:enableAutoDock() itself uses) -- restoreLayout=true
+-- snaps it back to the real saved position, no dockPosition guess
+-- needed at all.
+function MyDSL.Windows.dock(windowName)
   local entry = MyDSL.Windows.registry[windowName]
   if not entry then return false end
   local winObj = entry.obj
-  if not winObj or not winObj.setDockPosition then return false end
+  if not winObj then return false end
 
   local ok, w, h = pcall(getUserWindowSize, windowName)
   if ok and w and h then
@@ -680,7 +704,7 @@ function MyDSL.Windows.dock(windowName, dockPosition)
     MyDSL.Windows.saveFloatGeometry()
   end
 
-  pcall(function() winObj:setDockPosition(dockPosition or "right") end)
+  pcall(function() openUserWindow(windowName, true, winObj.autoDock) end)
   return true
 end
 

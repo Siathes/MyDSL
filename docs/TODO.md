@@ -166,31 +166,9 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       (`"Cliath -=- the God of Creation -=-"`) instead of just the name,
       overflowing the row. Fixed to capture just the name (every real
       god name confirmed single-word, cross-checked against
-      `DSL_Helpfiles`), freeing the space age now uses.
-- [ ] **LiveView dragon Vitality stat — added 2026-07-12, needs live
-      confirmation (visual placement only — Steven notes the value only
-      actually changes on a PK death, not re-testable on demand).** Per
-      Steven ("dragon vitality stat next for dragons/qinrathaz only...
-      below con in the stats window"). `DSL_Helpfiles/dragons.txt`
-      confirms: dragon-only, permanently lost on death (not alterform),
-      character dies permanently when it hits zero. Real format
-      confirmed from Steven's own `cecho` breadcrumb in
-      `log/2026-07-07#20-17-54.html` (typed `stat` on Qinrathaz):
-      `"Str: 72(80)  Int: 60(72)  Wis: 60(72)  Dex: 60(60)  Con: 66(82)
-      Vit: 20"`. Added a text trigger on the trailing `Vit: N` (only ever
-      appears for dragons — no race check needed, naturally never fires
-      for anyone else) in `MyDSL_DataLayer.lua`, bridged through
-      `MyDSL_DataBridge.lua`, displayed in LiveView's previously-blank
-      row 6 (right column, directly below CON) — blank for every
-      non-dragon character, same as that row always was. Chamber
-      (breath-weapon charge) added alongside same day, per Steven ("we
-      need the chamber stat for breath weapon shown in score as
-      Chamber:") — real format confirmed via corpus grep, same DEX/Align
-      row in `score`'s own output (`"DEX  : 060(060)    Align: True
-      Neutral         Chamber: 100"`, the dragon-only variant that
-      replaces the non-dragon "Prestige hours:" field). Paired onto the
-      Vitality row via the same extraHtml slot every other attr row
-      already uses (STR/Armor, DEX/TNL, etc.) since row 6 was full.
+      `DSL_Helpfiles`), freeing the space age now uses. Font size fixed
+      same day (was the small badge size, now matches the rest of the
+      row).
 - [ ] **Dock/undock with remembered floating geometry — added
       2026-07-12, needs live confirmation.** Per Steven ("is there a way
       to save both window positions... i want to undock a window and
@@ -219,6 +197,19 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       Deliberately no single "toggle" command — there's no reliable way
       to ask Mudlet which state a window is currently in, so a toggle
       could only guess and would get it wrong on the second press.
+      **Two real bugs found and fixed live 2026-07-12, needs another
+      look**: (1) redock was landing in the lower-right corner instead
+      of back in place — `dock()` was calling `setDockPosition("right")`,
+      which Geyser's own source confirms passes `restoreLayout=false` to
+      Mudlet, forcing a generic edge-dock instead of the actual saved
+      position; fixed by calling `openUserWindow(name, true, autoDock)`
+      directly instead, same pattern `Geyser.UserWindow:enableAutoDock()`
+      itself uses. (2) undock inconsistently skipped resizing — best
+      theory is a race between `setDockPosition("floating")` starting the
+      transition and `:move()`/`:resize()` requiring it to have already
+      finished; added a 0.2s `tempTimer` delay before applying saved
+      geometry. This second fix is the less certain of the two — if it
+      still misses sometimes, that points away from a timing issue.
 - [ ] CharacterAssist: rearm (weapon+shield), spellup/setspell,
       blind-vision check.
 
