@@ -299,6 +299,20 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       gnomeLvl: 45", no space). `%-12s` only guarantees a *minimum* width
       — "tinker gnome" is exactly 12 characters, so it got zero trailing
       padding and ran straight into "Lvl:". Widened to `%-14s`.
+- [ ] **LiveView room-title wrap, fixed 2026-07-12, needs live
+      confirmation.** Per Steven ("room title line wraps, it needs to
+      not, and spread across the top row, thats why its so long"). The
+      room-title Label was only `width="80%"`, with the remaining 20% of
+      that row sitting unused (nothing else shares y="2%") — widened to
+      `96%`, matching the row below's/hRule's own established 2%-margin
+      convention in this file.
+      `splitRoomName()`'s manual `<br>`-based line-break threshold (which
+      deliberately split any name over 34 characters onto a second line)
+      raised to 60, since every real room name observed live this session
+      (e.g. "A Path To The Mystic Crystal Fields", 36 chars) is
+      comfortably under that with the wider row — the split logic still
+      exists as a genuine safety net for a name actually too long to fit,
+      not the normal case anymore.
 - [ ] CharacterAssist: rearm (weapon+shield), spellup/setspell,
       blind-vision check.
 

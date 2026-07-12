@@ -532,7 +532,13 @@ function L.ensureUI()
   L.ui.panel = Geyser.Label:new({ name=L.name.."_Panel", x=0, y=0, width="100%", height="100%" }, L.ui.win)
 
   -- Header: room title, then terrain+exits on one line, then a rule.
-  L.ui.roomTitle = Geyser.Label:new({ name=L.name.."_RoomTitle", x="2%", y="2%",  width="80%", height="16%" }, L.ui.win)
+  -- Widened 2026-07-12 from 80% to 96% (matching the row below's/hRule's
+  -- own established 2%-margin convention in this same file), per Steven
+  -- ("room title line wraps, it needs to not, and spread across the top
+  -- row, that's why its so long") -- the title had 20% of the row sitting
+  -- unused next to it the whole time, forcing splitRoomName() below to
+  -- manually break long names onto a second line well before it needed to.
+  L.ui.roomTitle = Geyser.Label:new({ name=L.name.."_RoomTitle", x="2%", y="2%",  width="96%", height="16%" }, L.ui.win)
   L.ui.roomMeta  = Geyser.Label:new({ name=L.name.."_RoomMeta",  x="2%", y="19%", width="12%", height="10%" }, L.ui.win)
   L.ui.exitsCon  = Geyser.MiniConsole:new({ name=L.name.."_ExitsCon", x="15%", y="19%", width="83%", height="10%" }, L.ui.win)
   L.ui.hRule     = Geyser.Label:new({ name=L.name.."_HRule", x="2%", y="30%", width="96%", height="1px" }, L.ui.win)
@@ -710,9 +716,17 @@ local function terrainBadge(t)
 end
 
 
+-- Threshold raised 2026-07-12 from 34 to 60 (roomTitle itself widened from
+-- 80%->96% the same day -- see that widget's own comment) -- per Steven,
+-- who wants real room names to just fit on one line, not deliberately
+-- break onto a second line before they need to. Every real room name
+-- observed live this session (e.g. "A Path To The Mystic Crystal Fields",
+-- 36 chars) is comfortably under 60 -- this only kicks in now as a genuine
+-- safety net for a name that's actually too long for the wider row, not
+-- the normal case.
 local function splitRoomName(s)
   s = tostring(s or "Unknown Room")
-  if #s <= 34 then return html(s) end
+  if #s <= 60 then return html(s) end
 
   local target = math.floor(#s / 2)
   local best = nil
@@ -722,7 +736,7 @@ local function splitRoomName(s)
     end
   end
 
-  if best and #s <= 72 then
+  if best and #s <= 100 then
     -- color fixed 2026-07-11 alongside the main room-title bug -- was a
     -- second hardcoded literal (#ffd98a) independent of the theme.
     return html(s:sub(1, best - 1)) ..
@@ -730,7 +744,7 @@ local function splitRoomName(s)
            html(s:sub(best + 1)) .. "</span>"
   end
 
-  return html(s:sub(1, 42)) .. "..."
+  return html(s:sub(1, 70)) .. "..."
 end
 
 -- setBar()/setBarPercent() -- updated 2026-07-11 for the v1A15 inline bar
