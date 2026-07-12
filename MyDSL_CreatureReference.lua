@@ -185,6 +185,29 @@ function CR.onLoreUpdate()
   if MyDSL.Windows then MyDSL.Windows.show(CR_WIN) end
 end
 
+-- onTargetUpdate() -- added 2026-07-12, real bug found live via screenshot
+-- (Steven: "the targetview bestiary stats updated from creaturelore but
+-- the bestiary window shows no health/mana. is creaturelore saving to the
+-- right place?"). Traced: CreatureLore.db WAS saving correctly the whole
+-- time (confirmed directly reading MyDSL/creaturelore_db.lua -- the
+-- "mage" record had real hp/magic fields matching what Focus displayed).
+-- The real gap was that this window only ever redrew on the
+-- "MyDSL.creaturelore.updated" event -- i.e. only right after a FRESH
+-- "creaturelore <name>" capture completes. MyDSL_TargetView.lua's Focus
+-- window ALSO redraws on "MyDSL.target.updated" (and every Timers.Slow
+-- tick), so simply selecting a target that already had lore stored from
+-- an earlier capture/session correctly showed its stats in Focus, but
+-- this window had no listener at all for target changes -- it just kept
+-- showing whatever (or nothing) it last rendered. Deliberately does NOT
+-- auto-show the window on a mere target switch (unlike onLoreUpdate()
+-- above) -- popping Bestiary open every time the player targets something
+-- would be intrusive; this only keeps its content in sync for whenever
+-- it's already open or gets shown later.
+function CR.onTargetUpdate()
+  local t = MyDSL.State.target
+  CR.render(t and t.name or nil)
+end
+
 
 ------------------------------------------------------------------------
 -- show() / hide()
@@ -247,6 +270,13 @@ function CR.init()
   CR._handlers.loreUpdated = registerAnonymousEventHandler(
     "MyDSL.creaturelore.updated",
     function() CR.onLoreUpdate() end
+  )
+
+  -- Register target.updated handler -- see onTargetUpdate()'s own header
+  -- comment for why this was missing and what broke without it.
+  CR._handlers.targetUpdated = registerAnonymousEventHandler(
+    "MyDSL.target.updated",
+    function() CR.onTargetUpdate() end
   )
 
   CR._handlers.themeChanged = registerAnonymousEventHandler(

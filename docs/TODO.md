@@ -313,19 +313,42 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       comfortably under that with the wider row — the split logic still
       exists as a genuine safety net for a name actually too long to fit,
       not the normal case anymore.
-- [ ] **PlayersNear spacing tightened, fixed 2026-07-12, needs live
-      confirmation.** Per Steven ("can we reduce the space between the
-      players name and the room, make the text tighter together for a
-      smaller window without losing the coloring of the players name?").
-      DSL's own body lines use wide column-padding between name and room
-      (real text, not fabricated) — `routePlayersNearBodyLine()`
-      (`MyDSL_DataLayer.lua`) splits each line into its two real pieces
-      and copies each separately via `selectSection()`/`copy()`/
-      `appendBuffer()` (same rich-text-preserving mechanism `Route.to()`
-      already uses elsewhere), so each piece keeps its own original
-      color exactly, then joins them with a small fixed 2-space gap
-      instead of DSL's wide padding. Falls back to routing the line
-      unchanged if the expected shape isn't found.
+- [ ] **PlayersNear spacing tightened — real bug fixed 2026-07-12, needs
+      live confirmation.** First version of `routePlayersNearBodyLine()`
+      called `selectSection()`/`copy()`/`con:appendBuffer()` TWICE (name,
+      then room) with a `con:echo("  ")` in between, to join them on one
+      line — Steven reported this live as "players near you has room
+      names in it," screenshots showing the name and room as two stacked
+      lines with no visible gap. Root cause confirmed via the Mudlet
+      forums: `appendBuffer()` always lands its copied text as its own
+      new line in the destination console — it can't be called twice to
+      build up one combined line, regardless of `echo()` calls in
+      between. Every other `Route.to()`-based window only ever calls
+      copy()+appendBuffer() once per line for exactly this reason. Fixed
+      by tightening the gap **in place on the source line** first
+      (`selectSection()` the whitespace-only gap substring, `replace("  ")`
+      it) — real whitespace edited, name/room text and coloring
+      untouched — then doing the normal single-shot
+      `selectCurrentLine()`/`copy()`/`appendBuffer()` via
+      `MyDSL.Route.players(nil)`, same as every other routed window.
+- [ ] **Bestiary window not refreshing on target switch — real bug fixed
+      2026-07-12, needs live confirmation.** Per Steven ("the targetview
+      bestiary stats updated from creaturelore but the bestiary window
+      shows no health/mana. is creaturelore saving to the right place?").
+      Confirmed the DB was NOT the problem — read
+      `MyDSL/creaturelore_db.lua` directly, the "mage" record had real
+      `hp`/`magic` fields matching what Focus displayed. The actual gap:
+      `MyDSL_CreatureReference.lua` only ever redrew on
+      `MyDSL.creaturelore.updated` (right after a fresh `creaturelore
+      <name>` capture) — unlike Focus (`MyDSL_TargetView.lua`), which
+      also redraws on `MyDSL.target.updated` and every `Timers.Slow` tick.
+      So simply selecting a target that already had lore stored from an
+      earlier capture/session correctly showed in Focus but never made
+      Bestiary redraw at all. Added `CR.onTargetUpdate()` + a
+      `MyDSL.target.updated` listener, calling `CR.render(t.name)` (or
+      `CR.render(nil)` on clear) — deliberately does NOT auto-show the
+      window on a mere target switch, only keeps content in sync for
+      whenever it's already open or shown later.
 - [ ] **Shatteredarchive.com maps** — Steven's original bestiary-import
       request also mentioned "there are items on the website and maps as
       well" — the bestiary half is done and confirmed

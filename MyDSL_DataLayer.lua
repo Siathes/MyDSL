@@ -1984,32 +1984,41 @@ end
 -- padding between name and room (confirmed shape above) is what made the
 -- gap so wide -- still real text DSL sent, not fabricated, so this only
 -- changes how much of that whitespace gets carried over, not the name or
--- room text itself. Splits the line into its two real pieces (name, room)
--- and copies each separately via Mudlet's selectSection()/copy()/
--- appendBuffer() (the same rich-text-preserving mechanism Route.to()
--- already uses), so each piece keeps its own original color exactly --
--- then joins them with a small fixed 2-space gap instead of DSL's wide
--- padding. Falls back to routing the line unchanged if the expected
--- shape isn't found (never guesses at a split that isn't really there).
+-- room text itself.
+--
+-- REAL BUG, found live 2026-07-12 via screenshot (Steven: "players near
+-- you has room names in it"): the first version of this function called
+-- selectSection()/copy()/con:appendBuffer() TWICE (once for the name,
+-- once for the room), with a con:echo("  ") in between to join them on
+-- one line. appendBuffer() doesn't work that way -- confirmed via the
+-- Mudlet forums (search: "appendBuffer... cursor stays on line 1, this
+-- output call doesn't update the cursor position") -- each appendBuffer()
+-- call always lands its copied text as its OWN new line in the
+-- destination console, regardless of where echo() thinks the cursor is.
+-- That's why the screenshots showed "Kien" and the room name ("The Magic
+-- Facility"/"Advanced Magics") as two separate stacked lines with no
+-- visible gap between them -- the con:echo("  ") calls were writing to a
+-- stale cursor position that never lined up with either appended line.
+-- Every other Route.to()-based window in this profile (History/Combat/
+-- Scan/Group/RightHere) only ever calls copy()+appendBuffer() ONCE per
+-- routed line for exactly this reason.
+--
+-- Fixed by tightening the gap IN PLACE on the source line before doing a
+-- single whole-line copy: selectSection() the gap substring only and
+-- replace() it with a fixed 2-space gap -- this edits real whitespace in
+-- the actual captured line (not the name or room text, which are left
+-- completely untouched, coloring included), so the one-shot
+-- selectCurrentLine()/copy()/appendBuffer() below still carries the DSL-
+-- original color for both name and room, just with a tighter gap between
+-- them. Falls back to routing the line unchanged if the expected shape
+-- isn't found (never guesses at a split that isn't really there).
 local function routePlayersNearBodyLine(line)
-  local con = MyDSL.Route and MyDSL.Route.getConsole and MyDSL.Route.getConsole("MyDSL_PlayersNear")
   local name, gap, rest = line:match("^(%S+)(%s%s+)(%S.*)$")
-  if not con or not name then
-    selectCurrentLine()
-    copy()
-    MyDSL.Route.players(nil)
-    return
+  if name and gap ~= "  " then
+    selectSection(#name, #gap)
+    replace("  ")
   end
-  local nameLen   = #name
-  local restStart = nameLen + #gap  -- 0-indexed column where rest begins
-  selectSection(0, nameLen)
-  copy()
-  con:appendBuffer()
-  con:echo("  ")
-  selectSection(restStart, #rest)
-  copy()
-  con:appendBuffer()
-  con:echo("\n")
+  MyDSL.Route.players(nil)
 end
 
 function MyDSL.beginPlayersNear()
