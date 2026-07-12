@@ -438,6 +438,22 @@ function V.status()
      "; settingsLoaded=" .. tostring(V.settingsLoaded) ..
      "; settingsFile=" .. tostring(V.settingsFilePath or V.settingsFile()) ..
      "; reason=" .. tostring(V.lastReason))
+  -- Temporary diagnostic, added 2026-07-12, per the "tick blank when
+  -- docked/small" investigation -- reports what Geyser/Mudlet actually
+  -- think each widget's live pixel size is, so we can see real numbers
+  -- instead of guessing at theories. Safe to remove once the root cause
+  -- is confirmed.
+  local function dims(label, obj)
+    if not obj then ce(label .. "=nil"); return end
+    local ok, w, h = pcall(function() return obj:get_width(), obj:get_height() end)
+    ce(label .. ": get_width/get_height=" .. tostring(ok and w or "err") .. "x" .. tostring(ok and h or "err"))
+  end
+  dims("win",     V.ui and V.ui.win)
+  dims("panel",   V.ui and V.ui.panel)
+  dims("tube",    V.ui and V.ui.tube)
+  dims("fill",    V.ui and V.ui.fill)
+  local ok, uw, uh = pcall(getUserWindowSize, "MyDSL_Tick")
+  ce("getUserWindowSize(MyDSL_Tick)=" .. tostring(ok and uw or "err") .. "x" .. tostring(ok and uh or "err"))
 end
 
 function V.installHandlers()
