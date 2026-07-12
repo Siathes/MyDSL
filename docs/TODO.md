@@ -35,12 +35,6 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       2026-07-11, needs live confirmation (Improve countdown ticking live is
       confirmed as of 2026-07-12; the shared-heartbeat mechanism itself
       still needs a general check across the other windows that use it).
-- [ ] **Improve bar — track widened 2026-07-12, needs one more live
-      look.** Text overlay and live countdown both confirmed working
-      ("peek 77% (24m53s)" ticking down correctly). Widened the track
-      18% → 26% of window width per Steven, now that there's more text to
-      fit — runs to 98%, matching the attribute column's right edge.
-      Not yet confirmed at the new width.
 - [ ] CharacterAssist: rearm (weapon+shield), spellup/setspell,
       blind-vision check.
 - [ ] Equipment capture — parser is real and tested, but
