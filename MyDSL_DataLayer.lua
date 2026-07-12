@@ -598,6 +598,18 @@ MyDSL._handlers.char_data = registerAnonymousEventHandler(
       is_afk           = d.is_afk,
       is_quiet         = d.is_quiet,
     })
+    -- Real-time "Flying" for the Pos'n field -- see the posn trigger
+    -- block below (Section 10) for the rest of this feature. GMCP's
+    -- is_flying is already confirmed reliable (used by CharacterAssist's
+    -- vision check) and updates the instant flight starts/stops, unlike
+    -- score's own Pos'n field which only refreshes when `score` is
+    -- actually run. Only sets Flying when true -- landing is handled by
+    -- its own dedicated text trigger below, not by is_flying going false
+    -- here, since GMCP flips false slightly before the "float gently to
+    -- the ground" line actually prints.
+    if d.is_flying then
+      update("char", { posn = "Flying" })
+    end
   end
 )
 
@@ -2858,6 +2870,90 @@ MyDSL._triggers.playersNearEmpty = tempRegexTrigger(
     deleteLine()
   end
 )
+
+------------------------------------------------------------------------
+-- Pos'n (physical position) -- real-time text triggers
+------------------------------------------------------------------------
+-- Added 2026-07-12, per Steven ("liveview pos'n doesnt update on
+-- changing without score, it should update with the gmcp... check
+-- sibling profiles and other liveview scripts, this was active once
+-- before and update the character position as it happened"). LiveView's
+-- Pos'n field was sourced only from score.posn, a text-parsed field that
+-- only refreshes when `score` is actually run -- exactly the bug
+-- reported.
+--
+-- Found the real prior implementation in
+-- "../Dark & Shattered Lands - PNP/PNP/DSL_PNP_Statusbar.posn.lua":
+-- real-time text triggers on the server's own first-person confirmation
+-- lines ("You stand up.", "You sit down.", etc.), not GMCP polling --
+-- genuinely more precise than score, since it updates the instant the
+-- position actually changes rather than waiting for the next `score`.
+--
+-- NOT ported verbatim -- PNP's own "stand" pattern
+-- (`^You (?:go to )?(stand|rest|sit|sleep|mount|dismount)`, no end
+-- anchor) would be a real bug here: confirmed via log-corpus grep that
+-- many DSL2 room descriptions independently start with "You stand on/in
+-- the..." (second-person descriptive prose, unrelated to any stand
+-- action -- confirmed it also appears after a plain `look`), which that
+-- pattern would have matched and misfired on constantly. Rebuilt against
+-- the actual exact confirmation sentences, confirmed real via corpus
+-- grep across the full log/ archive: "You stand up.", "You sit down.",
+-- "You rest.", "You go to sleep.", "You are already standing.", "You
+-- are already sitting down.", "You wake and stand up.", "You wake up
+-- and start resting.", "You mount <name>.", "You dismount.", "You
+-- (slowly float|float gently) to the ground." (landing). "You stop
+-- resting." kept from PNP (its own "stop resting -> back to sitting"
+-- case) but NOT corpus-confirmed for DSL2 specifically -- low collision
+-- risk (a specific, unambiguous full sentence), flagged in TODO.md like
+-- the CharacterAssist disarm patterns were.
+--
+-- Flying is handled separately, via GMCP's is_flying in the char_data
+-- handler above (real, confirmed field, updates instantly -- no text
+-- trigger needed; directly confirmed live via a real session transcript
+-- showing "You stand up." -> "c fly" -> "Your feet rise off the
+-- ground." -> is_flying flipping to true in the very same capture).
+--
+-- setPosn(value) does NOT trust a trigger's text match as the final
+-- word -- per Steven ("id prefer that the trigger patterns be the point
+-- to check gmcp, not make its own decision to avoid the issues with
+-- room descriptions or other cross contamination. so stand trigger
+-- fires, check gmcp for the change and update"). GMCP's char_data has no
+-- direct Standing/Sitting/Resting/Sleeping equivalent (only the boolean
+-- flags already captured above -- is_flying/is_riding/is_fighting), so
+-- "check GMCP" concretely means: is_flying is the one flag that actually
+-- competes with a text-implied position, and it's authoritative -- a
+-- trigger firing (whether from a deliberate action or, despite the
+-- anchoring above, some future unanticipated text collision) can never
+-- downgrade a character GMCP still confirms is flying. Every trigger
+-- below reports what the text implied; setPosn() is the single place
+-- that reconciles it against real GMCP state before committing.
+local function setPosn(textImpliedValue)
+  local char = MyDSL.State.char or {}
+  local value = textImpliedValue
+  if char.is_flying and value ~= "Flying" then
+    value = "Flying"
+  end
+  update("char", { posn = value })
+end
+
+MyDSL._triggers.posnStandUp      = tempRegexTrigger([[^You stand up\.$]],                              function() setPosn("Standing") end)
+MyDSL._triggers.posnSitDown      = tempRegexTrigger([[^You sit down\.$]],                               function() setPosn("Sitting") end)
+MyDSL._triggers.posnRest         = tempRegexTrigger([[^You rest\.$]],                                   function() setPosn("Resting") end)
+MyDSL._triggers.posnSleep        = tempRegexTrigger([[^You go to sleep\.$]],                            function() setPosn("Sleeping") end)
+MyDSL._triggers.posnAlreadyStand = tempRegexTrigger([[^You are already standing\.$]],                   function() setPosn("Standing") end)
+MyDSL._triggers.posnAlreadySit   = tempRegexTrigger([[^You are already sitting down\.$]],                function() setPosn("Sitting") end)
+MyDSL._triggers.posnWakeStand    = tempRegexTrigger([[^You wake and stand up\.$]],                      function() setPosn("Standing") end)
+MyDSL._triggers.posnWakeRest     = tempRegexTrigger([[^You wake up and start resting\.$]],              function() setPosn("Resting") end)
+MyDSL._triggers.posnMount        = tempRegexTrigger([[^You mount .+\.$]],                                function() setPosn("Mounted") end)
+MyDSL._triggers.posnDismount     = tempRegexTrigger([[^You dismount\.$]],                                function() setPosn("Standing") end)
+-- Landing is the one case that must bypass the is_flying override above
+-- (it's the trigger THAT clears Flying) -- confirmed live (same
+-- transcript cited above) that GMCP's is_flying flips false slightly
+-- before this line prints, so by the time it fires char.is_flying is
+-- already false and setPosn()'s normal check passes "Standing" through
+-- untouched; no special-casing needed here.
+MyDSL._triggers.posnLand         = tempRegexTrigger([[^You (?:slowly float|float gently) to the ground\.$]], function() setPosn("Standing") end)
+MyDSL._triggers.posnStopRest     = tempRegexTrigger([[^You stop resting\.$]],                            function() setPosn("Sitting") end)
 
 ------------------------------------------------------------------------
 -- Group trigger

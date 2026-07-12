@@ -29,6 +29,35 @@ Fixed in code, verified via syntax checks and/or emulation — none of this
 is closed until Steven confirms it in-game. Full technical detail for any
 item: `git log --oneline` + `docs/CHANGELOG.md`.
 
+- [ ] **LiveView Pos'n now updates in real time, needs live confirmation.**
+      Per Steven ("liveview pos'n doesnt update on changing without
+      score, it should update with the gmcp... check sibling profiles
+      and other liveview scripts, this was active once before"). Found
+      the prior real implementation in
+      `../Dark & Shattered Lands - PNP/PNP/DSL_PNP_Statusbar.posn.lua`:
+      real-time text triggers on DSL's own first-person confirmation
+      lines, not GMCP polling. Confirmed GMCP's `char_data` (full raw
+      payload checked directly against a live dump) has **no**
+      Standing/Sitting/Resting/Sleeping field at all — only
+      `is_flying`/`is_riding`/`is_fighting`/`is_afk`/`is_quiet` booleans
+      — so a GMCP-only approach can't represent those 3 states; Steven
+      confirmed keeping the hybrid design after seeing this. Built:
+      `MyDSL_DataLayer.lua` gets a new `setPosn()` + 12 text triggers
+      (`MyDSL.State.char.posn`), rebuilt from real corpus-confirmed
+      sentences rather than porting PNP's own pattern verbatim — PNP's
+      unanchored `stand` match would have false-positived constantly here
+      (confirmed several DSL2 room descriptions independently open with
+      "You stand on/in the...", including after a plain `look`). Per
+      Steven's explicit direction, `setPosn()` itself checks GMCP's
+      `is_flying` as the authoritative cross-check before committing any
+      trigger's text-implied value, so a stray match can never downgrade
+      a character GMCP still confirms is flying.
+      `MyDSL_DataBridge.lua`'s `MyDSL.DB.score.posn` now prefers
+      `char.posn` over the stale `score.position` text field (GMCP-first,
+      same fallback pattern already used for gold/silver/weight). `"You
+      stop resting."` kept from PNP but not corpus-confirmed for DSL2
+      specifically — low collision risk, flagged like the CharacterAssist
+      disarm patterns.
 - [ ] CharacterAssist: rearm (weapon+shield), spellup/setspell,
       blind-vision check.
 

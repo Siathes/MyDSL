@@ -98,7 +98,16 @@ function MyDSL.DB.sync()
   MyDSL.DB.score.armorMagic  = sc.armor_magic
   MyDSL.DB.score.items       = sc.items
   MyDSL.DB.score.max_items   = sc.max_items
-  MyDSL.DB.score.posn        = sc.position
+  -- Real-time position, per Steven ("liveview pos'n doesnt update on
+  -- changing without score, it should update with the gmcp"). char.posn
+  -- (MyDSL_DataLayer.lua's new posn text-trigger set + GMCP is_flying,
+  -- added 2026-07-12) updates instantly as it happens; sc.position (the
+  -- score-command text parse) only refreshes when `score` is actually
+  -- run. char.posn wins when present, same "GMCP-first, text fallback"
+  -- pattern as gold/silver/weight below -- sc.position only still
+  -- matters for the brief window right after login before any real
+  -- position event has fired yet.
+  MyDSL.DB.score.posn        = char.posn or sc.position
   -- Base (unmodified) stat values -- added 2026-07-11. char.str/int/wis/
   -- dex/con above (GMCP) are the current/modified values already; the
   -- score command's "STR: 051(050)" format also gives the base value in
