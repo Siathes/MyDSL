@@ -169,6 +169,22 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       `DSL_Helpfiles`), freeing the space age now uses. Font size fixed
       same day (was the small badge size, now matches the rest of the
       row).
+- [ ] **MoonWeather weather line — added 2026-07-12, needs live
+      confirmation.** Per Steven ("across all the logs do we have enough
+      weather info to add it to the top of the moonweather window above
+      the moon images... need suggestions"). Data side already existed —
+      `MyDSL_DataLayer.lua`'s `parseWeatherLine()` has captured
+      `MyDSL.State.weather.description` from the real `weather` command
+      for a while, and MoonWeather already listened for
+      `MyDSL.weather.updated` to re-render — it just never read the text
+      anywhere. Confirmed real taxonomy via corpus grep across 101
+      captured `weather` outputs: Clear/Scattered clouds/
+      Lightning-Storm/Rain/Sleet/Snow, each with day and night wording.
+      Presented 3 display options via AskUserQuestion; Steven picked
+      symbol + short label (e.g. `🌧 Rain`). Added `buildWeatherText()`
+      (`MyDSL_MoonWeather.lua`), a new row above the moon circles,
+      row-height proportions rebalanced (was 50/20/30, now
+      12/44/18/26) to fit it.
 - [ ] CharacterAssist: rearm (weapon+shield), spellup/setspell,
       blind-vision check.
 

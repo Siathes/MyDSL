@@ -347,6 +347,57 @@ end
 
 
 ------------------------------------------------------------------------
+-- INTERNAL: buildWeatherText()
+------------------------------------------------------------------------
+-- Added 2026-07-12, per Steven ("across all the logs do we have enough
+-- weather info to add it to the top of the moonweather window above the
+-- moon images... need suggestions"). The data side already existed --
+-- MyDSL_DataLayer.lua's parseWeatherLine() has captured
+-- MyDSL.State.weather.description from the real `weather` command's
+-- output for a while, and this file already listens for
+-- "MyDSL.weather.updated" to re-render -- it just never actually read
+-- the text anywhere. Confirmed real taxonomy via corpus grep across 101
+-- captured `weather` command outputs: Clear/Scattered clouds/
+-- Lightning-Storm/Rain/Sleet/Snow, each with a day and a night wording
+-- ("...clear sky" vs "...clear night sky", etc) -- day/night picked
+-- from whether "night" appears in the actual captured sentence itself,
+-- no dependency on this module's own separate day/night tracking.
+-- Symbol + short label, per Steven's choice from 3 previewed options.
+-- Checked in order (most specific first) since some real sentences
+-- contain more than one candidate word (e.g. rain's "...clouded sky"
+-- also contains "cloud").
+local WEATHER_KEYWORDS = {
+  { "lightning", "⚡", "Storm" },
+  { "thunder",   "⚡", "Storm" },
+  { "snow",      "❄", "Snow" },
+  { "sleet",     "🌨", "Sleet" },
+  { "rain",      "🌧", "Rain" },
+  { "cloud",     nil,  "Cloudy" },  -- icon picked below (day/night differ)
+  { "clear",     nil,  "Clear" },   -- icon picked below (day/night differ)
+  { "stars shine",    nil, "Clear" },
+  { "sun is shining",  nil, "Clear" },
+}
+
+local function buildWeatherText()
+  local desc = MyDSL.State and MyDSL.State.weather and MyDSL.State.weather.description
+  if not desc or desc == "" then return "" end
+  local lc = desc:lower()
+  local isNight = lc:find("night") ~= nil
+
+  for _, entry in ipairs(WEATHER_KEYWORDS) do
+    local word, icon, label = entry[1], entry[2], entry[3]
+    if lc:find(word, 1, true) then
+      if not icon then
+        if label == "Cloudy" then icon = isNight and "☁" or "⛅"
+        else icon = isNight and "✨" or "☀" end
+      end
+      return string.format('<span style="font-size:9pt;">%s</span> %s', icon, label)
+    end
+  end
+  return ""  -- unrecognized text -- don't guess, just stay blank like before
+end
+
+------------------------------------------------------------------------
 -- INTERNAL: buildFocalText(focal, lunarData)
 ------------------------------------------------------------------------
 -- Builds the HTML for Section 2: the text block below the focal moon slot.
@@ -500,27 +551,34 @@ function MW.render()
   local centerHtml = moonSlotHtml(focal,  cMoon and cMoon.phase, false,  true)
   local rightHtml  = moonSlotHtml(rColor, rMoon and rMoon.phase, rHide,  false)
 
-  local focalText = buildFocalText(focal, lunar)
-  local timeRow   = buildTimeRow()
+  local focalText  = buildFocalText(focal, lunar)
+  local timeRow    = buildTimeRow()
+  local weatherRow = buildWeatherText()
 
+  -- Row heights rebalanced 2026-07-12 to fit the new weather row above
+  -- the moons (12%): was 50/20/30, now 44/18/26 -- still sums to 100%.
   local html = string.format(
     '<table width="100%%" height="100%%" cellpadding="0" cellspacing="0"' ..
     ' style="table-layout:fixed;">' ..
-    '<tr style="height:50%%;">' ..
+    '<tr style="height:12%%;">' ..
+      '<td colspan="3" style="text-align:center; vertical-align:middle;' ..
+      ' font-size:8pt; color:#aaaaaa;">%s</td>' ..
+    '</tr>' ..
+    '<tr style="height:44%%;">' ..
       '<td width="22%%" style="text-align:center; vertical-align:middle;">%s</td>' ..
       '<td width="56%%" style="text-align:center; vertical-align:middle;">%s</td>' ..
       '<td width="22%%" style="text-align:center; vertical-align:middle;">%s</td>' ..
     '</tr>' ..
-    '<tr style="height:20%%;">' ..
+    '<tr style="height:18%%;">' ..
       '<td colspan="3" style="text-align:center; vertical-align:top;' ..
       ' font-size:7pt; color:#cccccc;">%s</td>' ..
     '</tr>' ..
-    '<tr style="height:30%%;">' ..
+    '<tr style="height:26%%;">' ..
       '<td colspan="3" style="text-align:center; vertical-align:middle;' ..
       ' font-size:8pt; color:#888888;">%s</td>' ..
     '</tr>' ..
     '</table>',
-    leftHtml, centerHtml, rightHtml, focalText, timeRow)
+    weatherRow, leftHtml, centerHtml, rightHtml, focalText, timeRow)
 
   MW.ui.label:echo(html)
 end
