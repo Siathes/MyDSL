@@ -3042,6 +3042,34 @@ MyDSL._triggers.wimpySet = tempRegexTrigger(
 )
 
 ------------------------------------------------------------------------
+-- Dragon Vitality -- text trigger on the `stat` command's output
+------------------------------------------------------------------------
+-- Added 2026-07-12, per Steven ("dragon vitality stat next for dragons/
+-- qinrathaz only, see help files for dragon vitality if needed at it
+-- below con in the stats window"). DSL_Helpfiles/dragons.txt confirms:
+-- "Dragons will lose vitality with every death though not alterforms.
+-- When a dragon's vitality is gone, the dragon will permanently die" --
+-- a dragon-only permadeath-countdown stat, not present for any other
+-- race. Real format confirmed from Steven's own cecho breadcrumb in
+-- log/2026-07-07#20-17-54.html (typed `stat` on Qinrathaz):
+-- "Str: 72(80)  Int: 60(72)  Wis: 60(72)  Dex: 60(60)  Con: 66(82)
+-- Vit: 20" -- captures just the trailing "Vit: N", which only appears
+-- at all for dragon characters (confirmed no "Vit:" field anywhere in
+-- non-dragon corpus samples), so this naturally never fires/populates
+-- for anyone else -- no race check needed. Character-bound via
+-- update("char", ...), same persistence as posn/wimpy, since Steven
+-- noted this can only really be confirmed by watching it live (changes
+-- on a PK death), not re-testable on demand -- stale-but-persisted beats
+-- blank between sessions.
+MyDSL._triggers.vitalitySet = tempRegexTrigger(
+  [[Vit:\s*(\d+)\s*$]],
+  function()
+    local n = tonumber(matches[2])
+    if n then update("char", { vitality = n }) end
+  end
+)
+
+------------------------------------------------------------------------
 -- Group trigger
 ------------------------------------------------------------------------
 -- Fires on "Kien's group:" (any character name followed by "'s group:").

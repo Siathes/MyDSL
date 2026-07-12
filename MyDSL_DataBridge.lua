@@ -48,6 +48,9 @@ function MyDSL.DB.sync()
     stance     = char.stance,       language   = char.language,
     flying     = char.is_flying,    riding     = char.is_riding,
     fighting   = char.is_fighting,
+    -- Dragon-only, added 2026-07-12 -- see MyDSL_DataLayer.lua's
+    -- vitalitySet trigger and MyDSL_LiveView.lua's attrVit row.
+    vitality   = char.vitality,
   }
 
   -- Gap 6: score text fields (text parser only — not available from GMCP).

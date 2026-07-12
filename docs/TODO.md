@@ -167,6 +167,22 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       overflowing the row. Fixed to capture just the name (every real
       god name confirmed single-word, cross-checked against
       `DSL_Helpfiles`), freeing the space age now uses.
+- [ ] **LiveView dragon Vitality stat — added 2026-07-12, needs live
+      confirmation (visual placement only — Steven notes the value only
+      actually changes on a PK death, not re-testable on demand).** Per
+      Steven ("dragon vitality stat next for dragons/qinrathaz only...
+      below con in the stats window"). `DSL_Helpfiles/dragons.txt`
+      confirms: dragon-only, permanently lost on death (not alterform),
+      character dies permanently when it hits zero. Real format
+      confirmed from Steven's own `cecho` breadcrumb in
+      `log/2026-07-07#20-17-54.html` (typed `stat` on Qinrathaz):
+      `"Str: 72(80)  Int: 60(72)  Wis: 60(72)  Dex: 60(60)  Con: 66(82)
+      Vit: 20"`. Added a text trigger on the trailing `Vit: N` (only ever
+      appears for dragons — no race check needed, naturally never fires
+      for anyone else) in `MyDSL_DataLayer.lua`, bridged through
+      `MyDSL_DataBridge.lua`, displayed in LiveView's previously-blank
+      row 6 (right column, directly below CON) — blank for every
+      non-dragon character, same as that row always was.
 - [ ] CharacterAssist: rearm (weapon+shield), spellup/setspell,
       blind-vision check.
 

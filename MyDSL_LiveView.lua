@@ -462,6 +462,7 @@ function L.data()
     riding = score.riding,
     flying = score.flying,
     fighting = score.fighting,
+    vitality = score.vitality,
 
     -- Added 2026-07-11: the "populate Live with the score info" pass,
     -- per Steven's own hand-sketched layout (Downloads/"liveview layout").
@@ -562,7 +563,12 @@ function L.ensureUI()
   L.ui.attrWis = Geyser.Label:new({ name=L.name.."_AttrWis", x="61%", y=tostring(ROW_Y[3]).."%", width="37%", height=tostring(ROW_H).."%" }, L.ui.win)
   L.ui.attrDex = Geyser.Label:new({ name=L.name.."_AttrDex", x="61%", y=tostring(ROW_Y[4]).."%", width="37%", height=tostring(ROW_H).."%" }, L.ui.win)
   L.ui.attrCon = Geyser.Label:new({ name=L.name.."_AttrCon", x="61%", y=tostring(ROW_Y[5]).."%", width="37%", height=tostring(ROW_H).."%" }, L.ui.win)
-  -- row 6 on this side is left blank, per the sketch.
+  -- Row 6 on this side, previously left blank per the sketch, now used
+  -- for dragon Vitality, added 2026-07-12 per Steven ("dragon vitality
+  -- stat next for dragons/qinrathaz only... below con in the stats
+  -- window"). Left blank (empty echo) for non-dragon characters, same
+  -- as it always was -- see render() below.
+  L.ui.attrVit = Geyser.Label:new({ name=L.name.."_AttrVit", x="61%", y=tostring(ROW_Y[6]).."%", width="37%", height=tostring(ROW_H).."%" }, L.ui.win)
   -- xNum/wNum match xTrack/wTrack (was 91/7, a separate slot past the
   -- track's right edge) so the text overlays the bar itself instead of
   -- sitting in a slot too narrow for "<skill> NN%" -- see
@@ -633,7 +639,7 @@ function L.applyStyles()
   -- Independently adjustable 2026-07-11 via L.config.infoFont (was a
   -- fixed font+3 offset) -- "mydsl live infofont <n>".
   local rowFontSize = math.max(9, L.config.infoFont)
-  for _, key in ipairs({ "identity", "infoLine1", "infoLine2", "attrStr", "attrInt", "attrWis", "attrDex", "attrCon" }) do
+  for _, key in ipairs({ "identity", "infoLine1", "infoLine2", "attrStr", "attrInt", "attrWis", "attrDex", "attrCon", "attrVit" }) do
     if L.ui[key] then L.ui[key]:setStyleSheet(styleText(rowFontSize, "#e8e6e0", "normal", "AlignLeft")) end
   end
 
@@ -1058,6 +1064,17 @@ function L.render(reason)
     L.ui.attrDex:echo(attrLine("DEX", d.dex, d.dexBase, tnlExtra))
   end
   if L.ui.attrCon then L.ui.attrCon:echo(attrLine("CON", d.con, d.conBase, "")) end
+  -- Dragon-only, added 2026-07-12 per Steven. No base/current split (real
+  -- `stat` output is just "Vit: 20", not "Vit: 20(25)") -- attrValue()
+  -- already handles a nil base by falling back to the bare number.
+  -- Blank for every non-dragon character, same as this row always was,
+  -- since d.vitality only ever gets set by actually seeing a real `stat`
+  -- line with a Vit: field in it (dragons only -- confirmed via
+  -- DSL_Helpfiles/dragons.txt, "Dragons will lose vitality with every
+  -- death").
+  if L.ui.attrVit then
+    L.ui.attrVit:echo(d.vitality and attrLine("VIT", d.vitality, nil, "") or "")
+  end
 
   L.lastReason = reason or "render"
 end
