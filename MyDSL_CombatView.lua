@@ -217,6 +217,12 @@ function CV.init()
   loadConfig()
 
   local combatWin = MyDSL.Windows.ensure(COMBAT_WIN)
+  -- Fixed 2026-07-11, per Steven ("fix all window titles/names") --
+  -- windows created via MyDSL.Windows.ensure() never got a human-readable
+  -- title set anywhere, so this showed Mudlet's raw default ("User window
+  -- - DSL2 - MyDSL_Combat") instead of matching Live/Tick/Portrait/
+  -- Location's "-= Name =-" convention.
+  if combatWin and combatWin.setTitle then pcall(function() combatWin:setTitle("-= Combat =-") end) end
   if not CV._mc.combat then
     CV._mc.combat = Geyser.MiniConsole:new({
       name      = COMBAT_MC,
@@ -227,6 +233,14 @@ function CV.init()
     }, combatWin)
   end
   if CV._mc.combat then CV._mc.combat:setFontSize(CV.config.fontSize) end
+
+  -- Theme-driven background/font, added 2026-07-11. fontSize stays the
+  -- persisted user override (CV.config.fontSize) -- a theme switch
+  -- changes color/font family without resetting a size the user set via
+  -- "mydsl combat font <n>".
+  if MyDSL.Theme and MyDSL.Theme.styleConsole then
+    MyDSL.Theme.styleConsole(CV._mc.combat, COMBAT_WIN, CV.config.fontSize)
+  end
 
   -- Event handlers. Note: no "MyDSL.combat.updated" subscription anymore --
   -- the live per-swing feed happens immediately via CV.appendSwing(),
@@ -240,6 +254,14 @@ function CV.init()
   CV._handlers.combatRage = registerAnonymousEventHandler(
     "MyDSL.combat_rage",
     function(_, dmg, vamp) CV.renderRage(dmg, vamp) end)
+
+  CV._handlers.themeChanged = registerAnonymousEventHandler(
+    "MyDSL.theme.changed",
+    function()
+      if MyDSL.Theme and MyDSL.Theme.styleConsole then
+        MyDSL.Theme.styleConsole(CV._mc.combat, COMBAT_WIN, CV.config.fontSize)
+      end
+    end)
 
   -- Re-load once the real character is known -- fixed 2026-07-07. The
   -- loadConfig() call above runs at script-boot time, which on a

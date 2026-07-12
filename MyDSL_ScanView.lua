@@ -121,6 +121,8 @@ function SV.init()
   -- Ensure Scan UserWindow and its MiniConsole exist.
   -- Stored in SV.ui.scanConsole so DataLayer can call appendBuffer on it.
   local scanWin = MyDSL.Windows.ensure(SCAN_WIN)
+  -- Fixed 2026-07-11, per Steven ("fix all window titles/names").
+  if scanWin and scanWin.setTitle then pcall(function() scanWin:setTitle("-= Scan =-") end) end
   if not SV.ui.scanConsole then
     SV.ui.scanConsole = Geyser.MiniConsole:new({
       name      = SCAN_MC,
@@ -132,6 +134,8 @@ function SV.init()
 
   -- Ensure RightHere UserWindow and its MiniConsole exist.
   local rhWin = MyDSL.Windows.ensure(RH_WIN)
+  -- Fixed 2026-07-11, per Steven ("fix all window titles/names").
+  if rhWin and rhWin.setTitle then pcall(function() rhWin:setTitle("-= Right Here =-") end) end
   if not SV._mc.rightHere then
     SV._mc.rightHere = Geyser.MiniConsole:new({
       name      = RH_MC,
@@ -146,10 +150,28 @@ function SV.init()
   -- fontSize before, so it fell back to Mudlet's small built-in default.
   if SV._mc.rightHere then SV._mc.rightHere:setFontSize(9) end
 
+  -- Theme-driven background/font, added 2026-07-11. Both consoles had no
+  -- styling at all before (see docs/CHANGELOG.md's ThemeEngine entry).
+  if MyDSL.Theme and MyDSL.Theme.styleConsole then
+    MyDSL.Theme.styleConsole(SV.ui.scanConsole, SCAN_WIN)
+    MyDSL.Theme.styleConsole(SV._mc.rightHere, RH_WIN, 9)
+  end
+
   -- Register scan.updated event handler (rebuilds RightHere clickable list).
   SV._handlers.scanUpdated = registerAnonymousEventHandler(
     "MyDSL.scan.updated",
     function() SV.render() end
+  )
+
+  -- Re-theme both consoles when the active theme switches.
+  SV._handlers.themeChanged = registerAnonymousEventHandler(
+    "MyDSL.theme.changed",
+    function()
+      if MyDSL.Theme and MyDSL.Theme.styleConsole then
+        MyDSL.Theme.styleConsole(SV.ui.scanConsole, SCAN_WIN)
+        MyDSL.Theme.styleConsole(SV._mc.rightHere, RH_WIN, 9)
+      end
+    end
   )
 
   -- Restore gag triggers if config says so.

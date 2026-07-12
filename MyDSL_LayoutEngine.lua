@@ -69,6 +69,13 @@ MyDSL.Layout.defaults = MyDSL.Layout.defaults or {
   -- MyDSL_Tick: narrow standalone strip in bottom strip, between Live and Target.
   MyDSL_Tick             = { x=0.59, y=0.79, w=0.03, h=0.21 },
 
+  -- MyDSL_Alterform: added 2026-07-11, sits directly right of Tick (same
+  -- narrow-strip shape) -- this default only matters for a first-ever
+  -- boot; like every other window here, Steven's real live positions come
+  -- from Mudlet's own native dock-state save, not these fractional
+  -- defaults (see MyDSL_WindowRegistry.lua's constructor-patch comment).
+  MyDSL_Alterform        = { x=0.62, y=0.79, w=0.03, h=0.21 },
+
   -- MyDSL_Group: next to tick — group members and their vitals.
   MyDSL_Group            = { x=0.74, y=0.55, w=0.26, h=0.18 },
 
@@ -83,10 +90,11 @@ MyDSL.Layout.defaults = MyDSL.Layout.defaults or {
   -- MyDSL_Location: room/area name display (top-left).
   MyDSL_Location         = { x=0.00, y=0.18, w=0.10, h=0.18 },
 
-  -- MyDSL_Target: left side mid — target info and health bar.
-  MyDSL_Target           = { x=0.00, y=0.36, w=0.18, h=0.24 },
+  -- MyDSL_Focus (renamed from MyDSL_Target 2026-07-11): left side mid —
+  -- focus/target info and health bar.
+  MyDSL_Focus            = { x=0.00, y=0.36, w=0.18, h=0.24 },
 
-  -- MyDSL_RightHere: clickable mob list from scan — paired with Target window.
+  -- MyDSL_RightHere: clickable mob list from scan — paired with Focus window.
   MyDSL_RightHere        = { x=0.00, y=0.60, w=0.18, h=0.22 },
 
   -- MyDSL_PlayersNear: players-near-you output from scan parsing.

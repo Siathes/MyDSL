@@ -290,6 +290,8 @@ end
 function GV.init()
   -- Ensure Group UserWindow exists and get a reference to it.
   local groupWin = MyDSL.Windows.ensure(GROUP_WIN)
+  -- Fixed 2026-07-11, per Steven ("fix all window titles/names").
+  if groupWin and groupWin.setTitle then pcall(function() groupWin:setTitle("-= Group =-") end) end
 
   -- Create the MiniConsole only once; the _mc table persists across reloads
   -- so re-calling init() after dofile() never creates a duplicate console.
@@ -307,10 +309,25 @@ function GV.init()
   -- + hp/mana/mv + 2 quick-action buttons) was overflowing the window width.
   if GV._mc.group then GV._mc.group:setFontSize(8) end
 
+  -- Theme-driven background/font, added 2026-07-11. fontSize 8 stays
+  -- hardcoded (pre-existing gap, tracked in docs/TODO.md).
+  if MyDSL.Theme and MyDSL.Theme.styleConsole then
+    MyDSL.Theme.styleConsole(GV._mc.group, GROUP_WIN, 8)
+  end
+
   -- Register the event handler that triggers a re-render after each group parse.
   GV._handlers.groupUpdated = registerAnonymousEventHandler(
     "MyDSL.group.updated",
     function() GV.render() end
+  )
+
+  GV._handlers.themeChanged = registerAnonymousEventHandler(
+    "MyDSL.theme.changed",
+    function()
+      if MyDSL.Theme and MyDSL.Theme.styleConsole then
+        MyDSL.Theme.styleConsole(GV._mc.group, GROUP_WIN, 8)
+      end
+    end
   )
 
   -- Load quickActions config from disk now, and again once the real

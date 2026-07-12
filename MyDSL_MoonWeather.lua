@@ -567,15 +567,24 @@ function MW.toggle() if MyDSL.Windows then MyDSL.Windows.toggle("MyDSL_MoonWeath
 
 function MW._applyTextStyle()
   if not MW.ui.label then return end
+  -- Background migrated 2026-07-11 to pull from MyDSL.Theme (was a
+  -- hardcoded rgba(5,8,20,...) literal) -- border stays "none" regardless
+  -- of theme, a deliberate design choice (this window's title bar is
+  -- blanked entirely; it's meant to look like a HUD overlay, not a framed
+  -- panel like every other window).
+  local bgColor = MyDSL.Theme and MyDSL.Theme.get("MyDSL_MoonWeather", "bgColor")
+  local bg = bgColor
+    and string.format("rgba(%d,%d,%d,%d)", bgColor.r, bgColor.g, bgColor.b, MW.config.opacity)
+    or string.format("rgba(5,8,20,%d)", MW.config.opacity)
   MW.ui.label:setStyleSheet(string.format([[
-    background-color: rgba(5, 8, 20, %d);
+    background-color: %s;
     border: none;
     border-radius: 0px;
     padding: 3px 6px;
     font-family: "%s";
     font-size: %dpt;
     color: #cccccc;
-  ]], MW.config.opacity, MW.config.font, MW.config.fontSize))
+  ]], bg, MW.config.font, MW.config.fontSize))
 end
 
 
@@ -670,6 +679,9 @@ local function _registerHandlers()
     MW.render()
   end)
   reg("MyDSL.login.updated",   function() MW.render() end)
+  -- Re-apply background color when the active theme switches. Added
+  -- 2026-07-11 alongside named ThemeEngine presets.
+  reg("MyDSL.theme.changed",   function() MW._applyTextStyle() end)
   -- Added 2026-07-11, per Steven's "can we pull all timers off one tick"
   -- question: this replaces MW.startClockTimer()'s own independent
   -- tempTimer(1, loop) self-reschedule chain -- the exact same once/sec

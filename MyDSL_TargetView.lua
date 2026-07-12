@@ -31,6 +31,12 @@ TV.config = TV.config or {
   player_buttons = { "murder", "glance", "rescue", "look", "heal", "flee" },
 }
 TV.config.custom_actions = TV.config.custom_actions or {}
+-- fontSize -- added 2026-07-11 per Steven ("i need to be able to adjust
+-- the font like other windows"), matching CombatView's CV.config.fontSize
+-- pattern exactly (persisted override, theme switches pass it through as
+-- styleConsole()'s fontSizeOverride so a theme change never clobbers it).
+-- 11 matches the value that was hardcoded in TV.init() before this.
+if TV.config.fontSize == nil then TV.config.fontSize = 11 end
 
 -- TV.defaults -- added 2026-07-11, per Steven's "there should be a clear
 -- button" ask. Deliberately a fresh literal every load (NOT "TV.defaults or
@@ -44,15 +50,24 @@ TV.defaults = {
   player_buttons = { "murder", "glance", "rescue", "look", "heal", "flee" },
 }
 
--- Window / MiniConsole names.
-local TARGET_WIN = "MyDSL_Target"
-local TARGET_MC  = "MyDSL_Target_MC"
+-- Window / MiniConsole names -- renamed 2026-07-11 per Steven ("change
+-- target window to focus to match commands"): the window's own visible
+-- title/registry identity now matches its "focus <verb>" command surface,
+-- same precedent MyDSL_CreatureReference.lua already set (window titled
+-- "-= Bestiary =-", commands "bestiary ...", internal module/file still
+-- called CreatureReference) -- the underlying Lua namespace (MyDSL.Target,
+-- MyDSL.TargetView, this file's own name) is intentionally left alone; only
+-- the window's title/registry/layout/theme key and its log-file category
+-- changed. Historical logs remain under the old MyDSL/logs/target/ path;
+-- only new logging goes to MyDSL/logs/focus/.
+local TARGET_WIN = "MyDSL_Focus"
+local TARGET_MC  = "MyDSL_Focus_MC"
 
--- Mirrors the Target window's text into MyDSL/logs/target/ (2026-07-05:
+-- Mirrors the Focus window's text into MyDSL/logs/focus/ (2026-07-05:
 -- Mudlet's startLogging() can't capture MiniConsole content at all).
 local function tvLog(mc, text)
   mc:decho(text)
-  if MyDSL.logWindow then MyDSL.logWindow("target", text) end
+  if MyDSL.logWindow then MyDSL.logWindow("focus", text) end
 end
 -- Bug found live 2026-07-09: this parameter is dechoLink()'s
 -- useCurrentFormat flag, not "underline" as the name suggests -- false
@@ -65,7 +80,7 @@ end
 -- rendered correctly and nothing else did. All callers fixed to pass true.
 local function tvLogLink(mc, text, cmd, hint, underline)
   mc:dechoLink(text, cmd, hint, underline)
-  if MyDSL.logWindow then MyDSL.logWindow("target", text) end
+  if MyDSL.logWindow then MyDSL.logWindow("focus", text) end
 end
 
 -- Config persistence path -- character-bound as of 2026-07-05 (was a single
@@ -339,9 +354,23 @@ end
 -- Config persistence
 ------------------------------------------------------------------------
 
+-- io.open() precheck before table.load() -- 2026-07-11, per Steven ("the
+-- fonts should be saving like theme or window manager whatever tracks
+-- that"): matches MyDSL_ThemeEngine.lua's loadActive()/MyDSL_
+-- WindowRegistry.lua's loadState() exactly (both confirmed reliably
+-- persisting live), rather than the bare pcall(table.load, ...) this
+-- replaced.
 local function loadConfig()
-  local ok, data = pcall(table.load, configFile())
-  if ok and type(data) == "table" then
+  local f = io.open(configFile(), "r")
+  local data
+  if f then
+    f:close()
+    local ok, loaded = pcall(table.load, configFile())
+    if ok and type(loaded) == "table" then data = loaded end
+  end
+  echo("[MyDSL.TargetView] loadConfig(): " .. configFile() ..
+       (data and " -> fontSize=" .. tostring(data.fontSize) or " -> no saved file yet") .. "\n")
+  if data then
     if type(data.mob_buttons) == "table" and #data.mob_buttons == 6 then
       TV.config.mob_buttons = data.mob_buttons
     end
@@ -350,6 +379,9 @@ local function loadConfig()
     end
     if type(data.custom_actions) == "table" then
       TV.config.custom_actions = data.custom_actions
+    end
+    if type(data.fontSize) == "number" then
+      TV.config.fontSize = data.fontSize
     end
   end
   applyCustomActions()
@@ -467,55 +499,304 @@ end
 -- render()  —  redraws the entire Target window
 ------------------------------------------------------------------------
 
+-- listField(label, tbl, color) -- "Immune: charm poison" or "Immune: (none)"
+-- -- same convention MyDSL_CreatureReference.lua's listLine() already uses
+-- for these exact fields, just inline (one row, not one per field) since
+-- Target's real footprint (422x186, confirmed via "focus status") is much
+-- tighter than the Bestiary window's own layout.
+local function listField(label, tbl, color)
+  if type(tbl) == "table" and #tbl > 0 then
+    return string.format("<136,136,136>%s: <%s>%s<r>", label, color or "68,204,170", table.concat(tbl, " "))
+  end
+  return string.format("<136,136,136>%s: <68,68,68>(none)<r>", label)
+end
+
+-- tvRule(mc) -- thin dashed divider, matching the design mockup's row
+-- separators between the button grid and the stat block.
+local function tvRule(mc)
+  tvLog(mc, "<48,54,58>" .. string.rep("-", 46) .. "<r>\n")
+end
+
+-- conditionBarColor -- added 2026-07-11 per Steven ("should have
+-- healthbars that work on the enemies health message"), colored by the
+-- same 7-tier order MyDSL.getTargetCondition() returns (7=excellent,
+-- 1=awful). Real live combat-condition data only -- never fabricated;
+-- callers pass nil order when there's no fight data for this target yet.
+local function conditionBarColor(order)
+  if not order then return "68,68,68" end
+  if order >= 6 then return "68,204,68" end
+  if order >= 3 then return "204,170,68" end
+  return "204,68,68"
+end
+
+-- healthFraction(percentStr, order) -- turns MyDSL.getTargetCondition()'s
+-- percent-range text ("75-89%") into a 0-1 fill fraction for the
+-- nameplate's gradient background, using the range's midpoint for better
+-- fidelity than the coarse 7-tier order; falls back to order/7 if the
+-- text doesn't parse (defensive -- shouldn't happen for any of the 7 real
+-- CONDITION_PERCENT values in MyDSL_DataLayer.lua).
+local function healthFraction(percentStr, order)
+  if percentStr then
+    local lo, hi = percentStr:match("^(%d+)%-(%d+)%%$")
+    if lo and hi then return ((tonumber(lo) + tonumber(hi)) / 2) / 100 end
+    local single = percentStr:match("^(%d+)%%$")
+    if single then return tonumber(single) / 100 end
+  end
+  if order then return order / 7 end
+  return nil
+end
+
+------------------------------------------------------------------------
+-- Graphical buttons -- added 2026-07-11, per Steven ("could we make a
+-- mor graphical focus window... maybe research buttons in mudlet
+-- manual?"). Confirmed via Mudlet's own bundled source (GeyserButton.lua/
+-- GeyserLabel.lua) that Geyser.Label has real native click support
+-- (setClickCallback/setOnEnter/etc.) and Geyser.Button (Label-based) is a
+-- ready-made, fully CSS-styleable clickable widget -- an earlier claim in
+-- this file's own change history that this wasn't possible without
+-- switching to an Adjustable.Container was wrong; confirmed corrected
+-- version: the container type is unrelated, any Geyser container
+-- (including this window's existing UserWindow) can parent a Button.
+-- Kept as a UserWindow, NOT converted to Adjustable.Container, per
+-- Steven's explicit "keep it as-is for now."
+--
+-- The [M]/[P] toggle, [X] clear, and the 6 action-grid slots are now real
+-- Geyser.Button widgets, created ONCE in TV.init() and updated in place
+-- by render() (label/color/tooltip/click-handler/visibility), instead of
+-- being re-emitted as dechoLink() text every redraw. Everything else
+-- (identity text, creaturelore stats, consider-lines) stays exactly as
+-- it was, in plain MiniConsoles -- per Steven ("just the buttons").
+------------------------------------------------------------------------
+
+-- actionButtonCSS(colorRGB) -- a dark pill with a colored border, in the
+-- action's own semantic color (attack=red, heal=green, etc.) -- these
+-- colors are deliberately NOT theme-driven, same precedent already
+-- recorded for HP/mana bars and Tick's danger/warn/ready palette: they
+-- carry meaning independent of the active visual theme.
+local function actionButtonCSS(colorRGB)
+  return string.format(
+    "QLabel{background-color: rgba(26,28,32,235); border: 1px solid rgb(%s); border-radius: 5px;}",
+    colorRGB
+  )
+end
+
+-- btnHTML(text, colorRGB, fontPt) -- inline font-size/color in the HTML
+-- itself rather than relying on the QLabel stylesheet's own font-size to
+-- be inherited -- this session already found once (LiveView's infoFont
+-- bug) that Qt's rich-text renderer doesn't reliably do that.
+local function btnHTML(text, colorRGB, fontPt)
+  return string.format(
+    '<div align="center" style="font-size:%dpt; font-weight:bold; color: rgb(%s);">%s</div>',
+    fontPt or 11, colorRGB, text)
+end
+
+------------------------------------------------------------------------
+-- Nameplate -- added 2026-07-11, per Steven ("instead of the healthbar
+-- on a new line, can it overlay the mobs name and the mob name be
+-- centered in the bar"). The header's plain-text name line is now a
+-- Geyser.Label (like the buttons -- full CSS support confirmed via
+-- GeyserLabel.lua) whose BACKGROUND is a real colored health-fill
+-- gradient, with the name (+ relation tag + percent) centered on top as
+-- the label's own text -- one widget, not a separate bar + separate name
+-- row. Falls back to a flat neutral background with no fill when there's
+-- no live combat-condition data (never fabricated).
+------------------------------------------------------------------------
+
+-- nameplateCSS(fraction, colorRGB) -- a Qt linear-gradient with two
+-- coincident stops at the fill fraction to create a hard color edge
+-- (standard Qt stylesheet technique for a "progress bar" look from a
+-- single QLabel background), rather than a soft blend.
+local function nameplateCSS(fraction, colorRGB)
+  if not fraction then
+    return "QLabel{background-color: rgba(30,32,36,235); border: 1px solid rgb(70,74,80); border-radius: 4px;}"
+  end
+  fraction = math.max(0, math.min(1, fraction))
+  local stop = string.format("%.3f", fraction)
+  return string.format(
+    "QLabel{background: qlineargradient(x1:0,y1:0,x2:1,y2:0, stop:0 rgba(%s,220), stop:%s rgba(%s,220), stop:%s rgba(24,26,30,235), stop:1 rgba(24,26,30,235)); border: 1px solid rgb(70,74,80); border-radius: 4px;}",
+    colorRGB, stop, colorRGB, stop
+  )
+end
+
+-- nameplateHTML(content, fontPt) -- inline font-size, same reasoning as
+-- btnHTML() above (Qt rich-text doesn't reliably inherit font-size from
+-- the widget's own stylesheet).
+local function nameplateHTML(content, fontPt)
+  return string.format(
+    '<div align="center" style="font-size:%dpt; font-weight:bold; color: rgb(255,255,255);">%s</div>',
+    fontPt or 11, content)
+end
+
+-- updateActionButton(btn, label, colorRGB, tooltip, clickFn) -- pushes a
+-- full visual+behavior update onto an already-created Button widget and
+-- shows it. Safe to call every render() -- Button:setState("up") is what
+-- actually applies .msg/.style/.tooltip together in one native redraw.
+local function updateActionButton(btn, label, colorRGB, tooltip, clickFn)
+  if not btn then return end
+  btn.style   = actionButtonCSS(colorRGB)
+  btn.msg     = btnHTML(label, colorRGB, TV.config.fontSize)
+  btn.tooltip = tooltip or ""
+  btn:setClickFunction(clickFn)
+  btn:setState("up")
+  if btn.show then btn:show() end
+end
+
+local function hideButton(btn)
+  if btn and btn.hide then btn:hide() end
+end
+
+-- applyFontSize(size) -- pushes a font size onto the live stats console
+-- (the header became a Label/nameplate 2026-07-11 -- its font size bakes
+-- into its HTML on every render() instead, same as the buttons). Split
+-- out from setFont() so loadConfig()'s call sites (init() and the
+-- characterIdentified handler) can re-apply a freshly-loaded persisted
+-- value too.
+--
+-- REAL BUG, found live 2026-07-11 (Steven: "settings like focus font
+-- dont seem to be persistent"): the console is created with whatever
+-- TV.config.fontSize happens to be IN MEMORY at that moment -- on a
+-- genuinely fresh Mudlet start, that's still the hardcoded default (11),
+-- because loadConfig() (which pulls the real saved value off disk) only
+-- runs LATER in init(), after the console already exists. Confirmed the
+-- save side was never the problem -- targetview_config_Kien.lua on disk
+-- correctly showed fontSize=9 after "focus font 9" -- but nothing ever
+-- called :setFontSize() again after loadConfig() updated TV.config.
+-- fontSize in memory, so the live widget kept whatever size it was
+-- created with. Same gap existed at the characterIdentified handler's own
+-- loadConfig() call (a second, correct-per-character reload for the case
+-- where init() first ran before login completed) -- render() alone was
+-- never enough since it only ever set font size on new BUTTON/nameplate
+-- labels (baked into their HTML), never on the plain text console.
+local function applyFontSize(size)
+  if TV._mc.stats then TV._mc.stats:setFontSize(size) end
+end
+
 function TV.render()
-  local mc = TV._mc and TV._mc.target
-  if not mc then return end
-  mc:clear()
+  local statsMc = TV._mc and TV._mc.stats
+  if not statsMc or not TV.ui or not TV.ui.nameplate then return end
+  statsMc:clear()
   local t = MyDSL.State.target
 
-  -- Line 1: [M]/[P] toggle + name
-  local type_tag   = (t and t.is_mob) and "M" or "P"
-  local type_color = (t and t.is_mob) and "204,136,68" or "136,170,255"
-  tvLogLink(mc, string.format("<%s>[%s]<r>", type_color, type_tag),
-    "MyDSL.Target.toggle()", "Switch mob/player mode", true)
-
-  if not t or not t.name then
-    tvLog(mc, " <85,85,85>(no target)<r>\n")
-  else
-    tvLog(mc, " ")
-    tvLogLink(mc, "<170,68,68>[Clear]<r>", "MyDSL.Target.clear()", "Clear target", true)
-    local rel = dslColorRelation(t.name)
-    local relTag = ""
-    if rel == "friend" then relTag = " <0,200,0>[Friend]<r>"
-    elseif rel == "enemy" then relTag = " <200,60,60>[Enemy]<r>" end
-    tvLog(mc, string.format(" <255,255,255>%s<r>%s\n", t.name, relTag))
+  -- Nameplate: name (+ relation tag + live percent) centered on top of a
+  -- real colored health-fill background -- merged 2026-07-11 per Steven
+  -- ("instead of the healthbar on a new line, can it overlay the mobs
+  -- name and the mob name be centered in the bar"), superseding the
+  -- earlier separate plain-text header console + separate "HP:" stats
+  -- row. [M]/[P]/[X] are real Button widgets (see above), positioned to
+  -- the LEFT of the nameplate in the same row -- per Steven's earlier
+  -- "mob/player and clear button should be on left side." The "[img]"
+  -- icon placeholder stays removed (per Steven, "remove the image
+  -- option").
+  -- REAL BUG, broke profile load live 2026-07-11 (Steven's screenshot +
+  -- error paste): "attempt to call method 'setState' (a nil value)" at
+  -- this block. `:setState()` only exists on Geyser.Button (its own
+  -- state-machine method, confirmed in GeyserButton.lua -- Geyser.Button.
+  -- parent = Geyser.Label, but setState is defined on Button, not
+  -- inherited FROM Label) -- the nameplate is a plain Geyser.Label, which
+  -- has no such method. Copy-pasted the Button-update pattern
+  -- (`.style`/`.msg` fields + `:setState("up")`) from updateActionButton()
+  -- without checking Label actually supports it. Fixed by calling
+  -- Label's own real methods directly instead -- confirmed both exist via
+  -- Mudlet's actual bundled source (GeyserLabel.lua): `:setStyleSheet(css)`
+  -- and `:echo(message)`.
+  local condLabel, condPercent, condOrder = nil, nil, nil
+  if t and t.name and MyDSL.getTargetCondition then
+    condLabel, condPercent, condOrder = MyDSL.getTargetCondition(t.name)
   end
 
-  -- Lines 2-3: 6 action buttons
+  if not t or not t.name then
+    TV.ui.nameplate:setStyleSheet(nameplateCSS(nil, nil))
+    TV.ui.nameplate:echo(nameplateHTML("(no target)", TV.config.fontSize))
+    hideButton(TV.ui.mp)
+    hideButton(TV.ui.clear)
+  else
+    local rel = dslColorRelation(t.name)
+    local relHTML = ""
+    if rel == "friend" then relHTML = ' <span style="color:rgb(0,200,0);">[Friend]</span>'
+    elseif rel == "enemy" then relHTML = ' <span style="color:rgb(200,60,60);">[Enemy]</span>' end
+
+    local pctHTML = ""
+    if condPercent then
+      pctHTML = ' <span style="font-weight:normal; color:rgb(220,220,220);">' .. condPercent .. '</span>'
+    end
+
+    local frac = healthFraction(condPercent, condOrder)
+    TV.ui.nameplate:setStyleSheet(nameplateCSS(frac, conditionBarColor(condOrder)))
+    TV.ui.nameplate:echo(nameplateHTML(t.name .. relHTML .. pctHTML, TV.config.fontSize))
+
+    local type_tag   = t.is_mob and "M" or "P"
+    local type_color = t.is_mob and "204,136,68" or "136,170,255"
+    updateActionButton(TV.ui.mp, type_tag, type_color, "Switch mob/player mode", MyDSL.Target.toggle)
+    updateActionButton(TV.ui.clear, "X", "170,68,68", "Clear target", MyDSL.Target.clear)
+  end
+
+  -- 6 action buttons -- real Geyser.Button widgets now, updated in place;
+  -- an empty slot (unassigned, or attack-guarded against a group member)
+  -- hides its button instead of leaving a blank text gap.
   if t and t.name then
     local buttons = t.is_mob and TV.config.mob_buttons or TV.config.player_buttons
     local ownMember = isOwnGroupMember(t.name)
-    for row = 0, 1 do
-      for col = 1, 3 do
-        local idx = row * 3 + col
-        local key = buttons[idx]
-        local act = key and TV.actions[key]
-        if act and act.attack and ownMember then act = nil end
-        if act then
-          local btn_text = string.format("<%s>[%s]<r>", act.color, act.label)
-          if col < 3 then btn_text = btn_text .. " " end
-          tvLogLink(mc, btn_text,
-            string.format("MyDSL.Target.doAction('%s')", key),
-            act.tooltip .. ": " .. t.name, true)
-        end
+    for i = 1, 6 do
+      local key = buttons[i]
+      local act = key and TV.actions[key]
+      if act and act.attack and ownMember then act = nil end
+      if act then
+        updateActionButton(TV.ui.action[i], act.label, act.color, act.tooltip .. ": " .. t.name,
+          function() MyDSL.Target.doAction(key) end)
+      else
+        hideButton(TV.ui.action[i])
       end
-      tvLog(mc, "\n")
+    end
+  else
+    for i = 1, 6 do hideButton(TV.ui.action[i]) end
+  end
+
+  -- Creaturelore stat block -- reads MyDSL.CreatureLore.get()
+  -- (MyDSL_CreatureLore.lua's persistent, cross-session DB). Shows any
+  -- creature lore'd in ANY past session, not just this one, the instant
+  -- it becomes the target. The live health bar is no longer a separate
+  -- row here -- it moved into the nameplate above, 2026-07-11.
+  -- Race/Align/Lvl/Base-HP/Magic/Dmg/Tactics/Immune/Resist/Vuln/Affects.
+  -- Align narrowed to just good/evil/neutral, and Lvl (DSL's own "cycle
+  -- of training" number) + Tactics (Offensive Tactics list) added
+  -- 2026-07-11 per Steven ("only need to capture the good evil neutral
+  -- for align... we arent capturing the offensive tactics and level of
+  -- the mobs"). Kills/Avg XP/Last XP deliberately omitted -- confirmed
+  -- via codebase grep that nothing anywhere currently tracks per-creature
+  -- kill counts or XP (the old data file with those fields is a dead
+  -- month-old leftover); showing them would just be permanently-empty
+  -- placeholders.
+  if t and t.name then
+    local tKey = t.key or normalizeName(t.name)
+    local lore = MyDSL.CreatureLore and MyDSL.CreatureLore.get(tKey)
+
+    if lore then
+      tvRule(statsMc)
+      tvLog(statsMc, string.format(
+        "<136,136,136>Race: <204,204,204>%-12s<136,136,136>Lvl: <204,204,204>%-4s<136,136,136>Align: <204,204,204>%s<r>\n",
+        tostring(lore.race or "?"),
+        lore.trainingCycle and tostring(lore.trainingCycle) or "?",
+        tostring(lore.alignmentText or "?")))
+      tvLog(statsMc, string.format("<136,136,136>Base HP: <204,204,204>%-10s<136,136,136>Magic: <204,204,204>%s<r>\n",
+        lore.hp and tostring(lore.hp) or "?", lore.magic and tostring(lore.magic) or "?"))
+      if lore.damage then
+        tvLog(statsMc, string.format("<136,136,136>Dmg: <204,204,204>%s %s<r>\n",
+          lore.damage, tostring(lore.damageType or "")))
+      end
+      if lore.tactics and #lore.tactics > 0 then
+        tvLog(statsMc, listField("Tactics", lore.tactics, "255,204,68") .. "\n")
+      end
+      tvRule(statsMc)
+      tvLog(statsMc, listField("Immune", lore.immunities, "68,204,170") .. "  " ..
+                listField("Resist", lore.resists, "68,204,170") .. "\n")
+      tvLog(statsMc, listField("Vuln", lore.vulns, "204,68,68") .. "  " ..
+                listField("Affects", lore.affects, "170,170,255") .. "\n")
     end
   end
 
-  -- Line 4+: consider output (dim grey, cleared on target change)
+  -- Line: consider output (dim grey, cleared on target change)
   for _, line in ipairs(TV._consider_lines) do
-    tvLog(mc, string.format("<136,136,136>%s<r>\n", line))
+    tvLog(statsMc, string.format("<136,136,136>%s<r>\n", line))
   end
 end
 
@@ -525,23 +806,173 @@ end
 ------------------------------------------------------------------------
 
 function TV.init()
-  -- Ensure Target UserWindow and its MiniConsole exist.
+  -- Ensure the Focus UserWindow exists. Kept a UserWindow, NOT converted
+  -- to Adjustable.Container, per Steven's explicit "keep it as-is for
+  -- now" when asked whether graphical buttons required that change (they
+  -- don't -- confirmed via Mudlet's own source that any Geyser container
+  -- can parent a Button, same as this UserWindow already parents its
+  -- MiniConsoles).
   local targetWin = MyDSL.Windows.ensure(TARGET_WIN)
-  if not TV._mc.target then
-    TV._mc.target = Geyser.MiniConsole:new({
-      name      = TARGET_MC,
-      x = 0, y = 0, width = "100%", height = "100%",
+  -- Fixed 2026-07-11, per Steven ("fix all window titles/names").
+  if targetWin and targetWin.setTitle then pcall(function() targetWin:setTitle("-= Focus =-") end) end
+
+  -- Layout (percent of the window): header row y=0-10%, button grid two
+  -- rows y=11-20% / 21-30%, stats console y=32-100%. Button-grid height
+  -- halved 2026-07-11 per Steven ("we need to reduce those buttons by
+  -- half") -- the first graphical-button pass used the same 17%-per-row
+  -- height the old dechoLink() text rows happened to occupy, which turned
+  -- out to visually dominate the window and crowd the stats console below
+  -- it (confirmed live: the Race/Align row was scrolling out of view).
+  -- The freed space goes to the stats console (44% -> 68%).
+  if not TV._mc.stats then
+    TV._mc.stats = Geyser.MiniConsole:new({
+      name      = TARGET_MC .. "_Stats",
+      x = "0%", y = "32%", width = "100%", height = "68%",
       wrapWidth = 300,
-      fontSize  = 11,
+      fontSize  = TV.config.fontSize,
       scrollBar = false,
     }, targetWin)
   end
-  if TV._mc.target then TV._mc.target:setFontSize(11) end
+  if TV._mc.stats then TV._mc.stats:setFontSize(TV.config.fontSize) end
+
+  -- Theme-driven background/font for the stats console. fontSize is the
+  -- persisted user override (TV.config.fontSize, added 2026-07-11 per
+  -- Steven -- "i need to be able to adjust the font like other windows"),
+  -- passed through as styleConsole()'s fontSizeOverride exactly like
+  -- CombatView's CV.config.fontSize, so a theme switch changes color/
+  -- font-family without clobbering a size the user explicitly set. The
+  -- nameplate (below) isn't theme-styled -- same "semantic, not theme-
+  -- driven" precedent as the action buttons' colors.
+  if MyDSL.Theme and MyDSL.Theme.styleConsole then
+    MyDSL.Theme.styleConsole(TV._mc.stats, TARGET_WIN, TV.config.fontSize)
+  end
+
+  -- Graphical buttons + nameplate -- added 2026-07-11, per Steven ("could
+  -- we make a mor graphical focus window... maybe research buttons in
+  -- mudlet manual?" / "Just the buttons, keep it as-is for now" /
+  -- "instead of the healthbar on a new line, can it overlay the mobs
+  -- name"). Created ONCE here (persist across reloads via the TV.ui =
+  -- TV.ui or {} guard, same pattern as TV._mc) and updated in place by
+  -- render() -- see updateActionButton()/hideButton()/nameplateCSS()
+  -- above.
+  TV.ui = TV.ui or {}
+  if not TV.ui.nameplate then
+    TV.ui.nameplate = Geyser.Label:new({
+      name = TARGET_WIN .. "_Nameplate", x = "18%", y = "0%", width = "82%", height = "10%",
+    }, targetWin)
+  end
+  if not TV.ui.mp then
+    TV.ui.mp = Geyser.Button:new({
+      name = TARGET_WIN .. "_MP", x = "0%", y = "0%", width = "8%", height = "10%",
+    }, targetWin)
+  end
+  if not TV.ui.clear then
+    TV.ui.clear = Geyser.Button:new({
+      name = TARGET_WIN .. "_Clear", x = "8.5%", y = "0%", width = "8%", height = "10%",
+    }, targetWin)
+  end
+  TV.ui.action = TV.ui.action or {}
+  for i = 1, 6 do
+    if not TV.ui.action[i] then
+      local row = math.floor((i - 1) / 3)
+      local col = (i - 1) % 3
+      TV.ui.action[i] = Geyser.Button:new({
+        name   = TARGET_WIN .. "_Action" .. i,
+        x      = tostring(col * 34) .. "%",
+        y      = tostring(11 + row * 10) .. "%",
+        width  = "32%",
+        height = "9%",
+      }, targetWin)
+    end
+  end
 
   -- Register target.updated handler (for external setters).
   TV._handlers.targetUpdated = registerAnonymousEventHandler(
     "MyDSL.target.updated",
     function() TV.render() end
+  )
+
+  -- REAL BUG, found live 2026-07-11 from Steven's screenshot + Kien's
+  -- logs during an actual fight ("bar isnt working during a fight
+  -- either"): TV.render() was ONLY ever triggered by target/lore/theme
+  -- changes -- nothing re-rendered when combat-condition data itself
+  -- changed. MyDSL.parseCombatConditionLine() (MyDSL_DataLayer.lua) DOES
+  -- correctly update MyDSL.State.combat.active[key].target_condition on
+  -- every "X is in awful condition" line (confirmed: the screenshot's
+  -- main console shows several real ones for the exact target Focus had
+  -- selected) -- but with no listener telling Focus to redraw, that data
+  -- just sat there unseen the entire fight; the window looked identical
+  -- from the moment the target was set until it was cleared, regardless
+  -- of anything happening in combat. Fixed the same way LiveView/
+  -- AffectsView already solved this exact class of problem (see their own
+  -- "Timer consolidation" history): subscribe to MyDSL.Timers.Slow, the
+  -- shared 1/sec-throttled heartbeat (MyDSL_TickSource.lua) already used
+  -- for "redraw anything whose underlying data can change outside of a
+  -- direct user action." TargetView had never subscribed to any periodic
+  -- heartbeat at all before this.
+  TV._handlers.timersSlow = registerAnonymousEventHandler(
+    "MyDSL.Timers.Slow",
+    function() TV.render() end
+  )
+
+  -- Refresh when fresh creaturelore arrives -- added 2026-07-11 alongside
+  -- the creaturelore stat block. Confirmed real: MyDSL.endCreatureLore()
+  -- calls MyDSL.emit("creaturelore"), which raises exactly this event
+  -- (MyDSL_DataLayer.lua's MyDSL.emit() builds "MyDSL." .. section ..
+  -- ".updated" -- MyDSL_CreatureReference.lua already listens for the
+  -- same event this same way).
+  TV._handlers.loreUpdated = registerAnonymousEventHandler(
+    "MyDSL.creaturelore.updated",
+    function() TV.render() end
+  )
+
+  -- Auto-advance/clear on target death -- added 2026-07-11, per Steven's
+  -- explicit choice when asked directly ("Auto-advance to next mob in
+  -- room" over "always just clear"). Listens for the dedicated
+  -- MyDSL.combat.died event (MyDSL_DataLayer.lua's parseCombatDeathLine(),
+  -- added alongside this) rather than the generic MyDSL.combat.ended
+  -- event, since that one also fires for flee/rescue -- only a real death
+  -- should trigger this. Only acts if the creature that died IS the
+  -- current Focus target (someone else's kill nearby shouldn't touch our
+  -- selection). Picks any other mob still listed in Right Here/Scan --
+  -- same data RightHere's own click-to-target links already use -- or
+  -- clears if none remain. Still never sends a game command: this only
+  -- changes which entry OUR OWN UI has selected, exactly like a Right
+  -- Here click would.
+  TV._handlers.combatDied = registerAnonymousEventHandler(
+    "MyDSL.combat.died",
+    function(_, payload)
+      local t = MyDSL.State.target
+      if not t or not payload or not payload.key then return end
+      local tKey = t.key or normalizeName(t.name)
+      if tKey ~= payload.key then return end
+
+      local scan = MyDSL.State and MyDSL.State.scan
+      local nextMob = nil
+      if scan and scan.rightHere then
+        for key, entry in pairs(scan.rightHere) do
+          if entry.is_mob and key ~= payload.key then
+            nextMob = entry
+            break
+          end
+        end
+      end
+
+      if nextMob then
+        MyDSL.Target.set(nextMob.display, true, "auto-advance")
+      else
+        MyDSL.Target.clear()
+      end
+    end
+  )
+
+  TV._handlers.themeChanged = registerAnonymousEventHandler(
+    "MyDSL.theme.changed",
+    function()
+      if MyDSL.Theme and MyDSL.Theme.styleConsole then
+        MyDSL.Theme.styleConsole(TV._mc.stats, TARGET_WIN, TV.config.fontSize)
+      end
+    end
   )
 
   -- Re-load once the real character is known -- fixed 2026-07-07. The
@@ -555,6 +986,7 @@ function TV.init()
     "MyDSL.character.identified",
     function()
       loadConfig()
+      applyFontSize(TV.config.fontSize)
       TV.render()
     end
   )
@@ -722,13 +1154,94 @@ function TV.init()
     ]]
   )
 
-  -- Load config from disk (may override defaults).
+  -- "focus status" -- added 2026-07-11, same pixel-size-report pattern as
+  -- "mydsl live status" (get_width()/get_height() are real Geyser.Window
+  -- methods returning the CURRENT on-screen pixel size, not a percentage).
+  -- Real bug caught live the same day: forgot to reserve "status" here,
+  -- so the "focus (.+)$" catch-all ALSO fired and set the actual target
+  -- to a mob literally named "status" -- exactly the bug-class the
+  -- _focusReserved mechanism exists to prevent (see its own comment above).
+  TV._aliases.targetStatus = tempAlias(
+    "^focus status$",
+    [[if MyDSL and MyDSL.TargetView and MyDSL.TargetView.status then MyDSL.TargetView.status() end]]
+  )
+  TV._focusReserved.status = true
+
+  -- "focus font <n>" -- added 2026-07-11 per Steven ("i need to be able
+  -- to adjust the font like other windows"), matching CombatView's
+  -- "mydsl combat font <n>" alias, just under this module's own "focus"
+  -- command root.
+  TV._focusReserved.font = true
+  TV._aliases.targetFont = tempAlias(
+    "^focus font (\\d+)$",
+    [[if MyDSL and MyDSL.TargetView and MyDSL.TargetView.setFont then MyDSL.TargetView.setFont(matches[2]) end]]
+  )
+
+  -- Load config from disk (may override defaults), then push the loaded
+  -- fontSize onto the consoles created above -- they were built with
+  -- whatever TV.config.fontSize was BEFORE this load (see applyFontSize's
+  -- own comment for the real bug this fixes).
   loadConfig()
+  applyFontSize(TV.config.fontSize)
 
   -- Initial render.
   TV.render()
 
   debugc("[MyDSL] TargetView loaded.")
+end
+
+------------------------------------------------------------------------
+-- setFont(size)  —  change + persist the Target window's font size
+-- Added 2026-07-11 per Steven ("i need to be able to adjust the text size
+-- in the target window like other windows"), matching CombatView's
+-- CV.setFont() exactly.
+------------------------------------------------------------------------
+
+function TV.setFont(size)
+  size = tonumber(size)
+  if not size then echo("usage: focus font <size>\n"); return end
+  TV.config.fontSize = size
+  applyFontSize(size)
+  saveConfig()
+  -- Re-render so any currently-visible buttons pick up the new size too
+  -- -- their label HTML bakes in an explicit font-size (see btnHTML()),
+  -- so just calling setFontSize() on a console doesn't touch them.
+  TV.render()
+  echo("Target font=" .. tostring(size) .. "\n")
+end
+
+function TV.status()
+  local win = MyDSL.Windows and MyDSL.Windows.get and MyDSL.Windows.get(TARGET_WIN)
+  local pw, ph = "?", "?"
+  if win then
+    local ok1, w = pcall(function() return win:get_width() end)
+    local ok2, h = pcall(function() return win:get_height() end)
+    if ok1 and w then pw = w end
+    if ok2 and h then ph = h end
+  end
+  local tName = MyDSL.State.target and MyDSL.State.target.name
+  echo("[MyDSL.TargetView] pixelSize=" .. tostring(pw) .. "x" .. tostring(ph) ..
+       "; current=" .. tostring(tName) ..
+       "; is_mob=" .. tostring(MyDSL.State.target and MyDSL.State.target.is_mob) .. "\n")
+
+  -- HP-bar diagnostic -- added 2026-07-11 per Steven ("healthbar is still
+  -- missing"): getTargetCondition() only shows a bar when this target has
+  -- a live entry in MyDSL.State.combat.active, and there's no way to see
+  -- that table's real state from the UI otherwise. Prints the exact key
+  -- being looked up, whether an active-combat entry exists for it, and
+  -- (if so) the raw target_condition value -- so a live report tells us
+  -- directly whether this is "no active-combat entry" (fight already
+  -- ended/never started tracking) vs. "entry exists but condition never
+  -- got set" (a real parsing bug) instead of guessing from a screenshot.
+  if tName and MyDSL.getTargetCondition then
+    local label, percent, order = MyDSL.getTargetCondition(tName)
+    local key = tName:lower():gsub("^[Aa]n? ", ""):gsub("^[Tt]he ", "")
+    local entry = MyDSL.State.combat and MyDSL.State.combat.active and MyDSL.State.combat.active[key]
+    echo("[MyDSL.TargetView] condition key='" .. key .. "'; active_entry=" ..
+         tostring(entry ~= nil) .. "; raw_target_condition=" ..
+         tostring(entry and entry.target_condition) ..
+         "; getTargetCondition=" .. tostring(label) .. "/" .. tostring(percent) .. "/" .. tostring(order) .. "\n")
+  end
 end
 
 -- Expose saveConfig so alias callbacks can call it.

@@ -556,13 +556,33 @@ function P.ensureWindow()
   return true
 end
 
+-- Migrated 2026-07-11 to pull background/border color from MyDSL.Theme
+-- instead of the hardcoded literals repeated across the four style
+-- functions below. Font/radius/padding stay as this window's own
+-- deliberate choices (Portrait is primarily an image display, not text).
+local function frameColorCSS()
+  if MyDSL.Theme then
+    local ok, css = pcall(MyDSL.Theme.colorToCSS, MyDSL.Theme.get(P.config.windowName, "borderColor"))
+    if ok and css then return css end
+  end
+  return "#2f5f5f"
+end
+
+local function panelBgCSS()
+  if MyDSL.Theme then
+    local ok, css = pcall(MyDSL.Theme.colorToCSS, MyDSL.Theme.get(P.config.windowName, "bgColor"))
+    if ok and css then return css end
+  end
+  return "#050808"
+end
+
 local function baseStyle()
-  local border = P.config.frame and "border: 1px solid #2f5f5f;" or "border: 0px;"
+  local border = P.config.frame and ("border: 1px solid " .. frameColorCSS() .. ";") or "border: 0px;"
   -- Mudlet/Geyser labels are more reliable when the stylesheet is applied
   -- directly, without a QLabel selector. This follows the old working
   -- CharPic renderer.
   return [[
-    background-color: #050808;
+    background-color: ]] .. panelBgCSS() .. [[;
     color: #b8d8d8;
     ]] .. border .. [[
     border-radius: 3px;
@@ -587,11 +607,11 @@ end
 
 local function imageStyleFill(path)
   path = cssPath(path)
-  local border = P.config.frame and "border: 1px solid #2f5f5f;" or "border: 0px;"
+  local border = P.config.frame and ("border: 1px solid " .. frameColorCSS() .. ";") or "border: 0px;"
   -- This is intentionally the old CharPic method. It has proven reliable
   -- in Mudlet UserWindows on Linux.
   return [[
-    background-color: #050808;
+    background-color: ]] .. panelBgCSS() .. [[;
     ]] .. border .. [[
     border-radius: 3px;
     border-image: url("]] .. path .. [[");
@@ -601,9 +621,9 @@ end
 
 local function imageStyleContainFallback(path)
   path = cssPath(path)
-  local border = P.config.frame and "border: 1px solid #2f5f5f;" or "border: 0px;"
+  local border = P.config.frame and ("border: 1px solid " .. frameColorCSS() .. ";") or "border: 0px;"
   return [[
-    background-color: #050808;
+    background-color: ]] .. panelBgCSS() .. [[;
     ]] .. border .. [[
     border-radius: 3px;
     background-image: url("]] .. path .. [[");
@@ -615,9 +635,9 @@ local function imageStyleContainFallback(path)
 end
 
 local function imageStyleContainAfterSetBackground()
-  local border = P.config.frame and "border: 1px solid #2f5f5f;" or "border: 0px;"
+  local border = P.config.frame and ("border: 1px solid " .. frameColorCSS() .. ";") or "border: 0px;"
   return [[
-    background-color: #050808;
+    background-color: ]] .. panelBgCSS() .. [[;
     ]] .. border .. [[
     border-radius: 3px;
     qproperty-alignment: AlignCenter;
@@ -868,6 +888,12 @@ function P.installEvents()
   registerHandler("gmcp_char_data", "gmcp.char_data", function() tempTimer(0.15, function() P.refresh("gmcp.char_data") end) end)
   registerHandler("gmcp_login_data", "gmcp.login_data", function() tempTimer(0.15, function() P.refresh("gmcp.login_data") end) end)
   registerHandler("sys_connection", "sysConnectionEvent", function() tempTimer(1.0, function() P.refresh("connection") end) end)
+  -- Re-apply background/border/caption colors when the active theme
+  -- switches. Added 2026-07-11 alongside named ThemeEngine presets.
+  registerHandler("theme_changed", "MyDSL.theme.changed", function()
+    pcall(function() P.caption:setStyleSheet(captionStyle()) end)
+    P.refresh("theme.changed")
+  end)
 end
 
 function P.installCompatGlobal()

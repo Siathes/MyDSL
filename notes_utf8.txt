@@ -12,9 +12,23 @@ look at making new maps like thalos's updated one use shattered book editor? (ma
 
 
 ========== PROJECT NOTES ==========
-check out stat command and vitality
+playersnearyou: can we reduce the space between the players name and the room, make the text tighter together for a smaller window without losing the coloring of the players name?
+
+check out stat command and vitality so we can track qinrathaz's dragon vitality stat (see help dragons)
 
 vexgar magic missile did not show in the main display, it di show in the combat window, needs to echo (skill/spell/action) to main display also
+
+we will need a quest module, for a way to track the quest timer, location, item, and the rest of the quest info.
+
+across all the logs do we have enough weather info to add it to the top of the moonweather window above the moon images in a small 1-2 line, or maybe symbols to represent the weather? need suggestions
+
+fight summary for kien didnt capture his spells like faerie fire, weaken,poison
+
+the improve bar need to be shrunk horizontally to allow the text to display( its fallen of the window) or put the text on the improve bar (prefer text on the improve bar, that was the old design)
+
+in liveview pos'n doesnt update on changing without score, it should update with the gmcp
+
+alterform window should only be visible when affect is active, not just blank
 
 ========== IDEAS ==========
 

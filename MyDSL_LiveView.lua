@@ -1,6 +1,6 @@
 
 --[[=====================================================================
-  MyDSL LiveView v1A14
+  MyDSL LiveView v1A15
   ----------------------------------------------------------------------
   Low-profile Room / Vitals window for MyDSL Alpha 1.
 
@@ -26,7 +26,7 @@ MyDSL = MyDSL or {}
 MyDSL.LiveView = MyDSL.LiveView or {}
 
 local L = MyDSL.LiveView
-L.version = "LiveView v1A14"
+L.version = "LiveView v1A15"
 L.name = L.name or "MyDSL_Live"
 L.title = L.title or "-= Live =-"
 
@@ -35,7 +35,14 @@ L.config.shown = L.config.shown ~= false
 L.config.font = tonumber(L.config.font or 10) or 10
 L.config.titleFont = tonumber(L.config.titleFont or 12) or 12
 L.config.barFont = tonumber(L.config.barFont or 8) or 8
-L.config.mode = L.config.mode or "compact"
+-- Added 2026-07-11, per Steven ("let me be able to adjust the text size...
+-- informational text, title text, terrain text, any others you have
+-- separate"): infoFont covers the identity/info/attribute rows (was a
+-- fixed font+3 offset with no independent setting); terrainFont covers
+-- roomMeta specifically (was tied to the base font). titleFont/barFont
+-- were already independently adjustable (mydsl live titlefont/barfont).
+L.config.infoFont = tonumber(L.config.infoFont or 13) or 13
+L.config.terrainFont = tonumber(L.config.terrainFont or 10) or 10
 L.config.width = L.config.width or "34%"
 L.config.height = L.config.height or "13%"
 L.config.debug = L.config.debug == true
@@ -103,7 +110,8 @@ function L.serializeSettings()
   table.insert(out, string.format("  font = %d,\n", tonumber(L.config.font) or 10))
   table.insert(out, string.format("  titleFont = %d,\n", tonumber(L.config.titleFont) or 12))
   table.insert(out, string.format("  barFont = %d,\n", math.max(8, tonumber(L.config.barFont) or 8)))
-  table.insert(out, string.format("  mode = %q,\n", tostring(L.config.mode or "compact")))
+  table.insert(out, string.format("  infoFont = %d,\n", math.max(9, tonumber(L.config.infoFont) or 13)))
+  table.insert(out, string.format("  terrainFont = %d,\n", math.max(8, tonumber(L.config.terrainFont) or 10)))
   table.insert(out, "}\n")
   return table.concat(out)
 end
@@ -139,13 +147,22 @@ function L.loadSettings()
   L.config.font = tonumber(data.font or L.config.font) or L.config.font
   L.config.titleFont = tonumber(data.titleFont or L.config.titleFont) or L.config.titleFont
   L.config.barFont = tonumber(data.barFont or L.config.barFont) or L.config.barFont
-  if data.mode == "compact" or data.mode == "full" then L.config.mode = data.mode end
+  L.config.infoFont = tonumber(data.infoFont or L.config.infoFont) or L.config.infoFont
+  L.config.terrainFont = tonumber(data.terrainFont or L.config.terrainFont) or L.config.terrainFont
   L.settingsLoaded = true
   L.settingsFilePath = file
   return true
 end
 
+-- Migrated 2026-07-11 to pull from MyDSL.Theme instead of a hardcoded
+-- literal -- was byte-for-byte duplicated in MyDSL_TickView.lua; both now
+-- read the same ThemeEngine preset, so a theme switch reaches both.
+-- Falls back to the original literal if ThemeEngine somehow isn't loaded
+-- (load-order safety, matches this file's existing pcall-heavy style).
 local function stylePanel()
+  if MyDSL.Theme and MyDSL.Theme.panelCSS then
+    return MyDSL.Theme.panelCSS(L.name)
+  end
   return [[
     background-color: #0b1013;
     border: 1px solid #33434a;
@@ -166,10 +183,15 @@ local function styleText(size, color, weight, align)
 end
 
 local function styleDivider()
-  return [[
-    background-color: #2b363b;
+  local color = "#2b363b"
+  if MyDSL.Theme then
+    local ok, css = pcall(MyDSL.Theme.colorToCSS, MyDSL.Theme.get(L.name, "borderColor"))
+    if ok and css then color = css end
+  end
+  return string.format([[
+    background-color: %s;
     border: 0px;
-  ]]
+  ]], color)
 end
 
 local function styleBarBack()
@@ -181,6 +203,12 @@ local function styleBarBack()
 end
 
 local function styleBarFill(c1, c2, c3)
+  -- Reverted 2026-07-11, per Steven ("the bar style/look has changed from
+  -- the previous, i prefer the previous style"): v1A15 briefly rounded
+  -- only the left corners (5px 0 0 5px) for a "growing bar" look, but at
+  -- 100% fill (the common case) the square right corners sat visibly
+  -- mismatched against styleBarBack()'s fully-rounded track underneath.
+  -- Back to matching, fully-rounded corners on both, as before.
   return string.format([[
     background-color: QLinearGradient(
       x1: 0, y1: 0, x2: 0, y2: 1,
@@ -194,16 +222,36 @@ local function styleBarFill(c1, c2, c3)
   ]], c1, c2, c3, c2)
 end
 
-local function styleBarText()
+-- styleBarLabel()/styleBarNum() -- added 2026-07-11 for the v1A15 inline
+-- bar layout (label, then track, then value, all in one row -- replaces
+-- the old centered-text-on-the-fill look, which had nowhere to put a
+-- label at all).
+-- +1pt 2026-07-11, per Steven ("can the font be increased by 1 for the
+-- information not the room info") -- these two plus the identity/info/
+-- attribute rows below are "the information"; roomTitle/roomMeta/
+-- exitsCon (the room name/terrain/exits) are deliberately left alone.
+local function styleBarLabel()
   return string.format([[
     background-color: rgba(0,0,0,0);
-    color: #050607;
+    color: #8b969b;
+    border: 0px;
+    font-family: "DejaVu Sans Mono", "Ubuntu Mono", monospace;
+    font-size: %dpt;
+    font-weight: normal;
+    qproperty-alignment: 'AlignLeft | AlignVCenter';
+  ]], math.max(6, (tonumber(L.config.barFont) or 8) + 2))
+end
+
+local function styleBarNum()
+  return string.format([[
+    background-color: rgba(0,0,0,0);
+    color: #cfd6d9;
     border: 0px;
     font-family: "DejaVu Sans Mono", "Ubuntu Mono", monospace;
     font-size: %dpt;
     font-weight: bold;
-    qproperty-alignment: 'AlignCenter';
-  ]], math.max(6, tonumber(L.config.barFont) or 8))
+    qproperty-alignment: 'AlignRight | AlignVCenter';
+  ]], math.max(6, (tonumber(L.config.barFont) or 8) + 2))
 end
 
 function L.colorSet(kind)
@@ -302,7 +350,12 @@ function L.data()
   local maxmove = live.maxmove or score.maxmove
 
   local xptotal = xp.total or score.xp or (pnpPrompt and tonumber(pnpPrompt.curxp))
-  local xpToLevel = xp.toLevel or score.xpToLevel or score.xpToLevelText or prompt.xptnl or (pnpPrompt and tonumber(pnpPrompt.xptnl))
+  -- Real bug fixed 2026-07-11, found while testing the v1A15 TNL display:
+  -- this never actually matched anything -- score.xpToLevel/xpToLevelText
+  -- don't exist anywhere; the real bridged field (MyDSL_DataBridge.lua) is
+  -- score.tnl. So TNL silently showed "--" in the old xpLine display too,
+  -- not just newly broken here.
+  local xpToLevel = xp.toLevel or score.tnl or prompt.xptnl or (pnpPrompt and tonumber(pnpPrompt.xptnl))
   local xppct = xp.percent or score.xpPercent
   if not xppct and score.level and tonumber(score.level) >= 51 then xppct = nil end
 
@@ -334,8 +387,53 @@ function L.data()
     riding = live.riding,
     flying = live.flying,
     fighting = live.fighting,
+
+    -- Added 2026-07-11: the "populate Live with the score info" pass,
+    -- per Steven's own hand-sketched layout (Downloads/"liveview layout").
+    -- All of these read from MyDSL.DB.score, correct end-to-end since
+    -- today's MyDSL_DataBridge.lua fix (hit/dam/armor were silently nil
+    -- before that -- wrong key names -- see docs/CHANGELOG.md).
+    name    = live.name,
+    level   = live.level,
+    race    = score.race,
+    class_  = score.class_,
+    align   = score.align,
+    god     = score.religion,
+    str = score.str, strBase = score.str_base,
+    int_ = score.int, intBase = score.int_base,
+    wis = score.wis, wisBase = score.wis_base,
+    dex = score.dex, dexBase = score.dex_base,
+    con = score.con, conBase = score.con_base,
+    hitroll = score.hitroll, damroll = score.damroll,
+    hitrollBase = score.hitrollBase, damrollBase = score.damrollBase,
+    armorPierce = score.armorPierce, armorBash = score.armorBash,
+    armorSlash = score.armorSlash, armorMagic = score.armorMagic,
+    wimpy = score.wimpy,
+    items = score.items, maxItems = score.max_items,
+    weight = score.weight, maxWeight = score.maxWeight,
+    gold = score.gold, silver = score.silver,
+    bank = score.bank, qpoints = score.qpoints,
+    posn = score.posn,
   }
 end
+
+-- v1A15 layout -- rebuilt 2026-07-11 per Steven's own hand-sketched design
+-- (Downloads/"liveview layout"), refined through several Artifact passes.
+-- Fits the window's CONFIRMED real pixel size (974x186 via "mydsl live
+-- status") without resizing it -- this replaces v1A14's wide left/right
+-- card split with a denser 2-column x 7-row grid:
+--   room title (full width), terrain+exits (one line), a rule, then:
+--   LEFT col:  HP/Mana/Move bars, gap, identity, pos'n/wimpy/items/weight,
+--              bank/gold/silver/qpoints
+--   RIGHT col: STR+Armor, INT+Hit/Dam, WIS+Stance, DEX+TNL, CON, gap,
+--              Improve bar
+-- No more compact/full mode -- per Steven, "i dont think we need a
+-- compact ful anymore, this will be the standard layout for now."
+local ROW_Y = { 33, 42, 51, 60, 69, 78, 87 }
+-- 8 -> 8.7, 2026-07-11 per Steven ("size the text and spacing to make it
+-- look more filled") -- row SLOTS (ROW_Y) are unchanged, each row just
+-- uses more of its own 9%-wide slot instead of leaving a bigger gap.
+local ROW_H = 8.7
 
 function L.ensureUI()
   if L.ui.win and L.ui.panel then return true end
@@ -355,24 +453,41 @@ function L.ensureUI()
 
   L.ui.panel = Geyser.Label:new({ name=L.name.."_Panel", x=0, y=0, width="100%", height="100%" }, L.ui.win)
 
-  -- v1A14 layout:
-  -- Room title spans the full top. Left card carries terrain/exits, time,
-  -- and XP/TNL. Right side bars are pushed down so the title can breathe.
-  L.ui.roomTitle = Geyser.Label:new({ name=L.name.."_RoomTitle", x="3%", y="4%",  width="93%", height="18%" }, L.ui.win)
-  -- Full-width passthrough exits line directly below the room name.
-  L.ui.exitsCon  = Geyser.MiniConsole:new({ name=L.name.."_ExitsCon", x="3%", y="24%", width="93%", height="12%" }, L.ui.win)
+  -- Header: room title, then terrain+exits on one line, then a rule.
+  L.ui.roomTitle = Geyser.Label:new({ name=L.name.."_RoomTitle", x="2%", y="2%",  width="80%", height="16%" }, L.ui.win)
+  L.ui.roomMeta  = Geyser.Label:new({ name=L.name.."_RoomMeta",  x="2%", y="19%", width="12%", height="10%" }, L.ui.win)
+  L.ui.exitsCon  = Geyser.MiniConsole:new({ name=L.name.."_ExitsCon", x="15%", y="19%", width="83%", height="10%" }, L.ui.win)
+  L.ui.hRule     = Geyser.Label:new({ name=L.name.."_HRule", x="2%", y="30%", width="96%", height="1px" }, L.ui.win)
 
-  -- Left lower card: terrain, time, XP/TNL.
-  L.ui.roomMeta  = Geyser.Label:new({ name=L.name.."_RoomMeta",  x="4%", y="43%", width="40%", height="10%" }, L.ui.win)
-  L.ui.timeLine  = Geyser.Label:new({ name=L.name.."_Time",      x="4%", y="57%", width="40%", height="18%" }, L.ui.win)
-  L.ui.xpLine    = Geyser.Label:new({ name=L.name.."_XPLine",    x="4%", y="80%", width="40%", height="12%" }, L.ui.win)
-  L.ui.vDivider  = Geyser.Label:new({ name=L.name.."_Divider",   x="48%", y="43%", width="1px", height="49%" }, L.ui.win)
+  -- Vertical divider between the two body columns, spanning row 1's top
+  -- to row 7's bottom.
+  L.ui.vDivider  = Geyser.Label:new({ name=L.name.."_Divider", x="59.5%", y=tostring(ROW_Y[1]).."%", width="1px",
+                                       height=tostring(ROW_Y[7] + ROW_H - ROW_Y[1]).."%" }, L.ui.win)
 
+  -- LEFT column: bars (rows 1-3), identity (row 5), info grids (rows 6-7).
   L.ui.bars = {}
-  L.ui.bars.hp      = L.makeBar("HP",      "hp",      "53%", "43%", "42%", "10%")
-  L.ui.bars.mana    = L.makeBar("Mana",    "mana",    "53%", "56%", "42%", "10%")
-  L.ui.bars.move    = L.makeBar("Move",    "move",    "53%", "69%", "42%", "10%")
-  L.ui.bars.improve = L.makeBar("Improve", "improve", "53%", "82%", "42%", "10%")
+  -- Track widened 2026-07-11 (28 -> 36), per Steven ("expand the health/
+  -- mana/move bars horizontally to fill in more space between their name
+  -- and numbers") -- label narrowed slightly (7 -> 5, "Mana" doesn't need
+  -- 7%) and the small inter-element gaps removed (label/track/num now sit
+  -- edge-to-edge), with the freed width going to the track.
+  L.ui.bars.hp      = L.makeBar("hp",      "HP",      2, 7, 44,  5, 36, 14, ROW_Y[1], ROW_H)
+  L.ui.bars.mana    = L.makeBar("mana",    "Mana",    2, 7, 44,  5, 36, 14, ROW_Y[2], ROW_H)
+  L.ui.bars.move    = L.makeBar("move",    "Move",    2, 7, 44,  5, 36, 14, ROW_Y[3], ROW_H)
+  -- row 4 (y=ROW_Y[4]) is left blank on this side, per the sketch.
+
+  L.ui.identity  = Geyser.Label:new({ name=L.name.."_Identity", x="2%", y=tostring(ROW_Y[5]).."%", width="56%", height=tostring(ROW_H).."%" }, L.ui.win)
+  L.ui.infoLine1 = Geyser.Label:new({ name=L.name.."_InfoLine1", x="2%", y=tostring(ROW_Y[6]).."%", width="56%", height=tostring(ROW_H).."%" }, L.ui.win)
+  L.ui.infoLine2 = Geyser.Label:new({ name=L.name.."_InfoLine2", x="2%", y=tostring(ROW_Y[7]).."%", width="56%", height=tostring(ROW_H).."%" }, L.ui.win)
+
+  -- RIGHT column: STR/INT/WIS/DEX/CON (rows 1-5), Improve bar (row 7).
+  L.ui.attrStr = Geyser.Label:new({ name=L.name.."_AttrStr", x="61%", y=tostring(ROW_Y[1]).."%", width="37%", height=tostring(ROW_H).."%" }, L.ui.win)
+  L.ui.attrInt = Geyser.Label:new({ name=L.name.."_AttrInt", x="61%", y=tostring(ROW_Y[2]).."%", width="37%", height=tostring(ROW_H).."%" }, L.ui.win)
+  L.ui.attrWis = Geyser.Label:new({ name=L.name.."_AttrWis", x="61%", y=tostring(ROW_Y[3]).."%", width="37%", height=tostring(ROW_H).."%" }, L.ui.win)
+  L.ui.attrDex = Geyser.Label:new({ name=L.name.."_AttrDex", x="61%", y=tostring(ROW_Y[4]).."%", width="37%", height=tostring(ROW_H).."%" }, L.ui.win)
+  L.ui.attrCon = Geyser.Label:new({ name=L.name.."_AttrCon", x="61%", y=tostring(ROW_Y[5]).."%", width="37%", height=tostring(ROW_H).."%" }, L.ui.win)
+  -- row 6 on this side is left blank, per the sketch.
+  L.ui.bars.improve = L.makeBar("improve", "Improve", 61, 72, 91, 10, 18, 7, ROW_Y[7], ROW_H)
 
   L.applyStyles()
 
@@ -380,36 +495,70 @@ function L.ensureUI()
   return true
 end
 
-function L.makeBar(label, key, x, y, w, h)
+-- makeBar(key, labelText, xLabel, xTrack, xNum, wLabel, wTrack, wNum, y, h)
+-- All x/y/w/h are plain numbers (percent of the window), not "N%" strings
+-- -- kept as numbers so setBar()/setBarPercent() can compute the fill
+-- width directly against bar.maxWidth (= wTrack) without re-parsing.
+function L.makeBar(key, labelText, xLabel, xTrack, xNum, wLabel, wTrack, wNum, y, h)
   local bar = {}
-  bar.maxWidth = percentNumber(w, 42)
-  bar.back = Geyser.Label:new({ name=L.name.."_"..key.."_Back", x=x, y=y, width=w, height=h }, L.ui.win)
-  bar.fill = Geyser.Label:new({ name=L.name.."_"..key.."_Fill", x=x, y=y, width="1%", height=h }, L.ui.win)
-  bar.text = Geyser.Label:new({ name=L.name.."_"..key.."_Text", x=x, y=y, width=w, height=h }, L.ui.win)
+  bar.maxWidth = wTrack
+  bar.labelText = labelText
+  local ys, hs = tostring(y) .. "%", tostring(h) .. "%"
+  bar.label = Geyser.Label:new({ name=L.name.."_"..key.."_Label", x=tostring(xLabel).."%", y=ys, width=tostring(wLabel).."%", height=hs }, L.ui.win)
+  bar.back  = Geyser.Label:new({ name=L.name.."_"..key.."_Back",  x=tostring(xTrack).."%", y=ys, width=tostring(wTrack).."%", height=hs }, L.ui.win)
+  bar.fill  = Geyser.Label:new({ name=L.name.."_"..key.."_Fill",  x=tostring(xTrack).."%", y=ys, width="1%", height=hs }, L.ui.win)
+  bar.num   = Geyser.Label:new({ name=L.name.."_"..key.."_Num",   x=tostring(xNum).."%", y=ys, width=tostring(wNum).."%", height=hs }, L.ui.win)
+  pcall(function() bar.label:echo(labelText) end)
   return bar
+end
+
+-- titleColorCSS() -- theme's titleColor (matches the gold used elsewhere
+-- in refined_convergence; switches per-theme, e.g. amber under
+-- terminal_purist, violet under arcane_midnight).
+local function titleColorCSS()
+  if MyDSL.Theme then
+    local ok, css = pcall(MyDSL.Theme.colorToCSS, MyDSL.Theme.get(L.name, "titleColor"))
+    if ok and css then return css end
+  end
+  return "#ffd166"
 end
 
 function L.applyStyles()
   if not L.ui.panel then return end
   L.ui.panel:setStyleSheet(stylePanel())
-  L.ui.roomTitle:setStyleSheet(styleText(L.config.titleFont, "#ffd166", "bold", "AlignLeft"))
-  L.ui.roomMeta:setStyleSheet(styleText(math.max(12, L.config.font + 2), "#a8ccd1", "bold", "AlignLeft"))
+  L.ui.roomTitle:setStyleSheet(styleText(L.config.titleFont, titleColorCSS(), "bold", "AlignLeft"))
+  L.ui.roomMeta:setStyleSheet(styleText(math.max(8, L.config.terrainFont), "#8b969b", "normal", "AlignLeft"))
   if L.ui.exitsCon then
     pcall(function()
       L.ui.exitsCon:setFontSize(math.max(8, tonumber(L.config.font) or 10))
-      L.ui.exitsCon:setColor(11, 16, 19)
+      local bg = MyDSL.Theme and MyDSL.Theme.get(L.name, "bgColor")
+      if bg then
+        L.ui.exitsCon:setColor(bg.r, bg.g, bg.b)
+      else
+        L.ui.exitsCon:setColor(11, 16, 19)
+      end
       L.ui.exitsCon:setWrap(false)
     end)
   end
-  L.ui.timeLine:setStyleSheet(styleText(math.max(12, L.config.font + 2), "#f2d27a", "bold", "AlignLeft"))
-  if L.ui.xpLine then L.ui.xpLine:setStyleSheet(styleText(math.max(12, L.config.font + 2), "#d8b96a", "bold", "AlignLeft")) end
+  if L.ui.hRule then L.ui.hRule:setStyleSheet(styleDivider()) end
   L.ui.vDivider:setStyleSheet(styleDivider())
 
+  -- Rich-HTML rows (identity/info/attributes) -- their color comes from
+  -- inline <span> markup written by render(), so the Label's own
+  -- stylesheet only needs a transparent background and a base font/size.
+  -- Independently adjustable 2026-07-11 via L.config.infoFont (was a
+  -- fixed font+3 offset) -- "mydsl live infofont <n>".
+  local rowFontSize = math.max(9, L.config.infoFont)
+  for _, key in ipairs({ "identity", "infoLine1", "infoLine2", "attrStr", "attrInt", "attrWis", "attrDex", "attrCon" }) do
+    if L.ui[key] then L.ui[key]:setStyleSheet(styleText(rowFontSize, "#e8e6e0", "normal", "AlignLeft")) end
+  end
+
   for key, bar in pairs(L.ui.bars or {}) do
+    bar.label:setStyleSheet(styleBarLabel())
     bar.back:setStyleSheet(styleBarBack())
     local c1, c2, c3 = L.colorSet(key)
     bar.fill:setStyleSheet(styleBarFill(c1, c2, c3))
-    bar.text:setStyleSheet(styleBarText())
+    bar.num:setStyleSheet(styleBarNum())
   end
 end
 
@@ -419,8 +568,13 @@ local function html(s)
   return s
 end
 
+-- infoFont() is the only caller of infoStyle(), which only backs
+-- terrainBadge() -- unified with L.config.terrainFont 2026-07-11 (was an
+-- independent font+2 offset competing with roomMeta's own widget-level
+-- stylesheet size, the same kind of redundant-inline-vs-stylesheet
+-- mismatch that caused the room-title color bug fixed the same day).
 local function infoFont()
-  return math.max(12, (tonumber(L.config.font) or 10) + 2)
+  return math.max(8, tonumber(L.config.terrainFont) or 10)
 end
 
 local function infoStyle(color, weight)
@@ -429,19 +583,39 @@ local function infoStyle(color, weight)
 end
 
 
-local function exitBadgeText(exits)
-  -- Do not invent exit colors here. DSL/PNP can provide color-coded prompt
-  -- exits, but GMCP/mapper exits are plain text. Until we have raw prompt
-  -- color markup wired directly to the label, keep this neutral.
-  exits = tostring(exits or "--")
-  if exits == "" then exits = "--" end
-  return "<span style='" .. infoStyle("#d7e6e9", "bold") .. "'>" .. html(exits) .. "</span>"
+-- terrainColor(t) -- added 2026-07-11, per Steven ("have the terrain text
+-- color adjust to terrain type (if we know them, if not something nice
+-- other than what it is)"). Keyword-matched against real DSL terrain/
+-- sector words; unrecognized terrain gets a fallback distinct from the
+-- old flat cyan (#74d3e0) this used unconditionally before.
+local TERRAIN_COLORS = {
+  { "forest", "wood", "jungle",           "#7ac97a" },
+  { "desert", "sand",                     "#d9c17a" },
+  { "swamp", "marsh", "bog",              "#93a06e" },
+  { "water", "ocean", "sea", "river", "lake", "coast", "beach", "shore", "#6fb8d9" },
+  { "mountain", "hill", "rock", "cliff",  "#a8a49c" },
+  { "cave", "underground", "dungeon", "tunnel", "#9b7fe0" },
+  { "city", "town", "road", "street", "village", "#c9a86a" },
+  { "snow", "ice", "arctic", "tundra", "glacier", "#bfe3ec" },
+  { "plain", "grass", "field", "meadow",  "#9ed98a" },
+  { "air", "sky", "cloud",                "#a6d8f0" },
+  { "inside", "indoor", "building", "room", "#c2b8a3" },
+}
+
+local function terrainColor(t)
+  t = tostring(t or ""):lower()
+  for _, entry in ipairs(TERRAIN_COLORS) do
+    for i = 1, #entry - 1 do
+      if t:find(entry[i], 1, true) then return entry[#entry] end
+    end
+  end
+  return "#c2b8a3" -- "something nice" fallback for unrecognized terrain
 end
 
 local function terrainBadge(t)
   t = trim(t or "--")
   if t == "" then t = "--" end
-  return "<span style='" .. infoStyle("#74d3e0", "bold") .. "'>" .. html(t) .. "</span>"
+  return "<span style='" .. infoStyle(terrainColor(t), "bold") .. "'>" .. html(t) .. "</span>"
 end
 
 
@@ -458,47 +632,28 @@ local function splitRoomName(s)
   end
 
   if best and #s <= 72 then
+    -- color fixed 2026-07-11 alongside the main room-title bug -- was a
+    -- second hardcoded literal (#ffd98a) independent of the theme.
     return html(s:sub(1, best - 1)) ..
-           "<br><span style='font-size:" .. tostring(math.max(10, L.config.titleFont - 2)) .. "pt; color:#ffd98a;'>" ..
+           "<br><span style='font-size:" .. tostring(math.max(10, L.config.titleFont - 2)) .. "pt; color:" .. titleColorCSS() .. ";'>" ..
            html(s:sub(best + 1)) .. "</span>"
   end
 
   return html(s:sub(1, 42)) .. "..."
 end
 
-local function compactDateText(d)
-  local clock = (d.clock and d.clock ~= "--") and d.clock or "--"
-  local day = (d.dayName and d.dayName ~= "") and ("Day of " .. d.dayName) or ""
-  local month = ""
-  if d.ordinal and d.ordinal ~= "" and d.monthName and d.monthName ~= "" then
-    month = tostring(d.ordinal) .. " Month of the " .. tostring(d.monthName)
-  elseif d.month and d.month ~= "" then
-    month = tostring(d.month)
-  end
-
-  local sep = "<span style='font-size:" .. tostring(infoFont()) .. "pt; color:#6f7d82; font-weight:bold;'>|</span>"
-  if day ~= "" and month ~= "" then
-    return "<span style='" .. infoStyle("#f2d27a", "bold") .. "'>" .. html(clock) .. "</span>" ..
-           " &nbsp; " .. sep .. " &nbsp; " ..
-           "<span style='" .. infoStyle("#f2d27a", "bold") .. "'>" .. html(day) .. "</span>" ..
-           "<br><span style='" .. infoStyle("#c6b36f", "bold") .. "'>" .. html(month) .. "</span>"
-  elseif day ~= "" then
-    return "<span style='" .. infoStyle("#f2d27a", "bold") .. "'>" .. html(clock) .. "</span>" ..
-           " &nbsp; " .. sep .. " &nbsp; " ..
-           "<span style='" .. infoStyle("#f2d27a", "bold") .. "'>" .. html(day) .. "</span>"
-  end
-
-  return "<span style='" .. infoStyle("#f2d27a", "bold") .. "'>" .. html(clock) .. "</span>"
-end
-
+-- setBar()/setBarPercent() -- updated 2026-07-11 for the v1A15 inline bar
+-- layout: the value text now lives in a separate right-aligned bar.num
+-- Label beside the track (see makeBar()), not centered on top of the fill
+-- like before, since there's a dedicated bar.label to the left now too.
 function L.setBar(key, cur, max, text)
   local bar = L.ui.bars and L.ui.bars[key]
   if not bar then return end
   local p = pct(cur, max)
-  local width = math.floor((tonumber(bar.maxWidth) or 42) * p + 0.5)
+  local width = math.floor((tonumber(bar.maxWidth) or 28) * p + 0.5)
   if width < 1 and p > 0 then width = 1 end
   pcall(function() bar.fill:resize(tostring(width).."%", nil) end)
-  bar.text:echo("<center>" .. html(text or "") .. "</center>")
+  bar.num:echo(html(text or ""))
 end
 
 function L.setBarPercent(key, percent, text)
@@ -509,25 +664,32 @@ function L.setBarPercent(key, percent, text)
   if p > 1 then p = p / 100 end
   if p < 0 then p = 0 end
   if p > 1 then p = 1 end
-  local width = math.floor((tonumber(bar.maxWidth) or 42) * p + 0.5)
+  local width = math.floor((tonumber(bar.maxWidth) or 28) * p + 0.5)
   if width < 1 and p > 0 then width = 1 end
   pcall(function() bar.fill:resize(tostring(width).."%", nil) end)
-  bar.text:echo("<center>" .. html(text or "") .. "</center>")
+  bar.num:echo(html(text or ""))
 end
 
-local function dateText(d)
-  local a = {}
-  if d.clock and d.clock ~= "--" then table.insert(a, d.clock) end
-  if d.dayName and d.dayName ~= "" then table.insert(a, "Day of " .. d.dayName) end
-  if d.ordinal and d.ordinal ~= "" and d.monthName and d.monthName ~= "" then
-    table.insert(a, tostring(d.ordinal) .. " Month of the " .. tostring(d.monthName))
-  elseif d.month and d.month ~= "" then
-    table.insert(a, tostring(d.month))
-  end
-  if #a == 0 then return "--" end
-  return table.concat(a, "<br>")
+-- resizeExitsCon(charCount) -- added 2026-07-11, per Steven ("the exit bar
+-- border removed or have it adapt to the size of the exit"). MiniConsole
+-- has no setStyleSheet (confirmed earlier this session -- Geyser.Window
+-- defines it, MiniConsole doesn't inherit or override it), so there's no
+-- Lua-level way to strip whatever native Qt frame it draws -- this instead
+-- shrinks/grows the whole widget to roughly match the exits text length,
+-- so a short exit list ("[Exits: S ]") doesn't sit inside a wide box
+-- mostly empty space. 7.5px/char is a rough monospace estimate at the
+-- default ~10pt font; not exact, but close enough that the box tracks
+-- content length instead of staying fixed-width regardless of it.
+local function resizeExitsCon(charCount)
+  if not (L.ui and L.ui.exitsCon) then return end
+  local pxNeeded = (tonumber(charCount) or 20) * 7.5 + 16
+  local windowPx = 974 -- confirmed real width via "mydsl live status"; an
+                        -- approximation if the window's since been resized
+  local percent = (pxNeeded / windowPx) * 100
+  if percent < 15 then percent = 15 end
+  if percent > 83 then percent = 83 end
+  pcall(function() L.ui.exitsCon:resize(tostring(math.floor(percent)).."%", nil) end)
 end
-
 
 function L.setColoredExitsFromCurrentLine()
   if not L.ensureUI() then return false end
@@ -543,6 +705,7 @@ function L.setColoredExitsFromCurrentLine()
   MyDSL.DB.room.exitsLine = tostring(line)
 
   if L.ui and L.ui.exitsCon then
+    resizeExitsCon(#tostring(line))
     pcall(function()
       clearWindow(L.name .. "_ExitsCon")
       selectCurrentLine()
@@ -558,17 +721,191 @@ end
 
 function L.setNeutralExitsLine(d)
   if not L.ui or not L.ui.exitsCon then return end
+  local exitsStr = tostring(d.exits or "--")
+  resizeExitsCon(#exitsStr + 9) -- +9 for "[Exits: " and " ]"
   pcall(function()
     clearWindow(L.name .. "_ExitsCon")
-    cecho(L.name .. "_ExitsCon", "<grey>[Exits: <white>" .. tostring(d.exits or "--") .. "<grey> ]")
+    cecho(L.name .. "_ExitsCon", "<grey>[Exits: <white>" .. exitsStr .. "<grey> ]")
   end)
+end
+
+------------------------------------------------------------------------
+-- Row-building helpers for the v1A15 identity/info/attribute rows.
+-- Added 2026-07-11. Each row is one Geyser.Label rendered with inline
+-- <span> color markup (same technique terrainBadge() already uses)
+-- rather than several separate small Labels per field --
+-- keeps the widget count reasonable for ~8 new rows of data.
+------------------------------------------------------------------------
+
+-- infoFontPt() -- real bug fixed 2026-07-11, per Steven ("font didnt
+-- change that i noticed"): kv()/identityLine()/attrLine() only ever set
+-- color/font-weight inline and relied on the widget's own setStyleSheet()
+-- for font SIZE -- but Qt's rich-text renderer (what :echo() with HTML
+-- spans goes through) doesn't reliably inherit font-size from a QLabel's
+-- widget-level stylesheet the way it does color/weight. roomTitle already
+-- worked correctly because it has always set font-size inline explicitly;
+-- terrainBadge() likewise already works via infoStyle()/infoFont(). Every
+-- span below now sets font-size inline too, reading L.config.infoFont
+-- live so "mydsl live infofont <n>" actually has a visible effect.
+local function infoFontPt()
+  return math.max(8, tonumber(L.config.infoFont) or 13)
+end
+
+-- kv(key, value, valueColor) -- "<dim>key</dim> <bold colored>value</bold>"
+local function kv(key, value, valueColor)
+  local sz = infoFontPt()
+  return "<span style='font-size:" .. sz .. "pt; color:#8b969b;'>" .. html(key) .. "</span> " ..
+         "<span style='font-size:" .. sz .. "pt; color:" .. (valueColor or "#e8e6e0") .. "; font-weight:bold;'>" .. html(value) .. "</span>"
+end
+
+-- SPACER -- widened 2026-07-11, per Steven ("size the text and spacing to
+-- make it look more filled") -- was 3-4 &nbsp;s between fields, now 5, to
+-- match the larger text without fields crowding each other.
+local SPACER = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
+
+-- fullnessColor(cur, max) -- added 2026-07-11, per Steven ("objects like
+-- item weight need to go red when close to max"). Same 2-tier warning
+-- shape AffectsView's colorForDuration() already uses elsewhere in this
+-- codebase (amber approaching, red at/near the limit) -- applied here to
+-- Items/Weight, which climb toward a hard cap rather than count down.
+local function fullnessColor(cur, max)
+  cur, max = tonumber(cur), tonumber(max)
+  if not cur or not max or max <= 0 then return "#e8e6e0" end
+  local ratio = cur / max
+  if ratio >= 0.95 then return "#e2665f" end
+  if ratio >= 0.8 then return "#e0b464" end
+  return "#e8e6e0"
+end
+
+-- identityLine(d) -- level, name, READY/FIGHTING status, class, alignment
+-- (colored good/evil/neutral), god. "*" in Steven's sketch = this status
+-- marker (confirmed -- an earlier pass briefly misread it as character
+-- flags before he corrected that).
+local function identityLine(d)
+  local sz = infoFontPt()
+  local parts = {}
+  table.insert(parts, "<span style='font-size:" .. sz .. "pt; color:#ffd166; font-weight:bold;'>" .. html(d.level or "--") .. "</span>")
+  table.insert(parts, "<span style='font-size:" .. sz .. "pt; color:#e8e6e0; font-weight:bold;'>" .. html(d.name or "Unknown") .. "</span>")
+
+  -- Pill stays a couple points smaller than the row for a "badge" look,
+  -- but still scales with infoFont instead of a fixed 9pt.
+  local pillSz = math.max(7, sz - 3)
+  if d.fighting then
+    table.insert(parts, "<span style='font-size:" .. pillSz .. "pt; color:#e2665f; font-weight:bold;'>FIGHTING</span>")
+  else
+    table.insert(parts, "<span style='font-size:" .. pillSz .. "pt; color:#8fd67a; font-weight:bold;'>READY</span>")
+  end
+
+  if d.class_ and d.class_ ~= "" then
+    table.insert(parts, "<span style='font-size:" .. sz .. "pt; color:#9fd7ff;'>" .. html(d.class_) .. "</span>")
+  end
+
+  if d.align and d.align ~= "" then
+    local ac, alow = "#c8c2b0", d.align:lower()
+    if alow:find("evil") then ac = "#e2665f"
+    elseif alow:find("good") then ac = "#8fd67a" end
+    table.insert(parts, "<span style='font-size:" .. sz .. "pt; color:" .. ac .. ";'>" .. html(d.align) .. "</span>")
+  end
+
+  if d.god and d.god ~= "" then
+    table.insert(parts, "<span style='font-size:" .. sz .. "pt; color:#d9a259;'>" .. html(d.god) .. "</span>")
+  end
+
+  return table.concat(parts, SPACER)
+end
+
+-- posnColor(posn) -- a little more color variety per Steven ("color need
+-- to increase"): Flying reads as an active/notable state, Sitting/
+-- Resting/Sleeping as passive/vulnerable, Standing as the plain default.
+local function posnColor(posn)
+  posn = tostring(posn or ""):lower()
+  if posn:find("fly") then return "#7fd6cc" end
+  if posn:find("sleep") then return "#8b969b" end
+  if posn:find("sit") or posn:find("rest") then return "#e0b464" end
+  return "#e8e6e0"
+end
+
+local function infoLine1(d)
+  local items = d.items and (fmtNum(d.items) .. "/" .. fmtNum(d.maxItems)) or "--"
+  local weight = d.weight and (fmtNum(d.weight) .. "/" .. fmtNum(d.maxWeight)) or "--"
+  return kv("Pos'n", d.posn or "--", posnColor(d.posn)) .. SPACER ..
+         kv("Wimpy", d.wimpy or "--") .. SPACER ..
+         kv("Items", items, fullnessColor(d.items, d.maxItems)) .. SPACER ..
+         kv("Weight", weight, fullnessColor(d.weight, d.maxWeight))
+end
+
+local function infoLine2(d)
+  return kv("Bank", d.bank and fmtNum(d.bank) or "--", "#8fd67a") .. SPACER ..
+         kv("Gold", d.gold and fmtNum(d.gold) or "--", "#ffd166") .. SPACER ..
+         kv("Silver", d.silver and fmtNum(d.silver) or "--", "#c9d3d8") .. SPACER ..
+         kv("QPoints", d.qpoints and fmtNum(d.qpoints) or "--", "#c3a6e8")
+end
+
+-- attrValue(cur, base) -- "25 (25)" matching the real `score` command's
+-- own "STR: 025(025)" current(base) format.
+local function attrValue(cur, base)
+  if not cur then return "--" end
+  if base then return fmtNum(cur) .. " (" .. fmtNum(base) .. ")" end
+  return fmtNum(cur)
+end
+
+-- attrLine(label, cur, base, extraHtml) -- "STR 25 (25)      <extra>"
+-- extraHtml is whatever combat/status info is paired with that
+-- particular attribute row per Steven's sketch (Armor on STR, Hit/Dam on
+-- INT, Stance on WIS, TNL on DEX, nothing on CON).
+local function attrLine(label, cur, base, extraHtml)
+  local sz = infoFontPt()
+  local left = "<span style='font-size:" .. sz .. "pt; color:#8b969b;'>" .. html(label) .. "</span> " ..
+               "<span style='font-size:" .. sz .. "pt; color:#e8e6e0; font-weight:bold;'>" .. html(attrValue(cur, base)) .. "</span>"
+  if extraHtml and extraHtml ~= "" then
+    return left .. SPACER .. extraHtml
+  end
+  return left
+end
+
+-- stanceColor(stance) -- added 2026-07-11, per Steven ("color need to
+-- increase"): Offensive/Defensive are the two real DSL stance values that
+-- carry meaning at a glance; anything else stays neutral.
+local function stanceColor(stance)
+  stance = tostring(stance or ""):lower()
+  if stance:find("offensive") then return "#e2665f" end
+  if stance:find("defensive") then return "#78baff" end
+  return "#e8e6e0"
+end
+
+-- signColor(n) -- green for a positive combat modifier, red for negative,
+-- neutral for zero/unknown. Used for Hit/Dam.
+local function signColor(n)
+  n = tonumber(n)
+  if not n then return "#e8e6e0" end
+  if n > 0 then return "#8fd67a" end
+  if n < 0 then return "#e2665f" end
+  return "#e8e6e0"
+end
+
+-- hitDamValue(base, practiced) -- added 2026-07-11, per Steven ("hit and
+-- dmage should have the B: P: when available"), matching the real `score`
+-- command's own "HitRoll: B:27  P:37" labeling exactly. Falls back to just
+-- the practiced value if base isn't known for some reason.
+local function hitDamValue(base, practiced)
+  if base ~= nil and practiced ~= nil then
+    return "B:" .. tostring(base) .. " P:" .. tostring(practiced)
+  end
+  return tostring(practiced or base or "--")
 end
 
 function L.render(reason)
   if not L.ensureUI() then return end
   local d = L.data()
 
-  L.ui.roomTitle:echo("<span style='font-size:" .. tostring(L.config.titleFont) .. "pt; font-weight:bold; color:#ffd166;'>" .. splitRoomName(d.roomName) .. "</span>")
+  -- Real bug fixed 2026-07-11, per Steven ("Room Name Changed to white"):
+  -- this hardcoded color:#ffd166 inline, competing with applyStyles()'s
+  -- titleColorCSS() already set on the widget itself -- the two disagreed
+  -- and the room name rendered white instead of the theme's gold/amber/
+  -- violet title color. Only font-size/weight are inline now; color comes
+  -- from the widget's own stylesheet, so it also switches with the theme
+  -- like every other title in the profile.
+  L.ui.roomTitle:echo("<span style='font-size:" .. tostring(L.config.titleFont) .. "pt; font-weight:bold;'>" .. splitRoomName(d.roomName) .. "</span>")
 
   local metaBits = {}
   if d.terrain and d.terrain ~= "" and d.terrain ~= "--" then
@@ -579,20 +916,50 @@ function L.render(reason)
     L.setNeutralExitsLine(d)
   end
 
-  L.ui.timeLine:echo(compactDateText(d))
+  -- Vitals bars -- value text is now just the number (label is a separate
+  -- widget to its left, see makeBar()), not "HP 20/20 (100%)" repeated.
+  L.setBar("hp", d.hp, d.maxhp, fmtNum(d.hp) .. "/" .. fmtNum(d.maxhp) .. " (" .. tostring(math.floor(pct(d.hp,d.maxhp)*100+0.5)) .. "%)")
+  L.setBar("mana", d.mana, d.maxmana, fmtNum(d.mana) .. "/" .. fmtNum(d.maxmana) .. " (" .. tostring(math.floor(pct(d.mana,d.maxmana)*100+0.5)) .. "%)")
+  L.setBar("move", d.move, d.maxmove, fmtNum(d.move) .. "/" .. fmtNum(d.maxmove) .. " (" .. tostring(math.floor(pct(d.move,d.maxmove)*100+0.5)) .. "%)")
 
-  local xpLine = d.xp and ("XP " .. fmtNum(d.xp)) or "XP --"
-  if d.xpToLevel then xpLine = xpLine .. "   TNL " .. fmtNum(d.xpToLevel) end
-  if L.ui.xpLine then L.ui.xpLine:echo("<span style='" .. infoStyle("#d8b96a", "bold") .. "'>" .. html(xpLine) .. "</span>") end
-
-  L.setBar("hp", d.hp, d.maxhp, "HP " .. fmtNum(d.hp) .. " / " .. fmtNum(d.maxhp) .. " (" .. tostring(math.floor(pct(d.hp,d.maxhp)*100+0.5)) .. "%)")
-  L.setBar("mana", d.mana, d.maxmana, "Mana " .. fmtNum(d.mana) .. " / " .. fmtNum(d.maxmana) .. " (" .. tostring(math.floor(pct(d.mana,d.maxmana)*100+0.5)) .. "%)")
-  L.setBar("move", d.move, d.maxmove, "Move " .. fmtNum(d.move) .. " / " .. fmtNum(d.maxmove) .. " (" .. tostring(math.floor(pct(d.move,d.maxmove)*100+0.5)) .. "%)")
-
-  local impText = d.improveText and ("Imp " .. tostring(d.improveText)) or "Imp --"
+  local impText = d.improveSkill and (tostring(d.improveSkill) .. " " .. tostring(d.improvePercent or "?") .. "%") or "--"
   L.setBarPercent("improve", tonumber(d.improvePercent) or 0, impText)
 
-  -- XP is rendered on the left identity card, not as a comparison bar.
+  -- Identity + personal-info rows (left column).
+  if L.ui.identity then L.ui.identity:echo(identityLine(d)) end
+  if L.ui.infoLine1 then L.ui.infoLine1:echo(infoLine1(d)) end
+  if L.ui.infoLine2 then L.ui.infoLine2:echo(infoLine2(d)) end
+
+  -- Attribute rows (right column), each paired with whatever combat/
+  -- status info Steven's sketch put beside it.
+  if L.ui.attrStr then
+    local armorExtra = ""
+    if d.armorPierce or d.armorBash or d.armorSlash or d.armorMagic then
+      armorExtra = kv("Armor P/B/S/M", table.concat({
+        tostring(d.armorPierce or "--"), tostring(d.armorBash or "--"),
+        tostring(d.armorSlash or "--"), tostring(d.armorMagic or "--"),
+      }, "/"), "#9fb8c9")
+    end
+    L.ui.attrStr:echo(attrLine("STR", d.str, d.strBase, armorExtra))
+  end
+  if L.ui.attrInt then
+    local hitDamExtra = ""
+    if d.hitroll or d.damroll then
+      hitDamExtra = kv("Hit", hitDamValue(d.hitrollBase, d.hitroll), signColor(d.hitroll)) .. "&nbsp;&nbsp;" ..
+                    kv("Dam", hitDamValue(d.damrollBase, d.damroll), signColor(d.damroll))
+    end
+    L.ui.attrInt:echo(attrLine("INT", d.int_, d.intBase, hitDamExtra))
+  end
+  if L.ui.attrWis then
+    local stanceExtra = (d.stance and d.stance ~= "") and kv("Stance", d.stance, stanceColor(d.stance)) or ""
+    L.ui.attrWis:echo(attrLine("WIS", d.wis, d.wisBase, stanceExtra))
+  end
+  if L.ui.attrDex then
+    local tnlExtra = d.xpToLevel and kv("TNL", fmtNum(d.xpToLevel) .. " xp", "#d8b96a") or ""
+    L.ui.attrDex:echo(attrLine("DEX", d.dex, d.dexBase, tnlExtra))
+  end
+  if L.ui.attrCon then L.ui.attrCon:echo(attrLine("CON", d.con, d.conBase, "")) end
+
   L.lastReason = reason or "render"
 end
 
@@ -652,6 +1019,33 @@ function L.setBarFont(size)
   ce("barFont=" .. tostring(size))
 end
 
+-- setInfoFont()/setTerrainFont() -- added 2026-07-11, per Steven ("let me
+-- be able to adjust the text size... informational text... terrain text,
+-- any others you have separate").
+function L.setInfoFont(size)
+  size = tonumber(size)
+  if not size then ce("usage: mydsl live infofont <size>"); return end
+  if size < 8 then size = 8 end
+  if size > 20 then size = 20 end
+  L.config.infoFont = size
+  L.applyStyles()
+  L.render("infofont")
+  L.saveSettings()
+  ce("infoFont=" .. tostring(size))
+end
+
+function L.setTerrainFont(size)
+  size = tonumber(size)
+  if not size then ce("usage: mydsl live terrainfont <size>"); return end
+  if size < 6 then size = 6 end
+  if size > 18 then size = 18 end
+  L.config.terrainFont = size
+  L.applyStyles()
+  L.render("terrainfont")
+  L.saveSettings()
+  ce("terrainFont=" .. tostring(size))
+end
+
 function L.setTitle(title, silent)
   title = trim(title or "")
   if title == "" then title = "-= Live =-" end
@@ -661,18 +1055,23 @@ function L.setTitle(title, silent)
   if not silent then ce("title=" .. title) end
 end
 
-function L.setMode(mode)
-  mode = trim(mode):lower()
-  if mode ~= "compact" and mode ~= "full" then ce("usage: mydsl live mode compact|full"); return end
-  L.config.mode = mode
-  L.render("mode")
-  L.saveSettings()
-  ce("mode=" .. mode)
-end
-
 function L.status()
   local d = L.data()
+  -- Real pixel footprint, added 2026-07-11 (per Steven, "is there a
+  -- command to get you the dimensions?") -- get_width()/get_height() are
+  -- real Geyser.Window methods returning the CURRENT on-screen pixel size
+  -- (not the "34%"/"13%" config strings, which are relative to whatever
+  -- the main window's size happens to be).
+  local pw, ph = "?", "?"
+  if L.ui and L.ui.win then
+    local ok1, w = pcall(function() return L.ui.win:get_width() end)
+    local ok2, h = pcall(function() return L.ui.win:get_height() end)
+    if ok1 and w then pw = w end
+    if ok2 and h then ph = h end
+  end
   ce("version=" .. L.version ..
+     "; pixelSize=" .. tostring(pw) .. "x" .. tostring(ph) ..
+     "; configSize=" .. tostring(L.config.width) .. "x" .. tostring(L.config.height) ..
      "; shown=" .. tostring(L.config.shown) ..
      "; room=" .. tostring(d.roomName) ..
      "; hp=" .. tostring(d.hp) .. "/" .. tostring(d.maxhp) ..
@@ -728,6 +1127,17 @@ function L.installHandlers()
       if ok and id then table.insert(L.handlers, id) end
     end
   end
+
+  -- Re-apply panel/border/title colors when the active theme switches.
+  -- Added 2026-07-11 alongside named ThemeEngine presets.
+  if registerAnonymousEventHandler then
+    local ok, id = pcall(function()
+      return registerAnonymousEventHandler("MyDSL.theme.changed", function()
+        if MyDSL and MyDSL.LiveView then MyDSL.LiveView.applyStyles() end
+      end)
+    end)
+    if ok and id then table.insert(L.handlers, id) end
+  end
 end
 
 function L.installAliases()
@@ -746,8 +1156,9 @@ function L.installAliases()
   tempAlias([[^mydsl live font ([0-9]+)$]], [[MyDSL.LiveView.setFont(matches[2])]])
   tempAlias([[^mydsl live titlefont ([0-9]+)$]], [[MyDSL.LiveView.setTitleFont(matches[2])]])
   tempAlias([[^mydsl live barfont ([0-9]+)$]], [[MyDSL.LiveView.setBarFont(matches[2])]])
+  tempAlias([[^mydsl live infofont ([0-9]+)$]], [[MyDSL.LiveView.setInfoFont(matches[2])]])
+  tempAlias([[^mydsl live terrainfont ([0-9]+)$]], [[MyDSL.LiveView.setTerrainFont(matches[2])]])
   tempAlias([[^mydsl live title (.+)$]], [[MyDSL.LiveView.setTitle(matches[2])]])
-  tempAlias([[^mydsl live mode (compact|full)$]], [[MyDSL.LiveView.setMode(matches[2])]])
   tempAlias([[^mydsl live layout$]], [[MyDSL.LiveView.rebuild(); MyDSL.LiveView.status()]])
   L.aliasesInstalled = true
 end

@@ -79,6 +79,29 @@ M.theme = M.theme or {
   warnText    = "rgba(255,190,100,235)",
 }
 
+-- themeBg()/themeBorder() -- added 2026-07-11. This file had its own
+-- ad-hoc M.theme table (a per-window static theme, unrelated to the
+-- shared MyDSL_ThemeEngine.lua) before ThemeEngine gained named presets.
+-- These two read live from ThemeEngine when available, falling back to
+-- M.theme's original static literals otherwise (load-order safety, and
+-- captionBg/captionText/warnText stay as-is -- those are about caption
+-- legibility over a photo, not window chrome, so they're left alone).
+local function themeBg()
+  if MyDSL.Theme then
+    local ok, css = pcall(MyDSL.Theme.colorToCSS, MyDSL.Theme.get(M.windowName, "bgColor"))
+    if ok and css then return css end
+  end
+  return M.theme.bg
+end
+
+local function themeBorder()
+  if MyDSL.Theme then
+    local ok, css = pcall(MyDSL.Theme.colorToCSS, MyDSL.Theme.get(M.windowName, "borderColor"))
+    if ok and css then return css end
+  end
+  return M.theme.border
+end
+
 local function trim(s)
   return tostring(s or ""):gsub("^%s*(.-)%s*$", "%1")
 end
@@ -452,12 +475,12 @@ end
 
 function M.applyBaseStyle()
   if not (M.ui and M.ui.image and M.ui.caption) then return end
-  local border = M.config.frame and ("1px solid " .. M.theme.border) or "0px solid rgba(0,0,0,0)"
+  local border = M.config.frame and ("1px solid " .. themeBorder()) or "0px solid rgba(0,0,0,0)"
   M.ui.image:setStyleSheet(string.format([[
     background-color: %s;
     border: %s;
     border-radius: 6px;
-  ]], M.theme.bg, border))
+  ]], themeBg(), border))
 
   M.ui.caption:setStyleSheet(string.format([[
     background-color: %s;
@@ -509,7 +532,7 @@ function M.render(path, caption, source, room)
   end
 
   local p = cssPath(path)
-  local border = M.config.frame and ("1px solid " .. M.theme.border) or "0px solid rgba(0,0,0,0)"
+  local border = M.config.frame and ("1px solid " .. themeBorder()) or "0px solid rgba(0,0,0,0)"
   -- Reliable path for Mudlet 4.20.1 Linux UserWindows.  Even if the requested
   -- fit is contain, render with border-image to avoid black/unpainted labels.
   M.ui.image:setStyleSheet(string.format([[
@@ -517,7 +540,7 @@ function M.render(path, caption, source, room)
     border: %s;
     border-radius: 6px;
     border-image: url("%s");
-  ]], M.theme.bg, border, p))
+  ]], themeBg(), border, p))
 
   M.ui.caption:echo(caption)
   M.currentPath = path
@@ -722,12 +745,20 @@ function M.onRoomData()
   if M.config.enabled then M.refresh("gmcp.room_data") end
 end
 
+-- Re-apply background/border colors when the active theme switches.
+-- Added 2026-07-11 alongside named ThemeEngine presets.
+function M.onThemeChanged()
+  M.applyBaseStyle()
+  if M.currentPath then M.render(M.currentPath, nil, M.currentSource, M.currentRoom) end
+end
+
 function M.installEvents()
   if M.handlersInstalled then return end
   if registerAnonymousEventHandler then
     M.h1 = registerAnonymousEventHandler("gmcp.room_data", "MyDSL.Location.onRoomData")
     M.h2 = registerAnonymousEventHandler("gmcp.Room.Info", "MyDSL.Location.onRoomData")
     M.h3 = registerAnonymousEventHandler("onNewRoom", "MyDSL.Location.onRoomData")
+    M.h4 = registerAnonymousEventHandler("MyDSL.theme.changed", "MyDSL.Location.onThemeChanged")
   end
   M.handlersInstalled = true
 end

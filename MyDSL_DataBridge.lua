@@ -81,21 +81,66 @@ function MyDSL.DB.sync()
   MyDSL.DB.score.trains      = sc.trains
   MyDSL.DB.score.bank        = sc.bank
   MyDSL.DB.score.qpoints     = sc.qpoints
-  MyDSL.DB.score.hitroll     = sc.hitroll
-  MyDSL.DB.score.hitrollBase = sc.hitrollBase
-  MyDSL.DB.score.damroll     = sc.damroll
-  MyDSL.DB.score.damrollBase = sc.damrollBase
-  MyDSL.DB.score.armorPierce = sc.armorPierce
-  MyDSL.DB.score.armorBash   = sc.armorBash
-  MyDSL.DB.score.armorSlash  = sc.armorSlash
-  MyDSL.DB.score.armorMagic  = sc.armorMagic
+  -- Real bug fixed 2026-07-11, found while scoping the Live HUD expansion:
+  -- these 8 read from key names (hitroll/hitrollBase/armorPierce/etc) that
+  -- parseScoreLine() has never produced -- the real keys on MyDSL.State.score
+  -- are hit_roll/hit_roll_base/dam_roll/dam_roll_base/armor_pierce/
+  -- armor_bash/armor_slash/armor_magic (confirmed directly against
+  -- MyDSL_DataLayer.lua's parseScoreLine()). Every one of these 8 has been
+  -- silently nil in MyDSL.DB.score since this file was written.
+  MyDSL.DB.score.hitroll     = sc.hit_roll
+  MyDSL.DB.score.hitrollBase = sc.hit_roll_base
+  MyDSL.DB.score.damroll     = sc.dam_roll
+  MyDSL.DB.score.damrollBase = sc.dam_roll_base
+  MyDSL.DB.score.armorPierce = sc.armor_pierce
+  MyDSL.DB.score.armorBash   = sc.armor_bash
+  MyDSL.DB.score.armorSlash  = sc.armor_slash
+  MyDSL.DB.score.armorMagic  = sc.armor_magic
   MyDSL.DB.score.items       = sc.items
   MyDSL.DB.score.max_items   = sc.max_items
   MyDSL.DB.score.posn        = sc.position
+  -- Base (unmodified) stat values -- added 2026-07-11. char.str/int/wis/
+  -- dex/con above (GMCP) are the current/modified values already; the
+  -- score command's "STR: 051(050)" format also gives the base value in
+  -- parens, which GMCP's char_data doesn't carry at all. Additive only --
+  -- does not overwrite the GMCP-sourced current values above.
+  MyDSL.DB.score.str_base    = sc.str_base
+  MyDSL.DB.score.int_base    = sc.int_base
+  MyDSL.DB.score.wis_base    = sc.wis_base
+  MyDSL.DB.score.dex_base    = sc.dex_base
+  MyDSL.DB.score.con_base    = sc.con_base
+  -- Text-parsed fallbacks for fields GMCP's char_data may not always carry
+  -- (e.g. a fresh login before the first `score`) -- additive, GMCP wins
+  -- when present. Added 2026-07-11 alongside the Live HUD expansion.
+  MyDSL.DB.score.gold        = MyDSL.DB.score.gold      or sc.gold
+  MyDSL.DB.score.silver      = MyDSL.DB.score.silver    or sc.silver
+  MyDSL.DB.score.weight      = MyDSL.DB.score.weight    or sc.weight
+  MyDSL.DB.score.maxWeight   = MyDSL.DB.score.maxWeight or sc.max_weight
+  MyDSL.DB.score.wimpy       = MyDSL.DB.score.wimpy     or sc.wimpy
+  MyDSL.DB.score.tnl         = MyDSL.DB.score.tnl       or sc.tnl
+  MyDSL.DB.score.stance      = MyDSL.DB.score.stance    or sc.stance
 
   -- Gap 1 confirmed NOT a bug: DataLayer maps gmcp.room_data.room → State.room.name.
   -- Gap 2 fixed: 'area' never existed in DataLayer — replaced with 'sector'.
-  MyDSL.DB.room = { name = room.name, exits = room.exits, sector = room.sector }
+  -- Real bug fixed 2026-07-11, found via Steven's report that LiveView's
+  -- exits line "changes from original game text to white text": this
+  -- unconditionally rebuilt the whole DB.room table on every sync() call,
+  -- silently wiping exitsColoredSource/exitsColoredUpdatedAt/exitsLine --
+  -- the 3 fields MyDSL_LiveView.lua's setColoredExitsFromCurrentLine()
+  -- sets to remember it already captured the exits line with its original
+  -- game colors intact (e.g. the water-tinted color DSL uses near water).
+  -- sync() runs far more often than a fresh room description scrolls by,
+  -- so the flag was getting cleared within moments of being set, and the
+  -- next render() tick would fall back to the neutral all-white version
+  -- -- looked like the colored text was "changing to white" because it
+  -- literally was, moments after briefly rendering correctly.
+  local prevRoom = MyDSL.DB.room or {}
+  MyDSL.DB.room = {
+    name = room.name, exits = room.exits, sector = room.sector,
+    exitsColoredSource    = prevRoom.exitsColoredSource,
+    exitsColoredUpdatedAt = prevRoom.exitsColoredUpdatedAt,
+    exitsLine             = prevRoom.exitsLine,
+  }
 
   -- MyDSL.DB.tick is NOT rebuilt here (real bug fixed 2026-07-11) --
   -- MyDSL.State.tick only ever holds a `time` string (DataLayer's

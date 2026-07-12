@@ -1,203 +1,339 @@
 -- =============================================================================
 -- MyDSL_ThemeEngine.lua  --  Layer 2, File 1 of 3: Visual Theme System
 -- =============================================================================
--- This file owns all visual constants: fonts, colors, borders.
--- It has NO display logic — it never creates windows, never echoes text,
--- never sends commands to the game.
--- Layer 3 (the UI layer) calls MyDSL.Theme.get() to read values from here.
+-- This file owns all visual constants: fonts, colors, borders, and (as of
+-- 2026-07-11) a set of named, switchable theme presets.
+-- It has no window-content display logic — it never writes into a
+-- MiniConsole and never sends commands to the game — but it does own the
+-- `theme` alias (list/set/show), matching the precedent already set by
+-- MyDSL_WindowRegistry.lua owning "mydsl layout save/reset": a Layer-2 file
+-- can own the small set of commands that operate purely on its own data.
+-- Layer 3 (the UI layer) calls MyDSL.Theme.get()/panelCSS()/titleCSS() to
+-- read values from here, and listens for "MyDSL.theme.changed" to restyle
+-- live windows when the active theme switches.
 -- =============================================================================
 
 
 ------------------------------------------------------------------------
--- NAMESPACE GUARD
+-- SECTION 1: NAMESPACE GUARDS
 ------------------------------------------------------------------------
--- In Lua, every name you use without 'local' is a global variable.
--- MyDSL is a global table that all our scripts share.
---
--- The 'or {}' pattern means:
---   "If MyDSL already exists in memory, keep it exactly as it is.
---    If it doesn't exist yet, create a new empty table and use that."
---
--- This matters because Mudlet lets you re-save and re-run a script
--- while the game is still connected. Without this guard, every reload
--- would wipe out whatever the other scripts had already stored in MyDSL.
 
 MyDSL = MyDSL or {}
-
--- Same guard for the Theme sub-namespace.
--- MyDSL.Theme is itself a table inside the MyDSL table.
 MyDSL.Theme = MyDSL.Theme or {}
+MyDSL.Theme._handlers = MyDSL.Theme._handlers or {}
 
 
 ------------------------------------------------------------------------
--- SECTION 1: DEFAULT THEME VALUES
+-- SECTION 2: BARE DEFAULTS (ultimate fallback, also the key allowlist)
 ------------------------------------------------------------------------
--- MyDSL.Theme.defaults is a Lua table used as a dictionary:
--- each key is a string name, each value is the setting for that name.
---
--- A "table literal" in Lua looks like:  { key = value, key = value }
--- The curly braces create a new table. The key = value pairs go inside.
--- Sub-tables (like the color entries) are just tables inside tables.
---
--- RGBA color tables have four fields: r, g, b (0-255) and a (0-255).
--- Full opacity is a=255. Fully transparent is a=0.
--- The 'a' channel is used when converting to CSS (e.g. Geyser stylesheets).
--- decho only supports RGB so alpha is ignored there.
---
--- We use the guard pattern again here: if Theme.defaults already exists
--- (e.g. from a previous load), we keep it rather than overwriting it.
--- This lets a future config system pre-populate defaults before this
--- file runs, and we won't stomp on it.
+-- MyDSL.Theme.defaults is the canonical set of every real theme key.
+-- setOverride() checks against this table to reject typo'd keys.
+-- Values here are only used if the active preset and the "refined
+-- convergence" values below happen to omit a key -- in practice every
+-- preset below sets every key, so this mostly exists as the validation
+-- allowlist plus a safety net.
 
 MyDSL.Theme.defaults = MyDSL.Theme.defaults or {
-
-  -- ---- FONTS -------------------------------------------------------
-
-  -- font: the typeface used in all content windows (miniConsoles).
-  -- A monospace font is strongly recommended for MUD output — it keeps
-  -- columns aligned and makes the ASCII map readable.
-  font          = "Courier New",
-
-  -- fontSize: point size for content text. 9pt is readable at 1920x1080
-  -- without wasting vertical space in narrow side panels.
-  fontSize      = 9,
-
-  -- titleFont: typeface used in window title bars or header labels.
-  -- A slightly different font here gives titles visual separation from content.
-  titleFont     = "Arial",
-
-  -- titleFontSize: title bars can be slightly larger than body text
-  -- to help the eye find window boundaries quickly.
-  titleFontSize = 10,
-
-  -- ---- BASE COLORS -------------------------------------------------
-
-  -- bgColor: the background fill of every window.
-  -- Near-black with slight blue tint — easier on eyes than pure black,
-  -- and distinguishable from the Mudlet main console background.
-  bgColor       = { r =  18, g =  20, b =  28, a = 242 },  -- ~95% opaque
-
-  -- textColor: default foreground for body text.
-  -- Slightly warm off-white rather than pure white — reduces contrast
-  -- fatigue during long play sessions.
-  textColor     = { r = 210, g = 208, b = 200, a = 255 },
-
-  -- borderColor: the thin line drawn around window edges.
-  -- A muted blue-grey that's visible against the dark background
-  -- without screaming for attention.
-  borderColor   = { r =  60, g =  70, b =  90, a = 255 },
-
-  -- borderSize: thickness of the window border in pixels.
-  -- 1px is sufficient at 1920x1080. Increase if running on a 4K display.
-  borderSize    = 1,
-
-  -- titleColor: text color used in window title bars.
-  -- Slightly brighter than body text so the title stands out.
-  titleColor    = { r = 200, g = 220, b = 255, a = 255 },
-
-  -- ---- SEMANTIC COLORS ---------------------------------------------
-  -- These colors carry meaning. Layer 3 uses them consistently so the
-  -- player learns: gold = notable, red = danger, green = good.
-
-  -- highlightColor: used for active, selected, or recently-updated elements.
-  -- Warm amber/gold — visible without being aggressive.
+  font           = "Courier New",
+  fontSize       = 9,
+  titleFont      = "Courier New",
+  titleFontSize  = 9,
+  bgColor        = { r =  18, g =  20, b =  28, a = 242 },
+  textColor      = { r = 210, g = 208, b = 200, a = 255 },
+  borderColor    = { r =  60, g =  70, b =  90, a = 255 },
+  borderSize     = 1,
+  radius         = 6,
+  titleColor     = { r = 200, g = 220, b = 255, a = 255 },
+  titleBgColor   = { r =   0, g =   0, b =   0, a =   0 },
   highlightColor = { r = 220, g = 180, b =  60, a = 255 },
-
-  -- dimColor: used for inactive, stale, or secondary information.
-  -- Dark grey — present but receding.
   dimColor       = { r =  90, g =  90, b =  90, a = 255 },
-
-  -- warnColor: low HP, expiring affects, resource alerts.
-  -- Clear red that stands out immediately.
   warnColor      = { r = 210, g =  50, b =  50, a = 255 },
-
-  -- goodColor: full health, active buffs, positive conditions.
-  -- Soft green — readable and clearly positive.
   goodColor      = { r =  80, g = 185, b =  80, a = 255 },
 }
 
 
 ------------------------------------------------------------------------
--- SECTION 2: PER-WINDOW OVERRIDES
+-- SECTION 3: NAMED PRESETS
 ------------------------------------------------------------------------
--- MyDSL.Theme.overrides is a table of tables.
--- The outer key is the window name (a string matching the Geyser window name).
--- The inner table contains only the keys that differ from the defaults.
--- Keys not present in the override simply fall through to defaults.
+-- Five directions, presented to Steven as an Artifact mockup (2026-07-11)
+-- plus two adapted from ChatGPT concept renders he supplied the same day.
+-- Each preset is a complete key set (every MyDSL.Theme.defaults key) so
+-- switching presets never leaves a window half-styled from an old theme.
 --
--- Example structure (do not uncomment — this is illustration only):
---
---   MyDSL.Theme.overrides["MyDSL_Chat"] = {
---     fontSize  = 8,                              -- smaller text in chat
---     bgColor   = { r=10, g=10, b=10, a=255 },   -- slightly darker background
---   }
---
---   MyDSL.Theme.overrides["MyDSL_Affects"] = {
---     font      = "Consolas",   -- different font for the affects panel
---   }
---
--- To set an override from Lua at runtime, use MyDSL.Theme.setOverride().
+-- "zones" (zoned_hud only): per-category border/title/titleBg overrides,
+-- keyed by a category name assigned per-window in MyDSL.Theme.windowZone
+-- below. Only zoned_hud defines this table; every other preset ignores
+-- window zone assignment entirely and uses its own flat border/title
+-- colors for every window.
+
+MyDSL.Theme.presets = MyDSL.Theme.presets or {
+
+  -- ---- A: Refined Convergence ---------------------------------------
+  -- Promotes Live/Tick's existing look (slate-teal, gold titles) to
+  -- every window instead of inventing a fourth style. Lowest risk.
+  refined_convergence = {
+    font = "DejaVu Sans Mono", fontSize = 9,
+    titleFont = "DejaVu Sans Mono", titleFontSize = 9,
+    bgColor        = { r =  11, g =  16, b =  19, a = 242 },
+    textColor      = { r = 232, g = 230, b = 224, a = 255 },
+    -- Dimmed 2026-07-11 per Steven ("border thickness, can we make
+    -- slimmer?") -- border was already at 1px, the CSS floor for a
+    -- visible solid line, so the fix is a subtler color (was full-
+    -- brightness 51,67,74,255) rather than a narrower one.
+    borderColor    = { r =  33, g =  44, b =  48, a = 200 },
+    borderSize     = 1,
+    radius         = 8,
+    titleColor     = { r = 255, g = 209, b = 102, a = 255 },
+    titleBgColor   = { r = 255, g = 209, b = 102, a =  15 },
+    highlightColor = { r = 255, g = 209, b = 102, a = 255 },
+    dimColor       = { r = 139, g = 150, b = 155, a = 255 },
+    warnColor      = { r = 226, g = 102, b =  95, a = 255 },
+    goodColor      = { r = 143, g = 214, b = 122, a = 255 },
+  },
+
+  -- ---- B: Terminal Purist -------------------------------------------
+  -- Near-black, square corners, barely-there borders. The only color in
+  -- the whole UI is the text itself (PNP's own green/red/gold) plus a
+  -- single muted amber for window titles.
+  terminal_purist = {
+    font = "Courier New", fontSize = 9,
+    titleFont = "Courier New", titleFontSize = 9,
+    bgColor        = { r =  10, g =  10, b =  10, a = 255 },
+    textColor      = { r = 201, g = 201, b = 192, a = 255 },
+    borderColor    = { r =  27, g =  27, b =  27, a = 190 },
+    borderSize     = 1,
+    radius         = 0,
+    titleColor     = { r = 201, g = 162, b =  39, a = 255 },
+    titleBgColor   = { r =   0, g =   0, b =   0, a =   0 },
+    highlightColor = { r = 255, g = 255, b =  85, a = 255 },
+    dimColor       = { r = 110, g = 110, b = 102, a = 255 },
+    warnColor      = { r = 255, g =  85, b =  85, a = 255 },
+    goodColor      = { r =  79, g = 191, b =  63, a = 255 },
+  },
+
+  -- ---- C: Zoned HUD ---------------------------------------------------
+  -- ThemeEngine's own original blue-black base, but each window's border
+  -- and title pick up a color for its category (combat/status/reference/
+  -- social) so window clusters are identifiable at a glance.
+  zoned_hud = {
+    font = "DejaVu Sans Mono", fontSize = 9,
+    titleFont = "DejaVu Sans Mono", titleFontSize = 9,
+    bgColor        = { r =  18, g =  20, b =  28, a = 242 },
+    textColor      = { r = 210, g = 208, b = 200, a = 255 },
+    borderColor    = { r =  43, g = 110, b = 104, a = 195 },
+    borderSize     = 1,
+    radius         = 10,
+    titleColor     = { r = 127, g = 214, b = 204, a = 255 },
+    titleBgColor   = { r =  72, g = 184, b = 174, a =  26 },
+    highlightColor = { r = 240, g = 198, b = 116, a = 255 },
+    dimColor       = { r = 136, g = 144, b = 160, a = 255 },
+    warnColor      = { r = 239, g = 138, b = 137, a = 255 },
+    goodColor      = { r = 127, g = 214, b = 138, a = 255 },
+    -- Zone border colors dimmed 2026-07-11 alongside every other preset's
+    -- borderColor (see refined_convergence's comment above) -- titleColor/
+    -- titleBgColor stay at full brightness (legibility), only the border
+    -- line itself is toned down.
+    zones = {
+      combat    = {
+        borderColor  = { r = 130, g =  58, b =  57, a = 195 },
+        titleColor   = { r = 239, g = 138, b = 137, a = 255 },
+        titleBgColor = { r = 217, g =  96, b =  95, a =  26 },
+      },
+      status    = {
+        borderColor  = { r =  43, g = 110, b = 104, a = 195 },
+        titleColor   = { r = 127, g = 214, b = 204, a = 255 },
+        titleBgColor = { r =  72, g = 184, b = 174, a =  26 },
+      },
+      reference = {
+        borderColor  = { r =  93, g =  76, b = 134, a = 195 },
+        titleColor   = { r = 188, g = 170, b = 240, a = 255 },
+        titleBgColor = { r = 155, g = 127, b = 224, a =  26 },
+      },
+      social    = {
+        borderColor  = { r =  64, g = 124, b =  76, a = 195 },
+        titleColor   = { r = 140, g = 224, b = 156, a = 255 },
+        titleBgColor = { r = 107, g = 207, b = 127, a =  26 },
+      },
+    },
+  },
+
+  -- ---- D: Obsidian Ember ----------------------------------------------
+  -- Adapted from a ChatGPT concept render Steven supplied 2026-07-11
+  -- ("Obsidian Ember"). Clean near-black, hairline borders, warm ember
+  -- accent -- the cheapest of the ChatGPT directions to build 1:1 since
+  -- it needs no new art assets, just color/border/font values.
+  obsidian_ember = {
+    font = "DejaVu Sans Mono", fontSize = 9,
+    titleFont = "DejaVu Sans Mono", titleFontSize = 9,
+    bgColor        = { r =  13, g =  13, b =  13, a = 240 },
+    textColor      = { r = 225, g = 220, b = 210, a = 255 },
+    borderColor    = { r =  38, g =  38, b =  38, a = 200 },
+    borderSize     = 1,
+    radius         = 4,
+    titleColor     = { r = 230, g = 126, b =  60, a = 255 },
+    titleBgColor   = { r = 230, g = 126, b =  60, a =  20 },
+    highlightColor = { r = 230, g = 126, b =  60, a = 255 },
+    dimColor       = { r = 120, g = 115, b = 108, a = 255 },
+    warnColor      = { r = 214, g =  69, b =  65, a = 255 },
+    goodColor      = { r = 122, g = 201, b = 122, a = 255 },
+  },
+
+  -- ---- E: Arcane Midnight -----------------------------------------------
+  -- Adapted from a ChatGPT concept render Steven supplied 2026-07-11
+  -- ("Arcane Midnight v2"). Deep indigo/violet, distinct from every other
+  -- preset's blue/teal/amber families.
+  arcane_midnight = {
+    font = "DejaVu Sans Mono", fontSize = 9,
+    titleFont = "DejaVu Sans Mono", titleFontSize = 9,
+    bgColor        = { r =  20, g =  16, b =  36, a = 240 },
+    textColor      = { r = 216, g = 210, b = 232, a = 255 },
+    borderColor    = { r =  59, g =  46, b =  91, a = 195 },
+    borderSize     = 1,
+    radius         = 8,
+    titleColor     = { r = 185, g = 150, b = 235, a = 255 },
+    titleBgColor   = { r =  90, g =  70, b = 140, a =  25 },
+    highlightColor = { r = 200, g = 160, b = 255, a = 255 },
+    dimColor       = { r = 130, g = 120, b = 150, a = 255 },
+    warnColor      = { r = 230, g =  90, b = 110, a = 255 },
+    goodColor      = { r = 110, g = 210, b = 160, a = 255 },
+  },
+}
+
+-- Explicit display/listing order -- pairs() iteration order over
+-- MyDSL.Theme.presets is not guaranteed, and "theme list" should show
+-- presets in a stable, meaningful order every time.
+MyDSL.Theme.presetOrder = MyDSL.Theme.presetOrder or {
+  "refined_convergence", "terminal_purist", "zoned_hud",
+  "obsidian_ember", "arcane_midnight",
+}
+
+
+------------------------------------------------------------------------
+-- SECTION 4: WINDOW -> ZONE ASSIGNMENT (used only by zoned_hud)
+------------------------------------------------------------------------
+
+MyDSL.Theme.windowZone = MyDSL.Theme.windowZone or {
+  MyDSL_Combat            = "combat",
+  MyDSL_Focus             = "combat", -- renamed from MyDSL_Target 2026-07-11
+  MyDSL_Group             = "combat",
+  MyDSL_Tick              = "combat",
+  MyDSL_Alterform         = "combat",
+  MyDSL_Affects           = "status",
+  MyDSL_Live              = "status",
+  MyDSL_PlayersNear       = "status",
+  MyDSL_Scan              = "reference",
+  MyDSL_RightHere         = "reference",
+  MyDSL_Location          = "reference",
+  MyDSL_CreatureReference = "reference",
+  MyDSL_Portrait          = "reference",
+  MyDSL_MoonWeather       = "reference",
+  MyDSL_Chat              = "social",
+  MyDSL_History           = "social",
+}
+
+
+------------------------------------------------------------------------
+-- SECTION 5: PER-WINDOW OVERRIDES (explicit, highest priority)
+------------------------------------------------------------------------
+-- Unchanged from the original design: a per-window escape hatch that
+-- wins over both zone and active-preset values. Set at runtime via
+-- MyDSL.Theme.setOverride("MyDSL_Chat", "fontSize", 8).
 
 MyDSL.Theme.overrides = MyDSL.Theme.overrides or {}
 
 
 ------------------------------------------------------------------------
--- SECTION 3: ACCESSOR — get(windowName, key)
+-- SECTION 6: ACTIVE THEME + PERSISTENCE
 ------------------------------------------------------------------------
--- Reading a theme value should always go through this function,
--- never by accessing MyDSL.Theme.defaults directly.
---
--- Why? Because it gives us two things for free:
---   1. Per-window overrides are checked first, so a window can look
---      different from the default without touching shared state.
---   2. If we ever change where values are stored, only this function
---      needs to change — every caller continues to work unchanged.
---
--- 'local' means this variable exists only inside this function.
--- Using locals for intermediate values is a Lua best practice:
--- local lookups are faster than global lookups, and they don't
--- accidentally leak names into the shared environment.
+-- Themes are user-creatable named presets, shared across all characters
+-- (recorded decision, CLAUDE.md "Character-binding" section) -- so this
+-- file, not one per character.
 
-function MyDSL.Theme.get(windowName, key)
-  -- Check if this window has any overrides at all.
-  -- The 'and' here is a short-circuit guard: if overrides[windowName]
-  -- is nil (no entry exists), Lua would crash trying to index nil[key].
-  -- Writing 'a and a[key]' prevents that — if 'a' is nil, the expression
-  -- returns nil immediately without evaluating 'a[key]'.
-  local overrideTable = MyDSL.Theme.overrides[windowName]
-  if overrideTable then
-    local overrideValue = overrideTable[key]
-    if overrideValue ~= nil then
-      -- Found an override for this window and key — return it directly.
-      return overrideValue
-    end
+local function THEME_FILE()
+  return getMudletHomeDir() .. "/MyDSL_theme_settings.lua"
+end
+
+MyDSL.Theme.active = MyDSL.Theme.active or "refined_convergence"
+
+function MyDSL.Theme.loadActive()
+  local f = io.open(THEME_FILE(), "r")
+  if not f then return end
+  f:close()
+  local loaded = table.load(THEME_FILE())
+  if type(loaded) == "table" and type(loaded.active) == "string"
+     and MyDSL.Theme.presets[loaded.active] then
+    MyDSL.Theme.active = loaded.active
   end
+end
 
-  -- No override found — fall back to the shared defaults.
-  return MyDSL.Theme.defaults[key]
-  -- If the key doesn't exist in defaults either, this returns nil.
-  -- Callers should handle nil gracefully (e.g. 'value or fallback').
+function MyDSL.Theme.saveActive()
+  local ok = pcall(table.save, THEME_FILE(), { active = MyDSL.Theme.active })
+  if not ok then
+    debugc("[MyDSL] ThemeEngine: failed to save theme settings to " .. THEME_FILE())
+  end
+  return ok
+end
+
+MyDSL.Theme.loadActive()
+
+-- list()
+-- Returns the preset names in stable display order.
+function MyDSL.Theme.list()
+  return MyDSL.Theme.presetOrder
+end
+
+-- setTheme(name)
+-- Switches the active preset, persists it, and raises "MyDSL.theme.changed"
+-- so every live window can restyle itself immediately. Returns true/false.
+function MyDSL.Theme.setTheme(name)
+  if not MyDSL.Theme.presets[name] then
+    return false
+  end
+  MyDSL.Theme.active = name
+  MyDSL.Theme.saveActive()
+  raiseEvent("MyDSL.theme.changed", name)
+  return true
 end
 
 
 ------------------------------------------------------------------------
--- SECTION 4: COLOR CONVERTERS
+-- SECTION 7: ACCESSOR — get(windowName, key)
+------------------------------------------------------------------------
+-- Precedence, highest to lowest:
+--   1. Per-window override           (MyDSL.Theme.overrides[windowName])
+--   2. Active preset's zone entry    (only if the preset defines zones
+--                                      AND this window has a zone AND
+--                                      the zone table has this key)
+--   3. Active preset's flat value    (MyDSL.Theme.presets[active][key])
+--   4. Bare fallback                 (MyDSL.Theme.defaults[key])
+
+function MyDSL.Theme.get(windowName, key)
+  local overrideTable = MyDSL.Theme.overrides[windowName]
+  if overrideTable then
+    local overrideValue = overrideTable[key]
+    if overrideValue ~= nil then return overrideValue end
+  end
+
+  local preset = MyDSL.Theme.presets[MyDSL.Theme.active] or {}
+
+  if preset.zones then
+    local zoneName = MyDSL.Theme.windowZone[windowName]
+    local zoneTable = zoneName and preset.zones[zoneName]
+    if zoneTable and zoneTable[key] ~= nil then
+      return zoneTable[key]
+    end
+  end
+
+  if preset[key] ~= nil then return preset[key] end
+  return MyDSL.Theme.defaults[key]
+end
+
+
+------------------------------------------------------------------------
+-- SECTION 8: COLOR CONVERTERS
 ------------------------------------------------------------------------
 
--- colorToCSS(rgba)
--- Converts an RGBA table {r,g,b,a} to a CSS color string.
--- Used when setting Geyser window stylesheets, which accept CSS syntax.
---
--- Example: { r=18, g=20, b=28, a=242 }  →  "rgba(18,20,28,0.95)"
---
--- CSS alpha is a decimal 0.0 (transparent) to 1.0 (opaque).
--- Our tables store alpha as 0–255, so we divide by 255 to convert.
---
--- string.format() works like printf in C. "%.2f" means: format as a
--- floating-point number with exactly 2 decimal places.
-
 function MyDSL.Theme.colorToCSS(rgba)
-  -- Guard: if rgba is nil or missing fields, return a safe default.
   if not rgba then return "rgba(0,0,0,1)" end
   local r = rgba.r or 0
   local g = rgba.g or 0
@@ -205,17 +341,6 @@ function MyDSL.Theme.colorToCSS(rgba)
   local a = rgba.a or 255
   return string.format("rgba(%d,%d,%d,%.2f)", r, g, b, a / 255)
 end
-
--- colorToEcho(rgba)
--- Converts an RGBA table to a Mudlet decho color tag.
--- decho uses the format "<r,g,b>" for foreground color.
--- Alpha is not supported by decho, so we ignore it here.
---
--- Example: { r=210, g=50, b=50, a=255 }  →  "<210,50,50>"
---
--- decho tags are used inline in strings passed to decho(), e.g.:
---   decho("<210,50,50>WARNING<r>\n")
--- The "<r>" at the end resets the color back to default.
 
 function MyDSL.Theme.colorToEcho(rgba)
   if not rgba then return "<255,255,255>" end
@@ -227,45 +352,138 @@ end
 
 
 ------------------------------------------------------------------------
--- SECTION 5: OVERRIDE MANAGEMENT
+-- SECTION 9: READY-MADE STYLESHEET STRINGS
+------------------------------------------------------------------------
+-- Added 2026-07-11 alongside named presets. Every window that builds its
+-- own "panel" background Label (Live/Tick's existing pattern, extended
+-- to every other window in Layer 3) can call these instead of hand-
+-- rolling its own string.format(), so a theme switch actually reaches
+-- every window's chrome from one place.
+
+-- panelCSS(windowName)
+-- Background + border + radius for a full-bleed panel Label.
+function MyDSL.Theme.panelCSS(windowName)
+  local bg     = MyDSL.Theme.get(windowName, "bgColor")
+  local border = MyDSL.Theme.get(windowName, "borderColor")
+  local size   = MyDSL.Theme.get(windowName, "borderSize") or 1
+  local radius = MyDSL.Theme.get(windowName, "radius") or 0
+  return string.format(
+    "background-color: %s; border: %dpx solid %s; border-radius: %dpx;",
+    MyDSL.Theme.colorToCSS(bg), size, MyDSL.Theme.colorToCSS(border), radius
+  )
+end
+
+-- titleCSS(windowName)
+-- Color + background tint + font for a title-bar Label.
+function MyDSL.Theme.titleCSS(windowName)
+  local color   = MyDSL.Theme.get(windowName, "titleColor")
+  local bg      = MyDSL.Theme.get(windowName, "titleBgColor")
+  local font    = MyDSL.Theme.get(windowName, "titleFont") or "Courier New"
+  local size    = MyDSL.Theme.get(windowName, "titleFontSize") or 9
+  return string.format(
+    "color: %s; background-color: %s; font-family: '%s'; font-size: %dpt; font-weight: bold;",
+    MyDSL.Theme.colorToCSS(color), MyDSL.Theme.colorToCSS(bg), font, size
+  )
+end
+
+-- bodyTextCSS(windowName)
+-- Default foreground + font for plain body text (not a semantic color).
+function MyDSL.Theme.bodyTextCSS(windowName)
+  local color = MyDSL.Theme.get(windowName, "textColor")
+  local font  = MyDSL.Theme.get(windowName, "font") or "Courier New"
+  local size  = MyDSL.Theme.get(windowName, "fontSize") or 9
+  return string.format(
+    "color: %s; font-family: '%s'; font-size: %dpt;",
+    MyDSL.Theme.colorToCSS(color), font, size
+  )
+end
+
+-- styleConsole(consoleObj, windowName, fontSizeOverride)
+-- Applies the active theme's background fill and font to a MiniConsole
+-- (or any Geyser.Window subclass with setColor/setFont/setFontSize --
+-- Geyser.UserWindow qualifies too, for windows like MyDSL_Affects that
+-- cecho() straight into the window itself instead of a MiniConsole
+-- child). A UserWindow's own setStyleSheet (applied by WindowRegistry's
+-- applyTheme()) only themes its border/title area -- a MiniConsole paints
+-- its own background independently, so this second call is what keeps
+-- the interior fill from staying whatever color it last had.
+--
+-- fontSizeOverride: pass a per-window persisted user font-size override
+-- (e.g. CombatView's CV.config.fontSize) so a theme switch changes color
+-- and font family without clobbering a size the user explicitly set.
+-- Every call is pcall-wrapped: some target objects may not implement
+-- every method (e.g. plain UserWindow has no setFont), and that's fine --
+-- silently skip what doesn't apply rather than erroring.
+function MyDSL.Theme.styleConsole(consoleObj, windowName, fontSizeOverride)
+  if not consoleObj then return end
+  local bg = MyDSL.Theme.get(windowName, "bgColor")
+  if bg then pcall(function() consoleObj:setColor(bg.r, bg.g, bg.b, bg.a) end) end
+  local font = MyDSL.Theme.get(windowName, "font")
+  if font then pcall(function() consoleObj:setFont(font) end) end
+  local size = fontSizeOverride or MyDSL.Theme.get(windowName, "fontSize")
+  if size then pcall(function() consoleObj:setFontSize(size) end) end
+end
+
+
+------------------------------------------------------------------------
+-- SECTION 10: OVERRIDE MANAGEMENT
 ------------------------------------------------------------------------
 
--- setOverride(windowName, key, value)
--- Sets a single theme value for a specific window.
--- Only that key is overridden — all other keys still fall back to defaults.
---
--- Example usage from another script:
---   MyDSL.Theme.setOverride("MyDSL_Chat", "fontSize", 8)
---   MyDSL.Theme.setOverride("MyDSL_Chat", "bgColor", {r=10,g=10,b=10,a=255})
-
 function MyDSL.Theme.setOverride(windowName, key, value)
-  -- Key validation added 2026-07-07 (confirmed LOW PRIORITY gap: this
-  -- silently accepted any key, so a typo'd key would set a value that
-  -- nothing ever reads, with no error to notice by). MyDSL.Theme.defaults
-  -- is the canonical key set every real theme property is drawn from, so
-  -- anything not already in there isn't a real theme key.
   if MyDSL.Theme.defaults[key] == nil then
     debugc("[MyDSL] ThemeEngine: setOverride() ignored unknown key '" .. tostring(key) .. "'")
     return false
   end
-  -- If there's no override table for this window yet, create one.
-  -- This is the same 'or {}' guard pattern, applied per-window.
   MyDSL.Theme.overrides[windowName] = MyDSL.Theme.overrides[windowName] or {}
   MyDSL.Theme.overrides[windowName][key] = value
+  raiseEvent("MyDSL.theme.changed", MyDSL.Theme.active)
   return true
 end
 
--- clearOverride(windowName)
--- Removes all overrides for a named window, returning it to defaults.
--- Sets the window's override entry to nil, which removes it from the table.
--- In Lua, setting a table key to nil deletes that key entirely.
-
 function MyDSL.Theme.clearOverride(windowName)
   MyDSL.Theme.overrides[windowName] = nil
+  raiseEvent("MyDSL.theme.changed", MyDSL.Theme.active)
+end
+
+
+------------------------------------------------------------------------
+-- SECTION 11: "theme" ALIAS — list / set / show
+------------------------------------------------------------------------
+-- theme            -> shows the active theme name
+-- theme list        -> lists all available preset names
+-- theme set <name>  -> switches the active preset
+-- Bare "theme" verb confirmed to have zero collision with real DSL
+-- vocabulary (grepped DSL_Helpfiles/, 2026-07-11) -- safe per this
+-- session's command-surface convention (see docs/TODO.md / CHANGELOG.md).
+
+if not MyDSL.Theme._aliasesInstalled then
+  tempAlias("^theme list$", function()
+    cecho("\n<gold>[MyDSL] Available themes:\n")
+    for _, name in ipairs(MyDSL.Theme.list()) do
+      local marker = (name == MyDSL.Theme.active) and " <-- active" or ""
+      cecho("<white>  " .. name .. marker .. "\n")
+    end
+  end)
+
+  tempAlias("^theme set (.+)$", function()
+    local name = matches[2]
+    if MyDSL.Theme.setTheme(name) then
+      cecho("\n<green>[MyDSL] Theme set to '" .. name .. "'.\n")
+    else
+      cecho("\n<firebrick>[MyDSL] Unknown theme '" .. tostring(name) .. "'. Try 'theme list'.\n")
+    end
+  end)
+
+  tempAlias("^theme$", function()
+    cecho("\n<gold>[MyDSL] Active theme: <white>" .. MyDSL.Theme.active
+      .. "<gold> (try 'theme list' or 'theme set <name>')\n")
+  end)
+
+  MyDSL.Theme._aliasesInstalled = true
 end
 
 
 ------------------------------------------------------------------------
 -- LOAD CONFIRMATION
 ------------------------------------------------------------------------
-debugc("[MyDSL] ThemeEngine loaded.")
+debugc("[MyDSL] ThemeEngine loaded. Active theme: " .. MyDSL.Theme.active)

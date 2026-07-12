@@ -221,14 +221,18 @@ function C.ensureWindow()
   if haveWindowCore() then
     local ok = pcall(function()
       MyDSL.Windows.ensure(C.config.windowName)
-      if MyDSL.Windows.setFont then MyDSL.Windows.setFont(C.config.windowId, C.config.fontSize, true) end
-      if MyDSL.Windows.setTitle then MyDSL.Windows.setTitle(C.config.windowId, "-= Chat =-", true) end
+      -- MyDSL.Windows.setFont/setTitle were dead references -- neither
+      -- function has ever existed on WindowRegistry, so both guarded
+      -- calls silently no-op'd forever. Fixed 2026-07-11, per Steven
+      -- ("fix all window titles/names") -- call setTitle directly on the
+      -- real window object instead, same pattern every other module uses.
     end)
 
     if ok then
       local obj = getWindowObject()
       if obj then
         C.window = obj
+        if obj.setTitle then pcall(function() obj:setTitle("-= Chat =-") end) end
         C.state.windowReady = true
         return true
       end

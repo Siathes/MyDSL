@@ -126,12 +126,27 @@ local function clamp(n, lo, hi)
   return n
 end
 
+-- Migrated 2026-07-11 to pull from MyDSL.Theme -- was byte-for-byte
+-- duplicated in MyDSL_LiveView.lua; both now read the same ThemeEngine
+-- preset, so a theme switch reaches both. Falls back to the original
+-- literal if ThemeEngine isn't loaded (load-order safety).
 local function stylePanel()
+  if MyDSL.Theme and MyDSL.Theme.panelCSS then
+    return MyDSL.Theme.panelCSS(V.name)
+  end
   return [[
     background-color: #0b1013;
     border: 1px solid #33434a;
     border-radius: 8px;
   ]]
+end
+
+local function titleColorCSS()
+  if MyDSL.Theme then
+    local ok, css = pcall(MyDSL.Theme.colorToCSS, MyDSL.Theme.get(V.name, "titleColor"))
+    if ok and css then return css end
+  end
+  return "#ffd166"
 end
 
 local function styleTube()
@@ -248,7 +263,7 @@ function V.ensureUI()
 
   V.ui.panel:setStyleSheet(stylePanel())
   V.ui.tube:setStyleSheet(styleTube())
-  V.ui.title:setStyleSheet(styleText(V.config.font, "#ffd166", "bold"))
+  V.ui.title:setStyleSheet(styleText(V.config.font, titleColorCSS(), "bold"))
   V.ui.seconds:setStyleSheet(styleText(V.config.font + 4, "#eeeeee", "bold"))
   V.ui.detail:setStyleSheet(styleText(math.max(7, V.config.font - 1), "#9ba7ad", "normal"))
   V.ui.strip:setStyleSheet(styleStrip("#77838a"))
@@ -259,7 +274,7 @@ end
 
 function V.applyFont()
   if not V.ui or not V.ui.title then return end
-  V.ui.title:setStyleSheet(styleText(V.config.font, "#ffd166", "bold"))
+  V.ui.title:setStyleSheet(styleText(V.config.font, titleColorCSS(), "bold"))
   V.ui.seconds:setStyleSheet(styleText(V.config.font + 4, "#eeeeee", "bold"))
   V.ui.detail:setStyleSheet(styleText(math.max(7, V.config.font - 1), "#9ba7ad", "normal"))
 end
@@ -416,6 +431,17 @@ function V.installHandlers()
     end)
     if ok and id then table.insert(V.handlers, id) end
   end
+
+  -- Re-apply panel/title colors when the active theme switches.
+  -- Added 2026-07-11 alongside named ThemeEngine presets.
+  local ok, id = pcall(function()
+    return registerAnonymousEventHandler("MyDSL.theme.changed", function()
+      if not (V.ui and V.ui.panel) then return end
+      pcall(function() V.ui.panel:setStyleSheet(stylePanel()) end)
+      V.applyFont()
+    end)
+  end)
+  if ok and id then table.insert(V.handlers, id) end
 end
 
 function V.installAliases()

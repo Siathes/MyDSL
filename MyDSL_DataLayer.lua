@@ -371,6 +371,12 @@ MyDSL.State.scan         = MyDSL.State.scan         or {  -- text: nearby entiti
   mode=nil, direction=nil, rows={}, rightHere={}, byName={}, last_updated=0
 }
 MyDSL.State.creaturelore = MyDSL.State.creaturelore or { last_updated = 0 }  -- text: creature lore block
+-- (2026-07-11: the session-only MyDSL.State.creatureLoreCache this comment
+-- used to describe has been superseded by the real, persistent, disk-backed
+-- MyDSL.CreatureLore DB -- see MyDSL_CreatureLore.lua -- per Steven's
+-- follow-up the same day: "creaturelore should be persistent and tabled...
+-- so we can recall creatures for information... over any session," not
+-- just the current one.)
 MyDSL.State.equipment    = MyDSL.State.equipment    or { last_updated = 0 }  -- text: worn/wielded equipment by slot
 MyDSL.State.combat = MyDSL.State.combat or {
   active      = {},    -- keyed by target-key; each entry: {target_display, target_condition, by_attacker, started_at}
@@ -1865,13 +1871,34 @@ function MyDSL.beginCreatureLore(line)
   end)
 end
 
+-- splitWords(s) -- "mental disease" -> {"mental","disease"}. Used for the
+-- Immunities/Resistances/Vulnerabilities/Affects lines below, which are
+-- real DSL space-separated flag lists (confirmed via log-corpus grep:
+-- "Immunities: summon charm magic weapon blunt poison negative holy
+-- mental disease", no commas) -- stored as tables to match
+-- MyDSL_CreatureReference.lua's existing listLine() display helper, which
+-- already expects a table (`#tbl > 0`), not a bare string.
+local function splitWords(s)
+  local out = {}
+  for w in tostring(s or ""):gmatch("%S+") do table.insert(out, w) end
+  return out
+end
+
 function MyDSL.parseCreatureLoreLine(line)
   local r = MyDSL.State.creaturelore
   if not r then return end
   table.insert(r.lines, line)
-  -- Alignment: "They appear to be a good soul."
+  -- Alignment: real phrasing varies more than the raw capture used to
+  -- keep -- confirmed via log-corpus grep across many creatures: "a good
+  -- soul.", "a more neutral soul." (filler "more"), "a evil and corrupt
+  -- soul." (extra qualifier after "evil"). Narrowed 2026-07-11 per Steven
+  -- ("only need to capture the good evil neutral for align") -- search
+  -- the captured phrase for whichever of the 3 real keywords is present,
+  -- instead of storing the whole variable phrase verbatim.
   local a = line:match("^.- appears to be (.+) soul%.")
-  if a then r.alignmentText = trim(a) end
+  if a then
+    r.alignmentText = a:match("(good)") or a:match("(evil)") or a:match("(neutral)") or trim(a)
+  end
   -- Wealth: "Their wealth appears to be 5 gold and 10 silver."
   local g, s = line:match("Their wealth appears to be%s+(%d+)%s+gold and%s+(%d+)%s+silver")
   if g then r.gold = tonumber(g); r.silver = tonumber(s) end
@@ -1882,6 +1909,51 @@ function MyDSL.parseCreatureLoreLine(line)
   -- HP: "The base health of this creature is 1000."
   local h = line:match("^The base health of this creature is%s+(%d+)%.")
   if h then r.hp = tonumber(h) end
+
+  -- Added 2026-07-11, per Steven's TargetView redesign ("should show the
+  -- stats we collect with creaturelore") -- confirmed real via log-corpus
+  -- grep + DSL_Helpfiles/creaturelore.txt ("physical and magical health,
+  -- level of training, weapon damage type, immunities and resistances,
+  -- vulnerabilities and magical affects"), none of these 6 fields were
+  -- being captured at all before, only race/align/wealth/sex/hp.
+
+  -- Magic: "The base magically ability of this creature is 1336."
+  local mg = line:match("^The base magically ability of this creature is%s+(%d+)%.")
+  if mg then r.magic = tonumber(mg) end
+
+  -- Damage: "This creature does 6d7 damage in a slash manner."
+  local dice, dtype = line:match("^This creature does%s+(.-)%s+damage in a?n?%s*(.-)%s+manner%.")
+  if dice then r.damage = dice; r.damageType = trim(dtype) end
+
+  -- Characteristics list, each its own line: "Immunities: charm",
+  -- "Resistances: blunt cold". Vulnerabilities line format is unconfirmed
+  -- in the log corpus (zero real examples found) but documented in
+  -- DSL_Helpfiles/creaturelore.txt as a real category -- parsed the same
+  -- way defensively; harmless if it never matches.
+  local imm = line:match("^Immunities:%s*(.+)$")
+  if imm then r.immunities = splitWords(imm) end
+  local res = line:match("^Resistances:%s*(.+)$")
+  if res then r.resists = splitWords(res) end
+  local vuln = line:match("^Vulnerabilities:%s*(.+)$")
+  if vuln then r.vulns = splitWords(vuln) end
+
+  -- Affects: "This creature is affected by charm" -- confirmed real via
+  -- log-corpus grep, a sentence, not a "Affects:" label line.
+  local aff = line:match("^This creature is affected by%s+(.+)$")
+  if aff then r.affects = splitWords(aff) end
+
+  -- Offensive Tactics + training cycle ("level") -- added 2026-07-11, per
+  -- Steven ("we arent capturing the offensive tactics and level of the
+  -- mobs (level is IC cycles of training)"). Both confirmed real via
+  -- log-corpus grep across many creatures:
+  --   "Offensive Tactics:bash disarm dodge parry trip assist_vnum"
+  --   (NO space after the colon, unlike Immunities:/Resistances:/etc.)
+  --   "This creature is upon the cycle of training '50'"
+  --   (single-quoted number, no trailing period).
+  local tactics = line:match("^Offensive Tactics:(.+)$")
+  if tactics then r.tactics = splitWords(tactics) end
+  local cycle = line:match("^This creature is upon the cycle of training '(%d+)'")
+  if cycle then r.trainingCycle = tonumber(cycle) end
 end
 
 function MyDSL.endCreatureLore()
@@ -1890,7 +1962,22 @@ function MyDSL.endCreatureLore()
     MyDSL._triggers.loreBody = nil
   end
   MyDSL.State.creaturelore.last_updated = os.time()
-  -- Merge into persistent DB if MyDSL_creaturelore.lua is loaded.
+  -- Merge into the persistent DB (MyDSL_CreatureLore.lua) if it's loaded.
+  --
+  -- REAL BUG, found live 2026-07-11 (Steven: "doesnt look like its auto
+  -- updating stats"): this used to ALSO write to
+  -- MyDSL.State.creatureLoreCache[key] here -- a session-only cache that
+  -- got superseded by the real persistent DB earlier the same day. Its
+  -- initializer (MyDSL_DataLayer.lua's old
+  -- "MyDSL.State.creatureLoreCache = ... or {}" line) was removed as part
+  -- of that same edit, but THIS write site was missed -- so every real
+  -- "creaturelore" capture threw "attempt to index a nil value" right
+  -- here, which aborted endCreatureLore() before it ever reached
+  -- CreatureLore.merge() or MyDSL.emit() below. Confirmed live: no
+  -- MyDSL/creaturelore_db.lua file existed on disk at all after a real
+  -- capture, and the Focus window never got the "creaturelore.updated"
+  -- event to redraw from. Fixed by deleting the dead write entirely --
+  -- nothing reads MyDSL.State.creatureLoreCache anymore.
   if MyDSL.CreatureLore and MyDSL.CreatureLore.merge then
     MyDSL.CreatureLore.merge(MyDSL.State.creaturelore)
   end
@@ -2090,6 +2177,32 @@ local function ensureActive(tKey, tDisplay)
     }
   end
   return MyDSL.State.combat.active[tKey]
+end
+
+-- Ordering for a numeric bar-fill estimate (7=full health, 1=near death) --
+-- added 2026-07-11 for the Focus/Target window's health bar ("should have
+-- healthbars that work on the enemies health message"), same 7 tiers as
+-- CONDITION_PATTERNS/CONDITION_PERCENT above.
+local CONDITION_ORDER = {
+  excellent = 7, ["few scratches"] = 6, ["small wounds"] = 5,
+  ["quite a few"] = 4, ["big wounds"] = 3, ["pretty hurt"] = 2, awful = 1,
+}
+
+-- MyDSL.getTargetCondition(name) -- public read-only API, same shape as
+-- MyDSL.Affects.getRemaining(): returns nil if no live combat-condition
+-- data exists for this name (never fought this session, or DSL hasn't
+-- sent a condition line yet), otherwise (label, percentRangeText, order).
+-- This is the REAL "enemy health message" data Steven asked for -- not
+-- creaturelore's static "base health" stat, which is a fixed per-species
+-- number, not the current fight's damage state.
+function MyDSL.getTargetCondition(name)
+  local key = normalizeKey(name)
+  local entry = MyDSL.State.combat and MyDSL.State.combat.active and MyDSL.State.combat.active[key]
+  if not entry or not entry.target_condition or entry.target_condition == "unknown" then
+    return nil
+  end
+  local label = entry.target_condition
+  return label, CONDITION_PERCENT[label], CONDITION_ORDER[label]
 end
 
 local function snapshotFight(tKey)
@@ -2314,6 +2427,17 @@ function MyDSL.parseCombatDeathLine(line)
   local tKey   = normalizeKey(trim(name))
   local snap   = snapshotFight(tKey)
   if snap then raiseEvent("MyDSL.combat.ended", snap) end
+  -- Dedicated death event -- added 2026-07-11, per Steven ("then clear
+  -- target, or populate with next in room mob from scan" once the
+  -- current Focus target dies). Raised independent of whether
+  -- snapshotFight() found an active-combat entry -- our own damage
+  -- tracking might never have started for this specific kill (e.g.
+  -- someone else landed the killing blow), but the creature still died.
+  -- Any module that cares about "did THIS specific creature just die"
+  -- needs the raw key/name, not the aggregated fight-history snapshot
+  -- MyDSL.combat.ended carries -- that event also fires for flee/rescue,
+  -- not just death, so it can't distinguish the two.
+  raiseEvent("MyDSL.combat.died", { key = tKey, name = trim(name) })
 end
 
 -- ---- parseCombatEndLine ---------------------------------------------

@@ -57,6 +57,16 @@ end
 
 loadHistoryFontConfig()
 
+-- Display titles for windows this file creates via WindowRegistry --
+-- added 2026-07-11, per Steven ("fix all window titles/names"). These
+-- windows previously never got a title set anywhere, so they showed
+-- Mudlet's raw default ("User window - DSL2 - MyDSL_History") instead of
+-- matching Live/Tick/Portrait/Location's "-= Name =-" convention.
+local WINDOW_TITLES = {
+  MyDSL_History     = "-= History =-",
+  MyDSL_PlayersNear = "-= Players Near =-",
+}
+
 -- getOrCreateConsole(windowName)
 -- Returns the MiniConsole inside a window, creating it if needed.
 -- A Geyser.UserWindow is just a frame — text output needs a MiniConsole child.
@@ -75,10 +85,16 @@ local function getOrCreateConsole(windowName)
   -- Return existing console if already created.
   if entry.console then return entry.console end
 
+  if WINDOW_TITLES[windowName] and entry.obj.setTitle then
+    pcall(function() entry.obj:setTitle(WINDOW_TITLES[windowName]) end)
+  end
+
   local fontSize = FONT_SIZE_OVERRIDES[windowName] or 9
 
   -- Create a MiniConsole filling the entire UserWindow.
-  -- MiniConsole is Mudlet's scrollable text area — the right tool for routed text.
+  -- scrollBar=false 2026-07-11, per Steven ("remove scroll bars from
+  -- history and playersn near you (consistent)") -- matches Scan/RightHere/
+  -- Target/Group, which never had one.
   local con = Geyser.MiniConsole:new({
     name   = windowName .. "_con",
     x = 0, y = 0,
@@ -86,16 +102,43 @@ local function getOrCreateConsole(windowName)
     height = "100%",
     fontSize = fontSize,
     color = "black",
-    scrollBar = true,
+    scrollBar = false,
   }, entry.obj)
 
   if con then
     entry.console = con
-    con:setFontSize(fontSize)
-    con:setColor(0, 0, 0)
+    -- Theme-driven background/font, added 2026-07-11 (was hardcoded
+    -- black) -- fontSize stays the per-window persisted override
+    -- (History's user-configurable size, "mydsl history font <n>") so a
+    -- theme switch changes color/font family without resetting it.
+    if MyDSL.Theme and MyDSL.Theme.styleConsole then
+      MyDSL.Theme.styleConsole(con, windowName, fontSize)
+    else
+      con:setFontSize(fontSize)
+      con:setColor(0, 0, 0)
+    end
   end
   return con
 end
+
+-- Re-theme every already-created routed console when the active theme
+-- switches. Added 2026-07-11 alongside named ThemeEngine presets.
+if MyDSL.Route._themeHandler then
+  pcall(killAnonymousEventHandler, MyDSL.Route._themeHandler)
+  MyDSL.Route._themeHandler = nil
+end
+MyDSL.Route._themeHandler = registerAnonymousEventHandler(
+  "MyDSL.theme.changed",
+  function()
+    if not (MyDSL.Windows and MyDSL.Windows.registry and MyDSL.Theme) then return end
+    for windowName, entry in pairs(MyDSL.Windows.registry) do
+      if entry.console then
+        local fontSize = FONT_SIZE_OVERRIDES[windowName] or 9
+        MyDSL.Theme.styleConsole(entry.console, windowName, fontSize)
+      end
+    end
+  end
+)
 
 -- Turns "MyDSL_PlayersNear" into "playersnear" for MyDSL.logWindow()'s
 -- category argument -- keeps every routed window's plain-text log under

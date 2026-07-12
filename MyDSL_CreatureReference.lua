@@ -84,17 +84,23 @@ function CR.render(name)
 
   if not rec then
     decho(CR_MC, "<136,136,136>No lore data yet.\n<r>")
-    decho(CR_MC, "<102,102,102>Click [Lore] in Target window to capture.\n<r>")
+    decho(CR_MC, "<102,102,102>Click [Lore] in Focus window to capture.\n<r>")
     decho(CR_MC, string.format("<68,68,68>%s\n<r>", hrule("─")))
     return
   end
 
-  -- Race / Alignment
+  -- Race / Level / Alignment -- Lvl (DSL's own "cycle of training"
+  -- number) added 2026-07-11 per Steven ("we arent capturing the...
+  -- level of the mobs (level is IC cycles of training)"); align narrowed
+  -- to just good/evil/neutral the same day, per his "align field needs
+  -- tweaking" -- both fields come from the same MyDSL.CreatureLore DB
+  -- MyDSL_TargetView.lua's Focus window reads, so kept in sync here too.
   local race_str  = rec.race          or "?"
+  local lvl_str   = rec.trainingCycle and tostring(rec.trainingCycle) or "?"
   local align_str = rec.alignmentText or "?"
   decho(CR_MC, string.format(
-    "<136,136,136>Race: <204,204,204>%-14s <136,136,136>Align: <204,204,204>%s<r>\n",
-    race_str, align_str))
+    "<136,136,136>Race: <204,204,204>%-12s <136,136,136>Lvl: <204,204,204>%-4s <136,136,136>Align: <204,204,204>%s<r>\n",
+    race_str, lvl_str, align_str))
 
   -- HP / Kill count
   local hp_str    = formatNumber(rec.hp)
@@ -132,6 +138,9 @@ function CR.render(name)
       decho(CR_MC, string.format("<136,136,136>%-12s<68,68,68>(none)<r>\n", label))
     end
   end
+  -- Offensive Tactics -- added 2026-07-11 per Steven ("we arent capturing
+  -- the offensive tactics... of the mobs").
+  listLine("Tactics:",    rec.tactics,    "255,204,68")
   listLine("Immunities:", rec.immunities, "68,204,170")
   listLine("Resists:",    rec.resists,    "68,204,170")
   listLine("Vulns:",      rec.vulns,      "204,68,68")
@@ -200,6 +209,8 @@ end
 function CR.init()
   -- Ensure CreatureReference UserWindow and its MiniConsole exist.
   local crWin = MyDSL.Windows.ensure(CR_WIN)
+  -- Fixed 2026-07-11, per Steven ("fix all window titles/names").
+  if crWin and crWin.setTitle then pcall(function() crWin:setTitle("-= Bestiary =-") end) end
   if not CR._mc.lore then
     CR._mc.lore = Geyser.MiniConsole:new({
       name      = CR_MC,
@@ -209,10 +220,26 @@ function CR.init()
     }, crWin)
   end
 
+  -- Theme-driven background/font, added 2026-07-11 (this console had no
+  -- font size or color set at all before -- fell back to Mudlet's tiny
+  -- built-in default; see docs/CHANGELOG.md's ThemeEngine entry).
+  if MyDSL.Theme and MyDSL.Theme.styleConsole then
+    MyDSL.Theme.styleConsole(CR._mc.lore, CR_WIN)
+  end
+
   -- Register creaturelore.updated handler.
   CR._handlers.loreUpdated = registerAnonymousEventHandler(
     "MyDSL.creaturelore.updated",
     function() CR.onLoreUpdate() end
+  )
+
+  CR._handlers.themeChanged = registerAnonymousEventHandler(
+    "MyDSL.theme.changed",
+    function()
+      if MyDSL.Theme and MyDSL.Theme.styleConsole then
+        MyDSL.Theme.styleConsole(CR._mc.lore, CR_WIN)
+      end
+    end
   )
 
   -- Aliases -- renamed 2026-07-11, command-surface retrofit (docs/TODO.md

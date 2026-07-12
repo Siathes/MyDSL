@@ -347,10 +347,20 @@ end
 
 function A.ensureWindow()
   if MyDSL and MyDSL.Windows and type(MyDSL.Windows.ensure) == "function" then
-    local ok = pcall(function()
-      MyDSL.Windows.ensure(A.config.windowName)
+    local ok, win = pcall(function()
+      return MyDSL.Windows.ensure(A.config.windowName)
     end)
-    if ok then return true end
+    if ok then
+      -- Fixed 2026-07-11, per Steven ("fix all window titles/names"):
+      -- this branch always returned here before setTitle() ever ran,
+      -- so the window kept Mudlet's raw default title ("User window -
+      -- DSL2 - MyDSL_Affects") despite this file having real title-
+      -- setting code below -- that code was dead in the normal case
+      -- (WindowRegistry always present), only reachable if
+      -- MyDSL.Windows.ensure() didn't exist at all.
+      if win and win.setTitle then pcall(function() win:setTitle(A.config.title) end) end
+      return true
+    end
   end
 
   if A.window then
@@ -373,6 +383,24 @@ end
 function A.applyFont()
   pcall(function() if setMiniConsoleFontSize then setMiniConsoleFontSize(A.config.windowName, A.config.fontSize) end end)
   pcall(function() if A.window and A.window.setFontSize then A.window:setFontSize(A.config.fontSize) end end)
+end
+
+-- applyTheme() -- added 2026-07-11. Affects has no MiniConsole child (it
+-- cecho()s straight into the UserWindow itself via wcecho() above), so
+-- there's no Geyser object to hand to MyDSL.Theme.styleConsole() -- this
+-- uses the same raw-function-by-name style already established by
+-- applyFont() (setMiniConsoleFontSize(name, ...) works on a plain
+-- UserWindow's own console too, not just a MiniConsole child).
+function A.applyTheme()
+  if not (MyDSL and MyDSL.Theme) then return end
+  local bg = MyDSL.Theme.get(A.config.windowName, "bgColor")
+  if bg then
+    pcall(function() setBackgroundColor(A.config.windowName, bg.r, bg.g, bg.b, bg.a) end)
+  end
+  local font = MyDSL.Theme.get(A.config.windowName, "font")
+  if font then
+    pcall(function() if setFont then setFont(A.config.windowName, font) end end)
+  end
 end
 
 function A.clearList() A.list = {} end
@@ -708,27 +736,41 @@ end
 
 -- Fixed 2026-07-07: this used to look up MyDSL.DB.timers.affects[name].text,
 -- but nothing anywhere ever populated that table -- "time"/"both" modes
--- silently always fell back to the cycles-only display. Compute real
--- seconds directly from TickSource's own already-published tick-average
--- instead (same MyDSL.DB.tick.average field MoonWeather's clock already
--- uses for the same cycles->real-time conversion). Also folds in the
--- current partial-tick remaining time (MyDSL.DB.tick.remaining) so the
--- display counts down smoothly between whole-cycle decrements instead of
--- jumping once every ~40 real seconds.
+-- silently always fell back to the cycles-only display.
+--
+-- Real bug found and fixed 2026-07-11, while building MyDSL_AlterformView.lua
+-- (whose whole purpose is showing this real-time conversion prominently,
+-- unlike here where it's hidden behind a non-default "time"/"both" mode).
+-- This used to convert affect-duration cycles into real seconds using
+-- TickSource's combat/skill-improve tick average (~40s) -- but a DSL
+-- "affect cycle" is a completely different, unrelated timing unit that
+-- just happens to share the English word. Confirmed via log-corpus grep
+-- across 80 unique real examples with zero deviation: 1 affect cycle =
+-- exactly 1800 real seconds (30 minutes) -- e.g. "for 90 cycles, (45
+-- hours)", "for 73 cycles, (36 1/2 hours)", every single one exactly
+-- 0.5 hours/cycle. Using the combat-tick average instead understated real
+-- remaining time by roughly 45x for a typical multi-hour buff. The old
+-- partial-tick blending is dropped too -- it was smoothing against the
+-- wrong unit's sub-interval, and we have no finer-than-one-cycle real data
+-- for affects anyway (unlike the combat tick, which TickSource tracks
+-- continuously).
+local AFFECT_CYCLE_SECONDS = 1800
+
 local function realSecondsRemaining(cycles)
   if cycles < 0 then return nil end
-  local db = MyDSL and MyDSL.DB and MyDSL.DB.tick
-  local tickAvg = (db and tonumber(db.average)) or 40
-  if tickAvg <= 10 then tickAvg = 40 end
-  local partial = (db and tonumber(db.remaining)) or 0
-  if cycles == 0 then return partial end
-  return (cycles - 1) * tickAvg + partial
+  return cycles * AFFECT_CYCLE_SECONDS
 end
 
+-- Hour formatting added 2026-07-11 alongside the AFFECT_CYCLE_SECONDS fix
+-- above -- now that real durations are genuinely correct (up to tens of
+-- hours for a long buff like alterform), "2700m20s" would've been the old
+-- unreadable result without this.
 local function formatRealTime(totalSeconds)
   totalSeconds = math.max(0, math.floor(totalSeconds + 0.5))
-  local mins = math.floor(totalSeconds / 60)
+  local hours = math.floor(totalSeconds / 3600)
+  local mins = math.floor((totalSeconds % 3600) / 60)
   local secs = totalSeconds % 60
+  if hours > 0 then return string.format("%dh%02dm", hours, mins) end
   if mins > 0 then return string.format("%dm%02ds", mins, secs) end
   return string.format("%ds", secs)
 end
@@ -749,6 +791,21 @@ local function timerTextForAffect(e)
 
   -- Default: old/PNP-style cycle display.
   return cycles
+end
+
+-- MyDSL.Affects.getRemaining(name) -- public, added 2026-07-11 for the new
+-- MyDSL_AlterformView.lua ("an alterform timer like tick, beside it").
+-- Returns cycles, realSeconds for any tracked affect by name (nil, nil if
+-- not currently active) -- reuses the exact same tick-average conversion
+-- every other countdown in this profile already uses (realSecondsRemaining
+-- above), so a new per-affect timer widget never needs its own duplicate
+-- copy of that math.
+function A.getRemaining(name)
+  local e = A.list and A.list[lower(name or "")]
+  if not e then return nil, nil end
+  local d = tonumber(e.duration)
+  if not d or d < 0 then return nil, nil end
+  return d, realSecondsRemaining(d)
 end
 
 local function affectCell(e)
@@ -1072,6 +1129,10 @@ function A.registerHandlerOnce(key, eventName, funcName)
   end
 end
 
+function A.onThemeChanged()
+  A.applyTheme()
+end
+
 function A.onTimersUpdated()
   -- Fires once/sec (MyDSL.Timers.Slow, see MyDSL_TickSource.lua) -- redraw
   -- to show live buff countdowns (the real-time portion recomputes smoothly
@@ -1142,12 +1203,14 @@ function A.registerHandlers()
   A.registerHandlerOnce("remove_affect", "remove_affect", "MyDSL.Affects.onGmcpEvent")
   A.registerHandlerOnce("save_exit", "sysExitEvent", "MyDSL.Affects.save")
   A.registerHandlerOnce("save_disc", "sysDisconnectionEvent", "MyDSL.Affects.save")
+  A.registerHandlerOnce("theme_changed", "MyDSL.theme.changed", "MyDSL.Affects.onThemeChanged")
 end
 
 function A.install()
   A.loadProfileForCurrentChar(true)
   A.ensureWindow()
   A.applyFont()
+  A.applyTheme()
   A.installAliases()
   A.installCaptureTriggers()
   A.registerHandlers()

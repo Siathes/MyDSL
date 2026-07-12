@@ -131,17 +131,33 @@ local function percentsFromLayout(windowName)
 end
 
 -- applyTheme(windowName, winObj)
--- Placeholder — visual theming is deferred to Layer 3.
--- Geyser.UserWindow and Adjustable.Container do not expose setStyleSheet.
--- Theme values (colors, fonts, borders) will be applied in Layer 3 when
--- MiniConsole and Label children are created inside each window frame.
+-- Corrected 2026-07-11 (was a no-op placeholder claiming "Geyser.UserWindow
+-- ... does not expose setStyleSheet" -- FALSE, confirmed against Mudlet's
+-- real source: Geyser.UserWindow:setStyleSheet() exists and calls the
+-- native setUserWindowStyleSheet(), documented as "Sets the style sheet of
+-- the UserWindows (border and title area)" -- exactly what's needed here.
+-- Adjustable.Container genuinely has no setStyleSheet of its own (that
+-- half of the old comment was right) -- MyDSL_MoonWeather.lua, the one
+-- Container-type window, styles its own full-bleed child Label instead.
+--
+-- This single call is what makes MyDSL.Theme.setTheme() actually reach
+-- every UserWindow's border/radius/background at once, including the
+-- windows that previously had no styling at all (Affects, Combat, Target,
+-- Group, Scan, RightHere, PlayersNear, CreatureReference, History).
+-- Inner MiniConsole/Label children still need their own fill color to
+-- match (a MiniConsole paints its own background independently of its
+-- parent UserWindow's stylesheet) -- see MyDSL.Theme.styleConsole(),
+-- called from each Layer 3 view file's init().
 
 local function applyTheme(windowName, winObj)
-  -- Visual theming (stylesheet) is not available directly on
-  -- Geyser.UserWindow or Adjustable.Container objects.
-  -- Theming is applied in Layer 3 when MiniConsole/Label children
-  -- are created inside each window. This function is a placeholder.
-  return
+  if not winObj then return end
+  if not (MyDSL.Theme and MyDSL.Theme.panelCSS) then return end
+  local entry = MyDSL.Windows.registry[windowName]
+  if entry and entry.type == "UserWindow" and winObj.setStyleSheet then
+    pcall(function() winObj:setStyleSheet(MyDSL.Theme.panelCSS(windowName)) end)
+  end
+  -- Container-type windows (MoonWeather) have no setStyleSheet of their
+  -- own; they theme their own child Label directly and are not touched here.
 end
 
 ------------------------------------------------------------------------
@@ -175,11 +191,22 @@ MyDSL.Windows.registry = MyDSL.Windows.registry or {
   MyDSL_Location         = { obj=nil, type="UserWindow", visible=true,  created=false },
   MyDSL_Live             = { obj=nil, type="UserWindow", visible=true,  created=false },
   MyDSL_Tick             = { obj=nil, type="UserWindow", visible=true,  created=false },
+  -- Changed to Container 2026-07-11, per Steven ("alterform window change
+  -- to same as moonweather, we will keep it inside the main window for
+  -- layout cleanness") -- was a detachable UserWindow like Tick; now
+  -- anchored inside the main console like MyDSL_MoonWeather, whose own
+  -- registry entry below is the model for this one.
+  MyDSL_Alterform        = { obj=nil, type="Container",  visible=true,  created=false, lockStyle="padding" },
   MyDSL_Combat           = { obj=nil, type="UserWindow", visible=true,  created=false },
   MyDSL_History          = { obj=nil, type="UserWindow", visible=true,  created=false },
   MyDSL_Scan             = { obj=nil, type="UserWindow", visible=true,  created=false },
   MyDSL_Group            = { obj=nil, type="UserWindow", visible=true,  created=false },
-  MyDSL_Target           = { obj=nil, type="UserWindow", visible=true,  created=false },
+  -- Renamed from MyDSL_Target 2026-07-11, per Steven ("change target
+  -- window to focus to match commands") -- registry key now matches the
+  -- window's own title/command surface ("focus <verb>"); the Lua module
+  -- (MyDSL.Target/MyDSL.TargetView) keeps its established internal name,
+  -- same divergence MyDSL_CreatureReference already has (titled Bestiary).
+  MyDSL_Focus            = { obj=nil, type="UserWindow", visible=true,  created=false },
   MyDSL_RightHere        = { obj=nil, type="UserWindow", visible=true,  created=false },
   MyDSL_PlayersNear      = { obj=nil, type="UserWindow", visible=true,  created=false },
   MyDSL_CreatureReference= { obj=nil, type="UserWindow", visible=false, created=false },
@@ -469,6 +496,22 @@ MyDSL.Windows._handlers.toggle = registerAnonymousEventHandler(
   function(event, windowName)
     if windowName then
       MyDSL.Windows.toggle(windowName)
+    end
+  end
+)
+
+-- Re-apply border/radius/background to every already-created UserWindow
+-- when the active theme switches ("theme set <name>" or setOverride()).
+-- Added 2026-07-11 alongside named ThemeEngine presets.
+if MyDSL.Windows._handlers.themeChanged then
+  pcall(killAnonymousEventHandler, MyDSL.Windows._handlers.themeChanged)
+  MyDSL.Windows._handlers.themeChanged = nil
+end
+MyDSL.Windows._handlers.themeChanged = registerAnonymousEventHandler(
+  "MyDSL.theme.changed",
+  function()
+    for name, entry in pairs(MyDSL.Windows.registry) do
+      if entry.obj then applyTheme(name, entry.obj) end
     end
   end
 )
