@@ -1977,6 +1977,41 @@ local function isPlayersNearBodyLine(line)
   return true
 end
 
+-- routePlayersNearBodyLine(line) -- added 2026-07-12, per Steven
+-- ("playersnearyou: can we reduce the space between the players name and
+-- the room, make the text tighter together for a smaller window without
+-- losing the coloring of the players name?"). DSL's own wide column-
+-- padding between name and room (confirmed shape above) is what made the
+-- gap so wide -- still real text DSL sent, not fabricated, so this only
+-- changes how much of that whitespace gets carried over, not the name or
+-- room text itself. Splits the line into its two real pieces (name, room)
+-- and copies each separately via Mudlet's selectSection()/copy()/
+-- appendBuffer() (the same rich-text-preserving mechanism Route.to()
+-- already uses), so each piece keeps its own original color exactly --
+-- then joins them with a small fixed 2-space gap instead of DSL's wide
+-- padding. Falls back to routing the line unchanged if the expected
+-- shape isn't found (never guesses at a split that isn't really there).
+local function routePlayersNearBodyLine(line)
+  local con = MyDSL.Route and MyDSL.Route.getConsole and MyDSL.Route.getConsole("MyDSL_PlayersNear")
+  local name, gap, rest = line:match("^(%S+)(%s%s+)(%S.*)$")
+  if not con or not name then
+    selectCurrentLine()
+    copy()
+    MyDSL.Route.players(nil)
+    return
+  end
+  local nameLen   = #name
+  local restStart = nameLen + #gap  -- 0-indexed column where rest begins
+  selectSection(0, nameLen)
+  copy()
+  con:appendBuffer()
+  con:echo("  ")
+  selectSection(restStart, #rest)
+  copy()
+  con:appendBuffer()
+  con:echo("\n")
+end
+
 function MyDSL.beginPlayersNear()
   if not (MyDSL and MyDSL.Route) then return end
   MyDSL.Route.clear("MyDSL_PlayersNear")
@@ -1997,9 +2032,7 @@ function MyDSL.beginPlayersNear()
     -- capturing (don't end early): more real player lines may still
     -- follow before the actual blank-line terminator arrives.
     if not isPlayersNearBodyLine(ln) then return end
-    selectCurrentLine()
-    copy()
-    MyDSL.Route.players(nil)
+    routePlayersNearBodyLine(ln)
     deleteLine()
   end)
 end

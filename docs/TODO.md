@@ -313,6 +313,19 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       comfortably under that with the wider row — the split logic still
       exists as a genuine safety net for a name actually too long to fit,
       not the normal case anymore.
+- [ ] **PlayersNear spacing tightened, fixed 2026-07-12, needs live
+      confirmation.** Per Steven ("can we reduce the space between the
+      players name and the room, make the text tighter together for a
+      smaller window without losing the coloring of the players name?").
+      DSL's own body lines use wide column-padding between name and room
+      (real text, not fabricated) — `routePlayersNearBodyLine()`
+      (`MyDSL_DataLayer.lua`) splits each line into its two real pieces
+      and copies each separately via `selectSection()`/`copy()`/
+      `appendBuffer()` (same rich-text-preserving mechanism `Route.to()`
+      already uses elsewhere), so each piece keeps its own original
+      color exactly, then joins them with a small fixed 2-space gap
+      instead of DSL's wide padding. Falls back to routing the line
+      unchanged if the expected shape isn't found.
 - [ ] CharacterAssist: rearm (weapon+shield), spellup/setspell,
       blind-vision check.
 
