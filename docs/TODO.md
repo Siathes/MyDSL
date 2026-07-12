@@ -294,22 +294,6 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       +1pt bump, same as the time row, one size bigger than the focal/
       bonus row's 8pt directly beneath it — knocked back to 8pt to match,
       icon span 10pt→9pt to keep the same relative sizing.
-- [ ] **MoonWeather lunar countdown: second real bug in the same
-      countdown, fixed 2026-07-12, needs live confirmation.** Per Steven,
-      after the mod-4 hours fix above ("the regen cycle line timer is
-      still not correct see the cycles. it will update correct then
-      change to -1 the cycle reported"). Separate bug from the hours
-      formula: `MW.cyclesNow()` computed `elapsed_ticks` as a raw
-      fractional real number (e.g. `0.02` right after anchoring a fresh
-      `lunar` read), then subtracted that directly from
-      `anchor_cycles` — so `countdownStr()`'s `math.floor()` on the
-      result rounded a freshly-anchored, correct value like 33 down to
-      32 almost immediately, well before a full `tick_avg`-second
-      interval had actually elapsed. Fixed by flooring `elapsed_ticks`
-      itself *before* subtracting, so the displayed count now holds at
-      the correct anchor value for the entire first interval and only
-      steps down once a whole tick has genuinely completed, matching
-      real countdown behavior.
 - [ ] **AffectsView redundant per-second redraw, fixed 2026-07-12, needs
       live confirmation.** Steven shared a raw Mudlet debug-window dump
       while asking "does affects need to update that often also?" (same
