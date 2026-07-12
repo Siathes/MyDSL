@@ -32,7 +32,7 @@ local MW = MyDSL.MoonWeather
 -- This means a user's font change survives a script reload.
 MW.config = MW.config or {}
 if MW.config.font     == nil then MW.config.font     = "Noto Sans Mono"  end
-if MW.config.fontSize == nil then MW.config.fontSize = 9                   end
+if MW.config.fontSize == nil then MW.config.fontSize = 10                  end
 if MW.config.opacity  == nil then MW.config.opacity  = 210                 end
 if MW.config.gagLunar == nil then MW.config.gagLunar = false               end
 
@@ -264,10 +264,27 @@ function MW.countdownStr()
   local cycles = MW.cyclesNow()
   if not cycles then return nil end
   local cyc_int = math.floor(cycles)
-  -- Derive hours from cyc_int (floored) so cycles and hours are consistent.
-  -- Each 2 cycles = 1 game-hour. Odd remainder = 1/2 hour.
-  local hours    = math.floor(cyc_int / 2)
-  local has_half = (cyc_int % 2) == 1
+  -- Real fix 2026-07-12, per Steven ("the timer is not correct"). The old
+  -- formula here (hours = floor(cyc/2), half whenever cyc is odd) is NOT
+  -- how DSL's own "(N Hours)"/"(N 1/2 Hours)" text actually maps to cycles
+  -- -- confirmed by extracting all 30 distinct real "Cycles remaining X
+  -- (Y Hours)" pairs from the full log/ corpus and checking the mapping
+  -- directly (odd/even cycles alone doesn't determine the half -- e.g. real
+  -- text shows cycles=45→"22 Hours" (no half) but cycles=46→"23 1/2 Hours"
+  -- (has half), the opposite of what odd/even would predict). The real
+  -- pattern repeats every 4 cycles: for cyc mod 4 == 0 or 1, the display is
+  -- a clean whole number; for cyc mod 4 == 2 or 3, it has the extra half.
+  -- Verified against all 30 real corpus samples with zero exceptions.
+  local q = math.floor(cyc_int / 4)
+  local r = cyc_int % 4
+  local hours, has_half
+  if r < 2 then
+    hours = q * 2
+    has_half = false
+  else
+    hours = q * 2 + 1
+    has_half = true
+  end
   local hour_str = has_half and (hours .. " 1/2h") or (hours .. "h")
   return string.format("%dcy · %s", cyc_int, hour_str)
 end
@@ -434,7 +451,7 @@ local function buildWeatherText()
         else icon = isNight and "☆" or "☀" end
       end
       local wind = windLabel(MyDSL.State.weather.windDescription)
-      local text = string.format('<span style="font-size:9pt;">%s</span> %s', icon, label)
+      local text = string.format('<span style="font-size:10pt;">%s</span> %s', icon, label)
       if wind then text = text .. " • " .. wind end
       return text
     end
@@ -487,10 +504,13 @@ local function buildFocalText(focal, lunarData)
 
     -- Line 3: regen + live countdown — only present when bonus block was parsed.
     -- Regen is gold when non-zero. Countdown ticks down live via the 1-second timer.
+    -- Fixed 2026-07-12, per Steven ("spacing needs fixing a little"): this
+    -- was missing the "<br>" before Regen, so it ran directly onto the end
+    -- of the Cs span with no separator at all (e.g. "+2CsRegen+0%").
     if moon.cycles_remaining then
       local regenCol  = (moon.regen_pct ~= 0) and "#ffcc44" or "#888888"
       local countdown = MW.countdownStr()
-      html = html .. span(regenCol, string.format("Regen%+d%%", moon.regen_pct or 0))
+      html = html .. "<br>" .. span(regenCol, string.format("Regen%+d%%", moon.regen_pct or 0))
       if countdown then
         html = html .. span("#888888", "  " .. countdown)
       end
@@ -602,12 +622,14 @@ function MW.render()
 
   -- Row heights rebalanced 2026-07-12 to fit the new weather row above
   -- the moons (12%): was 50/20/30, now 44/18/26 -- still sums to 100%.
+  -- Row font sizes bumped +1pt same day, per Steven ("fonts need to go up
+  -- one"): weather/time rows 8pt->9pt, focal (bonus) row 7pt->8pt.
   local html = string.format(
     '<table width="100%%" height="100%%" cellpadding="0" cellspacing="0"' ..
     ' style="table-layout:fixed;">' ..
     '<tr style="height:12%%;">' ..
       '<td colspan="3" style="text-align:center; vertical-align:middle;' ..
-      ' font-size:8pt; color:#aaaaaa;">%s</td>' ..
+      ' font-size:9pt; color:#aaaaaa;">%s</td>' ..
     '</tr>' ..
     '<tr style="height:44%%;">' ..
       '<td width="22%%" style="text-align:center; vertical-align:middle;">%s</td>' ..
@@ -616,14 +638,27 @@ function MW.render()
     '</tr>' ..
     '<tr style="height:18%%;">' ..
       '<td colspan="3" style="text-align:center; vertical-align:top;' ..
-      ' font-size:7pt; color:#cccccc;">%s</td>' ..
+      ' font-size:8pt; color:#cccccc;">%s</td>' ..
     '</tr>' ..
     '<tr style="height:26%%;">' ..
       '<td colspan="3" style="text-align:center; vertical-align:middle;' ..
-      ' font-size:8pt; color:#888888;">%s</td>' ..
+      ' font-size:9pt; color:#888888;">%s</td>' ..
     '</tr>' ..
     '</table>',
     weatherRow, leftHtml, centerHtml, rightHtml, focalText, timeRow)
+
+  -- Skip the echo if nothing actually changed. Fixed 2026-07-12, per Steven
+  -- ("seems to redraw the bonuses sometimes"): MyDSL.Timers.Slow fires this
+  -- render() once every real second (see _registerHandlers() below), but
+  -- nothing shown needs 1-second resolution -- the clock only displays
+  -- minutes, the moon phase changes over real days, and the lunar countdown
+  -- only changes about once per ~40s game tick. Re-echoing identical HTML
+  -- every second forces Qt to reload/repaint the <img> moon tiles from disk
+  -- every second for no visible benefit, which is what read as an
+  -- intermittent "redraw" flicker. Comparing against the last echoed string
+  -- means the label only actually repaints when something real changed.
+  if html == MW._lastHtml then return end
+  MW._lastHtml = html
 
   MW.ui.label:echo(html)
 end

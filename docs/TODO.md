@@ -229,6 +229,36 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       `MyDSL/live_settings.lua` (which would otherwise have overridden the
       new default on next load) from 8→9. No other styling touched, per
       Steven's explicit scope limit.
+- [ ] **MoonWeather bonus-line bugs fixed 2026-07-12, needs live
+      confirmation.** Per Steven ("it seems to 'redraw' the bonuses
+      sometimes, the timer is not correct and the spacing needs fixing a
+      little. also the fonts need to go up one"). Four separate real
+      issues found and fixed in `MyDSL_MoonWeather.lua`:
+      (1) **Timer/countdown math was genuinely wrong.** The old
+      `countdownStr()` assumed "hours = floor(cycles/2), half whenever
+      cycles is odd" — extracted all 30 distinct real `"Cycles remaining X
+      (Y Hours)"` pairs from the full `log/` corpus and checked the
+      mapping directly: odd/even alone does NOT determine the half (e.g.
+      real text shows cycles=45→"22 Hours" but cycles=46→"23 1/2 Hours" —
+      backwards from what odd/even predicts). Real pattern repeats every 4
+      cycles (cyc mod 4 == 0 or 1 → clean whole hours; mod 4 == 2 or 3 →
+      extra half) — verified against all 30 real samples with zero
+      exceptions (also cross-checked against `MyDSL_state.lua`'s captured
+      `cycles_remaining=39/hours_remaining=19`, matches). (2) **Spacing
+      bug**: the Regen/countdown line was missing its `<br>`, running
+      directly onto the end of the Cs span with no separator at all
+      (`"+2CsRegen+0%"`) — added the missing `<br>`. (3) **"Redraw"
+      flicker**: `MyDSL.Timers.Slow` calls `MW.render()` every real
+      second, but nothing displayed needs 1-second resolution (clock only
+      shows minutes, countdown only changes ~every 40s) — re-echoing
+      identical HTML every second forced Qt to reload the `<img>` moon
+      tiles from disk every second for no visible benefit. Now memoizes
+      the last echoed HTML string and skips the `label:echo()` call
+      entirely when nothing changed. (4) **Fonts bumped +1pt** per
+      Steven's explicit ask: weather/time rows 8pt→9pt, focal/bonus row
+      7pt→8pt, weather icon 9pt→10pt, base `config.fontSize` default
+      9→10 (no persisted settings file for this module, so the default
+      alone is sufficient, unlike LiveView's `barFont`).
 - [ ] CharacterAssist: rearm (weapon+shield), spellup/setspell,
       blind-vision check.
 
