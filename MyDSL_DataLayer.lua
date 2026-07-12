@@ -2827,6 +2827,38 @@ MyDSL._triggers.playersNearStart = tempRegexTrigger(
   end
 )
 
+-- REAL BUG, found live 2026-07-12 via log-corpus grep (Steven: "something
+-- broke the autowhere alias and it now displays none instead of gaging
+-- it"): confirmed against log/2026-07-12#09-01-16.html that DSL's `where`
+-- command has TWO distinct response shapes -- the "Players near you:"
+-- header + name/room lines (handled above) when other players ARE
+-- nearby, but a bare, standalone "None" line with NO header at all when
+-- nobody is. The trigger above only ever matches the header, so the
+-- no-one-nearby case was never captured/routed -- it fell straight
+-- through into the main console untouched every ~20s (Steven's own
+-- autowhere alias, not part of this project, sends `where` on that
+-- cadence). Not actually specific to any one room, despite how it first
+-- looked live -- confirmed via corpus grep this fires constantly
+-- whenever no other player happens to be nearby, room-independent.
+-- Same move-not-duplicate handling as the header case: MOVES the literal
+-- "None" line into MyDSL_PlayersNear (clearing stale names first) rather
+-- than inventing different text, consistent with "move text, don't
+-- replace it." Matched only as the ENTIRE line content (`^None$`), not a
+-- substring, to minimize collision risk with any other real DSL text
+-- that might legitimately be the single word "None" in a different
+-- context.
+MyDSL._triggers.playersNearEmpty = tempRegexTrigger(
+  "^None$",
+  function()
+    if not (MyDSL and MyDSL.Route) then return end
+    MyDSL.Route.clear("MyDSL_PlayersNear")
+    selectCurrentLine()
+    copy()
+    MyDSL.Route.players(nil)
+    deleteLine()
+  end
+)
+
 ------------------------------------------------------------------------
 -- Group trigger
 ------------------------------------------------------------------------

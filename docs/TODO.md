@@ -88,6 +88,24 @@ guessing at patterns with zero corpus evidence.
       other specific phrases if this comes up again.
 - [ ] `autowhere` fires while sleeping — Steven's own alias, not ours; low
       priority for us specifically.
+- [ ] **"None" leaking into main console every ~20s, fixed 2026-07-12,
+      needs live confirmation.** Steven: "something broke the autowhere
+      alias and it now displays none instead of gaging it." Not actually
+      an autowhere break, and not room-specific despite how it first
+      looked — confirmed via a log-corpus grep
+      (`log/2026-07-12#09-01-16.html`) that DSL's `where` command has a
+      second response shape: a bare standalone `"None"` line with no
+      `"Players near you:"` header at all when nobody else is nearby
+      (vs. the header + name/room lines when someone is). The existing
+      capture trigger only matches the header, so the empty case fell
+      straight through into the main console untouched on every
+      `autowhere` tick. Added a second trigger matching `^None$` (whole
+      line only, to minimize collision risk with any other real DSL text
+      that might legitimately be the standalone word "None" in an
+      unrelated context) that moves it into `MyDSL_PlayersNear` the same
+      way the header case already does — `MyDSL_DataLayer.lua`. Watch for
+      any other context where a bare "None" line legitimately means
+      something else and gets wrongly swallowed by this.
 - [ ] Murder/Consider/Order-All → "They're not here" on look-populated
       wildlife targets — investigated, likely a genuine race (mob wanders
       off between `look` populating RightHere and the command reaching
