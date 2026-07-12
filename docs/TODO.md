@@ -29,10 +29,6 @@ Fixed in code, verified via syntax checks and/or emulation — none of this
 is closed until Steven confirms it in-game. Full technical detail for any
 item: `git log --oneline` + `docs/CHANGELOG.md`.
 
-- [ ] Timer consolidation (shared `MyDSL.Timers.Slow` heartbeat) — implemented
-      2026-07-11, needs live confirmation (Improve countdown ticking live is
-      confirmed as of 2026-07-12; the shared-heartbeat mechanism itself
-      still needs a general check across the other windows that use it).
 - [ ] CharacterAssist: rearm (weapon+shield), spellup/setspell,
       blind-vision check.
 - [ ] Equipment capture — parser is real and tested, but
