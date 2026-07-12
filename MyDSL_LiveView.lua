@@ -512,8 +512,12 @@ function L.ensureUI()
   -- xNum/wNum match xTrack/wTrack (was 91/7, a separate slot past the
   -- track's right edge) so the text overlays the bar itself instead of
   -- sitting in a slot too narrow for "<skill> NN%" -- see
-  -- styleBarNumCentered()'s comment above for the full reasoning.
-  L.ui.bars.improve = L.makeBar("improve", "Improve", 61, 72, 72, 10, 18, 18, ROW_Y[7], ROW_H)
+  -- styleBarNumCentered()'s comment above for the full reasoning. Track
+  -- widened 2026-07-12 (18 -> 26) per Steven, now that the countdown text
+  -- ("<skill> NN% (Mm SSs)") is longer and the overlay had room to grow --
+  -- runs to 98%, matching the STR/INT/WIS/DEX/CON column's right edge
+  -- (x=61%, width=37%) directly above it.
+  L.ui.bars.improve = L.makeBar("improve", "Improve", 61, 72, 72, 10, 26, 26, ROW_Y[7], ROW_H)
 
   L.applyStyles()
 
