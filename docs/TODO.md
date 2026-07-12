@@ -180,10 +180,6 @@ guessing at patterns with zero corpus evidence.
       off between `look` populating RightHere and the command reaching
       the server), not a TargetView name-matching bug. Not fully ruled
       out.
-- [ ] "vexgar magic missile did not show in the main display, it did show
-      in the combat window" — could not reproduce from available logs;
-      may already be fixed by the `show_damage`/`show_miss` mode fix, not
-      confirmed. Needs a fresh log with the actual cast line.
 - [ ] "multiple mob health echoes in combat... one we create and one from
       the game" — likely the same already-tracked discussion as the
       `renderSummary()` "Fight summary" item above (TOP PRIORITY Combat),
