@@ -326,39 +326,12 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       color exactly, then joins them with a small fixed 2-space gap
       instead of DSL's wide padding. Falls back to routing the line
       unchanged if the expected shape isn't found.
-- [ ] **Bestiary populated from shatteredarchive.com, built 2026-07-12,
-      needs Steven to run the import in-game.** Per Steven ("can you
-      populate the bestiary from the website... there are items on the
-      website and maps as well. we will try to scrape it for more info
-      later"). `MyDSL_CreatureReference.lua`'s Bestiary window has no
-      database of its own — it's a pure viewer over
-      `MyDSL_CreatureLore.lua`'s `CL.db`, the same DB backing RightHere's
-      Known/Seen/Unknown badges — so "populate the bestiary" means
-      populating that one shared DB. Scraped
-      `https://shatteredarchive.com/library/view-beastiary` (1,888
-      creature entries, all on one page — name, level, race, alignment,
-      immunities/resistances/vulnerabilities/affects, tactics,
-      continent/area — HP/damage aren't on this list page, only on each
-      creature's own detail page, matching Steven's "scrape more info
-      later" plan) and parsed it into a plain staging file,
-      `MyDSL/bestiary_scrape_import.lua` (1,635 distinct creatures after
-      dedup — 253 duplicate keys, kept first occurrence). **Important:**
-      `CL.db` is saved in Mudlet's real `table.save()` reference/pickle
-      format, not a plain nested table — confirmed by reading the actual
-      file — so this was *not* hand-serialized directly into it (that
-      risked silently corrupting real captured data in a way that fails
-      to reload correctly). Instead, added
-      `CL.importScraped(path)`/`mydsl creaturelore import` to
-      `MyDSL_CreatureLore.lua`, which runs inside real Mudlet, using the
-      real `CL.save()`. Never overwrites any existing field (in-game
-      `creaturelore` captures always win — confirmed via a dry-run merge
-      simulation against synthetic existing records before touching the
-      real DB), only fills genuine gaps; a scraped-only creature counts
-      as "known" the same as a personally-lored one, per Steven's
-      explicit choice. **Steven needs to run `mydsl creaturelore import`
-      once in-game** to actually apply it (a one-time command, not part
-      of the regular surface). Maps mentioned in the same request not
-      addressed yet — separate ask, needs its own look.
+- [ ] **Shatteredarchive.com maps** — Steven's original bestiary-import
+      request also mentioned "there are items on the website and maps as
+      well" — the bestiary half is done and confirmed
+      (`docs/CHANGELOG.md`); the maps haven't been looked at yet. Needs
+      its own scoping pass (what format, whether it's per-area images
+      like `MyDSL_LocationView.lua`'s room pictures or something else).
 - [ ] CharacterAssist: rearm (weapon+shield), spellup/setspell,
       blind-vision check.
 
