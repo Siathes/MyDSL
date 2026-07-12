@@ -31,9 +31,6 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
 
 - [ ] CharacterAssist: rearm (weapon+shield), spellup/setspell,
       blind-vision check.
-- [ ] Equipment capture — parser is real and tested, but
-      `MyDSL.State.equipment` isn't wired to any display window yet.
-      Needs a live `eq` to confirm the parser end-to-end.
 
 ---
 
