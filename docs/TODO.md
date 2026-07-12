@@ -91,17 +91,28 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       automatically on resize) already recalculates it — no extra resize
       wiring needed. Applied to History only (`MyDSL_RouteHelper.lua`),
       not the other routed windows.
-- [ ] **Window left-edge padding — corrected 2026-07-12, needs live
-      confirmation.** Per Steven, correcting the original ask same day
-      ("did i say right hand padding, i meant left to take the first
-      letter off the edge of the window"). Inset the console's left edge
-      by a fixed 8px (`x=8` + Geyser's relative `width="-8"`, same trick
-      `Adjustable.Container`'s own padding uses) — right edge back flush,
-      matching the original request. Applied to every window routed
-      through `MyDSL_RouteHelper.lua`'s shared console (Combat/History/
-      Scan/Group/PlayersNear/RightHere). Focus/Affects/Live and the other
-      Label-based windows use their own bespoke layouts, not this
-      function — not covered yet, flag if you want those matched too.
+- [ ] **Window edge padding — reverted 2026-07-12, needs Steven's call on
+      the real tradeoff.** Both the right-inset and the corrected
+      left-inset (`MyDSL_RouteHelper.lua`'s shared console, x/width
+      shift) moved the whole console widget rather than adding true
+      text margin — since the console paints its own solid background
+      via `setColor()`, separate from the panel behind it, shifting its
+      position exposed the panel's background as a visible seam that
+      read as a second border moving, not padding. Steven confirmed
+      that's not what he wanted. Checked for a clean fix: no,
+      `Geyser.MiniConsole` doesn't support `setStyleSheet()`/CSS padding
+      (same finding as `MyDSL_LiveView.lua`'s `resizeExitsCon()`), and
+      Mudlet's own console API has no native inner-margin primitive.
+      True "text inset, same continuous background" would mean
+      prepending real space characters to every routed line in
+      `Route.to()` instead — feasible in principle (single shared
+      function) but untested for the move-current-line path (`copy()` +
+      `appendBuffer()`, which pastes the whole line as one unit — unclear
+      whether a separately-echoed leading space would land inline on the
+      same line or force its own line without live testing). Reverted to
+      full-bleed (`x=0, width=100%`) pending Steven's decision: drop this
+      ask, or try the text-prepending approach with his live testing to
+      verify it behaves.
 - [ ] CharacterAssist: rearm (weapon+shield), spellup/setspell,
       blind-vision check.
 

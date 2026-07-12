@@ -65,26 +65,31 @@ local function getOrCreateConsole(windowName)
 
   local fontSize = FONT_SIZE_OVERRIDES[windowName] or 9
 
-  -- Create a MiniConsole filling the entire UserWindow. Left edge inset
-  -- by a fixed 8px (roughly one character at these windows' font sizes)
-  -- 2026-07-12, per Steven (corrected same day: "did i say right hand
-  -- padding, i meant left to take the first letter off the edge of the
-  -- window") -- x=8 combined with width="-8" (Geyser's relative-width
-  -- sizing, same trick Adjustable.Container's own Inside container uses
-  -- for its padding) starts the console 8px in from the left and still
-  -- ends flush at the parent's right edge -- left-only, right/top/bottom
-  -- untouched. Applies to every window routed through this shared
-  -- console (Combat/History/Scan/Group/PlayersNear/RightHere);
-  -- Focus/Affects/Live and the other Label-based windows use their own
-  -- bespoke layouts, not this function, and aren't covered by this
-  -- change.
+  -- Create a MiniConsole filling the entire UserWindow.
+  -- REVERTED 2026-07-12 -- the x=8/width="-8" left-inset tried earlier
+  -- today shifted the whole console widget over, exposing the panel's
+  -- own background color underneath as a visible seam (the console
+  -- paints its own solid background via setColor() below, separate from
+  -- the panel behind it) -- looked like a second border line moving, not
+  -- text gaining margin against one continuous border. Steven confirmed
+  -- that's not what he wanted ("if just the border can be adjusted to
+  -- move the text than i dont want it"). Checked for a real fix and
+  -- confirmed there isn't a cheap one: Geyser.MiniConsole doesn't
+  -- support setStyleSheet()/CSS padding (confirmed earlier this same
+  -- session, see MyDSL_LiveView.lua's resizeExitsCon() comment for the
+  -- same finding), and Mudlet's own console API has no native inner-
+  -- margin primitive either -- true "text inset, same background" needs
+  -- either prepending real space characters to every routed line (a
+  -- much bigger, more invasive change touching every Route.to() call
+  -- site) or accepting the seam. Backed out entirely pending Steven's
+  -- call on which tradeoff he wants.
   -- scrollBar=false 2026-07-11, per Steven ("remove scroll bars from
   -- history and playersn near you (consistent)") -- matches Scan/RightHere/
   -- Target/Group, which never had one.
   local con = Geyser.MiniConsole:new({
     name   = windowName .. "_con",
-    x = 8, y = 0,
-    width  = "-8",
+    x = 0, y = 0,
+    width  = "100%",
     height = "100%",
     fontSize = fontSize,
     color = "black",
