@@ -72,8 +72,8 @@ MyDSL.Theme.presets = MyDSL.Theme.presets or {
   -- Promotes Live/Tick's existing look (slate-teal, gold titles) to
   -- every window instead of inventing a fourth style. Lowest risk.
   refined_convergence = {
-    font = "DejaVu Sans Mono", fontSize = 9,
-    titleFont = "DejaVu Sans Mono", titleFontSize = 9,
+    font = "Noto Sans Mono", fontSize = 9,
+    titleFont = "Noto Sans Mono", titleFontSize = 9,
     bgColor        = { r =  11, g =  16, b =  19, a = 242 },
     textColor      = { r = 232, g = 230, b = 224, a = 255 },
     -- Dimmed 2026-07-11 per Steven ("border thickness, can we make
@@ -116,8 +116,8 @@ MyDSL.Theme.presets = MyDSL.Theme.presets or {
   -- and title pick up a color for its category (combat/status/reference/
   -- social) so window clusters are identifiable at a glance.
   zoned_hud = {
-    font = "DejaVu Sans Mono", fontSize = 9,
-    titleFont = "DejaVu Sans Mono", titleFontSize = 9,
+    font = "Noto Sans Mono", fontSize = 9,
+    titleFont = "Noto Sans Mono", titleFontSize = 9,
     bgColor        = { r =  18, g =  20, b =  28, a = 242 },
     textColor      = { r = 210, g = 208, b = 200, a = 255 },
     borderColor    = { r =  43, g = 110, b = 104, a = 195 },
@@ -163,8 +163,8 @@ MyDSL.Theme.presets = MyDSL.Theme.presets or {
   -- accent -- the cheapest of the ChatGPT directions to build 1:1 since
   -- it needs no new art assets, just color/border/font values.
   obsidian_ember = {
-    font = "DejaVu Sans Mono", fontSize = 9,
-    titleFont = "DejaVu Sans Mono", titleFontSize = 9,
+    font = "Noto Sans Mono", fontSize = 9,
+    titleFont = "Noto Sans Mono", titleFontSize = 9,
     bgColor        = { r =  13, g =  13, b =  13, a = 240 },
     textColor      = { r = 225, g = 220, b = 210, a = 255 },
     borderColor    = { r =  38, g =  38, b =  38, a = 200 },
@@ -183,8 +183,8 @@ MyDSL.Theme.presets = MyDSL.Theme.presets or {
   -- ("Arcane Midnight v2"). Deep indigo/violet, distinct from every other
   -- preset's blue/teal/amber families.
   arcane_midnight = {
-    font = "DejaVu Sans Mono", fontSize = 9,
-    titleFont = "DejaVu Sans Mono", titleFontSize = 9,
+    font = "Noto Sans Mono", fontSize = 9,
+    titleFont = "Noto Sans Mono", titleFontSize = 9,
     bgColor        = { r =  20, g =  16, b =  36, a = 240 },
     textColor      = { r = 216, g = 210, b = 232, a = 255 },
     borderColor    = { r =  59, g =  46, b =  91, a = 195 },

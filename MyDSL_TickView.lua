@@ -181,7 +181,7 @@ local function styleText(size, color, weight)
     background-color: rgba(0,0,0,0);
     color: %s;
     border: 0px;
-    font-family: "DejaVu Sans Mono", "Ubuntu Mono", monospace;
+    font-family: "Noto Sans Mono", monospace;
     font-size: %dpt;
     font-weight: %s;
     qproperty-alignment: 'AlignCenter';

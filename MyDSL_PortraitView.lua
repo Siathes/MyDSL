@@ -587,7 +587,7 @@ local function baseStyle()
     ]] .. border .. [[
     border-radius: 3px;
     padding: 4px;
-    font-family: "Ubuntu Mono", "DejaVu Sans Mono", monospace;
+    font-family: "Noto Sans Mono", monospace;
     font-size: ]] .. tostring(P.config.fontSize) .. [[pt;
   ]]
 end
@@ -598,7 +598,7 @@ local function captionStyle()
     color: rgba(245, 235, 210, 235);
     qproperty-alignment: 'AlignVCenter | AlignLeft';
     padding-left: 6px;
-    font-family: "Ubuntu Mono", "DejaVu Sans Mono", monospace;
+    font-family: "Noto Sans Mono", monospace;
     font-size: ]] .. tostring(P.config.fontSize) .. [[pt;
     border-bottom-left-radius: 3px;
     border-bottom-right-radius: 3px;

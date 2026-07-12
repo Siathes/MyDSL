@@ -175,7 +175,7 @@ local function styleText(size, color, weight, align)
     background-color: rgba(0,0,0,0);
     color: %s;
     border: 0px;
-    font-family: "DejaVu Sans Mono", "Ubuntu Mono", monospace;
+    font-family: "Noto Sans Mono", monospace;
     font-size: %dpt;
     font-weight: %s;
     qproperty-alignment: '%s';
@@ -235,7 +235,7 @@ local function styleBarLabel()
     background-color: rgba(0,0,0,0);
     color: #8b969b;
     border: 0px;
-    font-family: "DejaVu Sans Mono", "Ubuntu Mono", monospace;
+    font-family: "Noto Sans Mono", monospace;
     font-size: %dpt;
     font-weight: normal;
     qproperty-alignment: 'AlignLeft | AlignVCenter';
@@ -247,7 +247,7 @@ local function styleBarNum()
     background-color: rgba(0,0,0,0);
     color: #cfd6d9;
     border: 0px;
-    font-family: "DejaVu Sans Mono", "Ubuntu Mono", monospace;
+    font-family: "Noto Sans Mono", monospace;
     font-size: %dpt;
     font-weight: bold;
     qproperty-alignment: 'AlignRight | AlignVCenter';
@@ -269,7 +269,7 @@ local function styleBarNumCentered()
     background-color: rgba(0,0,0,0);
     color: #f5f0ff;
     border: 0px;
-    font-family: "DejaVu Sans Mono", "Ubuntu Mono", monospace;
+    font-family: "Noto Sans Mono", monospace;
     font-size: %dpt;
     font-weight: bold;
     qproperty-alignment: 'AlignCenter';

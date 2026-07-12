@@ -31,7 +31,7 @@ local MW = MyDSL.MoonWeather
 -- Config persists across reloads — only assign missing fields.
 -- This means a user's font change survives a script reload.
 MW.config = MW.config or {}
-if MW.config.font     == nil then MW.config.font     = "DejaVu Sans Mono"  end
+if MW.config.font     == nil then MW.config.font     = "Noto Sans Mono"  end
 if MW.config.fontSize == nil then MW.config.fontSize = 9                   end
 if MW.config.opacity  == nil then MW.config.opacity  = 210                 end
 if MW.config.gagLunar == nil then MW.config.gagLunar = false               end
