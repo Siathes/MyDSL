@@ -17,32 +17,21 @@ playersnearyou: can we reduce the space between the players name and the room, m
 
 check out stat command and vitality so we can track qinrathaz's dragon vitality stat (see help dragons)
 
-vexgar magic missile did not show in the main display, it di show in the combat window, needs to echo (skill/spell/action) to main display also
-
 we will need a quest module, for a way to track the quest timer, location, item, and the rest of the quest info.
 
 across all the logs do we have enough weather info to add it to the top of the moonweather window above the moon images in a small 1-2 line, or maybe symbols to represent the weather? need suggestions
 
 fight summary for kien didnt capture his spells like faerie fire, weaken,poison
 
-in liveview pos'n doesnt update on changing without score, it should update with the gmcp
-
-alterform window should only be visible when affect is active, not just blank. move the timer to a more visible location like bottom above the cycle counter.
-
-history needs adaptive word wrap, so it text wraps with the size of the window.
+alterform: move the timer to a more visible location like bottom above the cycle counter.
 
 it would be great if the location window took files without the "_" for spaces just regular name matches (but we would have to change all the current file names for consistency, i dont want half with psaces and half with "_"
-
-something broke the autowhere alias and it now displays none instead of gaging it. scrrenshot shows and logs...correction something in "The Grand Archway of the Verminasian Amphitheatre" room description or name caused and error in autowhere that showed the none.
 
 as we identify mobs, it should create a table to look up and find more accurate tags for targets. example. when you walk in a room and look righthere populates with mobs in the room. however those mob names are inaccurate for targeting. If we created a table saying "A gnome machinist is here, replacing parts where needed." is the same as the scan "a gnome machinist" then using the propper scan name, the the populating of righthere would be much more affective and accurate
 
 be cool to have an age counter in live view. looks at score creation date and uses in-game time to tell you when your ingame birthday is and ingame age
 
-can we add a small padding space on the right side of our windows, like one charcater space, to make it look less ramped on the border/window edge
-
-wimpy should update when its changed as well and gmcp, or how it collects info. but also with the manual wimpy command
-
+is there a way to save both window positions, the docked shape size locations, then the undocked shape size and location. i want to be able to undock a window and have it expand so i can see pitures better, then when i push the redock button it goes back to place, and stays persistent acroos loads andcharacters
 
 ========== IDEAS ==========
 
@@ -51,18 +40,9 @@ Full detail for anything here: docs/TODO.md. Check items off as you play;
 tell me what happened and I'll close them out in TODO.md/CHANGELOG.md.
 
 [ ] Rearm (weapon+shield), standup, spellup/setspell, blind-vision check - still havent done disarm/rearm
-[ ] eq / equipment populates equipment data (not built yet -- real eq
-    text format confirmed via logs, ready whenever this gets picked up)
 [ ] Roller -- next character creation
 [ ] Gag promt line1 -- real cause found (pattern got appended instead of
     replaced, producing one broken regex) -- see my reply for the exact
     replace-not-append fix to paste into the Trigger Editor
-
-(done since last check: notes_utf8.txt confirmed saving correctly --
-diffed the committed version against the working file, nothing lost;
-mydsl log <category> on confirmed working end to end (righthere log file
-verified with correct content); Rescue/cure-spell + all other TargetView/
-GroupView action buttons confirmed showing real colors now, not blue/
-underlined, per your latest screenshot)
 
 i will use cecho to make comment in the log
