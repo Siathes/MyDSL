@@ -31,14 +31,20 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
 
 - [ ] AlterformView timer — built 2026-07-11 (auto-hide when inactive,
       Adjustable.Container matching MoonWeather), needs live confirmation.
-- [ ] LiveView v1A15 rebuild — full score-info layout rebuilt per Steven's
-      hand-sketched design; several real DataBridge/font/color bugs found
-      and fixed along the way. Needs a live look to confirm the whole
-      layout, especially exits-color persistence across a room change.
-- [ ] AffectsView countdown paces correctly in real time; near-expiry
-      color warning fires.
-- [ ] Timer consolidation (shared `MyDSL.Timers.Slow` heartbeat) + live
-      Improve countdown — implemented 2026-07-11, needs live confirmation.
+- [ ] Timer consolidation (shared `MyDSL.Timers.Slow` heartbeat) — implemented
+      2026-07-11, needs live confirmation (Improve countdown ticking live is
+      confirmed as of 2026-07-12; the shared-heartbeat mechanism itself
+      still needs a general check across the other windows that use it).
+- [ ] **Improve bar text overflow — fixed 2026-07-12, needs live look.**
+      Per Steven ("the improve bar need to be shrunk horizontally to allow
+      the text to display... prefer text on the improve bar, that was the
+      old design"): the bar's percent/skill text (`"<skill> NN%"`) sat in
+      a narrow 7%-wide slot past the track's right edge and could run past
+      the window edge for longer skill names. Restored the pre-v1A15
+      centered-text-on-the-fill look for this bar only (new
+      `styleBarNumCentered()`, `MyDSL_LiveView.lua`) — text now overlays
+      the track itself instead of sitting in a separate slot. HP/Mana/Move
+      bars untouched (no overflow issue there).
 - [ ] CharacterAssist: rearm (weapon+shield), spellup/setspell,
       blind-vision check.
 - [ ] Equipment capture — parser is real and tested, but

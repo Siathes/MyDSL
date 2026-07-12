@@ -254,6 +254,28 @@ local function styleBarNum()
   ]], math.max(6, (tonumber(L.config.barFont) or 8) + 2))
 end
 
+-- styleBarNumCentered() -- Improve-bar-only, added 2026-07-12 per Steven
+-- ("the improve bar need to be shrunk horizontally to allow the text to
+-- display... or put the text on the improve bar (prefer text on the
+-- improve bar, that was the old design)"). The Improve bar's num field
+-- was the standard narrow right-of-track slot (7% wide) every other bar
+-- uses, but Improve's text ("<skill> NN%") routinely runs longer than
+-- HP/Mana/Move's plain percentages and was clipping past the window edge.
+-- Rather than just widen that side slot, this restores the pre-v1A15
+-- centered-text-on-the-fill look Steven asked for, Improve-only —
+-- transparent background so the gradient fill shows through underneath.
+local function styleBarNumCentered()
+  return string.format([[
+    background-color: rgba(0,0,0,0);
+    color: #f5f0ff;
+    border: 0px;
+    font-family: "DejaVu Sans Mono", "Ubuntu Mono", monospace;
+    font-size: %dpt;
+    font-weight: bold;
+    qproperty-alignment: 'AlignCenter';
+  ]], math.max(6, (tonumber(L.config.barFont) or 8) + 2))
+end
+
 function L.colorSet(kind)
   if kind == "hp" then return "#ff7777", "#cc2525", "#7d1010" end
   if kind == "mana" then return "#78baff", "#2a77d4", "#0d356d" end
@@ -487,7 +509,11 @@ function L.ensureUI()
   L.ui.attrDex = Geyser.Label:new({ name=L.name.."_AttrDex", x="61%", y=tostring(ROW_Y[4]).."%", width="37%", height=tostring(ROW_H).."%" }, L.ui.win)
   L.ui.attrCon = Geyser.Label:new({ name=L.name.."_AttrCon", x="61%", y=tostring(ROW_Y[5]).."%", width="37%", height=tostring(ROW_H).."%" }, L.ui.win)
   -- row 6 on this side is left blank, per the sketch.
-  L.ui.bars.improve = L.makeBar("improve", "Improve", 61, 72, 91, 10, 18, 7, ROW_Y[7], ROW_H)
+  -- xNum/wNum match xTrack/wTrack (was 91/7, a separate slot past the
+  -- track's right edge) so the text overlays the bar itself instead of
+  -- sitting in a slot too narrow for "<skill> NN%" -- see
+  -- styleBarNumCentered()'s comment above for the full reasoning.
+  L.ui.bars.improve = L.makeBar("improve", "Improve", 61, 72, 72, 10, 18, 18, ROW_Y[7], ROW_H)
 
   L.applyStyles()
 
@@ -558,7 +584,7 @@ function L.applyStyles()
     bar.back:setStyleSheet(styleBarBack())
     local c1, c2, c3 = L.colorSet(key)
     bar.fill:setStyleSheet(styleBarFill(c1, c2, c3))
-    bar.num:setStyleSheet(styleBarNum())
+    bar.num:setStyleSheet(key == "improve" and styleBarNumCentered() or styleBarNum())
   end
 end
 
