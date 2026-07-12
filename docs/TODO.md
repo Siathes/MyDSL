@@ -82,6 +82,27 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       Fixed by reading all 3 from `score` instead. `riding`/`flying`
       aren't consumed by any renderer currently (confirmed via grep) —
       fixed for correctness, not a second visible bug.
+- [ ] **History adaptive word wrap — added 2026-07-12, needs live
+      confirmation.** Per Steven ("history needs adaptive word wrap, so
+      it text wraps with the size of the window"). Real Mudlet API,
+      confirmed via its own bundled `GeyserMiniConsole.lua`:
+      `enableAutoWrap()` computes wrap width from the console's current
+      pixel width/font width, and `MiniConsole:reposition()` (called
+      automatically on resize) already recalculates it — no extra resize
+      wiring needed. Applied to History only (`MyDSL_RouteHelper.lua`),
+      not the other routed windows.
+- [ ] **Window right-edge padding — added 2026-07-12, needs live
+      confirmation.** Per Steven ("can we add a small padding space on
+      the right side of our windows... to make it look less cramped on
+      the border/window edge"). Inset the console's right edge by a
+      fixed 8px (Geyser's relative-width sizing, same trick
+      `Adjustable.Container`'s own padding uses) — reads as a consistent
+      one-character gap regardless of window size. Applied to every
+      window routed through `MyDSL_RouteHelper.lua`'s shared console
+      (Combat/History/Scan/Group/PlayersNear/RightHere). Focus/Affects/
+      Live and the other Label-based windows use their own bespoke
+      layouts, not this function — not covered yet, flag if you want
+      those matched too.
 - [ ] CharacterAssist: rearm (weapon+shield), spellup/setspell,
       blind-vision check.
 
