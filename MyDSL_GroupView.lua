@@ -92,9 +92,17 @@ local function configFile()
   return getMudletHomeDir() .. "/MyDSL/groupview_config_" .. safeFileName(charName()) .. ".lua"
 end
 
+-- REAL BUG, found live 2026-07-11: Mudlet's real table.load(file, target)
+-- does not return anything -- it unpickles INTO an explicit second-
+-- argument table (confirmed in Mudlet's own bundled source). This used
+-- to call table.load(configFile()) with no second argument, so `data`
+-- was always nil -- quickActions customizations never actually survived
+-- a restart (same bug found across ~10 call sites project-wide the same
+-- day -- see MyDSL_DataLayer.lua's MyDSL.load() for the full writeup).
 local function loadConfig()
-  local ok, data = pcall(table.load, configFile())
-  if ok and type(data) == "table" then
+  local data = {}
+  local ok = pcall(table.load, configFile(), data)
+  if ok and next(data) then
     if type(data.quickActions) == "table" and #data.quickActions == 2 then
       GV.config.quickActions = data.quickActions
     end

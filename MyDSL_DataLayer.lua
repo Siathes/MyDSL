@@ -778,11 +778,30 @@ function MyDSL.save()
   table.save(saveFilePath(), MyDSL.Data)
 end
 
+-- REAL BUG, found live 2026-07-11 (Steven: "are the settings loading at
+-- creating from save files or they saving and never reading/updating?"):
+-- Mudlet's real table.load(file, target) does NOT return the loaded
+-- table -- confirmed directly in Mudlet's own bundled source
+-- (mudlet-lua/lua/Other.lua): it has no return statement at all, and
+-- unpickles the saved data INTO an explicit second-argument table (or
+-- into _G if no second argument is given). Every call site across this
+-- whole codebase that did "local loaded = table.load(path)" (no second
+-- argument) was getting `loaded = nil` every single time, silently --
+-- confirmed by PNP's own real source (PNP files/DSL_PNP_Data.lua) and
+-- EMCO's own vendored source (EMCOChat/emco.lua) both ALWAYS calling it
+-- with an explicit destination table, which we'd copied the shape of
+-- without the second argument that makes it actually work. This one
+-- (MyDSL.load(), the character-data restore path) is the most
+-- foundational of the ~10 call sites this bug was found in across the
+-- project -- see the same-day fixes to MyDSL_ThemeEngine.lua/
+-- MyDSL_WindowRegistry.lua/MyDSL_CreatureLore.lua/MyDSL_TargetView.lua/
+-- MyDSL_GroupView.lua/MyDSL_CombatView.lua/MyDSL_LayoutEngine.lua/
+-- MyDSL_PromptView.lua for the rest.
 function MyDSL.load()
   local path   = saveFilePath()
   local loaded = {}
-  local ok     = pcall(function() loaded = table.load(path) end)
-  if not ok or type(loaded) ~= "table" then
+  local ok = pcall(table.load, path, loaded)
+  if not ok or not next(loaded) then
     debugc("[MyDSL] No save file found — starting with empty Data.")
     return
   end

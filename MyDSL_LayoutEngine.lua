@@ -217,11 +217,19 @@ function MyDSL.Layout.load()
   end
   f:close()
 
-  -- table.load() reads the serialized file and returns the table it contains.
-  -- We load into a temporary variable first so that if the load fails
-  -- (e.g. the file is corrupt), we don't overwrite good live data.
-  local loaded = table.load(SAVE_FILE)
-  if type(loaded) ~= "table" then
+  -- table.load() unpickles INTO an explicit second-argument table -- it
+  -- does not return anything itself (confirmed in Mudlet's own bundled
+  -- source, mudlet-lua/lua/Other.lua -- REAL BUG, found live 2026-07-11:
+  -- this used to call table.load(SAVE_FILE) with no second argument, so
+  -- the old "loaded" was always nil and this file's own load() never
+  -- actually restored a saved layout, ever -- same bug found across ~10
+  -- call sites project-wide the same day, see MyDSL_DataLayer.lua's
+  -- MyDSL.load() for the full writeup). Load into a temporary table first
+  -- so that if the load fails (e.g. the file is corrupt), we don't
+  -- overwrite good live data.
+  local loaded = {}
+  local ok = pcall(table.load, SAVE_FILE, loaded)
+  if not ok or not next(loaded) then
     debugc("[MyDSL] LayoutEngine: save file corrupt or unreadable — using defaults.")
     return
   end

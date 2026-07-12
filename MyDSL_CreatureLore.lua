@@ -29,14 +29,14 @@ local function dbFile()
   return getMudletHomeDir() .. "/MyDSL/creaturelore_db.lua"
 end
 
--- io.open() precheck before table.load() -- 2026-07-11, per Steven ("the
--- fonts should be saving like theme or window manager whatever tracks
--- that"): matches MyDSL_ThemeEngine.lua's loadActive()/MyDSL_
--- WindowRegistry.lua's loadState() exactly (both confirmed reliably
--- persisting live), rather than table.load() alone. Functionally the
--- same as the bare pcall() this replaced, but removes any doubt by
--- matching the proven pattern byte-for-byte instead of a similar-looking
--- one.
+-- REAL BUG, found live 2026-07-11: Mudlet's real table.load(file, target)
+-- does not return anything -- it unpickles INTO an explicit second-
+-- argument table (confirmed in Mudlet's own bundled source). This used
+-- to call table.load(dbFile()) with no second argument, so `data` was
+-- always nil and the persistent DB never actually survived a restart,
+-- despite the file itself always being written correctly (same bug
+-- found across ~10 call sites project-wide the same day -- see
+-- MyDSL_DataLayer.lua's MyDSL.load() for the full writeup).
 function CL.load()
   local f = io.open(dbFile(), "r")
   if not f then
@@ -44,11 +44,12 @@ function CL.load()
     return
   end
   f:close()
-  local ok, data = pcall(table.load, dbFile())
-  if ok and type(data) == "table" then
+  local data = {}
+  local ok = pcall(table.load, dbFile(), data)
+  if ok and next(data) then
     CL.db = data
   else
-    debugc("[MyDSL] CreatureLore: DB file exists but failed to load (" .. tostring(data) .. ")")
+    debugc("[MyDSL] CreatureLore: DB file exists but failed to load")
   end
 end
 

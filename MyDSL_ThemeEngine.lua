@@ -255,12 +255,20 @@ end
 
 MyDSL.Theme.active = MyDSL.Theme.active or "refined_convergence"
 
+-- REAL BUG, found live 2026-07-11: Mudlet's real table.load(file, target)
+-- does not return anything -- it unpickles INTO an explicit second-
+-- argument table (confirmed in Mudlet's own bundled source). This used
+-- to call table.load(THEME_FILE()) with no second argument, so `loaded`
+-- was always nil and a saved theme choice never actually survived a
+-- restart (same bug found across ~10 call sites project-wide the same
+-- day -- see MyDSL_DataLayer.lua's MyDSL.load() for the full writeup).
 function MyDSL.Theme.loadActive()
   local f = io.open(THEME_FILE(), "r")
   if not f then return end
   f:close()
-  local loaded = table.load(THEME_FILE())
-  if type(loaded) == "table" and type(loaded.active) == "string"
+  local loaded = {}
+  local ok = pcall(table.load, THEME_FILE(), loaded)
+  if ok and type(loaded.active) == "string"
      and MyDSL.Theme.presets[loaded.active] then
     MyDSL.Theme.active = loaded.active
   end
@@ -361,7 +369,10 @@ end
 -- every window's chrome from one place.
 
 -- panelCSS(windowName)
--- Background + border + radius for a full-bleed panel Label.
+-- Background + border + radius for a full-bleed panel Label. Bare
+-- declarations only (no selector) -- this is what a Label's
+-- setStyleSheet() needs, and it's what LiveView/AlterformView/TickView's
+-- own background Labels use it for.
 function MyDSL.Theme.panelCSS(windowName)
   local bg     = MyDSL.Theme.get(windowName, "bgColor")
   local border = MyDSL.Theme.get(windowName, "borderColor")

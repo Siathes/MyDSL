@@ -57,14 +57,22 @@ function P.save(charName)
   table.save(saveFile(charName), { enabled = P.enabled })
 end
 
+-- REAL BUG, found live 2026-07-11: Mudlet's real table.load(file, target)
+-- does not return anything -- it unpickles INTO an explicit second-
+-- argument table (confirmed in Mudlet's own bundled source). This used
+-- to call table.load(path) with no second argument, so `data` was always
+-- nil -- the pretty-prompt toggle never actually survived a restart
+-- (same bug found across ~10 call sites project-wide the same day -- see
+-- MyDSL_DataLayer.lua's MyDSL.load() for the full writeup).
 function P.load(charName)
   if not charName then return end
   local path = saveFile(charName)
   local f = io.open(path, "r")
   if not f then return end
   f:close()
-  local data = table.load(path)
-  if type(data) == "table" and data.enabled ~= nil then
+  local data = {}
+  local ok = pcall(table.load, path, data)
+  if ok and data.enabled ~= nil then
     P.enabled = data.enabled == true
   end
 end
