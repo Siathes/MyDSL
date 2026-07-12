@@ -218,6 +218,17 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       day-specific sun+cloud glyph exists). ⚡ (Storm) is Unicode 4.0
       (2003) — probably fine, but genuinely not yet live-tested (no storm
       weather hit during testing) — flagged, not swapped preemptively.
+- [ ] **LiveView vitals-bar font bumped 8→9, needs live confirmation.** Per
+      Steven ("would like the vitals bar text on either side to be larger
+      (font 9?). HP/Mana/Move and hp/hpmax, mana/manamax, move,movemax. im
+      only changing font size nothing else in there"). `barFont` already
+      had a live-adjustable control (`mydsl live barfont <n>`, clamped
+      6-14) — this is the same value that alias sets, so "font 9" was
+      taken to mean that control's raw value. Changed the default
+      (`MyDSL_LiveView.lua`) from 8→9 and the already-persisted value in
+      `MyDSL/live_settings.lua` (which would otherwise have overridden the
+      new default on next load) from 8→9. No other styling touched, per
+      Steven's explicit scope limit.
 - [ ] CharacterAssist: rearm (weapon+shield), spellup/setspell,
       blind-vision check.
 

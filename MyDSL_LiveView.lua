@@ -34,7 +34,7 @@ L.config = L.config or {}
 L.config.shown = L.config.shown ~= false
 L.config.font = tonumber(L.config.font or 10) or 10
 L.config.titleFont = tonumber(L.config.titleFont or 12) or 12
-L.config.barFont = tonumber(L.config.barFont or 8) or 8
+L.config.barFont = tonumber(L.config.barFont or 9) or 9
 -- Added 2026-07-11, per Steven ("let me be able to adjust the text size...
 -- informational text, title text, terrain text, any others you have
 -- separate"): infoFont covers the identity/info/attribute rows (was a
