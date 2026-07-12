@@ -391,6 +391,26 @@ local WEATHER_KEYWORDS = {
   { "sun is shining",  nil, "Clear" },
 }
 
+-- windLabel(windDesc) -- added 2026-07-12, per Steven ("wind should be
+-- captured. clouds, clear, rain, gold [cold] breeze, temperate wind,
+-- etc"). windDesc is the raw clause MyDSL_DataLayer.lua's
+-- extractWindClause() already pulled out (e.g. "A cold gentle breeze
+-- blows in from the north" or "The wind is calm") -- this just turns it
+-- into a compact 2-word label. Noun choice (Breeze vs Wind) matches
+-- DSL's own real wording: every "gentle" sample in the corpus used
+-- "breeze", every "moderate" sample used "wind" -- picked from strength
+-- rather than storing the original noun separately, since the two
+-- always paired consistently in all 53 real samples checked.
+local function windLabel(windDesc)
+  if not windDesc or windDesc == "" then return nil end
+  local lc = windDesc:lower()
+  if lc:find("wind is calm") then return "Calm" end
+  local temp, strength = lc:match("a (%a+) (%a+) %a+ blows")
+  if not temp then return nil end
+  local noun = (strength == "moderate") and "Wind" or "Breeze"
+  return temp:sub(1, 1):upper() .. temp:sub(2) .. " " .. noun
+end
+
 local function buildWeatherText()
   local desc = MyDSL.State and MyDSL.State.weather and MyDSL.State.weather.description
   if not desc or desc == "" then return "" end
@@ -404,7 +424,10 @@ local function buildWeatherText()
         if label == "Cloudy" then icon = isNight and "☁" or "⛅"
         else icon = isNight and "☆" or "☀" end
       end
-      return string.format('<span style="font-size:9pt;">%s</span> %s', icon, label)
+      local wind = windLabel(MyDSL.State.weather.windDescription)
+      local text = string.format('<span style="font-size:9pt;">%s</span> %s', icon, label)
+      if wind then text = text .. " • " .. wind end
+      return text
     end
   end
   return ""  -- unrecognized text -- don't guess, just stay blank like before

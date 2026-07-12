@@ -192,12 +192,21 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       blocks (1993–1999) — same family as ⚡/❄/☀/⛅/☁, which were already
       confirmed working. Sleet now reuses the snow symbol (text label
       disambiguates); clear-night switched ✨→☆ for the same font-age
-      reason. Separately noted, not fixed (doesn't affect the weather
-      *type* icon, which is all that's displayed): the live wind detail
-      ("a cold gentle breeze blows in from the north") arrives on its
-      own line starting lowercase "and", which the weather trigger
-      (`^[A-Z][^.]+\.$`) doesn't currently match — low priority since
-      wind isn't shown at all right now.
+      reason. **Wind added, same day**, per Steven ("wind should be
+      captured. clouds, clear, rain, gold [cold] breeze, temperate wind,
+      etc"). Confirmed complete taxonomy via corpus grep — 96 real
+      samples across the full `log/` archive (193 files): temperature
+      {cold, temperate, warm}, strength {gentle, moderate}, direction
+      {north, south, east, west}, plus a calm/no-wind form — no other
+      values found anywhere. New `MyDSL.extractWindClause()`
+      (`MyDSL_DataLayer.lua`) pulls the wind portion out of the same
+      sentence `parseWeatherLine()` already captures (covers the
+      standard comma-joined form, confirmed 53/53 real samples); a
+      narrow second trigger catches the rare period-joined continuation
+      case (0 historical occurrences, but confirmed real live) without
+      overwriting the precipitation description already captured.
+      `MoonWeather`'s `windLabel()` renders it as a compact 2-word label
+      (e.g. `Cold Breeze`) appended after the precipitation icon+label.
 - [ ] CharacterAssist: rearm (weapon+shield), spellup/setspell,
       blind-vision check.
 

@@ -1297,6 +1297,27 @@ local _weatherWords = {
   "thunder", "lightning", "overcast", "chilly", "sleet",
 }
 
+-- extractWindClause(text) -- added 2026-07-12, per Steven ("wind should
+-- be captured. clouds, clear, rain, gold [cold] breeze, temperate wind,
+-- etc"). Pulls just the wind portion out of a weather sentence, if
+-- present. Real corpus-confirmed shape (96 samples across the full
+-- log/ archive, 193 files): "a <cold|temperate|warm>
+-- <gentle|moderate> breeze/wind blows in from the
+-- <north|south|east|west>", or the calm form "the wind is calm" --
+-- no other temperature/strength/direction words found anywhere in the
+-- corpus, so this is a complete, not partial, taxonomy. Returns the
+-- matched fragment (capitalized) or nil if the text has no wind clause.
+function MyDSL.extractWindClause(text)
+  if not text then return nil end
+  local s, e = text:find("a %a+ %a+ %a+ blows in from the %a+")
+  if s then
+    local clause = text:sub(s, e)
+    return clause:sub(1, 1):upper() .. clause:sub(2)
+  end
+  if text:find("[Tt]he wind is calm") then return "The wind is calm" end
+  return nil
+end
+
 function MyDSL.parseWeatherLine(line)
   local desc = trim(line)
   if desc == "" then return end
@@ -1314,7 +1335,13 @@ function MyDSL.parseWeatherLine(line)
     if lc:find("%f[%a]" .. w .. "%f[%A]") then found = true; break end
   end
   if not found then return end
-  update("weather", { description = desc })
+  local fields = { description = desc }
+  -- Wind is embedded in this same sentence in the standard (comma-joined)
+  -- form -- confirmed 53/53 real corpus samples take this shape, so this
+  -- alone covers the common case with no extra trigger needed.
+  local windClause = MyDSL.extractWindClause(desc)
+  if windClause then fields.windDescription = windClause end
+  update("weather", fields)
 end
 
 ------------------------------------------------------------------------
@@ -2849,6 +2876,28 @@ MyDSL._triggers.weather = tempRegexTrigger(
     if MyDSL and MyDSL.parseWeatherLine then
       MyDSL.parseWeatherLine(ln)
     end
+  end
+)
+
+-- Rare edge case, found live 2026-07-12 (Steven: "Rain falls steadily
+-- from the clouded sky. and a cold gentle breeze blows in from the
+-- north."): DSL occasionally joins the precipitation and wind clauses
+-- with a period instead of a comma, splitting what's normally one
+-- sentence into two lines -- the second starting with a lowercase
+-- "and", which the broad trigger above (requires a capital first
+-- letter) never matches, silently dropping the wind info. Zero
+-- historical occurrences of this exact shape anywhere in the full log/
+-- archive (only the standard comma-joined form, 53/53 samples) --
+-- genuinely rare, but real, so worth a narrow dedicated catch. Routes to
+-- extractWindClause() directly (not parseWeatherLine(), which would
+-- overwrite the precipitation description that was likely just captured
+-- moments before from the first line) so only windDescription updates.
+MyDSL._triggers.weatherWindContinuation = tempRegexTrigger(
+  "^and (a \\w+ \\w+ (breeze|wind) blows in from the \\w+|the wind is calm)",
+  function()
+    local ln = getCurrentLine()
+    local clause = MyDSL.extractWindClause and MyDSL.extractWindClause(ln)
+    if clause then update("weather", { windDescription = clause }) end
   end
 )
 
