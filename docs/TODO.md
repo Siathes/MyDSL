@@ -229,26 +229,6 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       `MyDSL/live_settings.lua` (which would otherwise have overridden the
       new default on next load) from 8→9. No other styling touched, per
       Steven's explicit scope limit.
-- [ ] **AffectsView redundant per-second redraw, fixed 2026-07-12, needs
-      live confirmation.** Steven shared a raw Mudlet debug-window dump
-      while asking "does affects need to update that often also?" (same
-      question as the MoonWeather "redraw" bug above). The dump showed
-      the exact same 8 affect lines being fully re-selectSection()'d/
-      link-rescanned many times over a short span with unchanged values.
-      Root cause confirmed in `MyDSL_AffectsView.lua`:
-      `onTimersUpdated()` unconditionally calls `A.display()` — its own
-      registerHandlers() comment already calls this "a full window
-      clear+redraw plus an up-to-300-line link-rescan" — on every single
-      `MyDSL.Timers.Slow` tick (1/real-second), regardless of display
-      mode. Default `timerMode` is `"cycles"`, which only shows the bare
-      game-tick count (`"Nc"`) — that only changes once per real game
-      tick (~40s), and `onTickUpdated()` already correctly redraws
-      exactly when it does change. So in the default mode, ~39 out of
-      every 40 forced per-second redraws were pure wasted repaint of
-      identical text. Only `"time"`/`"both"` modes show a real-time-
-      interpolated seconds countdown that actually needs 1/sec redraws
-      to look smooth. `onTimersUpdated()` now skips the `A.display()`
-      call entirely unless `timerMode` is `"time"` or `"both"`.
 - [ ] CharacterAssist: rearm (weapon+shield), spellup/setspell,
       blind-vision check.
 
