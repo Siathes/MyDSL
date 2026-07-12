@@ -244,7 +244,6 @@ function F.ensureUI()
     return Adjustable.Container:new({
       name          = F.name,
       x             = defX, y = defY, width = defW, height = defH,
-      lockStyle     = "padding",
       adjLabelstyle = "background-color: rgba(0,0,0,0); border: none; padding: 0px;",
     })
   end)
@@ -260,6 +259,22 @@ function F.ensureUI()
 
   F.ui.win = container
   pcall(function() F.ui.win:setTitle(" ") end)   -- minimize title bar chrome, same as MoonWeather
+
+  -- REAL BUG, found live 2026-07-12 (Steven: "you can see the min/close
+  -- buttons"): the constructor's old "lockStyle = 'padding'" field did
+  -- nothing at all -- confirmed by reading Mudlet's actual bundled
+  -- GeyserAdjustableContainer.lua: a container is only ever locked at
+  -- creation if BOTH lockStyle AND locked=true are passed, and "padding"
+  -- isn't even one of Mudlet's real lockStyle names ("standard"/"border"/
+  -- "full"/"light") -- it silently fell back to unlocked, full native
+  -- chrome (min/restore, close, lock, save, load buttons all live and
+  -- visible). Calling the real API here instead: lockContainer("light")
+  -- is Mudlet's own documented style for "only hides the min/restore and
+  -- close labels, borders/margin not affected" -- exactly what's wanted
+  -- for a small fixed countdown widget. Same latent bug likely affects
+  -- MyDSL_MoonWeather.lua (identical lockStyle="padding" pattern) --
+  -- not touched here, flagged in TODO.md pending Steven's confirmation.
+  pcall(function() F.ui.win:lockContainer("light") end)
 
   F.ui.panel  = Geyser.Label:new({ name = F.name .. "_Panel",  x = 0, y = 0, width = "100%", height = "100%" }, F.ui.win)
   F.ui.title  = Geyser.Label:new({ name = F.name .. "_Title",  x = 0, y = "4%", width = "100%", height = "14%" }, F.ui.win)

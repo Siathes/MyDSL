@@ -29,8 +29,25 @@ Fixed in code, verified via syntax checks and/or emulation — none of this
 is closed until Steven confirms it in-game. Full technical detail for any
 item: `git log --oneline` + `docs/CHANGELOG.md`.
 
-- [ ] AlterformView timer — built 2026-07-11 (auto-hide when inactive,
-      Adjustable.Container matching MoonWeather), needs live confirmation.
+- [ ] **AlterformView — countdown/auto-hide confirmed live 2026-07-12
+      ("everything seems to work"); fixed a real chrome bug found same
+      session.** Steven: "the window needs to not be visible unless the
+      alterform affect is active. you can see the min/close buttons."
+      Root cause, confirmed by reading Mudlet's real bundled
+      `GeyserAdjustableContainer.lua`: the constructor's `lockStyle =
+      "padding"` field did nothing — a container is only actually locked
+      if `locked = true` is *also* passed at creation (never was), and
+      `"padding"` isn't even one of Mudlet's real lockStyle names
+      (`standard`/`border`/`full`/`light`) — so it silently fell back to
+      fully unlocked, all native chrome (min/restore, close, lock, save,
+      load buttons) live and visible regardless of the countdown's own
+      show/hide state. Fixed by calling the real API,
+      `lockContainer("light")`, after creation — Mudlet's own documented
+      style for hiding just the min/restore and close labels. Needs one
+      more live look. **`MyDSL_MoonWeather.lua` has the identical
+      `lockStyle = "padding"` pattern and almost certainly has the same
+      latent bug** — not touched yet, pending Steven's confirmation he
+      wants it fixed there too.
 - [ ] Timer consolidation (shared `MyDSL.Timers.Slow` heartbeat) — implemented
       2026-07-11, needs live confirmation (Improve countdown ticking live is
       confirmed as of 2026-07-12; the shared-heartbeat mechanism itself
