@@ -29,24 +29,35 @@ Fixed in code, verified via syntax checks and/or emulation — none of this
 is closed until Steven confirms it in-game. Full technical detail for any
 item: `git log --oneline` + `docs/CHANGELOG.md`.
 
-- [ ] **AlterformView — countdown/auto-hide confirmed live 2026-07-12
-      ("everything seems to work"); fixed a real chrome bug found same
-      session.** Steven: "the window needs to not be visible unless the
-      alterform affect is active. you can see the min/close buttons."
-      Root cause, confirmed by reading Mudlet's real bundled
-      `GeyserAdjustableContainer.lua`: the constructor's `lockStyle =
-      "padding"` field did nothing — a container is only actually locked
-      if `locked = true` is *also* passed at creation (never was), and
-      `"padding"` isn't even one of Mudlet's real lockStyle names
-      (`standard`/`border`/`full`/`light`) — so it silently fell back to
-      fully unlocked, all native chrome (min/restore, close, lock, save,
-      load buttons) live and visible regardless of the countdown's own
-      show/hide state. Fixed by calling the real API,
-      `lockContainer("light")`, after creation — Mudlet's own documented
-      style for hiding just the min/restore and close labels. Needs one
-      more live look. Same fix also applied to `MyDSL_MoonWeather.lua`
-      (identical dead `lockStyle = "padding"` pattern) — also needs live
-      confirmation.
+- [ ] **AlterformView/MoonWeather chrome — two real bugs found and fixed
+      live 2026-07-12, needs one more look.** Steven: "the window needs
+      to not be visible unless the alterform affect is active. you can
+      see the min/close buttons" — then, after the first fix: "the
+      min/close buttons were off till kien loaded in then they appeared
+      again."
+      1. The constructor's `lockStyle = "padding"` field did nothing —
+         confirmed via Mudlet's real bundled `GeyserAdjustableContainer.lua`:
+         a container is only actually locked if `locked = true` is *also*
+         passed at creation (never was), and `"padding"` isn't even one
+         of Mudlet's real lockStyle names (`standard`/`border`/`full`/
+         `light`). Fixed with the real API, `lockContainer("light")`,
+         after creation.
+      2. That fix then visibly broke again specifically on character
+         load. Root cause: both modules build their own
+         `Adjustable.Container` directly and never registered the object
+         back into `MyDSL.Windows.registry[name].obj`. WindowRegistry's
+         `show()`/`hide()` (fired for every registered window on
+         `MyDSL.character.identified`) falls back to
+         `MyDSL.Windows.ensure()` whenever `entry.obj` is nil — which,
+         finding no existing object, created a **second, fresh, unlocked**
+         `Adjustable.Container` under the same name every time a
+         character identified, silently replacing the first one's lock
+         state. Fixed by registering `entry.obj`/`entry.created` right
+         after building each container, so the fallback reuses the real,
+         already-locked instance instead of recreating a duplicate.
+      Both fixes applied to `MyDSL_AlterformView.lua` and
+      `MyDSL_MoonWeather.lua` identically. Needs a live character-load
+      confirmation that the buttons now stay gone.
 - [ ] Timer consolidation (shared `MyDSL.Timers.Slow` heartbeat) — implemented
       2026-07-11, needs live confirmation (Improve countdown ticking live is
       confirmed as of 2026-07-12; the shared-heartbeat mechanism itself

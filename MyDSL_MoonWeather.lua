@@ -628,6 +628,19 @@ local function _buildUI()
 
   MW.ui.container = container
 
+  -- Same duplicate-window bug as MyDSL_AlterformView.lua (see its own
+  -- comment below for the full trace): this module builds its own
+  -- container directly and never told the registry, so
+  -- registry["MyDSL_MoonWeather"].obj stayed nil and
+  -- MyDSL.Windows.show()/hide() (fired on every character-identified
+  -- event) kept falling back to MyDSL.Windows.ensure(), creating a fresh
+  -- unlocked duplicate each time. Registering the real object so that
+  -- fallback reuses it instead.
+  do
+    local entry = MyDSL.Windows and MyDSL.Windows.registry and MyDSL.Windows.registry["MyDSL_MoonWeather"]
+    if entry then entry.obj = container; entry.created = true end
+  end
+
   pcall(function() container:setTitle(" ") end)   -- minimize title bar chrome
   -- REAL BUG, found live 2026-07-12 in MyDSL_AlterformView.lua's identical
   -- pattern (Steven: "you can see the min/close buttons"), same fix

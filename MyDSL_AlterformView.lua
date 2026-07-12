@@ -260,6 +260,23 @@ function F.ensureUI()
   F.ui.win = container
   pcall(function() F.ui.win:setTitle(" ") end)   -- minimize title bar chrome, same as MoonWeather
 
+  -- REAL BUG, found live 2026-07-12 (Steven: "the min/close buttons were
+  -- off till kien loaded in then they appeared again"): this module
+  -- builds and locks its own container directly, bypassing
+  -- MyDSL.Windows.ensure() -- but never told the registry, so
+  -- registry[F.name].obj stayed nil forever. MyDSL.Windows.show()/hide()
+  -- (fired for every registered window on "MyDSL.character.identified",
+  -- see WindowRegistry's own characterIdentified handler) falls back to
+  -- MyDSL.Windows.ensure(windowName) whenever entry.obj is nil -- which
+  -- saw no existing object and created a SECOND, fresh, unlocked
+  -- Adjustable.Container under the same name, replacing the first one's
+  -- lock state. Registering the real object here so that fallback finds
+  -- it and reuses it instead of recreating a duplicate.
+  do
+    local entry = MyDSL.Windows and MyDSL.Windows.registry and MyDSL.Windows.registry[F.name]
+    if entry then entry.obj = container; entry.created = true end
+  end
+
   -- REAL BUG, found live 2026-07-12 (Steven: "you can see the min/close
   -- buttons"): the constructor's old "lockStyle = 'padding'" field did
   -- nothing at all -- confirmed by reading Mudlet's actual bundled
