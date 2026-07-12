@@ -70,6 +70,18 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       query and `wimpy <n>` to set it): `"Wimpy set to N hit points."` —
       `MyDSL_DataLayer.lua`. Captures the number directly from the line,
       no GMCP cross-check needed (unlike Pos'n, no ambiguous states here).
+- [ ] **LiveView READY/FIGHTING badge — real bug fixed 2026-07-12, needs
+      live confirmation.** Per Steven ("the ready flag does not update
+      when fighting"). `L.data()` read `fighting`/`riding`/`flying` from
+      `live` (`MyDSL.DB.live`), which only ever has
+      hp/maxhp/mana/maxmana/move/maxmove/name/level — those 3 fields only
+      exist on `score` (`MyDSL.DB.score`, correctly GMCP-sourced from
+      `char.is_fighting`/`is_riding`/`is_flying`). `identityLine()`'s
+      badge reads `d.fighting` directly, so it was permanently nil — the
+      badge could never show FIGHTING regardless of actual combat state.
+      Fixed by reading all 3 from `score` instead. `riding`/`flying`
+      aren't consumed by any renderer currently (confirmed via grep) —
+      fixed for correctness, not a second visible bug.
 - [ ] CharacterAssist: rearm (weapon+shield), spellup/setspell,
       blind-vision check.
 

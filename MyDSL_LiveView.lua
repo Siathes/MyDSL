@@ -406,9 +406,21 @@ function L.data()
     combat = live.combat,
     stance = score.stance or live.stance,
     language = score.language or live.language,
-    riding = live.riding,
-    flying = live.flying,
-    fighting = live.fighting,
+    -- REAL BUG, found 2026-07-12 (Steven: "the ready flag does not
+    -- update when fighting for example"): all 3 read from `live` (=
+    -- MyDSL.DB.live), which only ever has hp/maxhp/mana/maxmana/move/
+    -- maxmove/name/level (see MyDSL_DataBridge.lua's MyDSL.DB.live
+    -- table) -- riding/flying/fighting only exist on `score` (=
+    -- MyDSL.DB.score, correctly GMCP-sourced from char.is_riding/
+    -- is_flying/is_fighting there). identityLine()'s READY/FIGHTING
+    -- badge reads d.fighting directly, so this was permanently nil --
+    -- the badge could never show FIGHTING, regardless of actual combat
+    -- state. riding/flying aren't consumed by any renderer currently
+    -- (confirmed via grep), so fixing them here is precautionary, not a
+    -- second visible bug.
+    riding = score.riding,
+    flying = score.flying,
+    fighting = score.fighting,
 
     -- Added 2026-07-11: the "populate Live with the score info" pass,
     -- per Steven's own hand-sketched layout (Downloads/"liveview layout").
