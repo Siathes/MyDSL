@@ -33,6 +33,8 @@ be cool to have an age counter in live view. looks at score creation date and us
 
 is there a way to save both window positions, the docked shape size locations, then the undocked shape size and location. i want to be able to undock a window and have it expand so i can see pitures better, then when i push the redock button it goes back to place, and stays persistent acroos loads andcharacters
 
+would like the vitals bar text on either side to be larger (font 9?). HP/Mana/Move and hp/hpmax, mana/manamax, move,movemax. im only changing font size nothing else in there
+
 ========== IDEAS ==========
 
 ========== IN-GAME CHECKLIST (2026-07-07) ==========
