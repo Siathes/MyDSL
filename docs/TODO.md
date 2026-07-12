@@ -58,6 +58,18 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       stop resting."` kept from PNP but not corpus-confirmed for DSL2
       specifically — low collision risk, flagged like the CharacterAssist
       disarm patterns.
+- [ ] **Wimpy now updates in real time, needs live confirmation.** Per
+      Steven ("wimpy should update when its changed as well and gmcp, or
+      how it collects info. but also with the manual wimpy command").
+      `MyDSL.DB.score.wimpy`'s GMCP-vs-text priority was already correct
+      (`char.wimpy` wins, matching the same pattern just built for
+      Pos'n) — the actual gap was that nothing fed `char.wimpy` in real
+      time; it only refreshed whenever an unrelated `gmcp.char_data`
+      packet happened to arrive. Added a text trigger on DSL's exact
+      confirmation line (corpus-confirmed, fires for both a bare `wimpy`
+      query and `wimpy <n>` to set it): `"Wimpy set to N hit points."` —
+      `MyDSL_DataLayer.lua`. Captures the number directly from the line,
+      no GMCP cross-check needed (unlike Pos'n, no ambiguous states here).
 - [ ] CharacterAssist: rearm (weapon+shield), spellup/setspell,
       blind-vision check.
 

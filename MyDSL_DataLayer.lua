@@ -2956,6 +2956,29 @@ MyDSL._triggers.posnLand         = tempRegexTrigger([[^You (?:slowly float|float
 MyDSL._triggers.posnStopRest     = tempRegexTrigger([[^You stop resting\.$]],                            function() setPosn("Sitting") end)
 
 ------------------------------------------------------------------------
+-- Wimpy -- real-time text trigger, same shape as Pos'n above
+------------------------------------------------------------------------
+-- Added 2026-07-12, per Steven ("wimpy should update when its changed as
+-- well and gmcp, or how it collects info. but also with the manual
+-- wimpy command"). MyDSL.DB.score.wimpy (MyDSL_DataBridge.lua) already
+-- prefers char.wimpy (GMCP) over the text-parsed score.wimpy fallback --
+-- that priority was already correct -- but nothing fed char.wimpy in
+-- real time; it only refreshed whenever the next unrelated gmcp.char_data
+-- packet happened to arrive with an updated value. Unlike Pos'n this
+-- doesn't need a GMCP cross-check (no ambiguous states to reconcile,
+-- just a number) -- confirmed real, exact response text via corpus grep,
+-- identical for both a bare "wimpy" query and "wimpy <n>" to actually
+-- set it: "Wimpy set to N hit points." Captures the number directly from
+-- the confirmation line itself rather than guessing it.
+MyDSL._triggers.wimpySet = tempRegexTrigger(
+  [[^Wimpy set to (\d+) hit points\.$]],
+  function()
+    local n = tonumber(matches[2])
+    if n then update("char", { wimpy = n }) end
+  end
+)
+
+------------------------------------------------------------------------
 -- Group trigger
 ------------------------------------------------------------------------
 -- Fires on "Kien's group:" (any character name followed by "'s group:").
