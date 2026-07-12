@@ -256,7 +256,17 @@ function MW.cyclesNow()
   if not MW._lunar.anchor_real then return nil end
   local tick_avg = MyDSL.DB and MyDSL.DB.tick and MyDSL.DB.tick.average
   tick_avg = (tick_avg and tick_avg > 10) and tick_avg or 40
-  local elapsed_ticks = (os.time() - MW._lunar.anchor_real) / tick_avg
+  -- Real bug, fixed 2026-07-12, per Steven ("it will update correct then
+  -- change to -1 the cycle reported"): this used to subtract the raw
+  -- fractional elapsed_ticks (e.g. 0.02 right after anchoring) from
+  -- anchor_cycles, then countdownStr() floor()'d the result -- so a
+  -- freshly-anchored 33 immediately floored down to 32 after barely any
+  -- real time had passed, well before a full tick_avg-second interval
+  -- actually elapsed. Flooring elapsed_ticks FIRST means the count only
+  -- steps down once a whole tick_avg interval has genuinely completed,
+  -- matching how a real countdown should behave (holds at 33 for the
+  -- entire first interval, then drops to 32, not the instant after t=0).
+  local elapsed_ticks = math.floor((os.time() - MW._lunar.anchor_real) / tick_avg)
   return math.max(0, MW._lunar.anchor_cycles - elapsed_ticks)
 end
 
