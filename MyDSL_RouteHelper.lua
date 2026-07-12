@@ -16,46 +16,20 @@ MyDSL.Route = MyDSL.Route or {}
 
 -- Per-window font size override -- default 9 for anything not listed here.
 -- History dropped to 8 2026-07-05, then to 7 2026-07-07 per Steven ("history
--- text 7"). Now persisted character-bound (same pattern as
--- MyDSL_CombatView.lua/MyDSL_TargetView.lua's configFile()), closing the
--- "should eventually live in a persisted config" gap noted here before.
+-- text 7"). Persistence moved 2026-07-11 to MyDSL.Windows' shared,
+-- PROFILE-level (not character-bound) font-size store
+-- (MyDSL_WindowRegistry.lua) -- per Steven ("the fonts should be saving
+-- like theme or window manager whatever tracks that... per profile not
+-- user, remember for the layout"). This used to be its own bespoke
+-- character-bound file + "re-load once character is known" handler,
+-- structurally identical to the confirmed-working MyDSL_ChatWrapper.lua
+-- pattern -- but Steven reported it still not surviving a reload (same
+-- report as MyDSL_TargetView.lua's font, fixed the same way), so both
+-- moved to the shared mechanism together, removing the character-name
+-- dependency (and that whole class of timing bug) entirely.
 local FONT_SIZE_OVERRIDES = {
-  MyDSL_History = 7,
+  MyDSL_History = MyDSL.Windows.getFontSize("MyDSL_History", 7),
 }
-
-local function historyCharName()
-  if gmcp and gmcp.login_data and gmcp.login_data.name and gmcp.login_data.name ~= "" then
-    return tostring(gmcp.login_data.name)
-  end
-  if MyCore and MyCore.getChar then
-    local ok, name = pcall(MyCore.getChar)
-    if ok and name and name ~= "" then return tostring(name) end
-  end
-  return "Unknown"
-end
-
-local function historySafeFileName(s)
-  s = tostring(s or "Unknown"):gsub("[^%w_%-%.]+", "_"):gsub("^_+", ""):gsub("_+$", "")
-  if s == "" then s = "Unknown" end
-  return s
-end
-
-local function historyFontConfigFile()
-  return getMudletHomeDir() .. "/MyDSL/history_font_" .. historySafeFileName(historyCharName()) .. ".lua"
-end
-
-local function loadHistoryFontConfig()
-  local ok, data = pcall(table.load, historyFontConfigFile())
-  if ok and type(data) == "table" and type(data.fontSize) == "number" then
-    FONT_SIZE_OVERRIDES.MyDSL_History = data.fontSize
-  end
-end
-
-local function saveHistoryFontConfig()
-  pcall(table.save, historyFontConfigFile(), { fontSize = FONT_SIZE_OVERRIDES.MyDSL_History })
-end
-
-loadHistoryFontConfig()
 
 -- Display titles for windows this file creates via WindowRegistry --
 -- added 2026-07-11, per Steven ("fix all window titles/names"). These
@@ -217,7 +191,9 @@ function MyDSL.Route.setHistoryFont(size)
   if entry and entry.console then
     entry.console:setFontSize(size)
   end
-  saveHistoryFontConfig()
+  -- Persist to the shared, profile-level store (2026-07-11) instead of
+  -- History's own now-removed character-bound font file.
+  MyDSL.Windows.setFontSize("MyDSL_History", size)
   echo("MyDSL_History font=" .. tostring(size) .. "\n")
 end
 
@@ -228,27 +204,38 @@ MyDSL._aliases.historyFont = tempAlias(
   [[MyDSL.Route.setHistoryFont(matches[2])]]
 )
 
--- Re-load once the real character is known -- fixed 2026-07-07.
--- loadHistoryFontConfig() above runs at script-boot time, which on a
--- genuinely fresh Mudlet start happens before login, so it loads
--- "Unknown"'s font size (or the bare default) and would otherwise never
--- pick up this character's real saved font. MyDSL_DataLayer.lua's
--- gmcp.login_data handler raises "MyDSL.character.identified" once the
--- real name is known.
-MyDSL._handlers = MyDSL._handlers or {}
-if MyDSL._handlers.historyCharacterIdentified then
-  pcall(killAnonymousEventHandler, MyDSL._handlers.historyCharacterIdentified)
-end
-MyDSL._handlers.historyCharacterIdentified = registerAnonymousEventHandler(
-  "MyDSL.character.identified",
-  function()
-    loadHistoryFontConfig()
-    local entry = MyDSL.Windows and MyDSL.Windows.registry
-                  and MyDSL.Windows.registry.MyDSL_History
-    if entry and entry.console then
-      entry.console:setFontSize(FONT_SIZE_OVERRIDES.MyDSL_History)
-    end
+-- MyDSL.Route.historyStatus() + "mydsl history status" -- added
+-- 2026-07-11, per Steven ("are the settings loading at creating from
+-- save files or they saving and never reading/updating?"). Same 3-way
+-- diagnostic as "focus status"'s font section: disk (re-read fresh from
+-- MyDSL_windowfonts.lua, not memory), memory (FONT_SIZE_OVERRIDES.
+-- MyDSL_History -- what this module currently believes), and live
+-- (Geyser.MiniConsole:getFontSize(), Mudlet's own real getter for what
+-- the widget is ACTUALLY rendering right now). Pinpoints exactly which
+-- stage is wrong instead of guessing.
+function MyDSL.Route.historyStatus()
+  local diskVal = "?"
+  if MyDSL.Windows and MyDSL.Windows.loadFontSizes and MyDSL.Windows.fontSizes then
+    local before = MyDSL.Windows.fontSizes.MyDSL_History
+    MyDSL.Windows.loadFontSizes()
+    diskVal = tostring(MyDSL.Windows.fontSizes.MyDSL_History)
+    if before ~= nil then MyDSL.Windows.fontSizes.MyDSL_History = before end
   end
+  local liveVal = "?"
+  local entry = MyDSL.Windows and MyDSL.Windows.registry
+                and MyDSL.Windows.registry.MyDSL_History
+  if entry and entry.console and entry.console.getFontSize then
+    local ok, size = pcall(function() return entry.console:getFontSize() end)
+    if ok then liveVal = tostring(size) end
+  end
+  echo("[MyDSL.Route] history font: disk=" .. diskVal ..
+       "; memory(FONT_SIZE_OVERRIDES)=" .. tostring(FONT_SIZE_OVERRIDES.MyDSL_History) ..
+       "; live(widget getFontSize)=" .. liveVal .. "\n")
+end
+
+MyDSL._aliases.historyStatus = tempAlias(
+  "^mydsl history status$",
+  [[MyDSL.Route.historyStatus()]]
 )
 
 debugc("[MyDSL] RouteHelper loaded.")

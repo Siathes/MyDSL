@@ -431,6 +431,13 @@ end
 -- If no state file exists, all windows use their registry defaults
 -- (most visible=true, Mapper/CreatureReference false).
 
+-- REAL BUG, found live 2026-07-11: Mudlet's real table.load(file, target)
+-- does not return anything -- it unpickles INTO an explicit second-
+-- argument table (confirmed in Mudlet's own bundled source). This used
+-- to call table.load(STATE_FILE()) with no second argument, so `loaded`
+-- was always nil and saved window visibility never actually survived a
+-- restart (same bug found across ~10 call sites project-wide the same
+-- day -- see MyDSL_DataLayer.lua's MyDSL.load() for the full writeup).
 function MyDSL.Windows.loadState()
   local f = io.open(STATE_FILE(), "r")
   if not f then
@@ -439,8 +446,9 @@ function MyDSL.Windows.loadState()
   end
   f:close()
 
-  local loaded = table.load(STATE_FILE())
-  if type(loaded) ~= "table" then
+  local loaded = {}
+  local ok = pcall(table.load, STATE_FILE(), loaded)
+  if not ok or not next(loaded) then
     debugc("[MyDSL] WindowRegistry: state file unreadable — using defaults.")
     return
   end
@@ -464,6 +472,96 @@ function MyDSL.Windows.loadState()
     -- This handles the case where a window was removed in a newer version.
   end
 end
+
+
+------------------------------------------------------------------------
+-- SECTION 8b: FONT-SIZE PERSISTENCE (profile-level, not character-bound)
+------------------------------------------------------------------------
+-- Added 2026-07-11, per Steven ("the fonts should be saving like theme or
+-- window manager whatever tracks that... per profile not user, remember
+-- for the layout") -- consolidates what used to be N independent
+-- per-module bespoke font config files (MyDSL_TargetView.lua's own
+-- targetview_config_<Char>.lua, MyDSL_RouteHelper.lua's own
+-- history_font_<Char>.lua) into ONE shared file here, matching exactly
+-- how MyDSL_ThemeEngine.lua's active theme and LayoutEngine's window
+-- layout already work: a single flat file, loaded once, unconditionally,
+-- with no character-name resolution involved at all.
+--
+-- Real motivation, not just consistency: both of the old per-module
+-- implementations already had the standard "re-load once MyDSL.character.
+-- identified fires" pattern (confirmed structurally identical to
+-- MyDSL_ChatWrapper.lua's own, which IS confirmed working) -- but Steven
+-- twice reported the font settings still not surviving a reload even
+-- after that fix, and a root cause was never conclusively found despite
+-- extensive testing (see docs/CHANGELOG.md, "Round 10"). Removing the
+-- character-name dependency entirely removes the whole class of timing
+-- bug being chased, whether or not that was really the cause.
+
+local function FONT_FILE()
+  return getMudletHomeDir() .. "/MyDSL_windowfonts.lua"
+end
+
+MyDSL.Windows.fontSizes = MyDSL.Windows.fontSizes or {}
+
+-- REAL BUG, found live 2026-07-11 (Steven's direct question: "are the
+-- settings loading at creating from save files or they saving and never
+-- reading/updating?" -- confirmed via the new 3-way diagnostic showing
+-- disk=nil despite the file genuinely having the right data on disk).
+-- Root cause: Mudlet's real table.load(file, target) does not return
+-- anything -- confirmed directly in Mudlet's own bundled source
+-- (mudlet-lua/lua/Other.lua): no return statement, it unpickles INTO an
+-- explicit second-argument table (or into _G if none given). This
+-- called table.load(FONT_FILE()) with no second argument, so `loaded`
+-- was always nil, and the "ok and type(loaded)=='table'" check was
+-- always false -- MyDSL.Windows.fontSizes never actually got the saved
+-- data, ever, despite the file itself always being written correctly.
+-- Same bug found across ~10 call sites project-wide the same day -- see
+-- MyDSL_DataLayer.lua's MyDSL.load() for the full writeup, and PNP's own
+-- DSL_PNP_Data.lua / EMCO's own emco.lua for confirmation this
+-- second-argument form is the real, correct, already-proven-in-the-wild
+-- usage.
+function MyDSL.Windows.loadFontSizes()
+  local f = io.open(FONT_FILE(), "r")
+  if not f then return end
+  f:close()
+  local loaded = {}
+  local ok = pcall(table.load, FONT_FILE(), loaded)
+  if ok and next(loaded) then
+    MyDSL.Windows.fontSizes = loaded
+  else
+    debugc("[MyDSL] WindowRegistry: font-size file exists but failed to load")
+  end
+end
+
+function MyDSL.Windows.saveFontSizes()
+  local ok = pcall(table.save, FONT_FILE(), MyDSL.Windows.fontSizes)
+  if not ok then
+    debugc("[MyDSL] WindowRegistry: failed to save font sizes to " .. FONT_FILE())
+  end
+  return ok
+end
+
+-- getFontSize(windowName, default) -- returns the persisted size, or
+-- `default` if this window has never had one saved.
+function MyDSL.Windows.getFontSize(windowName, default)
+  return MyDSL.Windows.fontSizes[windowName] or default
+end
+
+-- setFontSize(windowName, size) -- updates the in-memory table AND
+-- persists immediately (matching setTheme()'s save-on-every-change
+-- behavior, not a manual "save" step). Does NOT touch any live widget --
+-- callers still own applying the size to their own console/label, this
+-- only owns remembering the value.
+function MyDSL.Windows.setFontSize(windowName, size)
+  MyDSL.Windows.fontSizes[windowName] = size
+  MyDSL.Windows.saveFontSizes()
+end
+
+MyDSL.Windows.loadFontSizes()
+
+echo("[MyDSL] WindowRegistry: font sizes loaded from " .. FONT_FILE() .. " (" ..
+  tostring((function() local n=0 for _ in pairs(MyDSL.Windows.fontSizes) do n=n+1 end return n end)()) ..
+  " windows).\n")
 
 
 ------------------------------------------------------------------------

@@ -23,33 +23,6 @@ TV._aliases  = {}
 TV._mc       = TV._mc or {}   -- persists to avoid duplicate MiniConsole creation
 TV._consider_lines = {}       -- cleared on target change, appended by captureConsider
 
--- Config with defaults; loadConfig() may override these from disk.
--- order_attack ("Order All") made a default 2026-07-05 per Steven -- was
--- opt-in only; swapped in for "glance" (redundant with consider/look).
-TV.config = TV.config or {
-  mob_buttons    = { "murder", "consider", "order_attack", "creaturelore", "rescue", "flee" },
-  player_buttons = { "murder", "glance", "rescue", "look", "heal", "flee" },
-}
-TV.config.custom_actions = TV.config.custom_actions or {}
--- fontSize -- added 2026-07-11 per Steven ("i need to be able to adjust
--- the font like other windows"), matching CombatView's CV.config.fontSize
--- pattern exactly (persisted override, theme switches pass it through as
--- styleConsole()'s fontSizeOverride so a theme change never clobbers it).
--- 11 matches the value that was hardcoded in TV.init() before this.
-if TV.config.fontSize == nil then TV.config.fontSize = 11 end
-
--- TV.defaults -- added 2026-07-11, per Steven's "there should be a clear
--- button" ask. Deliberately a fresh literal every load (NOT "TV.defaults or
--- {...}") since TV itself persists across script reloads (MyDSL.TargetView
--- = MyDSL.TargetView or {}) -- if this used the same or-pattern as
--- TV.config, a reset after TV.config had already been customized once
--- would just restore whatever was already saved instead of the TRUE
--- original defaults.
-TV.defaults = {
-  mob_buttons    = { "murder", "consider", "order_attack", "creaturelore", "rescue", "flee" },
-  player_buttons = { "murder", "glance", "rescue", "look", "heal", "flee" },
-}
-
 -- Window / MiniConsole names -- renamed 2026-07-11 per Steven ("change
 -- target window to focus to match commands"): the window's own visible
 -- title/registry identity now matches its "focus <verb>" command surface,
@@ -62,6 +35,42 @@ TV.defaults = {
 -- only new logging goes to MyDSL/logs/focus/.
 local TARGET_WIN = "MyDSL_Focus"
 local TARGET_MC  = "MyDSL_Focus_MC"
+
+-- Config with defaults; loadConfig() may override mob_buttons/
+-- player_buttons/custom_actions from disk (character-bound -- different
+-- characters may reasonably want different button loadouts).
+-- order_attack ("Order All") made a default 2026-07-05 per Steven -- was
+-- opt-in only; swapped in for "glance" (redundant with consider/look).
+TV.config = TV.config or {
+  mob_buttons    = { "murder", "consider", "order_attack", "creaturelore", "rescue", "flee" },
+  player_buttons = { "murder", "glance", "rescue", "look", "heal", "flee" },
+}
+TV.config.custom_actions = TV.config.custom_actions or {}
+-- fontSize -- moved 2026-07-11 to MyDSL.Windows' shared, PROFILE-level
+-- (not character-bound) font-size store, per Steven ("the fonts should
+-- be saving like theme or window manager whatever tracks that... per
+-- profile not user, remember for the layout"). Previously had its own
+-- bespoke character-bound file + a "re-load once character is known"
+-- handler, structurally identical to MyDSL_ChatWrapper.lua's own
+-- (confirmed-working) pattern -- but Steven repeatedly reported it still
+-- not surviving a reload, and no root cause was ever conclusively found
+-- despite extensive testing. Removing the character-name dependency
+-- entirely removes that whole class of timing bug, whether or not it was
+-- really the cause. 11 matches the value that was hardcoded before any
+-- of this existed.
+TV.config.fontSize = MyDSL.Windows.getFontSize(TARGET_WIN, 11)
+
+-- TV.defaults -- added 2026-07-11, per Steven's "there should be a clear
+-- button" ask. Deliberately a fresh literal every load (NOT "TV.defaults or
+-- {...}") since TV itself persists across script reloads (MyDSL.TargetView
+-- = MyDSL.TargetView or {}) -- if this used the same or-pattern as
+-- TV.config, a reset after TV.config had already been customized once
+-- would just restore whatever was already saved instead of the TRUE
+-- original defaults.
+TV.defaults = {
+  mob_buttons    = { "murder", "consider", "order_attack", "creaturelore", "rescue", "flee" },
+  player_buttons = { "murder", "glance", "rescue", "look", "heal", "flee" },
+}
 
 -- Mirrors the Focus window's text into MyDSL/logs/focus/ (2026-07-05:
 -- Mudlet's startLogging() can't capture MiniConsole content at all).
@@ -354,22 +363,29 @@ end
 -- Config persistence
 ------------------------------------------------------------------------
 
--- io.open() precheck before table.load() -- 2026-07-11, per Steven ("the
--- fonts should be saving like theme or window manager whatever tracks
--- that"): matches MyDSL_ThemeEngine.lua's loadActive()/MyDSL_
--- WindowRegistry.lua's loadState() exactly (both confirmed reliably
--- persisting live), rather than the bare pcall(table.load, ...) this
--- replaced.
+-- loadConfig()/saveConfig() -- character-bound button-set persistence
+-- only. fontSize moved OUT to MyDSL.Windows' shared profile-level store
+-- 2026-07-11 (see TV.config.fontSize's own comment above) -- no longer
+-- read or written here.
+--
+-- REAL BUG, found live 2026-07-11: Mudlet's real table.load(file, target)
+-- does not return anything -- it unpickles INTO an explicit second-
+-- argument table (confirmed in Mudlet's own bundled source). This used
+-- to call table.load(configFile()) with no second argument, so `loaded`
+-- was always nil -- button-set customizations never actually survived a
+-- restart either, same root cause as the font-size bug (see
+-- MyDSL_DataLayer.lua's MyDSL.load() for the full writeup).
 local function loadConfig()
   local f = io.open(configFile(), "r")
   local data
   if f then
     f:close()
-    local ok, loaded = pcall(table.load, configFile())
-    if ok and type(loaded) == "table" then data = loaded end
+    local loaded = {}
+    local ok = pcall(table.load, configFile(), loaded)
+    if ok and next(loaded) then data = loaded end
   end
   echo("[MyDSL.TargetView] loadConfig(): " .. configFile() ..
-       (data and " -> fontSize=" .. tostring(data.fontSize) or " -> no saved file yet") .. "\n")
+       (data and " -> loaded" or " -> no saved file yet") .. "\n")
   if data then
     if type(data.mob_buttons) == "table" and #data.mob_buttons == 6 then
       TV.config.mob_buttons = data.mob_buttons
@@ -380,15 +396,16 @@ local function loadConfig()
     if type(data.custom_actions) == "table" then
       TV.config.custom_actions = data.custom_actions
     end
-    if type(data.fontSize) == "number" then
-      TV.config.fontSize = data.fontSize
-    end
   end
   applyCustomActions()
 end
 
 local function saveConfig()
-  pcall(table.save, configFile(), TV.config)
+  pcall(table.save, configFile(), {
+    mob_buttons    = TV.config.mob_buttons,
+    player_buttons = TV.config.player_buttons,
+    custom_actions = TV.config.custom_actions,
+  })
 end
 
 
@@ -647,26 +664,11 @@ end
 
 -- applyFontSize(size) -- pushes a font size onto the live stats console
 -- (the header became a Label/nameplate 2026-07-11 -- its font size bakes
--- into its HTML on every render() instead, same as the buttons). Split
--- out from setFont() so loadConfig()'s call sites (init() and the
--- characterIdentified handler) can re-apply a freshly-loaded persisted
--- value too.
---
--- REAL BUG, found live 2026-07-11 (Steven: "settings like focus font
--- dont seem to be persistent"): the console is created with whatever
--- TV.config.fontSize happens to be IN MEMORY at that moment -- on a
--- genuinely fresh Mudlet start, that's still the hardcoded default (11),
--- because loadConfig() (which pulls the real saved value off disk) only
--- runs LATER in init(), after the console already exists. Confirmed the
--- save side was never the problem -- targetview_config_Kien.lua on disk
--- correctly showed fontSize=9 after "focus font 9" -- but nothing ever
--- called :setFontSize() again after loadConfig() updated TV.config.
--- fontSize in memory, so the live widget kept whatever size it was
--- created with. Same gap existed at the characterIdentified handler's own
--- loadConfig() call (a second, correct-per-character reload for the case
--- where init() first ran before login completed) -- render() alone was
--- never enough since it only ever set font size on new BUTTON/nameplate
--- labels (baked into their HTML), never on the plain text console.
+-- into its HTML on every render() instead, same as the buttons). fontSize
+-- itself now lives in MyDSL.Windows' shared, profile-level store (see
+-- TV.config.fontSize's own comment above), so there's no character-
+-- identification timing to chase anymore -- this just applies whatever
+-- TV.config.fontSize currently is to the live widget.
 local function applyFontSize(size)
   if TV._mc.stats then TV._mc.stats:setFontSize(size) end
 end
@@ -981,12 +983,14 @@ function TV.init()
   -- "Unknown"'s button config (or bare defaults) and would otherwise
   -- never pick up this character's real saved button layout.
   -- MyDSL_DataLayer.lua's gmcp.login_data handler raises
-  -- "MyDSL.character.identified" once the real name is known.
+  -- "MyDSL.character.identified" once the real name is known. fontSize is
+  -- no longer character-bound (2026-07-11, see TV.config.fontSize's own
+  -- comment) so it doesn't need re-loading here anymore -- loadConfig()
+  -- now only concerns the button sets.
   TV._handlers.characterIdentified = registerAnonymousEventHandler(
     "MyDSL.character.identified",
     function()
       loadConfig()
-      applyFontSize(TV.config.fontSize)
       TV.render()
     end
   )
@@ -1177,12 +1181,9 @@ function TV.init()
     [[if MyDSL and MyDSL.TargetView and MyDSL.TargetView.setFont then MyDSL.TargetView.setFont(matches[2]) end]]
   )
 
-  -- Load config from disk (may override defaults), then push the loaded
-  -- fontSize onto the consoles created above -- they were built with
-  -- whatever TV.config.fontSize was BEFORE this load (see applyFontSize's
-  -- own comment for the real bug this fixes).
+  -- Load button-set config from disk (may override defaults). fontSize
+  -- is no longer loaded here -- see TV.config.fontSize's own comment.
   loadConfig()
-  applyFontSize(TV.config.fontSize)
 
   -- Initial render.
   TV.render()
@@ -1202,7 +1203,9 @@ function TV.setFont(size)
   if not size then echo("usage: focus font <size>\n"); return end
   TV.config.fontSize = size
   applyFontSize(size)
-  saveConfig()
+  -- Persist to the shared, profile-level store (2026-07-11) instead of
+  -- TargetView's own now-removed character-bound fontSize field.
+  MyDSL.Windows.setFontSize(TARGET_WIN, size)
   -- Re-render so any currently-visible buttons pick up the new size too
   -- -- their label HTML bakes in an explicit font-size (see btnHTML()),
   -- so just calling setFontSize() on a console doesn't touch them.
@@ -1242,6 +1245,44 @@ function TV.status()
          tostring(entry and entry.target_condition) ..
          "; getTargetCondition=" .. tostring(label) .. "/" .. tostring(percent) .. "/" .. tostring(order) .. "\n")
   end
+
+  -- Font-size 3-way diagnostic -- added 2026-07-11, per Steven ("are the
+  -- settings loading at creating from save files or they saving and
+  -- never reading/updating?"). Reports the SAME value at 3 different
+  -- points in the pipeline, so a live run pinpoints exactly which stage
+  -- is wrong instead of guessing:
+  --   disk   = what's actually saved in MyDSL_windowfonts.lua right now
+  --            (re-read from disk, not from memory, in case something is
+  --            silently failing to persist).
+  --   memory = TV.config.fontSize -- what THIS module currently believes
+  --            the value is (should equal disk, since it's read directly
+  --            from the shared store at load time).
+  --   live   = Geyser.MiniConsole:getFontSize() -- Mudlet's own real,
+  --            live getter (confirmed present in Mudlet's bundled
+  --            GeyserMiniConsole.lua) querying what the ACTUAL rendered
+  --            widget is using right now, independent of what our own
+  --            config thinks. If disk/memory match but live doesn't,
+  --            that's a real "loaded correctly but never applied to the
+  --            widget" bug; if disk/memory themselves disagree, that's a
+  --            real load bug.
+  local diskVal = "?"
+  if MyDSL.Windows and MyDSL.Windows.loadFontSizes and MyDSL.Windows.fontSizes then
+    local before = MyDSL.Windows.fontSizes[TARGET_WIN]
+    MyDSL.Windows.loadFontSizes()  -- force a fresh re-read from disk, not memory
+    diskVal = tostring(MyDSL.Windows.fontSizes[TARGET_WIN])
+    -- Restore the in-memory table to whatever it actually was, in case
+    -- disk and memory had legitimately diverged -- this is a read-only
+    -- diagnostic, it must not silently "fix" anything by side effect.
+    if before ~= nil then MyDSL.Windows.fontSizes[TARGET_WIN] = before end
+  end
+  local liveVal = "?"
+  if TV._mc.stats and TV._mc.stats.getFontSize then
+    local ok, size = pcall(function() return TV._mc.stats:getFontSize() end)
+    if ok then liveVal = tostring(size) end
+  end
+  echo("[MyDSL.TargetView] font: disk=" .. diskVal ..
+       "; memory(TV.config.fontSize)=" .. tostring(TV.config.fontSize) ..
+       "; live(widget getFontSize)=" .. liveVal .. "\n")
 end
 
 -- Expose saveConfig so alias callbacks can call it.
