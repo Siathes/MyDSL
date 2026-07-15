@@ -38,7 +38,11 @@ would like the vitals bar text on either side to be larger (font 9?). HP/Mana/Mo
 the moonweather bonus line is not acting right.
 room title line wraps, it needs to not, and spread across the top row, thats why its so long
 
+my next task is going to be the item identification. if this isnt too out of sequence id like to do the item database. start in game to get all your patterns, then import from the site/knowledgebase when sure the imprt works and displays in game. same as we did with bestiary/creaturelore
+
 ========== IDEAS ==========
+
+
 
 ========== IN-GAME CHECKLIST (2026-07-07) ==========
 Full detail for anything here: docs/TODO.md. Check items off as you play;

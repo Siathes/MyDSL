@@ -495,6 +495,35 @@ guessing at patterns with zero corpus evidence.
       Layer 4.
 - [ ] State-scoped sound toggle — generic pattern for an alias to turn a
       sound on for a state and reliably turn it off when the state ends.
+- [ ] **Real gaps found while compiling `docs/CapturedPatterns_Reference.txt`
+      (2026-07-15)** — that doc is a community-facing pattern reference, not
+      itself a code change, but it surfaced several actual DSL2 gaps worth
+      a look later:
+      - TargetView's Consider capture only wires up 2 of a real 6-tier
+        difficulty ladder ("looks like an easy kill." / "is no match for
+        you." are active; "The perfect match!" / "'Do you feel lucky,
+        punk?'." / "laughs at you mercilessly." / "Death will thank you for
+        your gift." are real DSL2 native-XML text, confirmed identical in
+        the PNP-family profiles too, but never wired in).
+      - `detect magic`'s onset text was always blank in the ported spell
+        table (PNP's own source has no onset for it) — "Your eyes tingle."
+        is a high-confidence candidate (consistently follows `detect magic`
+        in the log corpus) but not yet swapped in.
+      - "heart blight" (distinct from "bone blight") is a real spell
+        missing from DSL2's affects-echo table entirely.
+      - DSL2's CreatureLore may only parse `look`/`scan` mob text, not the
+        `lore <name>` command's own per-field output (base health/damage/
+        training cycle/immunities/resistances/tactics lines) — a sibling
+        profile's older CreatureDB parses `lore` output directly; worth
+        checking DSL2 actually covers the same fields.
+      - A whole quest-tracking mechanic (quest start/expire/timer messages)
+        has zero coverage anywhere in DSL2 — matches the already-tracked
+        "Data-driven notes/quest tracking" DEFERRED item below, not a new
+        ask, just confirms real message text exists to build against
+        whenever that's picked up.
+      None of this is scoped/started — feature creep is still paused.
+      Flagging so it isn't lost; the full source text for all of it is in
+      `docs/CapturedPatterns_Reference.txt`.
 
 ---
 
