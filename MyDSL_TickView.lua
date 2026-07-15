@@ -255,10 +255,17 @@ function V.ensureUI()
 
   V.ui.panel  = Geyser.Label:new({ name = V.name .. "_Panel",  x = 0, y = 0, width = "100%", height = "100%" }, V.ui.win)
   V.ui.title  = Geyser.Label:new({ name = V.name .. "_Title",  x = 0, y = "4%", width = "100%", height = "14%" }, V.ui.win)
-  V.ui.tube   = Geyser.Label:new({ name = V.name .. "_Tube",   x = "35%", y = "22%", width = "30%", height = "52%" }, V.ui.win)
-  V.ui.fill   = Geyser.Label:new({ name = V.name .. "_Fill",   x = "38%", y = "25%", width = "24%", height = "46%" }, V.ui.win)
-  V.ui.seconds= Geyser.Label:new({ name = V.name .. "_Seconds",x = 0, y = "43%", width = "100%", height = "16%" }, V.ui.win)
-  V.ui.detail = Geyser.Label:new({ name = V.name .. "_Detail", x = 0, y = "75%", width = "100%", height = "20%" }, V.ui.win)
+  -- Layout matched to AlterformView's 2026-07-12 rework, per Steven
+  -- ("move the timer to a more visible location like bottom above the
+  -- cycle counter... move tick timer countdown lower like alterforms"):
+  -- tube shrunk (52% -> 38% tall, same 3%-top/3%-bottom inset for fill)
+  -- to make room for the countdown text as its own distinct row clear of
+  -- the tube graphic. render()'s fillH/fillY math below uses fill's new
+  -- max height (32, was 46) to stay in sync with this.
+  V.ui.tube   = Geyser.Label:new({ name = V.name .. "_Tube",   x = "35%", y = "22%", width = "30%", height = "38%" }, V.ui.win)
+  V.ui.fill   = Geyser.Label:new({ name = V.name .. "_Fill",   x = "38%", y = "25%", width = "24%", height = "32%" }, V.ui.win)
+  V.ui.seconds= Geyser.Label:new({ name = V.name .. "_Seconds",x = 0, y = "62%", width = "100%", height = "14%" }, V.ui.win)
+  V.ui.detail = Geyser.Label:new({ name = V.name .. "_Detail", x = 0, y = "78%", width = "100%", height = "14%" }, V.ui.win)
   V.ui.strip  = Geyser.Label:new({ name = V.name .. "_Strip",  x = "18%", y = "94%", width = "64%", height = "3%" }, V.ui.win)
 
   V.ui.panel:setStyleSheet(stylePanel())
@@ -292,9 +299,9 @@ function V.render(reason)
   pct = clamp(pct or 0, 0, 1)
 
   local pal = V.palette(rem, running)
-  local fillH = math.floor(46 * pct + 0.5)
+  local fillH = math.floor(32 * pct + 0.5)
   if fillH < 2 and pct > 0 then fillH = 2 end
-  local fillY = 25 + (46 - fillH)
+  local fillY = 25 + (32 - fillH)
 
   pcall(function()
     V.ui.fill:move("38%", tostring(fillY) .. "%")

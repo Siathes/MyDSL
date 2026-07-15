@@ -218,6 +218,11 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       day-specific sun+cloud glyph exists). ⚡ (Storm) is Unicode 4.0
       (2003) — probably fine, but genuinely not yet live-tested (no storm
       weather hit during testing) — flagged, not swapped preemptively.
+- [ ] **TickView countdown repositioned — added 2026-07-15, needs live
+      confirmation.** Per Steven ("move tick timer countdown lower like
+      alterforms"). Applied the same layout rework AlterformView got
+      2026-07-12: tube 52%→38% tall, fill max 46→32, countdown row
+      43%→62%, detail row 75%→78%. `MyDSL_TickView.lua`.
 - [ ] **LiveView vitals-bar font bumped 8→9, needs live confirmation.** Per
       Steven ("would like the vitals bar text on either side to be larger
       (font 9?). HP/Mana/Move and hp/hpmax, mana/manamax, move,movemax. im
