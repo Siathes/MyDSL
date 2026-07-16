@@ -1739,6 +1739,16 @@ local function isUnparsedPresenceLine(line)
   -- "[Exits: ...]" in the listing. isLookFixtureLine()'s unanchored
   -- substring checks never had this problem; only the `^`-anchored ones
   -- here and in parseLookHereLine() did.
+  -- "This " added 2026-07-16 -- fourth confirmed live instance of this
+  -- same bug class. Found by tracing a real room-look line by line
+  -- (log/2026-07-16#17-23-54.html): "This studded mace looks particularly
+  -- dangerous." is an item-flavor-text line, same shape as every other
+  -- confirmed presence/fixture line, but starts with neither "A"/"An"/
+  -- "The" nor a "lies/lying/left/floats" fixture keyword -- it fell
+  -- through every check straight to endLook(), which would have silently
+  -- dropped everything listed after it in that same room, including two
+  -- real mobs (a war mage, three novice mages) at the very end of the
+  -- listing.
   local rest = trim(line)
   while true do
     local stripped = rest:match("^%([^()]+%)%s*(.+)$")
@@ -1746,6 +1756,7 @@ local function isUnparsedPresenceLine(line)
     rest = stripped
   end
   return rest:match("^[Aa]n? ") ~= nil or rest:match("^[Tt]he ") ~= nil
+      or rest:match("^This ") ~= nil
 end
 
 function MyDSL.beginLook()
