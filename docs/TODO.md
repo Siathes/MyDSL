@@ -29,358 +29,32 @@ Fixed in code, verified via syntax checks and/or emulation — none of this
 is closed until Steven confirms it in-game. Full technical detail for any
 item: `git log --oneline` + `docs/CHANGELOG.md`.
 
-- [ ] **LiveView Pos'n now updates in real time, needs live confirmation.**
-      Per Steven ("liveview pos'n doesnt update on changing without
-      score, it should update with the gmcp... check sibling profiles
-      and other liveview scripts, this was active once before"). Found
-      the prior real implementation in
-      `../Dark & Shattered Lands - PNP/PNP/DSL_PNP_Statusbar.posn.lua`:
-      real-time text triggers on DSL's own first-person confirmation
-      lines, not GMCP polling. Confirmed GMCP's `char_data` (full raw
-      payload checked directly against a live dump) has **no**
-      Standing/Sitting/Resting/Sleeping field at all — only
-      `is_flying`/`is_riding`/`is_fighting`/`is_afk`/`is_quiet` booleans
-      — so a GMCP-only approach can't represent those 3 states; Steven
-      confirmed keeping the hybrid design after seeing this. Built:
-      `MyDSL_DataLayer.lua` gets a new `setPosn()` + 12 text triggers
-      (`MyDSL.State.char.posn`), rebuilt from real corpus-confirmed
-      sentences rather than porting PNP's own pattern verbatim — PNP's
-      unanchored `stand` match would have false-positived constantly here
-      (confirmed several DSL2 room descriptions independently open with
-      "You stand on/in the...", including after a plain `look`). Per
-      Steven's explicit direction, `setPosn()` itself checks GMCP's
-      `is_flying` as the authoritative cross-check before committing any
-      trigger's text-implied value, so a stray match can never downgrade
-      a character GMCP still confirms is flying.
-      `MyDSL_DataBridge.lua`'s `MyDSL.DB.score.posn` now prefers
-      `char.posn` over the stale `score.position` text field (GMCP-first,
-      same fallback pattern already used for gold/silver/weight). `"You
-      stop resting."` kept from PNP but not corpus-confirmed for DSL2
-      specifically — low collision risk, flagged like the CharacterAssist
-      disarm patterns.
-- [ ] **Wimpy now updates in real time, needs live confirmation.** Per
-      Steven ("wimpy should update when its changed as well and gmcp, or
-      how it collects info. but also with the manual wimpy command").
-      `MyDSL.DB.score.wimpy`'s GMCP-vs-text priority was already correct
-      (`char.wimpy` wins, matching the same pattern just built for
-      Pos'n) — the actual gap was that nothing fed `char.wimpy` in real
-      time; it only refreshed whenever an unrelated `gmcp.char_data`
-      packet happened to arrive. Added a text trigger on DSL's exact
-      confirmation line (corpus-confirmed, fires for both a bare `wimpy`
-      query and `wimpy <n>` to set it): `"Wimpy set to N hit points."` —
-      `MyDSL_DataLayer.lua`. Captures the number directly from the line,
-      no GMCP cross-check needed (unlike Pos'n, no ambiguous states here).
-- [ ] **LiveView READY/FIGHTING badge — real bug fixed 2026-07-12, needs
-      live confirmation.** Per Steven ("the ready flag does not update
-      when fighting"). `L.data()` read `fighting`/`riding`/`flying` from
-      `live` (`MyDSL.DB.live`), which only ever has
-      hp/maxhp/mana/maxmana/move/maxmove/name/level — those 3 fields only
-      exist on `score` (`MyDSL.DB.score`, correctly GMCP-sourced from
-      `char.is_fighting`/`is_riding`/`is_flying`). `identityLine()`'s
-      badge reads `d.fighting` directly, so it was permanently nil — the
-      badge could never show FIGHTING regardless of actual combat state.
-      Fixed by reading all 3 from `score` instead. `riding`/`flying`
-      aren't consumed by any renderer currently (confirmed via grep) —
-      fixed for correctness, not a second visible bug.
-- [ ] **History adaptive word wrap — added 2026-07-12, needs live
-      confirmation.** Per Steven ("history needs adaptive word wrap, so
-      it text wraps with the size of the window"). Real Mudlet API,
-      confirmed via its own bundled `GeyserMiniConsole.lua`:
-      `enableAutoWrap()` computes wrap width from the console's current
-      pixel width/font width, and `MiniConsole:reposition()` (called
-      automatically on resize) already recalculates it — no extra resize
-      wiring needed. Applied to History only (`MyDSL_RouteHelper.lua`),
-      not the other routed windows.
-- [ ] **Window edge padding — reverted 2026-07-12, needs Steven's call on
-      the real tradeoff.** Both the right-inset and the corrected
-      left-inset (`MyDSL_RouteHelper.lua`'s shared console, x/width
-      shift) moved the whole console widget rather than adding true
-      text margin — since the console paints its own solid background
-      via `setColor()`, separate from the panel behind it, shifting its
-      position exposed the panel's background as a visible seam that
-      read as a second border moving, not padding. Steven confirmed
-      that's not what he wanted. Checked for a clean fix: no,
-      `Geyser.MiniConsole` doesn't support `setStyleSheet()`/CSS padding
-      (same finding as `MyDSL_LiveView.lua`'s `resizeExitsCon()`), and
-      Mudlet's own console API has no native inner-margin primitive.
-      True "text inset, same continuous background" would mean
-      prepending real space characters to every routed line in
-      `Route.to()` instead — feasible in principle (single shared
-      function) but untested for the move-current-line path (`copy()` +
-      `appendBuffer()`, which pastes the whole line as one unit — unclear
-      whether a separately-echoed leading space would land inline on the
-      same line or force its own line without live testing). Reverted to
-      full-bleed (`x=0, width=100%`) pending Steven's decision: drop this
-      ask, or try the text-prepending approach with his live testing to
-      verify it behaves.
-- [ ] **Alterform timer repositioned — added 2026-07-12, needs live
-      confirmation.** Per Steven ("move the timer to a more visible
-      location like bottom above the cycle counter"). Confirmed the
-      exact target layout via AskUserQuestion before building: shrunk
-      the tube (52% → 38% tall) to make room for the countdown as its
-      own distinct text row, clear of the tube graphic, sitting directly
-      above the cycle-count row. `MyDSL_AlterformView.lua`'s fill-percent
-      math updated to match the tube's new dimensions.
-- [ ] **Location image filenames standardized — added 2026-07-12, needs
-      live confirmation.** Per Steven ("id like to be able to match the
-      room name and file without appending _ for spaces, then rename all
-      the files to match"). `M.fileForRoom()`
-      (`MyDSL_LocationView.lua`) now uses the literal room name (spaces,
-      apostrophes, capitalization preserved), only stripping genuinely
-      filesystem-illegal characters — was underscore-joined +
-      alphanumeric-only. `candidatePathsForRoom()`'s lookup order flipped
-      to match (new convention tried first, old underscore convention
-      kept only as a fallback). Renamed all 248 files in
-      `MyDSL/roompics/` down to 215: 117 straight underscore→space
-      renames, 32 exact-duplicate pairs deduped (byte-identical content,
-      kept the space-named one), and 3 pairs needed a real decision —
-      Steven's rule ("if renaming with duplicates, take the latest file
-      and overwrite") resolved all 3: 2 were identical-content
-      case-only duplicates (`east_mystic_crystal_fields.png` /
-      `East_Mystic_Crystal_Fields.png` and `extreme_cases.png` /
-      `Extreme_Cases.png`), 1 (`The_wing_of_the_Stone_Dragon.png` /
-      `The_Wing_of_the_Stone_Dragon.png`) was genuinely different
-      content, ~6 days apart — kept the later (2026-07-03) capture per
-      the rule. Image files themselves are gitignored (runtime data),
-      only the code change is tracked.
-- [ ] **LiveView in-game age display — added 2026-07-12, needs live
-      confirmation.** Per Steven ("looks at score creation date and uses
-      in-game time to tell you when your ingame birthday is and ingame
-      age"), confirmed via AskUserQuestion to build the "in-game
-      calendar math" version specifically (approximate is fine — day/
-      month *names* aren't continuous across resets). DSL's real-time-to
-      -game-time ratio isn't documented anywhere — empirically derived
-      from the full `log/` archive: exactly 10 distinct month names ever
-      appear across the whole corpus (10 months/year), day numbers run
-      1–35 before rolling over (35 days/month), and ~35 real minutes = 1
-      in-game day (trimmed mean of 64 clean single-day-step samples
-      timestamped against real log mtimes). Parses `score`'s `Created:`
-      line (both the current full-date format and an older bare-numeric
-      form seen in some captures) in `MyDSL_DataLayer.lua`, bridges the
-      timestamp through `MyDSL_DataBridge.lua`, computes the age fresh
-      on every render in `MyDSL_LiveView.lua` (`ageText()`, same
-      store-the-anchor pattern as `improveLiveText()`). Added to the
-      identity row per Steven's placement choice — which also meant
-      fixing a real space problem he flagged: the `Religion:` (god)
-      field was capturing the full trailing title text
-      (`"Cliath -=- the God of Creation -=-"`) instead of just the name,
-      overflowing the row. Fixed to capture just the name (every real
-      god name confirmed single-word, cross-checked against
-      `DSL_Helpfiles`), freeing the space age now uses. Font size fixed
-      same day (was the small badge size, now matches the rest of the
-      row).
-- [ ] **MoonWeather weather line — added 2026-07-12, needs live
-      confirmation.** Per Steven ("across all the logs do we have enough
-      weather info to add it to the top of the moonweather window above
-      the moon images... need suggestions"). Data side already existed —
-      `MyDSL_DataLayer.lua`'s `parseWeatherLine()` has captured
-      `MyDSL.State.weather.description` from the real `weather` command
-      for a while, and MoonWeather already listened for
-      `MyDSL.weather.updated` to re-render — it just never read the text
-      anywhere. Confirmed real taxonomy via corpus grep across 101
-      captured `weather` outputs: Clear/Scattered clouds/
-      Lightning-Storm/Rain/Sleet/Snow, each with day and night wording.
-      Presented 3 display options via AskUserQuestion; Steven picked
-      symbol + short label. Added `buildWeatherText()`
-      (`MyDSL_MoonWeather.lua`), a new row above the moon circles,
-      row-height proportions rebalanced (was 50/20/30, now
-      12/44/18/26) to fit it. **Icon fix, same day**: Steven reported
-      "no icons" live — root cause was 🌧/🌨 (Unicode's newer
-      "Supplemental Symbols and Pictographs" block, 2014) not having
-      guaranteed font coverage on Linux; switched the whole set to the
-      much older, near-universal "Miscellaneous Symbols"/"Dingbats"
-      blocks (1993–1999) — same family as ⚡/❄/☀/⛅/☁, which were already
-      confirmed working. Sleet now reuses the snow symbol (text label
-      disambiguates); clear-night switched ✨→☆ for the same font-age
-      reason. **Wind added, same day**, per Steven ("wind should be
-      captured. clouds, clear, rain, gold [cold] breeze, temperate wind,
-      etc"). Confirmed complete taxonomy via corpus grep — 96 real
-      samples across the full `log/` archive (193 files): temperature
-      {cold, temperate, warm}, strength {gentle, moderate}, direction
-      {north, south, east, west}, plus a calm/no-wind form — no other
-      values found anywhere. New `MyDSL.extractWindClause()`
-      (`MyDSL_DataLayer.lua`) pulls the wind portion out of the same
-      sentence `parseWeatherLine()` already captures (covers the
-      standard comma-joined form, confirmed 53/53 real samples); a
-      narrow second trigger catches the rare period-joined continuation
-      case (0 historical occurrences, but confirmed real live) without
-      overwriting the precipitation description already captured.
-      `MoonWeather`'s `windLabel()` renders it as a compact 2-word label
-      (e.g. `Cold Breeze`) appended after the precipitation icon+label.
-      Live-confirmed working — screenshot showed `Cloudy • Cold Breeze`
-      with the wind label exactly right, but caught a second icon-font
-      miss: ⛅ (Cloudy/day) showed no glyph at all, same failure mode as
-      the earlier 🌧. Traced the actual cause this time instead of
-      re-guessing: ⛅ (U+26C5) is Unicode 5.2 (2009), wrongly grouped
-      earlier with the genuinely old (1993) ☀/☁/❄/☂/☆ — verified all 5 of
-      those individually via compart.com this time, all real Unicode 1.1.
-      Fixed by using plain ☁ for both day and night Cloudy (no old-block
-      day-specific sun+cloud glyph exists). ⚡ (Storm) is Unicode 4.0
-      (2003) — probably fine, but genuinely not yet live-tested (no storm
-      weather hit during testing) — flagged, not swapped preemptively.
-- [ ] **TickView countdown repositioned — added 2026-07-15, needs live
-      confirmation.** Per Steven ("move tick timer countdown lower like
-      alterforms"). Applied the same layout rework AlterformView got
-      2026-07-12: tube 52%→38% tall, fill max 46→32, countdown row
-      43%→62%, detail row 75%→78%. `MyDSL_TickView.lua`.
-- [ ] **LiveView vitals-bar font bumped 8→9, needs live confirmation.** Per
-      Steven ("would like the vitals bar text on either side to be larger
-      (font 9?). HP/Mana/Move and hp/hpmax, mana/manamax, move,movemax. im
-      only changing font size nothing else in there"). `barFont` already
-      had a live-adjustable control (`mydsl live barfont <n>`, clamped
-      6-14) — this is the same value that alias sets, so "font 9" was
-      taken to mean that control's raw value. Changed the default
-      (`MyDSL_LiveView.lua`) from 8→9 and the already-persisted value in
-      `MyDSL/live_settings.lua` (which would otherwise have overridden the
-      new default on next load) from 8→9. No other styling touched, per
-      Steven's explicit scope limit.
-- [ ] **RightHere Known/Seen/Unknown mob tagging + name accuracy — added
-      2026-07-12, needs live confirmation.** Per Steven ("as we identify
-      mobs, it should create a table to look up and find more accurate
-      tags for targets... mob names are the most important... if we need
-      to use an identifier alias, where we look then creaturelore, that
-      could be an option"). Corpus research first: extracted 30 real
-      `look`-vs-`scan` mob text pairs, confirmed the common case (plain
-      unnamed mobs) already matches word-for-word after normalization, and
-      that DSL's own target keyword matching only uses the *last word* of
-      whatever name is sent (`commandArg()`, `MyDSL_TargetView.lua`) — so
-      most surface-level wording differences don't actually change the
-      command sent. Real divergence is narrower: named NPCs (deprioritized
-      per Steven — "shopkeepers are not important") and generic/truncated
-      `look` descriptions for mobs DSL never names specifically in room
-      text (e.g. "A gnome is here using levers..." never says which gnome
-      type). Found and adapted a prior *working* implementation for
-      exactly this from the `DSL1` sibling profile's
-      `MyDSL.CreatureDB`/`MyDSL.TargetCompact` (embedded in its
-      `current/*.xml`): a single table classifies each mob as "known" (has
-      real lore data), "seen" (sighted via look/scan, never lored), or
-      "unknown" (no record) — derived from field presence, not a separate
-      flag. Reused our own already-existing, already-persistent, already-
-      shared `MyDSL_CreatureLore.lua` DB for this instead of building a
-      second table: added `CL.hasLore()`/`CL.knownState()`/`CL.markSeen()`.
-      `MyDSL_DataLayer.lua`'s `parseLookHereLine()`/`parseScanLine()` now
-      call `markSeen()` for every mob capture, and resolve to
-      CreatureLore's stored name (`resolveMobName()`) whenever that mob is
-      "known" — this is what actually improves targeting accuracy, since a
-      known name came from a real successful `lore` cast. Never guesses
-      between multiple possible matches for a generic/truncated name (per
-      Steven: "if we are unable to guess then a generic is better than
-      none") — falls back to the captured text unchanged whenever there's
-      no confirmed "known" match. `MyDSL_ScanView.lua`'s RightHere render
-      now shows a colored `[Known]`/`[Seen]`/`[Unknown]` badge per mob,
-      same color scheme as the DSL1 reference (green/cyan/yellow).
-- [ ] **PortraitView + LocationView: real image-scaling renderer built,
-      default settled on "stretch," fixed 2026-07-12, needs live
-      confirmation.** Per Steven ("the portrait is supposed to shrink
-      kien's .png to fit the window") after screenshots showed a tiny,
-      blown-up corner of the image instead of the whole picture. Root
-      cause (both modules — `MyDSL_LocationView.lua`'s own header
-      comment confirms it copied Portrait's approach verbatim):
-      `imageStyleFill()`'s `border-image: url(...)` CSS paints into the
-      *border* area (a 9-slice UI-frame technique), not the label's
-      content area — without matching `border-image-slice`/width values
-      it never actually scaled the picture to fit, on any Mudlet
-      version. Built two real renderers using genuine Mudlet/Geyser
-      APIs — `getImageSize(path)` (native pixel dimensions) and
-      `label:get_width()/get_height()` (live rendered pixel size) —
-      drawn via an `<img>` tag through `label:echo()` (the same
-      mechanism `MyDSL_MoonWeather.lua` already uses for its moon icons,
-      a completely different Mudlet pathway from `setBackgroundImage()`,
-      unaffected by whatever that old renderer was working around):
-      `containImageHTML()` (aspect-preserving shrink-to-fit, letterboxed)
-      and `stretchImageHTML()` (fills the box exactly, distorts
-      proportions if needed). Steven tried `contain` live first and
-      preferred the old fill-the-window look ("i prefer the old images
-      stretching to fill, not fond of this border lookin location and
-      portrait"), so default `fit` settled on `"stretch"` — changed in
-      both modules' in-code default, `MyDSL_LocationView.lua`'s
-      `loadProfiles()` fallback, and both already-persisted settings
-      files (`MyDSL/portraits/portrait_profiles.lua`,
-      `MyDSL/roompics/location_profiles.lua`). `cover` still uses the
-      old, confirmed-unreliable border-image renderer — not redesigned
-      this pass.
-- [ ] **TargetView stat block: same %-12s padding bug found, fixed
-      2026-07-12, needs live confirmation.** Per screenshot ("Race: tinker
-      gnomeLvl: 45", no space). `%-12s` only guarantees a *minimum* width
-      — "tinker gnome" is exactly 12 characters, so it got zero trailing
-      padding and ran straight into "Lvl:". Widened to `%-14s`.
-- [ ] **LiveView room-title wrap, fixed 2026-07-12, needs live
-      confirmation.** Per Steven ("room title line wraps, it needs to
-      not, and spread across the top row, thats why its so long"). The
-      room-title Label was only `width="80%"`, with the remaining 20% of
-      that row sitting unused (nothing else shares y="2%") — widened to
-      `96%`, matching the row below's/hRule's own established 2%-margin
-      convention in this file.
-      `splitRoomName()`'s manual `<br>`-based line-break threshold (which
-      deliberately split any name over 34 characters onto a second line)
-      raised to 60, since every real room name observed live this session
-      (e.g. "A Path To The Mystic Crystal Fields", 36 chars) is
-      comfortably under that with the wider row — the split logic still
-      exists as a genuine safety net for a name actually too long to fit,
-      not the normal case anymore.
-- [ ] **PlayersNear spacing tightened — real bug fixed 2026-07-12, needs
-      live confirmation.** First version of `routePlayersNearBodyLine()`
-      called `selectSection()`/`copy()`/`con:appendBuffer()` TWICE (name,
-      then room) with a `con:echo("  ")` in between, to join them on one
-      line — Steven reported this live as "players near you has room
-      names in it," screenshots showing the name and room as two stacked
-      lines with no visible gap. Root cause confirmed via the Mudlet
-      forums: `appendBuffer()` always lands its copied text as its own
-      new line in the destination console — it can't be called twice to
-      build up one combined line, regardless of `echo()` calls in
-      between. Every other `Route.to()`-based window only ever calls
-      copy()+appendBuffer() once per line for exactly this reason. Fixed
-      by tightening the gap **in place on the source line** first
-      (`selectSection()` the whitespace-only gap substring, `replace("  ")`
-      it) — real whitespace edited, name/room text and coloring
-      untouched — then doing the normal single-shot
-      `selectCurrentLine()`/`copy()`/`appendBuffer()` via
-      `MyDSL.Route.players(nil)`, same as every other routed window.
-- [ ] **Bestiary window not refreshing on target switch — real bug fixed
-      2026-07-12, needs live confirmation.** Per Steven ("the targetview
-      bestiary stats updated from creaturelore but the bestiary window
-      shows no health/mana. is creaturelore saving to the right place?").
-      Confirmed the DB was NOT the problem — read
-      `MyDSL/creaturelore_db.lua` directly, the "mage" record had real
-      `hp`/`magic` fields matching what Focus displayed. The actual gap:
-      `MyDSL_CreatureReference.lua` only ever redrew on
-      `MyDSL.creaturelore.updated` (right after a fresh `creaturelore
-      <name>` capture) — unlike Focus (`MyDSL_TargetView.lua`), which
-      also redraws on `MyDSL.target.updated` and every `Timers.Slow` tick.
-      So simply selecting a target that already had lore stored from an
-      earlier capture/session correctly showed in Focus but never made
-      Bestiary redraw at all. Added `CR.onTargetUpdate()` + a
-      `MyDSL.target.updated` listener, calling `CR.render(t.name)` (or
-      `CR.render(nil)` on clear) — deliberately does NOT auto-show the
-      window on a mere target switch, only keeps content in sync for
-      whenever it's already open or shown later.
-- [ ] **Shatteredarchive.com maps** — Steven's original bestiary-import
-      request also mentioned "there are items on the website and maps as
-      well" — the bestiary half is done and confirmed
-      (`docs/CHANGELOG.md`); the maps haven't been looked at yet. Needs
-      its own scoping pass (what format, whether it's per-area images
-      like `MyDSL_LocationView.lua`'s room pictures or something else).
-- [ ] **Bestiary show/hide fixed, needs live confirmation.** Per Steven
-      ("bestiary show doesnt work, no window i can see"). `CR.show()`/
-      `CR.hide()`/the auto-show-on-lore-update path all called the raw
-      Geyser window's own `:show()`/`:hide()` directly, never touching
-      `MyDSL.Windows.registry[CR_WIN].visible` — the exact same "own
-      local visibility tracking, independent of WindowRegistry's real
-      state" bug already found and fixed in `MyDSL_MoonWeather.lua`
-      2026-07-11 — so whatever re-syncs windows to their registry-tracked
-      state (e.g. on character-identified) kept finding `visible` stuck
-      at its default `false` and hiding the window right back. `hide()`
-      was worse: it looked up `MyDSL.Windows.windows[CR_WIN]`, a table
-      that's never defined anywhere in `MyDSL_WindowRegistry.lua`
-      (confirmed via grep — referenced in two files, created in none),
-      so it silently did nothing every time regardless. Delegated
-      entirely to `MyDSL.Windows.show()`/`hide()` (same fix pattern as
-      MoonWeather). Confirmed the identical dead `MyDSL.Windows.windows`
-      reference also exists in `MyDSL_PortraitView.lua` but is harmless
-      there — every call site uses `getWindowObject() or P.window`, so
-      the fallback always saves it — not touched.
-- [ ] CharacterAssist: rearm (weapon+shield), spellup/setspell,
-      blind-vision check.
+- [ ] CharacterAssist: rearm (weapon+shield) — spellup/setspell and the
+      blind-vision check are confirmed working (2026-07-15); rearm itself
+      hasn't been separately confirmed yet.
+- [ ] **New: `MyDSL_AutoWhere.lua`, built 2026-07-16, both manual wiring
+      steps confirmed done, needs live confirmation.** Per Steven ("roll
+      autowhere into mydsl but improve it so it pays attention to states
+      like sleeping, fighting, blind etc (any time it doesnt work)").
+      Replaces Steven's native "(autowhere) AutoWhere" alias (plain
+      `send("where")` on a fixed 20s timer, no state awareness) — new
+      version skips a tick while `MyDSL.State.char.posn == "Sleeping"`,
+      `is_fighting == true`, or `MyDSL.CharacterAssist.checkVision() ~=
+      "can see"` (reused directly from `MyDSL_CharacterAssist.lua`'s own
+      confirmed vision check, exported for this — was `local`, now
+      `CA.checkVision()`). Same command vocabulary as the native version
+      (`autowhere on|off|status`), same class of user-toggled assistive
+      automation as CharacterAssist's rearm/spellup (not a new exception
+      to "never send automatic commands" — the player still explicitly
+      turns it on). Syntax-checked via luajit. Both manual steps confirmed
+      live in `current/2026-07-16#15-38-37.xml`: the `MyDSL_AutoWhere`
+      Script entry is `isActive="yes"` (correctly after
+      `MyDSL_WindowRegistry`/`MyDSL_ThemeEngine` in the load order), and
+      the native "(autowhere) AutoWhere" alias is now `isActive="no"`.
+      Ready to actually test in-game. Sleeping/fighting/blind skip
+      conditions are per Steven's own direct in-game knowledge, not
+      independently log-corpus-confirmed — flag if another state turns
+      out to need a skip too.
 
 ---
 
@@ -389,21 +63,61 @@ Per-swing main-console display, evasion triggers, both death-line forms,
 weapon-flag proc attribution, and the PNP-faithful display rewrite are all
 confirmed correct (code review + a real live fight, 2026-07-11) — see
 `CHANGELOG.md`. Still open:
-- [ ] Itemstat interference with `$`-anchored combat regex — real,
-      native-XML system, confirmed decorating `eq`/`in` output client-side.
-      Not proven to break combat triggers yet. Sequencing risk to
-      remember when Layer 4 (reference library) is picked up, since our
-      equipment parser currently depends on itemstats for stat data.
-- [ ] **DEFERRED: Algoron Combat League (AGL) / Coliseum combat module** —
-      new idea, not scoped. Coliseum/AGL combat should be captured
-      separately, in a large window with 4 floating sub-windows at the
-      cardinal positions matching the Coliseum's wall echoes. Groundwork
-      (bracket-prefix format, applicable procs) already gathered from this
-      session's investigation — see CHANGELOG.
-- [ ] Discuss once combat is fully confirmed (deliberately deferred, per
-      Steven: "make it work like PNP, then discuss the additions"):
-      whether `renderSummary()`'s persistent "Fight summary" block (our
-      own addition, no PNP equivalent) should match PNP's sentence style.
+- [ ] **DEFERRED, per Steven ("we can wait a bit longer on")**: Algoron
+      Combat League (AGL) / Coliseum combat module — new idea, not
+      scoped. Coliseum/AGL combat should be captured separately, in a
+      large window with 4 floating sub-windows at the cardinal positions
+      matching the Coliseum's wall echoes. Groundwork (bracket-prefix
+      format, applicable procs) already gathered — see CHANGELOG.
+- [ ] **Fight-summary conclusiveness — checked 2026-07-16, per Steven
+      ("stat block is fine as long as it reports all combat actions and
+      spells/skills used with landing %, just want to be sure its
+      conclusive").** Real, evidence-based picture, not a guess:
+      - **Confirmed captured, no gap**: any skill/attack whose DSL text
+        uses the same "attacker's `<noun>` `<intensity-verb>`s target"
+        grammar as regular weapon swings is already captured by the one
+        unified `combatDamage` trigger, with the skill name simply
+        appearing as the noun — confirmed via real corpus text
+        (`log/clog1`): "Coenin's backstab maims Zecnys!" matches this
+        shape exactly, so backstab damage already flows into
+        `renderSummary()`'s hit/miss/landing-% table today, no special
+        handling needed.
+      - **Confirmed NOT captured, and genuinely can't be from text
+        alone**: skills whose effect isn't a damage line at all (bash's
+        knockdown, trip, riot's rage buff, dirt-kick's blindness) —
+        checked their real native-XML flavor text, none of it has a
+        per-hit damage number in DSL's own output to begin with, so
+        there's nothing for a "landing %" to attach to for these.
+      - **Genuinely unconfirmed, the one real gap**: whether direct-
+        damage offensive spells use this same grammar or something else
+        entirely — searched the full `log/` corpus for every attack-spell
+        name in this game (shock bolt, firebolt, lightning bolt, magic
+        missile, etc.) and found zero real combat-damage examples, only
+        inventory/practice-list mentions. Can't confirm this is captured
+        OR that it's missing — needs an actual live fight where a damage
+        spell gets cast and logged, then a check of whether it shows up
+        in the summary afterward. Steven's call to keep the current
+        stat-block format stands; this is the one loose end on
+        "conclusive," not a redesign question.
+- [ ] **Double condition-line echo in combat — fixed 2026-07-16, needs
+      live confirmation.** Per Steven ("if its just a duplicate line lets
+      not duplicate it," after the item 7 explanation). Confirmed exactly
+      why: in condensed mode (the default), `parseCombatConditionLine()`'s
+      gag formula (`MyDSL_DataLayer.lua`) never deleted the raw DSL
+      condition line specifically BECAUSE `summarize_damage=true` was
+      excluded from the delete condition — the assumption being something
+      else would hide it, but nothing did, so the round-flush handler's
+      own `decho()`'d recap showed up right alongside the untouched
+      original. Confirmed via PNP's own source (`DSL_PNP_Battle.lua`
+      lines 315/414-415) this exact double-show has always been PNP's
+      own original behavior too, not something introduced here — fixing
+      it anyway per Steven's explicit call, diverging from PNP on this
+      one point. Fix: added `summarize_damage` into the delete
+      condition's OR clause, so the raw line is now deleted in condensed
+      mode too (only the recap shows). Raw mode is unaffected (nothing in
+      its OR clause is true, so nothing gets deleted there — same single
+      line as always); `show_condition=true` still overrides and forces
+      the raw line to stay, unchanged. Syntax-checked via luajit.
 
 ---
 
@@ -436,44 +150,28 @@ guessing at patterns with zero corpus evidence.
       still pay off even when the profile looks mostly like debug noise;
       sampling one large file isn't representative. Worth repeating for
       other specific phrases if this comes up again.
-- [ ] `autowhere` fires while sleeping — Steven's own alias, not ours; low
-      priority for us specifically.
-- [ ] **"None" leaking into main console every ~20s, fixed 2026-07-12,
-      needs live confirmation.** Steven: "something broke the autowhere
-      alias and it now displays none instead of gaging it." Not actually
-      an autowhere break, and not room-specific despite how it first
-      looked — confirmed via a log-corpus grep
-      (`log/2026-07-12#09-01-16.html`) that DSL's `where` command has a
-      second response shape: a bare standalone `"None"` line with no
-      `"Players near you:"` header at all when nobody else is nearby
-      (vs. the header + name/room lines when someone is). The existing
-      capture trigger only matches the header, so the empty case fell
-      straight through into the main console untouched on every
-      `autowhere` tick. Added a second trigger matching `^None$` (whole
-      line only, to minimize collision risk with any other real DSL text
-      that might legitimately be the standalone word "None" in an
-      unrelated context) that moves it into `MyDSL_PlayersNear` the same
-      way the header case already does — `MyDSL_DataLayer.lua`. Watch for
-      any other context where a bare "None" line legitimately means
-      something else and gets wrongly swallowed by this.
-- [ ] Murder/Consider/Order-All → "They're not here" on look-populated
-      wildlife targets — investigated, likely a genuine race (mob wanders
-      off between `look` populating RightHere and the command reaching
-      the server), not a TargetView name-matching bug. Not fully ruled
-      out.
+- [ ] **Murder/Consider/Order-All → "They're not here" — fixed 2026-07-16
+      (item 6 of Steven's "6/7 we can look into" → "proceed"), needs live
+      confirmation.** Real cause: identical mobs in a room collapse into
+      ONE RightHere entry with a `count` field (`parseLookHereLine()`,
+      `MyDSL_DataLayer.lua`), and nothing ever decremented/cleared it when
+      a mob in it died mid-fight — not room-change staleness (confirmed
+      `beginLook()` already clears `scan.rightHere` fresh on every room
+      redisplay), mid-fight staleness instead, persisting as long as the
+      player hasn't re-looked since a kill. Found the exact hook already
+      built for this: `parseCombatDeathLine()` already raises a dedicated
+      `"MyDSL.combat.died"` event with `{key, name}`, added 2026-07-11 so
+      Focus could auto-advance/clear its target on death — but RightHere
+      itself never listened for it. Added a listener in
+      `MyDSL_ScanView.lua`'s `SV.init()`: decrements `count` if >1, else
+      clears the entry entirely, then re-renders. Doesn't disambiguate
+      WHICH of several identical mobs died (RightHere has no per-instance
+      tracking, only a count) — decrements whichever entry's key matches,
+      which is the best available fix without a bigger redesign of how
+      RightHere stores duplicates. Syntax-checked via luajit.
 - [ ] "multiple mob health echoes in combat... one we create and one from
-      the game" — likely the same already-tracked discussion as the
-      `renderSummary()` "Fight summary" item above (TOP PRIORITY Combat),
-      not independently confirmed as a separate issue.
-
----
-
-## OPEN — Needs Steven's decision before building
-- [ ] Itemstat trigger retirement timing — see the Combat section note
-      above; just needs sequencing against Layer 4, not a decision now.
-- [ ] "Prompt Line 1" parsing — not scoped, low priority, likely fully
-      redundant with GMCP (`char_data.stance`/`language`/`is_flying`).
-      Only worth it if a flag turns up that GMCP doesn't cover.
+      the game" — see the "Double condition-line echo" item in the
+      Combat section above; fixed 2026-07-16, same discussion.
 
 ---
 
@@ -528,10 +226,12 @@ guessing at patterns with zero corpus evidence.
 ---
 
 ## DEFERRED — explicitly held, no new scope without Steven's go-ahead
-- [ ] **`MyDSL_PromptSetup.lua`** — built 2026-07-09, put down for later.
-      One-click DSL prompt setup for brand-new characters. Code exists,
-      committed, but has no `dofile()` entry. Full design writeup:
-      `docs/CHANGELOG.md`, commit `2ec4fb0`.
+- [ ] **Shatteredarchive.com maps** — Steven's original bestiary-import
+      request also mentioned "there are items on the website and maps as
+      well." The bestiary half is done and confirmed. Explicitly deferred
+      by Steven 2026-07-15. Needs its own scoping pass when picked back
+      up (what format, whether it's per-area images like
+      `MyDSL_LocationView.lua`'s room pictures or something else).
 - [ ] **Cross-profile master function/feature inventory** — walk every
       `.lua` file across every Mudlet profile on this machine, build one
       consolidated list. Large, multi-session scope, its own future
@@ -562,12 +262,28 @@ Timers. Real candidates for future integration, none urgent:
   low value.
 - **66 native Keys** (movement/scan/look bindings) — raw keybindings, not
   something MyDSL needs to mirror.
-- **~20 misc aliases** (`(inv)`, `(autowhere)`, attire-swap sets, etc.) —
-  fine as native aliases unless one becomes relevant to a window.
+- **~20 misc aliases** (`(inv)`, attire-swap sets, etc.) — fine as native
+  aliases unless one becomes relevant to a window. `(autowhere)` moved out
+  of this list 2026-07-16 — replaced by `MyDSL_AutoWhere.lua`, see NEEDS
+  LIVE CONFIRMATION.
 
 ---
 
 ## DECISIONS RECORDED
+- **Itemstat trigger retirement — sequencing confirmed 2026-07-16, per
+  Steven: "itemstat will retire when we have made the item identification
+  db and module."** Not proactively tracked as a live risk in the
+  meantime ("close, we will deal with it if it arises" — 2026-07-16) —
+  itemstat decorates `eq`/`in` output client-side and hasn't been proven
+  to actually break any combat trigger. Retires naturally once Layer 4
+  (the item reference library) replaces the equipment parser's current
+  dependency on itemstat for stat data — no separate decision needed
+  before then.
+- **"Prompt Line 1" parsing — dropped, confirmed 2026-07-16.** Per
+  Steven ("prompts are gaged even with quiet now") the scenario this was
+  meant to cover (needing to parse flags out of a leaking, un-gagged
+  prompt line) doesn't occur — prompt gagging already works correctly
+  with quiet mode active. Not pursuing this.
 - **Staying on Mudlet 4.20.1, not 4.21/4.22** — confirmed 2026-07-12 real
   upstream bug: `TMainConsole::getUserWindowSize()` (added by PR #9334)
   rejects a docked `UserWindow`'s real size as "suspicious shrinkage"

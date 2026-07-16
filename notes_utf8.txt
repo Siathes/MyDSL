@@ -40,6 +40,10 @@ room title line wraps, it needs to not, and spread across the top row, thats why
 
 my next task is going to be the item identification. if this isnt too out of sequence id like to do the item database. start in game to get all your patterns, then import from the site/knowledgebase when sure the imprt works and displays in game. same as we did with bestiary/creaturelore
 
+setspell not working
+
+in the affects window the top 2 affects cant be clicked to cast on, the 2nd line anf below work
+
 ========== IDEAS ==========
 
 
