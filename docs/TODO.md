@@ -29,6 +29,52 @@ Fixed in code, verified via syntax checks and/or emulation — none of this
 is closed until Steven confirms it in-game. Full technical detail for any
 item: `git log --oneline` + `docs/CHANGELOG.md`.
 
+- [ ] **New: Layer 4 item identification, first slice, built 2026-07-16 —
+      dofile() steps confirmed done (inferred live: an error surfaced
+      from inside `MyDSL_ItemReference.lua`'s own event handler, which
+      only fires if the module loaded and the identify/lore capture
+      already worked end-to-end), one real bug found and fixed same day,
+      needs a clean live confirmation now.** Real bug: `MyDSL_
+      ItemReference.lua`'s `itemKey()` called a bare `trim()` assuming it
+      was a shared global -- it isn't; every file in this profile that
+      needs `trim()` defines its own local copy (confirmed via grep,
+      ~10+ files), and this new file never did. Fixed by dropping the
+      trim() call entirely -- confirmed `MyDSL_CreatureReference.lua`'s
+      own equivalent normalization doesn't trim either, every real caller
+      already passes an already-clean string. Per Steven ("it
+      should use the skill lore, and the spell identify to fill a
+      database of items stats in game... hover over items for the
+      stats?... a bestiary window type for items?" — answer: both).
+      New `MyDSL_ItemLore.lua` (persistent DB, directly modeled on
+      `MyDSL_CreatureLore.lua`'s proven merge pattern — a later `lore`
+      capture can never downgrade an already-`identify`d item back to
+      partial, confirmed both by design and by a structural test, since
+      `lore`'s own parsed record simply never includes the bonus/enchant
+      fields `identify` does). New `identify`/`lore <item>` capture
+      state machines in `MyDSL_DataLayer.lua`, patterns validated against
+      real captured transcripts (not guessed) via an emulation test
+      before touching real data. New `MyDSL_ItemReference.lua` (Item
+      Reference window, Bestiary's own pattern, full `item <name>|show|
+      hide|status|rebuild|font <n>` family from day one). One-time
+      scrape import from `shatteredarchive.com/items/all-items`
+      (6,085 unique items after dedup) into `MyDSL/item_scrape_import.lua`
+      + `mydsl itemlore import` alias, dry-run validated. Equipment
+      listings in the main console now get a hover tooltip (quick stats)
+      + click (opens Item Reference) on the item name itself, via
+      `selectString()`/`setLink()` — same technique `MyDSL_AffectsView.lua`
+      already uses, chosen specifically because it never touches the
+      game's own text/color (confirmed decho/cecho reconstruction would
+      have discarded the original ANSI coloring). All new/edited files
+      syntax-checked via luajit. **Deliberately NOT in this pass**
+      (each is a net-new capture pipeline, not a retrofit, comparable in
+      size to this whole pass again): inventory (`inv`/`i`) capture +
+      hover, room-floor-item capture + hover, and the native 318-item
+      `itemstats` table as a supplementary import (needs Steven's help
+      decoding its notation first). **Needs Steven to add `dofile(...)`
+      Script entries for `MyDSL_ItemLore.lua` and
+      `MyDSL_ItemReference.lua`** (same class of step as Help/
+      PromptSetup/AutoWhere before them) — neither `identify`/`lore`
+      captures nor `item <name>` will do anything until that's done.
 - [ ] CharacterAssist: rearm (weapon+shield) — spellup/setspell and the
       blind-vision check are confirmed working (2026-07-15); rearm itself
       hasn't been separately confirmed yet.
@@ -172,6 +218,85 @@ guessing at patterns with zero corpus evidence.
 - [ ] "multiple mob health echoes in combat... one we create and one from
       the game" — see the "Double condition-line echo" item in the
       Combat section above; fixed 2026-07-16, same discussion.
+- [ ] **Affects window: top row not clickable to recast — fixed
+      2026-07-16, needs live confirmation.** Reported by Steven ("top 2
+      affect lines not clickable, 2nd line and below work"). Root cause:
+      `A.applyLinks()`'s window-scan loop (`MyDSL_AffectsView.lua`) started
+      at `index = 1`, a value ported verbatim from PNP's own
+      `make_links()` (`PNP files/DSL_PNP_Affects.lua`) — but PNP's
+      renderer prints a leading blank line + header row before any real
+      content (so PNP's row 0 is blank, `index=1` harmlessly starts on
+      the header). MyDSL's `A.display()` has no such header — `clearWin()`
+      is immediately followed by the first real affect row, so row 0 IS
+      content. Starting at 1 skipped it; with the default 2-column layout
+      that's the first two affects. Fixed: `index = 0`. Syntax-checked.
+- [ ] **Bloodbath chat never routed — fixed 2026-07-16, needs live
+      confirmation.** `MyDSL_ChatTriggers.lua`'s pattern required
+      "Bloodbath:" to start the line (`^\a?Bloodbath: '`); real format
+      (confirmed via log corpus) is always `<Name> Bloodbath: 'message'`
+      or `(Imm) <Name> Bloodbath: 'message'` — name always precedes the
+      verb, same shape as every other channel in this file. Fixed to
+      `^\a?(?:\(Imm\) )?[^']+ Bloodbath:[^']*'`, matching the established
+      style. Syntax-checked.
+- [ ] **`setspell` bare-command gives no usage feedback — fixed
+      2026-07-16, needs live confirmation.** Confirmed Steven's exact
+      case (2026-07-16): bare `setspell`, no args. Added
+      `CA._aliases.setSpellUsage` (`^setspell$`) calling
+      `setSpellInfo()` with no args, which already has a real usage
+      message (`ce("usage: setspell <bless|fireproof> <spell|wand|
+      skill> [name]")`) for malformed input — just wasn't reachable for
+      the zero-arg case before. Syntax-checked.
+- [ ] **Item Reference window sizing/position** — Steven wants it
+      compact, docked top-left corner; currently renders correctly
+      (confirmed via screenshot) but as a tall left-side tab alongside
+      Scan/Combat/Bestiary, larger than desired.
+- [ ] **Inventory hover — scope expansion, reverses the plan's original
+      "equipment only" deferral.** Steven: "you should be able to hover
+      over inventory items not just equipment... just worn or inventory I
+      think is fair" (ground-item identification explicitly still out of
+      scope). Confirmed reading (2026-07-16) of the "map" comment: same
+      concept as notes_utf8.txt's mob-name mapping idea — a ground-sighted
+      item description needs to resolve to the same ItemLore record as
+      the same item once picked up/worn/identified, since pickup and
+      identify don't always happen together or in order. Investigated the
+      real text shapes (`isLookFixtureLine()`, `MyDSL_DataLayer.lua`):
+      ground text is a full sentence wrapping the base item name — `"A
+      grand arcanium hoopak lies here."`, `"(Glowing) (Humming) A
+      Parrying dagger floats above the ground."` — while equip/identify
+      capture the bare name (`"a grand arcanium hoopak"`). The base noun
+      phrase looks shared between both once the sentence wrapper (leading
+      article+capital, parenthetical adjective flags, trailing "lies
+      here."/"floats above the ground."/etc.) is stripped — the same
+      normalization `itemKey()` already does for articles could likely
+      extend to strip the ground-sentence suffixes too, giving a real
+      (not coincidental) key match. Not yet verified against a
+      confirmed same-item ground+identify pair from the log corpus, and
+      not yet built — next step before implementing.
+- [ ] **Help window auto-shows on every profile load.** Registered
+      `visible=false` by default in `MyDSL_WindowRegistry.lua`, so this is
+      likely a persisted-state issue (a prior test session left it
+      visible and `MyDSL.Windows.saveState()` saved that) rather than a
+      code default bug — not yet investigated.
+- [ ] **LiveView's "age" field is mislabeled — it isn't DSL's real age
+      stat.** Steven corrected 2026-07-16: "the age skill and the years
+      line in score are connected and set age in game" (see
+      `DSL_Helpfiles/age.txt` — age is a roleplay-only stat, set by
+      `practice age` at a trainer, never decreases, never auto-advances;
+      `MyDSL_DataLayer.lua`'s score parser already captures the real
+      value as `scoreBlock.years`, confirmed live in `log/*.html`, e.g.
+      `YEARS: 037`, but it's never displayed anywhere). `ageText()`
+      (`MyDSL_LiveView.lua:377`) computes a completely different number
+      — elapsed real-world time since character creation, converted via
+      an empirically-derived ratio — which was built intentionally
+      2026-07-12 per Steven's own spec at the time ("uses in-game time to
+      tell you when your ingame birthday is"), not a miscalculation: the
+      math is internally correct for what it does (verified 49y4m against
+      Kien's real creation timestamp). The bug is presenting that number
+      under the label "age" next to a character whose actual DSL age
+      (from `YEARS:`) is a different, real, already-captured number.
+      Needs Steven's call: relabel the current field (e.g. "played") and
+      leave it as-is, add the real `scoreBlock.years` value alongside it,
+      or replace it outright — not fixed yet, no code changed.
 
 ---
 

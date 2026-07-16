@@ -13,36 +13,14 @@ look at making new maps like thalos's updated one use shattered book editor? (ma
 low level charcaters cant see timers for affects, can we add the affects without a timer and let them update with affects since we dont know when they fll off excpet through echosa
 
 ========== PROJECT NOTES ==========
-playersnearyou: can we reduce the space between the players name and the room, make the text tighter together for a smaller window without losing the coloring of the players name?
-
-check out stat command and vitality so we can track qinrathaz's dragon vitality stat (see help dragons)
 
 we will need a quest module, for a way to track the quest timer, location, item, and the rest of the quest info.
 
-across all the logs do we have enough weather info to add it to the top of the moonweather window above the moon images in a small 1-2 line, or maybe symbols to represent the weather? need suggestions
+as we identify mobs, it should create a table to look up and find more accurate tags for targets. example. when you walk in a room and look righthere populates with mobs in the room. however those mob names are inaccurate for targeting. If we created a table saying "A gnome machinist is here, replacing parts where needed." is the same as the scan "a gnome machinist" then using the propper scan name, the the populating of righthere would be much more affective and accurate. so like creaturelore needs to recognize a mob in the room and map it to a scan/creaturelore. the item on the ground needs a map to the inventory/equipment (we can discuss for clarity)
 
-fight summary for kien didnt capture his spells like faerie fire, weaken,poison
+item reference - lets compact the item reference window a little to fit in the top left corner, see screenshots. (hover/inventory-scope/map question moved to docs/TODO.md, needs a confirm on the "map" reading before scoping)
 
-alterform: move the timer to a more visible location like bottom above the cycle counter.
-
-it would be great if the location window took files without the "_" for spaces just regular name matches (but we would have to change all the current file names for consistency, i dont want half with psaces and half with "_"
-
-as we identify mobs, it should create a table to look up and find more accurate tags for targets. example. when you walk in a room and look righthere populates with mobs in the room. however those mob names are inaccurate for targeting. If we created a table saying "A gnome machinist is here, replacing parts where needed." is the same as the scan "a gnome machinist" then using the propper scan name, the the populating of righthere would be much more affective and accurate
-
-be cool to have an age counter in live view. looks at score creation date and uses in-game time to tell you when your ingame birthday is and ingame age
-
-is there a way to save both window positions, the docked shape size locations, then the undocked shape size and location. i want to be able to undock a window and have it expand so i can see pitures better, then when i push the redock button it goes back to place, and stays persistent acroos loads andcharacters
-
-would like the vitals bar text on either side to be larger (font 9?). HP/Mana/Move and hp/hpmax, mana/manamax, move,movemax. im only changing font size nothing else in there
-
-the moonweather bonus line is not acting right.
-room title line wraps, it needs to not, and spread across the top row, thats why its so long
-
-my next task is going to be the item identification. if this isnt too out of sequence id like to do the item database. start in game to get all your patterns, then import from the site/knowledgebase when sure the imprt works and displays in game. same as we did with bestiary/creaturelore
-
-setspell not working
-
-in the affects window the top 2 affects cant be clicked to cast on, the 2nd line anf below work
+help window pops up every load, suggestions to have it hide until needed?
 
 ========== IDEAS ==========
 
