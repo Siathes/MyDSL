@@ -683,7 +683,13 @@ function A.applyLinks()
   if type(A._linkTargets) ~= "table" then return false end
 
   local window = A.config.windowName
-  local index = 1
+  -- Row 0, not 1: unlike PNP's make_links() (PNP files/DSL_PNP_Affects.lua),
+  -- which prints a leading blank line + header before any affect rows (so
+  -- its row 0 is blank), A.display() clears the window and writes the first
+  -- affect row immediately -- row 0 here IS real content. Starting at 1
+  -- skipped it, which with the default 2-column layout meant the first two
+  -- affects were never clickable (found live 2026-07-16).
+  local index = 0
 
   while index <= 300 do
     local okMove, moved = pcall(moveCursor, window, 0, index)
