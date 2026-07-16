@@ -138,13 +138,16 @@ end
 
 CA._haveLight = true
 
-local function checkVision()
+-- Exported 2026-07-16 (was local) so MyDSL_AutoWhere.lua can reuse this
+-- exact confirmed check instead of re-deriving blindness detection.
+function CA.checkVision()
   local roomName = (MyDSL.State and MyDSL.State.room and MyDSL.State.room.name or ""):lower()
   if roomName == "darkness" then
     if CA._haveLight then return "blind" else return "no light" end
   end
   return "can see"
 end
+local checkVision = CA.checkVision
 
 
 ------------------------------------------------------------------------
