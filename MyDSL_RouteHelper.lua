@@ -163,6 +163,15 @@ end
 -- Also mirrors into MyDSL/logs/<category>/ (2026-07-05 -- same reasoning as
 -- CombatView/GroupView/ScanView/TargetView: Mudlet can't log a MiniConsole's
 -- content at all, see MyDSL_MudletAPIReference.md).
+--
+-- 2026-07-15: a moveCursor()+insertText() 1-character left-margin attempt
+-- was tried and reverted same day -- Steven confirmed live it produced no
+-- visible change at all (text still flush against the edge), and the ask
+-- itself was dropped as not worth chasing further ("this is not a big
+-- enough issue to chase... we will stick with text on the left edge").
+-- Don't re-attempt the same or a similar approach without a genuinely new
+-- angle -- this exact mechanism has now been disproven live, not just
+-- theorized about.
 function MyDSL.Route.to(windowName, line)
   local con = getOrCreateConsole(windowName)
   if not con then return end
