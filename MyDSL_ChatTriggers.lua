@@ -185,7 +185,12 @@ route("OOC", [[^\a?(?:You ask|[^']+ asks)[^']*']])
 route("OOC", [[^\a?[^']+ (?:answers|newbie)[^']*']])
 route("OOC", [[^\a?\[Newbie\]: ']])
 -- Bloodbath/Quest -- native bundles two forms; not "QUEST:" as guessed.
-route("OOC", [[^\a?Bloodbath: ']])
+-- Real format confirmed via log corpus 2026-07-16: "<Name> Bloodbath:
+-- 'message'" or "(Imm) <Name> Bloodbath: 'message'" -- name (with optional
+-- immortal prefix) always precedes "Bloodbath:", never the reverse, so the
+-- old pattern (requiring "Bloodbath:" to start the line) never matched a
+-- real message.
+route("OOC", [[^\a?(?:\(Imm\) )?[^']+ Bloodbath:[^']*']])
 route("OOC", [[^\a?[^']*quests[^']*']])
 
 debugc("[MyDSL] ChatTriggers loaded.")
