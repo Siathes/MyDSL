@@ -200,6 +200,33 @@ function SV.init()
     function() SV.render() end
   )
 
+  -- Decrement/clear the dying mob's RightHere entry -- added 2026-07-16,
+  -- per Steven ("proceed" on the investigated cause of Murder/Consider/
+  -- Order-All -> "They're not here" reports). Real gap found: identical
+  -- mobs collapse into ONE RightHere entry with a `count` field
+  -- (parseLookHereLine(), MyDSL_DataLayer.lua), but nothing ever
+  -- decremented it when a mob in it actually died mid-fight -- so a
+  -- stale count (not room-change staleness, mid-fight staleness) let a
+  -- player click a target that had already died since the last
+  -- look/scan. MyDSL_TargetView.lua already listens for this same
+  -- "MyDSL.combat.died" event to auto-advance/clear the Focus target,
+  -- but never touched RightHere's own data -- this is the missing half.
+  SV._handlers.combatDied = registerAnonymousEventHandler(
+    "MyDSL.combat.died",
+    function(_, payload)
+      local scan = MyDSL.State and MyDSL.State.scan
+      if not (scan and scan.rightHere and payload and payload.key) then return end
+      local entry = scan.rightHere[payload.key]
+      if not entry then return end
+      if (entry.count or 1) > 1 then
+        entry.count = entry.count - 1
+      else
+        scan.rightHere[payload.key] = nil
+      end
+      SV.render()
+    end
+  )
+
   -- Re-theme both consoles when the active theme switches.
   SV._handlers.themeChanged = registerAnonymousEventHandler(
     "MyDSL.theme.changed",

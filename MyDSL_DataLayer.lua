@@ -2585,9 +2585,25 @@ function MyDSL.parseCombatConditionLine(line)
     window = "<255,68,68>" .. name .. "<r> [" .. pct .. "]\n",
   }
 
-  -- Gag decision (PNP's exact formula).
+  -- Gag decision -- was PNP's exact formula (`(not show_condition) and
+  -- ((gag_combat or gag_non_damage) and (not summarize_damage))`), which
+  -- never deletes the raw line in condensed mode (summarize_damage=true)
+  -- specifically because the round-flush handler below is about to decho
+  -- its own colored copy of the same condition info -- confirmed this is
+  -- PNP's own original behavior too (DSL_PNP_Battle.lua, identical
+  -- formula), not a MyDSL-introduced bug, but Steven reported it live as
+  -- an unwanted duplicate ("one we create and one from the game... if
+  -- its just a duplicate line lets not duplicate it") and asked for it
+  -- fixed here specifically, diverging from PNP on this one point.
+  -- Fixed 2026-07-16: added summarize_damage to the OR clause, so the raw
+  -- line is now deleted in condensed mode too (only our own recap shows).
+  -- Raw mode is unaffected (gag_combat/gag_non_damage/summarize_damage
+  -- all false there, so this stays false and nothing is deleted -- the
+  -- one real condition line shows, same as always). show_condition still
+  -- overrides everything and forces the raw line to stay, per its own
+  -- documented purpose.
   local cfg = (MyDSL.CombatView and MyDSL.CombatView.config) or {}
-  if (not cfg.show_condition) and ((cfg.gag_combat or cfg.gag_non_damage) and (not cfg.summarize_damage)) then
+  if (not cfg.show_condition) and (cfg.gag_combat or cfg.gag_non_damage or cfg.summarize_damage) then
     deleteLine()
   end
 end
