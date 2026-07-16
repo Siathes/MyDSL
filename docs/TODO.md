@@ -196,6 +196,33 @@ guessing at patterns with zero corpus evidence.
       still pay off even when the profile looks mostly like debug noise;
       sampling one large file isn't representative. Worth repeating for
       other specific phrases if this comes up again.
+- [ ] **RightHere silently dropping mobs listed after an uncovered
+      item-flavor-text line — fixed 2026-07-16, needs live confirmation.**
+      Found via a structural trace of a real room-look
+      (`log/2026-07-16#17-23-54.html`), same recurring bug class fixed
+      three times before (2026-07-08/09) for different sentence
+      templates. `beginLook()`'s catch-all falls through
+      `isLookFixtureLine()` -> `parseLookHereLine()` ->
+      `isUnparsedPresenceLine()` -> (lowercase-start wrapped-continuation
+      check) -> `endLook()`. A line like `"This studded mace looks
+      particularly dangerous."` matches none of the first three (all
+      require "A"/"An"/"The" or a lies/lying/left/floats keyword) and
+      isn't lowercase either, so it hit `endLook()` and would have
+      silently dropped everything listed after it in that room —
+      confirmed via a structural test harness this would have included a
+      war mage and 3 novice mages at the end of the same listing. Fixed
+      the same way the last three rounds were: broadened
+      `isUnparsedPresenceLine()` to also treat lines starting with "This "
+      as a skippable presence line (mirrors the existing "A"/"An"/"The"
+      check exactly). Verified via a harness feeding all 43 real lines
+      from the log through the actual trigger chain — capture stays
+      active start to finish, and both the war mage and all 3 novice
+      mages land in the final `rightHere` table. Syntax-checked. (Note,
+      not fixed, pre-existing and out of scope: several item-flavor lines
+      that DO reach `parseLookHereLine()`'s broad fallback end up tagged
+      `is_mob=true` since `isMobName()` only checks for a leading
+      article — a known, already-documented trade-off in this code, not
+      something new.)
 - [ ] **Murder/Consider/Order-All → "They're not here" — fixed 2026-07-16
       (item 6 of Steven's "6/7 we can look into" → "proceed"), needs live
       confirmation.** Real cause: identical mobs in a room collapse into
@@ -254,24 +281,29 @@ guessing at patterns with zero corpus evidence.
       "equipment only" deferral.** Steven: "you should be able to hover
       over inventory items not just equipment... just worn or inventory I
       think is fair" (ground-item identification explicitly still out of
-      scope). Confirmed reading (2026-07-16) of the "map" comment: same
-      concept as notes_utf8.txt's mob-name mapping idea — a ground-sighted
-      item description needs to resolve to the same ItemLore record as
-      the same item once picked up/worn/identified, since pickup and
-      identify don't always happen together or in order. Investigated the
-      real text shapes (`isLookFixtureLine()`, `MyDSL_DataLayer.lua`):
-      ground text is a full sentence wrapping the base item name — `"A
-      grand arcanium hoopak lies here."`, `"(Glowing) (Humming) A
-      Parrying dagger floats above the ground."` — while equip/identify
-      capture the bare name (`"a grand arcanium hoopak"`). The base noun
-      phrase looks shared between both once the sentence wrapper (leading
-      article+capital, parenthetical adjective flags, trailing "lies
-      here."/"floats above the ground."/etc.) is stripped — the same
-      normalization `itemKey()` already does for articles could likely
-      extend to strip the ground-sentence suffixes too, giving a real
-      (not coincidental) key match. Not yet verified against a
-      confirmed same-item ground+identify pair from the log corpus, and
-      not yet built — next step before implementing.
+      scope).
+      **Ground-vs-inventory name mapping — answered empirically
+      2026-07-16, not built yet.** Steven asked directly whether there's
+      "a way to map the ground description and inventory description with
+      no real connection." Found a real answer key in
+      `log/2026-07-16#17-23-54.html`: a `get all` / `drop all` / `look`
+      sequence lists ~30 items' bare inventory name immediately next to
+      their room ground-sentence for the same item. Result: roughly 2/3
+      have a clean substring match once the sentence wrapper is stripped
+      (`"a decanter of endless water"` <-> `"A decanter of endless water
+      lies here."`), but a real fraction have no shared substring at all
+      — the ground text is sometimes an independently-written
+      description: `"a bag of holding"` -> `"A strange bag lays here..."`;
+      `"a shaping mallet"` -> `"A mallet used to shape metal..."`; `"a
+      soft felt cap"` -> `"A cap made of soft felt..."`; `"a scroll of
+      enchantment"` -> `"A scroll of magical enchantment..."`; `"a wand
+      of elm wood"` -> `"A wand made of polished elm..."`; `"a shark
+      tooth"` -> `"A tooth of some sort..."`. Honest answer: no, not
+      reliably for every item — a substring/keyword mapping would work
+      for most but should be built as a best-effort optional link (with a
+      way to manually confirm/correct), not assumed complete. Not yet
+      built — needs Steven's go-ahead on that framing before
+      implementing.
 - [ ] **Help window auto-shows on every profile load.** Registered
       `visible=false` by default in `MyDSL_WindowRegistry.lua`, so this is
       likely a persisted-state issue (a prior test session left it
