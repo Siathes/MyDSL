@@ -185,45 +185,9 @@ MyDSL._aliases.logCategoryToggle = tempAlias(
     end]]
 )
 
--- "mydsl help" -- added 2026-07-06. Steven typed this 6 times across
--- different sessions expecting a command list; no such alias existed, so
--- it fell straight through to the server as "Huh?" every time (found via
--- the log-corpus regression test: every "mydsl ..."/"toggle ..." line
--- immediately followed by "Huh?" in the corpus). Static list, not
--- generated from the live alias tree -- keep in sync by hand when a
--- module gains/loses a top-level command.
-function MyDSL.help()
-  echo("\nMyDSL commands:\n")
-  echo("  mydsl help                          -- this list\n")
-  echo("  mydsl log on|off                     -- window logging master switch\n")
-  echo("  mydsl log <category> on|off          -- per-category window logging\n")
-  echo("      categories: combat, chat, history (on by default);\n")
-  echo("      group, righthere, target, scan, bloodbath, playersnear (debug-only, off by default)\n")
-  echo("  mydsl rawlog on|off                  -- diagnostic raw-line capture\n")
-  echo("  mydsl chat <status|show|hide|clear|save|reload settings|rebuild|revive|font <n>|wrap ...|timestamp ...|echo ...|test ...>\n")
-  echo("  mydsl live <status|show|hide|rebuild|refresh|save|reload settings|font <n>|titlefont <n>|barfont <n>|title <text>|mode compact|full|layout>\n")
-  echo("  mydsl tickview <status|show|hide|rebuild|save|reload settings|font <n>|mode compact|full|title <text>>\n")
-  echo("  mydsl tick <status|reset|average <n>|window <n>|debug on|off>\n")
-  echo("  mydsl combat <clear|history|gag|ungag|hide <flag>|mode raw|condensed|gag|show <flag>>\n")
-  echo("  focus <name>                         -- set target (renamed from \"mydsl target\" 2026-07-11 -- bare \"target\" collides with a real swashbuckler skill)\n")
-  echo("  focus <clear|mobset ...|playerset ...|mobset reset|playerset reset|action ...>\n")
-  echo("  group <gag|ungag|quickset <k1> <k2>|quickset reset>\n")
-  echo("  scan <gag|ungag>\n")
-  echo("  bestiary <name|hide|show>\n")
-  echo("  mydsl location / mydsl loc [args]    -- also: roompic, locpic\n")
-  echo("  mydsl history font <n>               -- History window font size\n")
-  echo("  mydsl prompt [args]\n")
-  echo("  mydsl layout save                    -- saves current window layout (per profile)\n")
-  echo("  mydsl who <name>                     -- DslColors' known-person info (dslcolor show passthrough)\n")
-  echo("  mydsl test                           -- smoke test: module load / window / character-binding status\n")
-  echo("  toggle <module>                      -- PNP's universal on/off (combat, affects, moons, ...)\n")
-end
-
-if MyDSL._aliases.help then pcall(killAlias, MyDSL._aliases.help) end
-MyDSL._aliases.help = tempAlias(
-  "^mydsl help$",
-  [[MyDSL.help()]]
-)
+-- "mydsl help" -- moved to MyDSL_Help.lua 2026-07-15 (a full 3-level
+-- clickable help system, replacing this flat hand-maintained dump).
+-- MyDSL.help() and its alias are now defined there, not here.
 
 -- MyDSL.who(name) + "mydsl who <name>" -- added 2026-07-07 (Phase F
 -- follow-up). DslColors_Core_v1_0's `dslcolor show <name>` is real, live,
