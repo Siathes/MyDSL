@@ -465,6 +465,12 @@ end
 
 CA._aliases.rearm = tempAlias([[^rearm$]], [[MyDSL.CharacterAssist.rearm("full")]])
 CA._aliases.setSpell = tempAlias([[^setspell (\w+) (\w+)\s?([\w\s]*)$]], [[MyDSL.CharacterAssist.setSpellInfo(matches[2], matches[3], matches[4])]])
+-- Bare "setspell" (no args) didn't match the pattern above, so it fell
+-- through to the server as "Huh?" with no feedback -- confirmed live
+-- 2026-07-16 (Steven tried it by itself). setSpellInfo() already has a
+-- real usage message for malformed args; this just makes it reachable
+-- for the zero-arg case too.
+CA._aliases.setSpellUsage = tempAlias([[^setspell$]], [[MyDSL.CharacterAssist.setSpellInfo()]])
 CA._aliases.stopSpellup = tempAlias([[^stop spellup$]], [[MyDSL.CharacterAssist.stop()]])
 CA._aliases.spellup = tempAlias([[^(bless|fireproof) (\w+)\s?(\w*)$]], [[MyDSL.CharacterAssist.startSpellup(matches[2], matches[3] .. matches[4])]])
 CA._aliases.resumeSpellup = tempAlias([[^resume spellup$]], [[MyDSL.CharacterAssist.startSpellup(nil, nil, true)]])
