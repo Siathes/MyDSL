@@ -195,6 +195,16 @@ MyDSL.Help.modules = {
       { cmd = "mydsl creaturelore import", desc = "One-time bulk import of the shatteredarchive.com bestiary scrape into the lore database.", example = "mydsl creaturelore import" },
     },
   },
+  { key = "itemreference", title = "Item Reference", category = "Targeting & Group", window = "MyDSL_ItemReference",
+    summary = "Displays a stored item-stats record from identify/lore captures; shared across characters, auto-shows on new data.",
+    commands = {
+      { cmd = "item <name>", desc = "Look up an item (sends `identify <name>`) and show the window.", example = "item mace" },
+      { cmd = "item show / item hide / item status / item rebuild", desc = "Standard window controls.", example = "item show" },
+      { cmd = "item font <n>", desc = "Set the window's font size.", example = "item font 9" },
+      { cmd = "mydsl itemlore import", desc = "One-time bulk import of the shatteredarchive.com item-database scrape into the item DB.", example = "mydsl itemlore import" },
+      { cmd = "(hover on equipped items)", desc = "Equipped items in the main console's `eq` output show a hover tooltip with quick stats and a click to open Item Reference -- the original text is never altered.", example = "eq" },
+    },
+  },
 
   -- ---- Display & Reference ----
   { key = "chat", title = "Chat", category = "Display & Reference", window = "MyDSL_Chat",

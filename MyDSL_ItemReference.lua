@@ -1,0 +1,313 @@
+-- =============================================================================
+-- MyDSL_ItemReference.lua  --  Layer 4: Item lore/stats display
+-- =============================================================================
+-- Listens for "MyDSL.itemlore.updated" and renders the item record in the
+-- MyDSL_ItemReference window. Hidden by default, auto-shows on fresh
+-- identify/lore data. Never sends commands or modifies the DB. Directly
+-- modeled on MyDSL_CreatureReference.lua (Bestiary) -- same window-
+-- lifecycle pattern, same status/show/hide/rebuild/font command family
+-- from day one (matching the standard set 2026-07-15 for Scan/Group/
+-- Bestiary), same "DB first, live state as fallback" render logic.
+-- =============================================================================
+
+MyDSL                = MyDSL                or {}
+MyDSL.ItemReference  = MyDSL.ItemReference  or {}
+local IR = MyDSL.ItemReference
+
+for _, id in pairs(IR._handlers or {}) do pcall(killAnonymousEventHandler, id) end
+for _, id in pairs(IR._aliases  or {}) do pcall(killAlias, id) end
+
+IR._handlers = {}
+IR._aliases  = {}
+IR._mc       = IR._mc or {}
+
+local IR_WIN = "MyDSL_ItemReference"
+local IR_MC  = "MyDSL_ItemReference_MC"
+
+
+------------------------------------------------------------------------
+-- Local helpers
+------------------------------------------------------------------------
+
+local function hrule(char, width)
+  return string.rep(char or "─", width or 38)
+end
+
+-- No trim() here on purpose -- confirmed MyDSL_CreatureReference.lua's
+-- own equivalent normalization doesn't trim either (its render(name)
+-- just does name:lower():gsub(...) directly); every real caller already
+-- passes an already-clean string (an alias's matches[2], or rec.name
+-- from a merge event). Real bug found live 2026-07-16: this used to call
+-- a bare trim() assuming it was a shared global -- it isn't; every file
+-- in this profile that needs it defines its own local copy, and this
+-- file never did.
+local function itemKey(name)
+  return tostring(name or ""):lower():gsub("^[Aa]n? ", ""):gsub("^[Tt]he ", "")
+end
+
+
+------------------------------------------------------------------------
+-- render(name)  —  draws the item record for `name`
+------------------------------------------------------------------------
+-- DB first (MyDSL_ItemLore.lua), falls back to whichever live capture
+-- (MyDSL.State.itemlore) is most recent if the DB somehow has no entry
+-- yet (e.g. mid-capture, or DB failed to load) -- same fallback shape as
+-- CreatureReference.render().
+
+function IR.render(name)
+  clearWindow(IR_MC)
+  if not name or name == "" then
+    decho(IR_MC, "<68,68,68>No item selected.\n<r>")
+    return
+  end
+
+  local rec = nil
+  if MyDSL.ItemLore and MyDSL.ItemLore.get then
+    rec = MyDSL.ItemLore.get(itemKey(name))
+  end
+  if not rec then
+    rec = MyDSL.State.itemlore
+  end
+
+  decho(IR_MC, string.format("<68,68,68>%s\n<r>", hrule("─")))
+  decho(IR_MC, string.format("<255,255,153>%s<r>\n", name))
+  decho(IR_MC, string.format("<68,68,68>%s\n<r>", hrule("─")))
+
+  if not rec then
+    decho(IR_MC, "<136,136,136>No item data yet.\n<r>")
+    decho(IR_MC, "<102,102,102>Try `identify <name>` or `lore <name>` in-game.\n<r>")
+    decho(IR_MC, string.format("<68,68,68>%s\n<r>", hrule("─")))
+    return
+  end
+
+  -- Type / Level / Material
+  decho(IR_MC, string.format(
+    "<136,136,136>Type: <204,204,204>%-12s <136,136,136>Lvl: <204,204,204>%-4s <136,136,136>Material: <204,204,204>%s<r>\n",
+    rec.itemType or "?", rec.level and tostring(rec.level) or "?", rec.material or "?"))
+
+  -- Weight / Value
+  decho(IR_MC, string.format(
+    "<136,136,136>Weight: <204,204,204>%-8s <136,136,136>Value: <204,204,204>%s<r>\n",
+    rec.weight and tostring(rec.weight) or "?", rec.value and tostring(rec.value) or "?"))
+
+  -- Extra flags
+  if rec.extraFlags then
+    decho(IR_MC, string.format("<136,136,136>Flags: <170,170,255>%s<r>\n", rec.extraFlags))
+  end
+
+  decho(IR_MC, "\n")
+
+  -- Weapon block
+  if rec.weaponType or rec.damageDice then
+    decho(IR_MC, "<255,204,68>Weapon<r>\n")
+    if rec.weaponType then decho(IR_MC, string.format("  <136,136,136>Type: <204,204,204>%s<r>\n", rec.weaponType)) end
+    if rec.damageDice then
+      decho(IR_MC, string.format("  <136,136,136>Damage: <204,204,204>%s (avg %s)<r>\n",
+        rec.damageDice, rec.damageAvg and tostring(rec.damageAvg) or "?"))
+    end
+    if rec.weaponFlags then decho(IR_MC, string.format("  <136,136,136>Flags: <255,215,65>%s<r>\n", rec.weaponFlags)) end
+    decho(IR_MC, "\n")
+  end
+
+  -- Armor block
+  if rec.armorClass then
+    local ac = rec.armorClass
+    decho(IR_MC, "<255,204,68>Armor<r>\n")
+    decho(IR_MC, string.format(
+      "  <136,136,136>AC: <204,204,204>%s pierce, %s bash, %s slash, %s magic<r>\n",
+      tostring(ac.pierce), tostring(ac.bash), tostring(ac.slash), tostring(ac.magic)))
+    decho(IR_MC, "\n")
+  end
+
+  if rec.size or rec.condition then
+    decho(IR_MC, string.format(
+      "<136,136,136>Size: <204,204,204>%-8s <136,136,136>Condition: <204,204,204>%s<r>\n",
+      rec.size or "?", rec.condition or "?"))
+  end
+
+  -- Container block
+  if rec.capacity then
+    decho(IR_MC, "<255,204,68>Container<r>\n")
+    decho(IR_MC, string.format("  <136,136,136>Capacity: <204,204,204>%s#  Max weight: %s#<r>\n",
+      tostring(rec.capacity), rec.maxWeight and tostring(rec.maxWeight) or "?"))
+    if rec.weightMultiplier then
+      decho(IR_MC, string.format("  <136,136,136>Weight multiplier: <204,204,204>%s%%<r>\n", tostring(rec.weightMultiplier)))
+    end
+    decho(IR_MC, "\n")
+  end
+
+  -- Spell charges (wand) / spell list (potion/pill/scroll)
+  if rec.spellCharges then
+    decho(IR_MC, string.format(
+      "<136,136,136>Charges: <204,204,204>%s of level %s '%s'<r>\n",
+      tostring(rec.spellCharges.charges), tostring(rec.spellCharges.level), rec.spellCharges.spell))
+  end
+  if rec.spellList then
+    decho(IR_MC, string.format("<136,136,136>Spells (level %s):<r>\n", tostring(rec.spellList.level)))
+    decho(IR_MC, string.format("  <170,170,255>%s<r>\n", table.concat(rec.spellList.spells, ", ")))
+  end
+
+  -- Drink
+  if rec.drinkLiquid then
+    decho(IR_MC, string.format("<136,136,136>Holds: <204,204,204>%s<r>\n", rec.drinkLiquid))
+  end
+
+  -- Affects (the real bonuses/enchants -- identify-only, never from lore)
+  if rec.affects and #rec.affects > 0 then
+    decho(IR_MC, "\n<255,204,68>Affects<r>\n")
+    for _, a in ipairs(rec.affects) do
+      decho(IR_MC, string.format("  <170,170,255>%s <136,136,136>by <204,204,204>%s<r>\n", a.stat, tostring(a.amount)))
+    end
+  end
+
+  decho(IR_MC, "\n")
+
+  -- Completeness + source/date
+  local state = "unknown"
+  if MyDSL.ItemLore and MyDSL.ItemLore.knownState then
+    state = MyDSL.ItemLore.knownState(itemKey(name))
+  end
+  local stateColor = (state == "known" and "68,221,68") or (state == "seen" and "68,204,221") or "221,204,68"
+  decho(IR_MC, string.format("<136,136,136>Status: <%s>%s<r>", stateColor, state))
+  if rec.source then decho(IR_MC, string.format("  <136,136,136>(source: <204,204,204>%s<r><136,136,136>)<r>", rec.source)) end
+  decho(IR_MC, "\n")
+  if rec.lastIdentified then
+    decho(IR_MC, string.format("<136,136,136>Last identified: <204,204,204>%s<r>\n",
+      os.date("%Y-%m-%d", rec.lastIdentified)))
+  end
+
+  decho(IR_MC, string.format("<68,68,68>%s\n<r>", hrule("─")))
+end
+
+
+------------------------------------------------------------------------
+-- onItemUpdate()  —  handler for MyDSL.itemlore.updated
+------------------------------------------------------------------------
+
+function IR.onItemUpdate()
+  local rec = MyDSL.State.itemlore
+  if not rec or not rec.name then return end
+  IR.render(rec.name)
+  if MyDSL.Windows then MyDSL.Windows.show(IR_WIN) end
+end
+
+
+------------------------------------------------------------------------
+-- show() / hide() / status() / rebuild() / setFont()
+------------------------------------------------------------------------
+
+function IR.show()
+  if MyDSL.Windows then MyDSL.Windows.show(IR_WIN) end
+end
+
+function IR.hide()
+  if MyDSL.Windows then MyDSL.Windows.hide(IR_WIN) end
+end
+
+function IR.status()
+  decho(string.format(
+    "<136,204,255>[MyDSL] Item Reference: font=%d<r>\n",
+    MyDSL.Windows.getFontSize(IR_WIN, 9)
+  ))
+end
+
+function IR.rebuild()
+  if IR._mc.item then pcall(function() IR._mc.item:hide() end) end
+  IR._mc.item = nil
+  IR.ensureUI()
+  IR.render(nil)
+end
+
+function IR.setFont(size)
+  size = tonumber(size)
+  if not size then echo("usage: item font <size>\n"); return end
+  if size < 6 then size = 6 end
+  if size > 18 then size = 18 end
+  if IR._mc.item then IR._mc.item:setFontSize(size) end
+  MyDSL.Windows.setFontSize(IR_WIN, size)
+  echo("MyDSL_ItemReference font=" .. tostring(size) .. "\n")
+end
+
+
+------------------------------------------------------------------------
+-- init()  —  safe to re-call on reload
+------------------------------------------------------------------------
+
+function IR.ensureUI()
+  local irWin = MyDSL.Windows.ensure(IR_WIN)
+  if irWin and irWin.setTitle then pcall(function() irWin:setTitle("-= Item Reference =-") end) end
+  if not IR._mc.item then
+    IR._mc.item = Geyser.MiniConsole:new({
+      name      = IR_MC,
+      x = 0, y = 0, width = "100%", height = "100%",
+      wrapWidth = 300,
+      scrollBar = true,
+    }, irWin)
+  end
+
+  local itemFont = MyDSL.Windows.getFontSize(IR_WIN, 9)
+  if IR._mc.item then IR._mc.item:setFontSize(itemFont) end
+
+  if MyDSL.Theme and MyDSL.Theme.styleConsole then
+    MyDSL.Theme.styleConsole(IR._mc.item, IR_WIN, itemFont)
+  end
+end
+
+function IR.init()
+  IR.ensureUI()
+
+  IR._handlers.itemUpdated = registerAnonymousEventHandler(
+    "MyDSL.itemlore.updated",
+    function() IR.onItemUpdate() end
+  )
+
+  IR._handlers.themeChanged = registerAnonymousEventHandler(
+    "MyDSL.theme.changed",
+    function()
+      if MyDSL.Theme and MyDSL.Theme.styleConsole then
+        MyDSL.Theme.styleConsole(IR._mc.item, IR_WIN, MyDSL.Windows.getFontSize(IR_WIN, 9))
+      end
+    end
+  )
+
+  -- "item <name>" -- confirmed not real DSL vocabulary (checked
+  -- DSL_Helpfiles/, no collision), same naming pattern as "bestiary".
+  -- Sends `identify <name>` (the fuller of the two capture commands, same
+  -- choice bestiary made sending `creaturelore <name>` over `lore <name>`)
+  -- and shows the window with whatever's in the DB already (partial or full).
+  IR._aliases.itemLookup = tempAlias(
+    "^item (.+)$",
+    [[
+      local name = matches[2]
+      local fontSize = name:match("^font%s+(%d+)$")
+      if name == "hide" then
+        if MyDSL and MyDSL.ItemReference then MyDSL.ItemReference.hide() end
+      elseif name == "show" then
+        if MyDSL and MyDSL.ItemReference then MyDSL.ItemReference.show() end
+      elseif name == "status" then
+        if MyDSL and MyDSL.ItemReference then MyDSL.ItemReference.status() end
+      elseif name == "rebuild" then
+        if MyDSL and MyDSL.ItemReference then MyDSL.ItemReference.rebuild() end
+      elseif fontSize then
+        if MyDSL and MyDSL.ItemReference then MyDSL.ItemReference.setFont(fontSize) end
+      else
+        send("identify " .. name, false)
+        if MyDSL and MyDSL.ItemReference then
+          MyDSL.ItemReference.render(name)
+          MyDSL.ItemReference.show()
+        end
+      end
+    ]]
+  )
+
+  IR.render(nil)
+
+  debugc("[MyDSL] ItemReference loaded.")
+end
+
+
+------------------------------------------------------------------------
+-- Boot
+------------------------------------------------------------------------
+
+IR.init()

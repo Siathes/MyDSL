@@ -2166,6 +2166,181 @@ end
 
 
 ------------------------------------------------------------------------
+-- 9p.1  ITEM LORE / IDENTIFY
+------------------------------------------------------------------------
+-- Feeds MyDSL_ItemLore.lua's persistent DB. Two live capture paths, both
+-- confirmed real via live sessions 2026-07-16 (full transcripts in
+-- docs/CapturedPatterns_Reference.txt / CHANGELOG.md):
+--   `c identify <keyword>` (the spell) -- full stats, including bonuses/
+--   enchants ("Affects X by N", "Weapons flags:", "Armor class is...").
+--   `lore <keyword>` (the skill, chance-based) -- a real subset of the
+--   same fields, but NEVER bonuses/enchants -- confirmed absent from
+--   every real lore transcript. This is what makes MyDSL_ItemLore.lua's
+--   merge() safe to reuse unmodified for both: lore's own parsed record
+--   simply never has those keys, so it can never downgrade an
+--   already-identified item back to partial.
+
+local function itemKey(name)
+  return trim(tostring(name or "")):lower():gsub("^[Aa]n? ", ""):gsub("^[Tt]he ", "")
+end
+
+-- Shared body-line parser -- both identify and lore blocks use the same
+-- optional-line shapes (confirmed identical wording in both real
+-- transcripts); which subset actually appears just depends on which
+-- command produced the block.
+local function parseItemBodyLine(r, line)
+  local weight, value, level = line:match("^Weight is (%d+), value is (%d+), level is (%d+)%.$")
+  if weight then r.weight = tonumber(weight); r.value = tonumber(value); r.level = tonumber(level); return end
+
+  local material = line:match("^The object is made of (.+)%.$")
+  if material then r.material = material; return end
+
+  local wtype = line:match("^Weapon type is (.+)%.$")
+  if wtype then r.weaponType = wtype; return end
+
+  local dice, avg = line:match("^Damage is (%d+d%d+) %(average (%d+)%)%.$")
+  if dice then r.damageDice = dice; r.damageAvg = tonumber(avg); return end
+
+  local wflags = line:match("^Weapons flags: (.+)$")
+  if wflags then r.weaponFlags = wflags; return end
+
+  local p, b, s, m = line:match("^Armor class is (%d+) pierce, (%d+) bash, (%d+) slash, and (%d+) vs%. magic%.$")
+  if p then r.armorClass = { pierce = tonumber(p), bash = tonumber(b), slash = tonumber(s), magic = tonumber(m) }; return end
+
+  local size, cond, pct = line:match("^Size: (%a+)%s+Condition: (.-) %((%d+)%%%)$")
+  if size then r.size = size; r.condition = cond .. " (" .. pct .. "%)"; return end
+
+  local cap, maxw, cflags = line:match("^Capacity: (%d+)#%s+Maximum weight: (%d+)#%s+flags: (.+)$")
+  if cap then r.capacity = tonumber(cap); r.maxWeight = tonumber(maxw); r.containerFlags = cflags; return end
+
+  local mult = line:match("^Weight multiplier: (%d+)%%$")
+  if mult then r.weightMultiplier = tonumber(mult); return end
+
+  local charges, clevel, spell = line:match("^Has (%d+) charges of level (%d+) '(.+)'%.$")
+  if charges then r.spellCharges = { charges = tonumber(charges), level = tonumber(clevel), spell = spell }; return end
+
+  local slevel = line:match("^Level (%d+) spells of: ")
+  if slevel then
+    local spells = {}
+    for s2 in line:gmatch("'([^']*)'") do spells[#spells + 1] = s2 end
+    r.spellList = { level = tonumber(slevel), spells = spells }
+    return
+  end
+
+  local color, liquid = line:match("^It holds (.-)%-colored (.+)%.$")
+  if color then r.drinkLiquid = color .. "-colored " .. liquid; return end
+
+  local stat, amt = line:match("^Affects (.+) by (%-?%d+)%.$")
+  if stat then
+    r.affects = r.affects or {}
+    table.insert(r.affects, { stat = stat, amount = tonumber(amt) })
+    return
+  end
+end
+
+-- ---- identify (the spell, full stats) ----
+-- First line carries name+type+flags all at once, e.g. "Object 'mushroom'
+-- is type food, extra flags none." -- same reasoning as CreatureLore's
+-- "Creature: X  Race: Y" first line.
+
+function MyDSL.beginIdentify(line)
+  local name, itype, flags = line:match("^Object '(.-)' is type ([%w_]+), extra flags (.+)%.$")
+  if not name then return end
+  MyDSL.State.identify = {
+    name = name, key = itemKey(name), itemType = itype,
+    extraFlags = (flags ~= "none" and flags or nil),
+    source = "identify",
+  }
+  if MyDSL._triggers.identifyBody then
+    pcall(killTrigger, MyDSL._triggers.identifyBody)
+    MyDSL._triggers.identifyBody = nil
+  end
+  MyDSL._triggers.identifyBody = tempRegexTrigger(".*", function()
+    if not (MyDSL and MyDSL.State and MyDSL.State.identify) then return end
+    local ln = getCurrentLine()
+    if trim(ln) == "" then MyDSL.endIdentify(); return end
+    parseItemBodyLine(MyDSL.State.identify, ln)
+  end)
+end
+
+function MyDSL.endIdentify()
+  if MyDSL._triggers.identifyBody then
+    pcall(killTrigger, MyDSL._triggers.identifyBody)
+    MyDSL._triggers.identifyBody = nil
+  end
+  local r = MyDSL.State.identify
+  if r and MyDSL.ItemLore and MyDSL.ItemLore.merge then
+    MyDSL.ItemLore.merge(r)
+  end
+  -- MyDSL.emit() raises "MyDSL.itemlore.updated" with MyDSL.State.itemlore
+  -- as its payload (see MyDSL.emit()'s own implementation) -- set it here
+  -- so MyDSL_ItemReference.lua's listener has the just-captured record to
+  -- render, same convention MyDSL.State.creaturelore already follows for
+  -- CreatureReference. Left set (not nil'd) so a later read still works.
+  if r then MyDSL.State.itemlore = r end
+  MyDSL.emit("itemlore")
+end
+
+-- ---- lore <item> (the skill, chance-based, partial) ----
+-- Real shape: "You turn a X every which way." always fires first, THEN
+-- either "Can't make heads or tails of it." (fail, terminal, confirmed
+-- real 2026-07-16) or a blank line followed by the "Name(s): '...'" /
+-- "Type: ... Weight: ... Value: ... Level: ... Material: ...." block.
+
+function MyDSL.beginLoreItem(line)
+  MyDSL.State.loreItem = { lines = { line }, pending = true }
+  if MyDSL._triggers.loreItemBody then
+    pcall(killTrigger, MyDSL._triggers.loreItemBody)
+    MyDSL._triggers.loreItemBody = nil
+  end
+  MyDSL._triggers.loreItemBody = tempRegexTrigger(".*", function()
+    if not (MyDSL and MyDSL.State and MyDSL.State.loreItem) then return end
+    local ln = getCurrentLine()
+    local t  = trim(ln)
+    local r  = MyDSL.State.loreItem
+    if r.pending then
+      if t == "Can't make heads or tails of it." then
+        MyDSL.endLoreItem(false)
+      elseif t == "" then
+        r.pending = false
+      else
+        -- Unexpected text between the flavor line and the block --
+        -- bail out rather than silently misparsing.
+        MyDSL.endLoreItem(false)
+      end
+      return
+    end
+    if t == "" then MyDSL.endLoreItem(true); return end
+    local name = ln:match("^Name%(s%): '(.+)'$")
+    if name then r.name = name; r.key = itemKey(name); return end
+    local itype, weight, value, level, material =
+      ln:match("^Type: (%a+)%s+Weight: (%d+)%s+Value: (%d+)%s+Level: (%d+)%. Material: (.+)%.$")
+    if itype then
+      r.itemType = itype; r.weight = tonumber(weight); r.value = tonumber(value)
+      r.level = tonumber(level); r.material = material
+      return
+    end
+    parseItemBodyLine(r, ln)
+  end)
+end
+
+function MyDSL.endLoreItem(success)
+  if MyDSL._triggers.loreItemBody then
+    pcall(killTrigger, MyDSL._triggers.loreItemBody)
+    MyDSL._triggers.loreItemBody = nil
+  end
+  local r = MyDSL.State.loreItem
+  MyDSL.State.loreItem = nil
+  if success and r and r.key and MyDSL.ItemLore and MyDSL.ItemLore.merge then
+    r.source = "lore"
+    MyDSL.ItemLore.merge(r)
+    MyDSL.State.itemlore = r
+    MyDSL.emit("itemlore")
+  end
+end
+
+
+------------------------------------------------------------------------
 -- 9q  COMBAT
 ------------------------------------------------------------------------
 -- Always-active triggers (no begin/end block — DSL emits combat lines
@@ -2797,7 +2972,41 @@ function MyDSL.parseEquipLine(rawSlot, rest)
     flags[#flags + 1] = flag
     remaining = tail
   end
-  equipBlock[slot] = { item = trim(remaining), flags = flags }
+  local itemName = trim(remaining)
+  equipBlock[slot] = { item = itemName, flags = flags }
+
+  -- Hover/click on the equipment line's own item-name text -- added
+  -- 2026-07-16 for Layer 4's item reference. "Move text, don't invent
+  -- it": uses selectString()+setLink() (same technique already proven in
+  -- MyDSL_AffectsView.lua's applyLinks(), specifically to avoid the real
+  -- Mudlet limitation that reconstructing a line via decho/cecho would
+  -- discard the game's own ANSI coloring) to attach a hover tooltip +
+  -- click-to-open-Item-Reference directly onto the already-printed,
+  -- untouched equipment line in the main console -- never deletes or
+  -- reprints anything.
+  if itemName ~= "" and setLink and selectString then
+    local key = itemName:lower():gsub("^[Aa]n? ", ""):gsub("^[Tt]he ", "")
+    local rec = MyDSL.ItemLore and MyDSL.ItemLore.get and MyDSL.ItemLore.get(key)
+    local hint = "Click for Item Reference"
+    if rec then
+      if rec.itemType then hint = hint .. " -- " .. rec.itemType end
+      if rec.damageDice then
+        hint = hint .. " -- " .. rec.damageDice .. " (avg " .. tostring(rec.damageAvg) .. ")"
+      end
+      if rec.armorClass then
+        local ac = rec.armorClass
+        hint = hint .. string.format(" -- AC %s/%s/%s/%s",
+          tostring(ac.pierce), tostring(ac.bash), tostring(ac.slash), tostring(ac.magic))
+      end
+    end
+    local cmd = string.format(
+      'if MyDSL and MyDSL.ItemReference then MyDSL.ItemReference.render("%s"); MyDSL.ItemReference.show() end',
+      itemName:gsub('"', '\\"'))
+    local okSel, selected = pcall(selectString, "main", itemName, 1)
+    if okSel and selected then
+      pcall(setLink, "main", cmd, hint)
+    end
+  end
 end
 
 function MyDSL.endEquip()
@@ -3228,6 +3437,32 @@ MyDSL._triggers.equipStart = tempRegexTrigger(
   function()
     if MyDSL and MyDSL.beginEquip then
       MyDSL.beginEquip()
+    end
+  end
+)
+
+------------------------------------------------------------------------
+-- Identify / item-lore triggers
+------------------------------------------------------------------------
+-- Fires on "Object '<name>' is type ..." -- the first line of any
+-- `c identify <keyword>` block. Body lines handled by the catch-all
+-- installed inside beginIdentify().
+MyDSL._triggers.identifyStart = tempRegexTrigger(
+  "^Object '",
+  function()
+    if MyDSL and MyDSL.beginIdentify then
+      MyDSL.beginIdentify(getCurrentLine())
+    end
+  end
+)
+
+-- Fires on "You turn a <item> every which way." -- the flavor line every
+-- `lore <keyword>` attempt prints regardless of success/fail.
+MyDSL._triggers.loreItemStart = tempRegexTrigger(
+  "^You turn .+ every which way\\.$",
+  function()
+    if MyDSL and MyDSL.beginLoreItem then
+      MyDSL.beginLoreItem(getCurrentLine())
     end
   end
 )

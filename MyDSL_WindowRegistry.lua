@@ -214,6 +214,9 @@ MyDSL.Windows.registry = MyDSL.Windows.registry or {
   -- MyDSL_CreatureReference -- opened via "mydsl help" links or
   -- "mydsl help show", added 2026-07-15 (MyDSL_Help.lua).
   MyDSL_Help             = { obj=nil, type="UserWindow", visible=false, created=false },
+  -- Layer 4, first slice (2026-07-16) -- on-demand reference window, same
+  -- visible=false precedent as MyDSL_CreatureReference (Bestiary).
+  MyDSL_ItemReference    = { obj=nil, type="UserWindow", visible=false, created=false },
 
   -- ---- Adjustable.Container windows (anchored inside the main Mudlet console) --
 
