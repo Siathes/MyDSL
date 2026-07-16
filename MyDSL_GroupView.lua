@@ -295,8 +295,13 @@ end
 -- already exist in WindowRegistry). Registers the group.updated handler
 -- and restores the gag state from config.
 
-function GV.init()
-  -- Ensure Group UserWindow exists and get a reference to it.
+------------------------------------------------------------------------
+-- ensureUI()  --  creates the Group window/console if it doesn't exist
+-- yet. Extracted from init() 2026-07-15 so rebuild() can recreate the
+-- console without duplicating the whole setup.
+------------------------------------------------------------------------
+
+function GV.ensureUI()
   local groupWin = MyDSL.Windows.ensure(GROUP_WIN)
   -- Fixed 2026-07-11, per Steven ("fix all window titles/names").
   if groupWin and groupWin.setTitle then pcall(function() groupWin:setTitle("-= Group =-") end) end
@@ -308,20 +313,26 @@ function GV.init()
       name      = GROUP_MC,
       x = 0, y = 0, width = "100%", height = "100%",
       wrapWidth = 300,
-      fontSize  = 8,
       scrollBar = false,
     }, groupWin)
   end
-  -- Always re-apply font size in case Mudlet reset it during a reload.
-  -- Dropped from 10 to 8 (2026-07-05, per Steven) -- a row (class tag + name
-  -- + hp/mana/mv + 2 quick-action buttons) was overflowing the window width.
-  if GV._mc.group then GV._mc.group:setFontSize(8) end
 
-  -- Theme-driven background/font, added 2026-07-11. fontSize 8 stays
-  -- hardcoded (pre-existing gap, tracked in docs/TODO.md).
+  -- Font size now persisted per-window (2026-07-15, "bring Scan/Group/
+  -- Bestiary up to the same status/show/hide/rebuild/font standard other
+  -- windows have" -- see docs/CHANGELOG.md), closing the pre-existing
+  -- hardcoded-8 gap this file's own comment used to flag. Default of 8
+  -- kept (a row -- class tag + name + hp/mana/mv + 2 quick-action buttons
+  -- -- was overflowing the window width at the old default of 10).
+  local groupFont = MyDSL.Windows.getFontSize(GROUP_WIN, 8)
+  if GV._mc.group then GV._mc.group:setFontSize(groupFont) end
+
   if MyDSL.Theme and MyDSL.Theme.styleConsole then
-    MyDSL.Theme.styleConsole(GV._mc.group, GROUP_WIN, 8)
+    MyDSL.Theme.styleConsole(GV._mc.group, GROUP_WIN, groupFont)
   end
+end
+
+function GV.init()
+  GV.ensureUI()
 
   -- Register the event handler that triggers a re-render after each group parse.
   GV._handlers.groupUpdated = registerAnonymousEventHandler(
@@ -333,7 +344,7 @@ function GV.init()
     "MyDSL.theme.changed",
     function()
       if MyDSL.Theme and MyDSL.Theme.styleConsole then
-        MyDSL.Theme.styleConsole(GV._mc.group, GROUP_WIN, 8)
+        MyDSL.Theme.styleConsole(GV._mc.group, GROUP_WIN, MyDSL.Windows.getFontSize(GROUP_WIN, 8))
       end
     end
   )
@@ -360,6 +371,42 @@ function GV.init()
   GV.render()
 
   debugc("[MyDSL] GroupView loaded.")
+end
+
+
+------------------------------------------------------------------------
+-- Window lifecycle -- status/show/hide/rebuild/font, added 2026-07-15 to
+-- bring Group up to the same standard Live/Chat/Portrait/Affects/Tick/
+-- Alterform already have (found during a "does Scan have the same
+-- options as other windows" check, then extended to Group/Bestiary too).
+------------------------------------------------------------------------
+
+function GV.status()
+  decho(string.format(
+    "<136,204,255>[MyDSL] Group: gag=%s font=%d<r>\n",
+    tostring(GV.config.gagGroup),
+    MyDSL.Windows.getFontSize(GROUP_WIN, 8)
+  ))
+end
+
+function GV.show() MyDSL.Windows.show(GROUP_WIN) end
+function GV.hide() MyDSL.Windows.hide(GROUP_WIN) end
+
+function GV.rebuild()
+  if GV._mc.group then pcall(function() GV._mc.group:hide() end) end
+  GV._mc.group = nil
+  GV.ensureUI()
+  GV.render()
+end
+
+function GV.setFont(size)
+  size = tonumber(size)
+  if not size then echo("usage: group font <size>\n"); return end
+  if size < 6 then size = 6 end
+  if size > 18 then size = 18 end
+  if GV._mc.group then GV._mc.group:setFontSize(size) end
+  MyDSL.Windows.setFontSize(GROUP_WIN, size)
+  echo("MyDSL_Group font=" .. tostring(size) .. "\n")
 end
 
 
@@ -398,6 +445,20 @@ tempAlias("^group quickset reset$",
     MyDSL.GroupView._saveConfig()
     echo("Group quick buttons reset to defaults.\n")
   end]])
+
+-- status/show/hide/rebuild/font -- same naming convention as the
+-- retrofitted commands above (bare "group ..."), consistent since none
+-- of these collide with real DSL vocabulary either.
+tempAlias("^group status$",
+  "if MyDSL and MyDSL.GroupView then MyDSL.GroupView.status() end")
+tempAlias("^group show$",
+  "if MyDSL and MyDSL.GroupView then MyDSL.GroupView.show() end")
+tempAlias("^group hide$",
+  "if MyDSL and MyDSL.GroupView then MyDSL.GroupView.hide() end")
+tempAlias("^group rebuild$",
+  "if MyDSL and MyDSL.GroupView then MyDSL.GroupView.rebuild() end")
+tempAlias("^group font (\\d+)$",
+  "if MyDSL and MyDSL.GroupView then MyDSL.GroupView.setFont(matches[2]) end")
 
 
 ------------------------------------------------------------------------

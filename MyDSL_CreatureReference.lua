@@ -240,13 +240,41 @@ function CR.hide()
   if MyDSL.Windows then MyDSL.Windows.hide(CR_WIN) end
 end
 
+-- status/rebuild/font -- added 2026-07-15, bringing Bestiary up to the
+-- same standard other windows have (show/hide already existed above,
+-- reachable via "bestiary show"/"bestiary hide").
+function CR.status()
+  decho(string.format(
+    "<136,204,255>[MyDSL] Bestiary: font=%d<r>\n",
+    MyDSL.Windows.getFontSize(CR_WIN, 9)
+  ))
+end
+
+function CR.rebuild()
+  if CR._mc.lore then pcall(function() CR._mc.lore:hide() end) end
+  CR._mc.lore = nil
+  CR.ensureUI()
+  CR.render(nil)
+end
+
+function CR.setFont(size)
+  size = tonumber(size)
+  if not size then echo("usage: bestiary font <size>\n"); return end
+  if size < 6 then size = 6 end
+  if size > 18 then size = 18 end
+  if CR._mc.lore then CR._mc.lore:setFontSize(size) end
+  MyDSL.Windows.setFontSize(CR_WIN, size)
+  echo("MyDSL_CreatureReference font=" .. tostring(size) .. "\n")
+end
+
 
 ------------------------------------------------------------------------
 -- init()  —  safe to re-call on reload
 ------------------------------------------------------------------------
 
-function CR.init()
-  -- Ensure CreatureReference UserWindow and its MiniConsole exist.
+-- ensureUI() -- extracted from init() 2026-07-15 so rebuild() can
+-- recreate the console without duplicating the whole setup.
+function CR.ensureUI()
   local crWin = MyDSL.Windows.ensure(CR_WIN)
   -- Fixed 2026-07-11, per Steven ("fix all window titles/names").
   if crWin and crWin.setTitle then pcall(function() crWin:setTitle("-= Bestiary =-") end) end
@@ -259,12 +287,23 @@ function CR.init()
     }, crWin)
   end
 
+  -- Font size now persisted per-window (2026-07-15, "bring Scan/Group/
+  -- Bestiary up to the same status/show/hide/rebuild/font standard other
+  -- windows have" -- see docs/CHANGELOG.md). Was: no size override at
+  -- all, always just the theme's own default.
+  local loreFont = MyDSL.Windows.getFontSize(CR_WIN, 9)
+  if CR._mc.lore then CR._mc.lore:setFontSize(loreFont) end
+
   -- Theme-driven background/font, added 2026-07-11 (this console had no
   -- font size or color set at all before -- fell back to Mudlet's tiny
   -- built-in default; see docs/CHANGELOG.md's ThemeEngine entry).
   if MyDSL.Theme and MyDSL.Theme.styleConsole then
-    MyDSL.Theme.styleConsole(CR._mc.lore, CR_WIN)
+    MyDSL.Theme.styleConsole(CR._mc.lore, CR_WIN, loreFont)
   end
+end
+
+function CR.init()
+  CR.ensureUI()
 
   -- Register creaturelore.updated handler.
   CR._handlers.loreUpdated = registerAnonymousEventHandler(
@@ -283,7 +322,7 @@ function CR.init()
     "MyDSL.theme.changed",
     function()
       if MyDSL.Theme and MyDSL.Theme.styleConsole then
-        MyDSL.Theme.styleConsole(CR._mc.lore, CR_WIN)
+        MyDSL.Theme.styleConsole(CR._mc.lore, CR_WIN, MyDSL.Windows.getFontSize(CR_WIN, 9))
       end
     end
   )
@@ -302,10 +341,17 @@ function CR.init()
     "^bestiary (.+)$",
     [[
       local name = matches[2]
+      local fontSize = name:match("^font%s+(%d+)$")
       if name == "hide" then
         if MyDSL and MyDSL.CreatureReference then MyDSL.CreatureReference.hide() end
       elseif name == "show" then
         if MyDSL and MyDSL.CreatureReference then MyDSL.CreatureReference.show() end
+      elseif name == "status" then
+        if MyDSL and MyDSL.CreatureReference then MyDSL.CreatureReference.status() end
+      elseif name == "rebuild" then
+        if MyDSL and MyDSL.CreatureReference then MyDSL.CreatureReference.rebuild() end
+      elseif fontSize then
+        if MyDSL and MyDSL.CreatureReference then MyDSL.CreatureReference.setFont(fontSize) end
       else
         send("creaturelore " .. name, false)
         if MyDSL and MyDSL.CreatureReference then MyDSL.CreatureReference.show() end

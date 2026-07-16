@@ -138,7 +138,13 @@ end
 -- init()  —  called once at load; safe to re-call on reload
 ------------------------------------------------------------------------
 
-function SV.init()
+------------------------------------------------------------------------
+-- ensureUI()  --  creates both windows/consoles if they don't exist yet.
+-- Extracted from init() 2026-07-15 so rebuild()/rebuildRightHere() can
+-- recreate a console without duplicating the whole setup.
+------------------------------------------------------------------------
+
+function SV.ensureUI()
   -- Ensure Scan UserWindow and its MiniConsole exist.
   -- Stored in SV.ui.scanConsole so DataLayer can call appendBuffer on it.
   local scanWin = MyDSL.Windows.ensure(SCAN_WIN)
@@ -162,21 +168,31 @@ function SV.init()
       name      = RH_MC,
       x = 0, y = 0, width = "100%", height = "100%",
       wrapWidth = 300,
-      fontSize  = 9,
       scrollBar = false,
     }, rhWin)
   end
-  -- Always re-apply font size in case Mudlet reset it during a reload.
-  -- Added 2026-07-05 (per Steven) -- this MiniConsole never had an explicit
-  -- fontSize before, so it fell back to Mudlet's small built-in default.
-  if SV._mc.rightHere then SV._mc.rightHere:setFontSize(9) end
+
+  -- Font sizes now persisted per-window (2026-07-15, "bring Scan/
+  -- RightHere up to the same status/show/hide/rebuild/font standard
+  -- other windows have" -- see docs/CHANGELOG.md). Same shared
+  -- profile-level store MyDSL_History/MyDSL_Focus already use. Was:
+  -- Scan had no explicit size at all (inherited theme default),
+  -- RightHere was hardcoded to 9 with no way to change it.
+  local scanFont = MyDSL.Windows.getFontSize(SCAN_WIN, 9)
+  local rhFont   = MyDSL.Windows.getFontSize(RH_WIN, 9)
+  if SV.ui.scanConsole then SV.ui.scanConsole:setFontSize(scanFont) end
+  if SV._mc.rightHere then SV._mc.rightHere:setFontSize(rhFont) end
 
   -- Theme-driven background/font, added 2026-07-11. Both consoles had no
   -- styling at all before (see docs/CHANGELOG.md's ThemeEngine entry).
   if MyDSL.Theme and MyDSL.Theme.styleConsole then
-    MyDSL.Theme.styleConsole(SV.ui.scanConsole, SCAN_WIN)
-    MyDSL.Theme.styleConsole(SV._mc.rightHere, RH_WIN, 9)
+    MyDSL.Theme.styleConsole(SV.ui.scanConsole, SCAN_WIN, scanFont)
+    MyDSL.Theme.styleConsole(SV._mc.rightHere, RH_WIN, rhFont)
   end
+end
+
+function SV.init()
+  SV.ensureUI()
 
   -- Register scan.updated event handler (rebuilds RightHere clickable list).
   SV._handlers.scanUpdated = registerAnonymousEventHandler(
@@ -189,8 +205,8 @@ function SV.init()
     "MyDSL.theme.changed",
     function()
       if MyDSL.Theme and MyDSL.Theme.styleConsole then
-        MyDSL.Theme.styleConsole(SV.ui.scanConsole, SCAN_WIN)
-        MyDSL.Theme.styleConsole(SV._mc.rightHere, RH_WIN, 9)
+        MyDSL.Theme.styleConsole(SV.ui.scanConsole, SCAN_WIN, MyDSL.Windows.getFontSize(SCAN_WIN, 9))
+        MyDSL.Theme.styleConsole(SV._mc.rightHere, RH_WIN, MyDSL.Windows.getFontSize(RH_WIN, 9))
       end
     end
   )
@@ -202,6 +218,66 @@ function SV.init()
   SV.render()
 
   debugc("[MyDSL] ScanView loaded.")
+end
+
+
+------------------------------------------------------------------------
+-- Window lifecycle -- status/show/hide/rebuild/font, added 2026-07-15 to
+-- bring Scan/RightHere up to the same standard Live/Chat/Portrait/
+-- Affects/Tick/Alterform already have (found during a "does Scan have
+-- the same options as other windows" check). Font persists via the
+-- shared MyDSL.Windows store (same pattern as MyDSL_History/MyDSL_Focus),
+-- not a bespoke settings file -- this module has no other per-character
+-- config to persist beyond the existing gagScan flag.
+------------------------------------------------------------------------
+
+function SV.status()
+  decho(string.format(
+    "<136,204,255>[MyDSL] Scan: gag=%s font=%d | RightHere: font=%d<r>\n",
+    tostring(SV.config.gagScan),
+    MyDSL.Windows.getFontSize(SCAN_WIN, 9),
+    MyDSL.Windows.getFontSize(RH_WIN, 9)
+  ))
+end
+
+function SV.show() MyDSL.Windows.show(SCAN_WIN) end
+function SV.hide() MyDSL.Windows.hide(SCAN_WIN) end
+
+function SV.rebuild()
+  if SV.ui.scanConsole then pcall(function() SV.ui.scanConsole:hide() end) end
+  SV.ui.scanConsole = nil
+  SV.ensureUI()
+  SV.render()
+end
+
+function SV.setFont(size)
+  size = tonumber(size)
+  if not size then echo("usage: mydsl scan font <size>\n"); return end
+  if size < 6 then size = 6 end
+  if size > 18 then size = 18 end
+  if SV.ui.scanConsole then SV.ui.scanConsole:setFontSize(size) end
+  MyDSL.Windows.setFontSize(SCAN_WIN, size)
+  echo("MyDSL_Scan font=" .. tostring(size) .. "\n")
+end
+
+function SV.showRightHere() MyDSL.Windows.show(RH_WIN) end
+function SV.hideRightHere() MyDSL.Windows.hide(RH_WIN) end
+
+function SV.rebuildRightHere()
+  if SV._mc.rightHere then pcall(function() SV._mc.rightHere:hide() end) end
+  SV._mc.rightHere = nil
+  SV.ensureUI()
+  SV.render()
+end
+
+function SV.setRightHereFont(size)
+  size = tonumber(size)
+  if not size then echo("usage: mydsl righthere font <size>\n"); return end
+  if size < 6 then size = 6 end
+  if size > 18 then size = 18 end
+  if SV._mc.rightHere then SV._mc.rightHere:setFontSize(size) end
+  MyDSL.Windows.setFontSize(RH_WIN, size)
+  echo("MyDSL_RightHere font=" .. tostring(size) .. "\n")
 end
 
 
@@ -219,6 +295,31 @@ tempAlias("^scan gag$",
   "if MyDSL and MyDSL.ScanView then MyDSL.ScanView.setGag(true) end")
 tempAlias("^scan ungag$",
   "if MyDSL and MyDSL.ScanView then MyDSL.ScanView.setGag(false) end")
+
+-- status/show/hide/rebuild/font -- kept under the "mydsl" prefix (not
+-- bare "scan ...") since bare "scan" is real DSL vocabulary and these
+-- aren't part of the 2026-07-11 command-surface retrofit's scope.
+tempAlias("^mydsl scan status$",
+  "if MyDSL and MyDSL.ScanView then MyDSL.ScanView.status() end")
+tempAlias("^mydsl scan show$",
+  "if MyDSL and MyDSL.ScanView then MyDSL.ScanView.show() end")
+tempAlias("^mydsl scan hide$",
+  "if MyDSL and MyDSL.ScanView then MyDSL.ScanView.hide() end")
+tempAlias("^mydsl scan rebuild$",
+  "if MyDSL and MyDSL.ScanView then MyDSL.ScanView.rebuild() end")
+tempAlias("^mydsl scan font (\\d+)$",
+  "if MyDSL and MyDSL.ScanView then MyDSL.ScanView.setFont(matches[2]) end")
+
+tempAlias("^mydsl righthere status$",
+  "if MyDSL and MyDSL.ScanView then MyDSL.ScanView.status() end")
+tempAlias("^mydsl righthere show$",
+  "if MyDSL and MyDSL.ScanView then MyDSL.ScanView.showRightHere() end")
+tempAlias("^mydsl righthere hide$",
+  "if MyDSL and MyDSL.ScanView then MyDSL.ScanView.hideRightHere() end")
+tempAlias("^mydsl righthere rebuild$",
+  "if MyDSL and MyDSL.ScanView then MyDSL.ScanView.rebuildRightHere() end")
+tempAlias("^mydsl righthere font (\\d+)$",
+  "if MyDSL and MyDSL.ScanView then MyDSL.ScanView.setRightHereFont(matches[2]) end")
 
 -- mydsl righthere dump -- added 2026-07-08 as a one-shot live diagnostic,
 -- per repeated "still not updating" reports that static log analysis
