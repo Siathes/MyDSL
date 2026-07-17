@@ -332,7 +332,7 @@ MyDSL.State.group   = MyDSL.State.group   or { last_updated = 0 }  -- text: part
 MyDSL.State.improve = MyDSL.State.improve or { last_updated = 0 }  -- text: skill improve events
 MyDSL.State.flags        = MyDSL.State.flags        or { last_updated = 0 }  -- text: toggle flags from score
 MyDSL.State.scan         = MyDSL.State.scan         or {  -- text: nearby entities from scan command
-  mode=nil, direction=nil, rows={}, rightHere={}, byName={}, last_updated=0
+  mode=nil, direction=nil, rows={}, rightHere={}, byName={}, groundItems={}, last_updated=0
 }
 MyDSL.State.creaturelore = MyDSL.State.creaturelore or { last_updated = 0 }  -- text: creature lore block
 -- (2026-07-11: the session-only MyDSL.State.creatureLoreCache this comment
@@ -342,6 +342,7 @@ MyDSL.State.creaturelore = MyDSL.State.creaturelore or { last_updated = 0 }  -- 
 -- so we can recall creatures for information... over any session," not
 -- just the current one.)
 MyDSL.State.equipment    = MyDSL.State.equipment    or { last_updated = 0 }  -- text: worn/wielded equipment by slot
+MyDSL.State.inventory    = MyDSL.State.inventory    or { last_updated = 0, items = {} }  -- text: carried items ("i"/"inv")
 MyDSL.State.combat = MyDSL.State.combat or {
   active      = {},    -- keyed by target-key; each entry: {target_display, target_condition, by_attacker, started_at}
   history     = {},    -- array of snapshots (same shape), most recent first
@@ -1511,6 +1512,67 @@ local function isMobName(name)
   return name:match("^[Aa]n? ") ~= nil or name:match("^[Tt]he ") ~= nil
 end
 
+-- normalizeForMatch(name) / bestFuzzyMatch(target, candidates) -- added
+-- 2026-07-16, ported from a real, tested technique found in the Shattered
+-- Archive client's own equipment delta-matching (useEquipmentDeltas.ts,
+-- ~/Downloads/Shattered-Archive-release-dev.zip): normalize both sides,
+-- score an exact match highest, a substring match (either direction)
+-- lower, and refuse to pick a winner if two candidates tie -- a false
+-- merge (treating two different mobs/items as the same one) is worse
+-- than declining to match at all. Shared by resolveMobName() (below) and
+-- MyDSL.resolveGroundItem() (see the ITEM LORE section further down).
+--
+-- normalizeForMatch() strips the same decorations isLookFixtureLine()/
+-- itemKey() already strip elsewhere in this file (leading article,
+-- ground-sentence suffixes) so a truncated/generic capture (e.g. "a
+-- gnome" from "A gnome is here using levers...") can still match a
+-- fuller known name ("a gnome machinist") via substring containment.
+local function normalizeForMatch(name)
+  local s = tostring(name or ""):lower()
+  while true do
+    local stripped = s:match("^%(.-%)%s*(.+)$")
+    if not stripped then break end
+    s = stripped
+  end
+  s = s:gsub("^[Aa]n? ", ""):gsub("^[Tt]he ", "")
+  s = s:gsub("%s+lies? here.*$", "")
+  s = s:gsub("%s+is lying here.*$", "")
+  s = s:gsub("%s+are lying here.*$", "")
+  s = s:gsub("%s+has been left here.*$", "")
+  s = s:gsub("%s+floats above the ground.*$", "")
+  s = s:gsub("[%.,;:!?'\"`]", " ")
+  s = s:gsub("%s+", " ")
+  return trim(s)
+end
+
+-- bestFuzzyMatch(target, candidates) -- candidates is an array of tables
+-- each with a .name field (any other fields are carried through on the
+-- returned match unchanged). Returns the winning candidate table, or nil
+-- if nothing scored, or the top score was tied between two+ candidates.
+local function bestFuzzyMatch(target, candidates)
+  local t = normalizeForMatch(target)
+  if t == "" then return nil end
+  local best, bestScore, tie = nil, 0, false
+  for _, c in ipairs(candidates or {}) do
+    local cName = normalizeForMatch(c.name)
+    if cName ~= "" then
+      local score = 0
+      if cName == t then
+        score = 100
+      elseif cName:find(t, 1, true) or t:find(cName, 1, true) then
+        score = 50
+      end
+      if score > bestScore then
+        best, bestScore, tie = c, score, false
+      elseif score > 0 and score == bestScore then
+        tie = true
+      end
+    end
+  end
+  if not best or tie then return nil end
+  return best
+end
+
 -- resolveMobName(key, capturedName) -- added 2026-07-12, per Steven ("mob
 -- names are the most important... if we need to use an identifier alias,
 -- where we look then creaturelore, that could be an option"). Confirmed
@@ -1527,12 +1589,48 @@ end
 -- different "gnome ..." types) since that's not actually resolvable from
 -- a generic captured name alone -- per Steven ("if we are unable to guess
 -- then a generic is better than none").
+--
+-- Broadened 2026-07-16: the exact-key check above already covered the
+-- case where `look`'s text happens to normalize to the identical key
+-- CreatureLore was populated under. It never covered Steven's own example
+-- ("a gnome" vs. a CreatureLore entry keyed "gnome machinist") since those
+-- are two different keys -- exact match can't find that, only a fuzzy one
+-- can. Tries the current room's own `scan` capture first (scan.byName --
+-- per Steven, "using the propper scan name" -- small, same-room-visit,
+-- least likely to collide with an unrelated same-prefix creature type),
+-- then falls back to the full CreatureLore DB only if nothing in-room
+-- matched. Still refuses to guess on a tie (bestFuzzyMatch's own rule) --
+-- a wrong auto-resolved name is worse than the untouched generic capture.
 local function resolveMobName(key, capturedName)
   local cl = MyDSL.CreatureLore
   if cl and cl.knownState and cl.knownState(key) == "known" then
     local rec = cl.get(key)
     if rec and rec.name then return rec.name end
   end
+
+  local scan = MyDSL.State and MyDSL.State.scan
+  if scan and scan.byName then
+    local candidates = {}
+    for k, entry in pairs(scan.byName) do
+      if k ~= key and entry.is_mob then
+        candidates[#candidates + 1] = { name = entry.name, key = k }
+      end
+    end
+    local hit = bestFuzzyMatch(capturedName, candidates)
+    if hit then return hit.name end
+  end
+
+  if cl and cl.db then
+    local candidates = {}
+    for k, rec in pairs(cl.db) do
+      if k ~= key and rec and rec.name then
+        candidates[#candidates + 1] = { name = rec.name, key = k }
+      end
+    end
+    local hit = bestFuzzyMatch(capturedName, candidates)
+    if hit then return hit.name end
+  end
+
   return capturedName
 end
 
@@ -1544,6 +1642,7 @@ function MyDSL.beginScan(mode, direction)
     rows         = {},
     rightHere    = {},
     byName       = {},
+    groundItems  = {},
     last_updated = 0,
   }
   -- Clear Scan window for the incoming lines.
@@ -1708,6 +1807,47 @@ local function isLookFixtureLine(line)
       or line:match("floats above the ground%f[%A]") ~= nil
 end
 
+-- extractGroundItemName(line) / MyDSL.captureGroundItem(line) -- added
+-- 2026-07-16 for ground-vs-inventory item linking (Steven: "the item on
+-- the ground needs a map to the inventory/equipment"). Only ever called
+-- after isLookFixtureLine() has already confirmed one of its suffixes is
+-- present -- strips the same leading parenthetical tags and trailing
+-- fixture-sentence phrasing to recover the item's core name (e.g. "A
+-- grand arcanium hoopak lies here." -> "A grand arcanium hoopak") for
+-- storage. Before this, isLookFixtureLine-matched lines were only ever
+-- skipped, never stored anywhere -- there was no ground-item data at all
+-- to match against.
+local function extractGroundItemName(line)
+  local rest = trim(line)
+  while true do
+    local stripped = rest:match("^%([^()]+%)%s*(.+)$")
+    if not stripped then break end
+    rest = stripped
+  end
+  local seen = rest:match("^You see%s+(.-)%s+here")
+  if seen then return trim(seen) end
+  rest = rest:gsub("%s+lies? here.*$", "")
+  rest = rest:gsub("%s+is lying here.*$", "")
+  rest = rest:gsub("%s+are lying here.*$", "")
+  rest = rest:gsub("%s+has been left here.*$", "")
+  rest = rest:gsub("%s+floats above the ground.*$", "")
+  return trim(rest)
+end
+
+function MyDSL.captureGroundItem(line)
+  local scan = MyDSL.State and MyDSL.State.scan
+  if not scan then return end
+  scan.groundItems = scan.groundItems or {}
+  local name = extractGroundItemName(line)
+  if name == "" then return end
+  local key = name:lower():gsub("^[Aa]n? ", ""):gsub("^[Tt]he ", "")
+  if scan.groundItems[key] then
+    scan.groundItems[key].count = scan.groundItems[key].count + 1
+  else
+    scan.groundItems[key] = { raw = line, name = name, key = key, count = 1 }
+  end
+end
+
 -- isUnparsedPresenceLine() -- broadened 2026-07-09, third confirmed live
 -- instance of the same underlying problem. Originally added 2026-07-08 as
 -- isCharmedStatusLine() for charmed/summoned pets' varying idle-action
@@ -1781,9 +1921,10 @@ function MyDSL.beginLook()
   end
 
   MyDSL.State.scan = MyDSL.State.scan or {
-    mode = nil, direction = nil, rows = {}, rightHere = {}, byName = {}, last_updated = 0,
+    mode = nil, direction = nil, rows = {}, rightHere = {}, byName = {}, groundItems = {}, last_updated = 0,
   }
   MyDSL.State.scan.rightHere = {}
+  MyDSL.State.scan.groundItems = {}
   -- Only one listing-capture should ever be active at a time -- kill a
   -- leftover scan catch-all too, not just a leftover look one.
   if MyDSL._triggers.scanBody then
@@ -1822,7 +1963,7 @@ function MyDSL.beginLook()
     -- Fixture check MUST run before parseLookHereLine -- item lines like
     -- "X lies here." also satisfy parseLookHereLine's broad "here"
     -- fallback below, and would otherwise get miscaptured as mobs.
-    if isLookFixtureLine(ln) then return end  -- item/corpse/fixture, keep capturing
+    if isLookFixtureLine(ln) then MyDSL.captureGroundItem(ln); return end  -- item/corpse/fixture, keep capturing
     if MyDSL.parseLookHereLine(ln) then return end
     if isUnparsedPresenceLine(ln) then return end  -- see comment above the function
     if t:match("^%l") then return end  -- wrapped continuation, keep capturing
@@ -2193,6 +2334,53 @@ end
 
 local function itemKey(name)
   return trim(tostring(name or "")):lower():gsub("^[Aa]n? ", ""):gsub("^[Tt]he ", "")
+end
+
+-- MyDSL.resolveGroundItem(key) -- added 2026-07-16, ItemLore's counterpart
+-- to resolveMobName() (see the SCAN section above for the shared
+-- normalizeForMatch()/bestFuzzyMatch() helper both use). Given a ground
+-- item's key (from MyDSL.State.scan.groundItems, populated by
+-- captureGroundItem()), tries to resolve it to the same item already seen
+-- equipped or carried. Checks ItemLore's own DB by exact key first (if
+-- this ground item was already identified/lore'd directly under this
+-- exact name, no fuzzy step is needed). Otherwise fuzzy-matches the
+-- ground sentence's stripped core name against every currently-known
+-- equipment slot and inventory item -- confirmed via a real paired sample
+-- (log/2026-07-16#17-23-54.html) that roughly 2/3 of items share a clean
+-- substring once both sides are normalized (e.g. "a decanter of endless
+-- water" <-> "A decanter of endless water lies here."); the rest
+-- (independently-phrased ground flavor text, e.g. "a shaping mallet" vs.
+-- "a mallet used to shape metal") correctly score 0 and return nil rather
+-- than guessing -- best-effort only, per Steven ("best effort mapping is
+-- fine, maybe a manual map option").
+function MyDSL.resolveGroundItem(key)
+  local ground = MyDSL.State.scan and MyDSL.State.scan.groundItems and MyDSL.State.scan.groundItems[key]
+  if not ground then return nil end
+
+  if MyDSL.ItemLore and MyDSL.ItemLore.get then
+    local rec = MyDSL.ItemLore.get(key)
+    if rec then return { key = key, name = rec.name or ground.name, source = "itemlore" } end
+  end
+
+  local candidates = {}
+  local eq = MyDSL.State.equipment and MyDSL.State.equipment.slots
+  if eq then
+    for slot, entry in pairs(eq) do
+      if entry and entry.item then
+        candidates[#candidates + 1] = {
+          name = entry.item, key = itemKey(entry.item), source = "equipment", slot = slot,
+        }
+      end
+    end
+  end
+  local inv = MyDSL.State.inventory and MyDSL.State.inventory.items
+  if inv then
+    for k, entry in pairs(inv) do
+      candidates[#candidates + 1] = { name = entry.item, key = k, source = "inventory" }
+    end
+  end
+
+  return bestFuzzyMatch(ground.name, candidates)
 end
 
 -- Shared body-line parser -- both identify and lore blocks use the same
@@ -3031,6 +3219,62 @@ end
 
 
 ------------------------------------------------------------------------
+-- 9q  INVENTORY  ("i"/"inv")
+------------------------------------------------------------------------
+-- Added 2026-07-16, per Steven ("you should be able to hover over
+-- inventory items not just equipment"). Didn't exist at all before this --
+-- confirmed via grep. Same begin/body/end shape as equip capture above,
+-- fires on "You are carrying:", ends on the first blank line. Each line
+-- is "( N) [tags] name" (count prefix omitted, i.e. just leading
+-- whitespace, when count is 1) -- confirmed via
+-- log/2026-07-16#17-23-54.html.
+
+local inventoryBlock = {}
+
+function MyDSL.beginInventory()
+  inventoryBlock = {}
+  if MyDSL._triggers.inventoryBody then
+    pcall(killTrigger, MyDSL._triggers.inventoryBody)
+    MyDSL._triggers.inventoryBody = nil
+  end
+  MyDSL._triggers.inventoryBody = tempRegexTrigger(".*", function()
+    local ln = getCurrentLine()
+    if trim(ln) == "" then MyDSL.endInventory(); return end
+    if MyDSL.parseInventoryLine then MyDSL.parseInventoryLine(ln) end
+  end)
+end
+
+function MyDSL.parseInventoryLine(line)
+  local count, rest = line:match("^%(%s*(%d+)%)%s+(.+)$")
+  if not rest then
+    rest = line:match("^%s+(.+)$")
+    count = "1"
+  end
+  if not rest then return end
+  local flags = {}
+  local remaining = rest
+  while true do
+    local flag, tail = remaining:match("^%((.-)%)%s*(.*)$")
+    if not flag then break end
+    flags[#flags + 1] = flag
+    remaining = tail
+  end
+  local itemName = trim(remaining)
+  if itemName == "" then return end
+  local key = itemName:lower():gsub("^[Aa]n? ", ""):gsub("^[Tt]he ", "")
+  inventoryBlock[key] = { item = itemName, flags = flags, count = tonumber(count) or 1 }
+end
+
+function MyDSL.endInventory()
+  if MyDSL._triggers.inventoryBody then
+    pcall(killTrigger, MyDSL._triggers.inventoryBody)
+    MyDSL._triggers.inventoryBody = nil
+  end
+  update("inventory", { items = inventoryBlock })
+end
+
+
+------------------------------------------------------------------------
 -- SECTION 10: TRIGGER REGISTRATION
 ------------------------------------------------------------------------
 -- Score header: "Score for Kien -= Zandreya =- (Companion) *Observer*"
@@ -3448,6 +3692,15 @@ MyDSL._triggers.equipStart = tempRegexTrigger(
   function()
     if MyDSL and MyDSL.beginEquip then
       MyDSL.beginEquip()
+    end
+  end
+)
+
+MyDSL._triggers.inventoryStart = tempRegexTrigger(
+  "^You are carrying:$",
+  function()
+    if MyDSL and MyDSL.beginInventory then
+      MyDSL.beginInventory()
     end
   end
 )
