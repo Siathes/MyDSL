@@ -29,6 +29,87 @@ Fixed in code, verified via syntax checks and/or emulation — none of this
 is closed until Steven confirms it in-game. Full technical detail for any
 item: `git log --oneline` + `docs/CHANGELOG.md`.
 
+- [ ] **2026-07-16 UI polish batch, working through notes_utf8.txt.**
+      - Chat "no chat is being captured? had to use mydsl chat rebuild" --
+        `C.startupSync()` (`MyDSL_ChatWrapper.lua`) already has a 0.4s/
+        1.5s/3.5s/5s delayed-check ladder for exactly this class of
+        problem (EMCO window not ready when layout restore finishes late)
+        but nothing retries after 5s -- if that boot happened to take
+        longer, chat stays silently un-routed forever with no further
+        self-heal. Added one more check at 15s as a safety net. Root
+        cause not conclusively proven (no error/reproduction steps beyond
+        the one report), so this is a defensive hardening, not a
+        confirmed fix -- still needs Steven's live confirmation on
+        whether it recurs.
+      - Combat life-echo missing a connecting verb ("A gray wolf cub big
+        wounds [30-49%]") — confirmed live via log corpus, fixed: now
+        "... has big wounds [30-49%]" (`MyDSL_DataLayer.lua`).
+      - PlayersNear had no command surface at all (only History-style
+        routed windows, no dedicated module) — added `mydsl playersnear
+        show/hide/font <n>/status`, mirroring History's own font+status
+        pattern (`MyDSL_RouteHelper.lua`).
+      - Bestiary/Focus/Item Reference: removed the `----`/`──` rule lines
+        (Steven: "lose the ---- lines for more space" / "remove the ---
+        lines in bestiary"); dropped each file's now-unused `hrule()`
+        helper. Replaced each window's static `wrapWidth = 300` (never
+        matched their actual docked width) with `enableAutoWrap()` — the
+        same real, already-proven-working Mudlet API History already
+        uses — for genuine adaptive word wrap.
+      - Bestiary: dropped the always-empty "Kills: 0 / Avg XP: ? / Last
+        XP: ?" row entirely, matching Focus's own 2026-07-11 precedent
+        for the exact same fields (real HP still shows fine when a
+        creature has actual lore data; Kills/XP have no capture path
+        anywhere in this codebase — DSL's `creaturelore` skill doesn't
+        report them at all, confirmed via `DSL_Helpfiles/creaturelore.txt`).
+      - Group: name column narrowed 20 -> 14 chars (was always padding
+        short player names out to a full 20 characters before the hp%
+        stat, per Steven "reduce space in group window between name and
+        stats"); still fixed-width so hp/mana/move stay column-aligned
+        across rows.
+      - Item Reference: Affects list now pairs two entries per line
+        instead of one (Steven: "make 2 columns... reduce the amount that
+        need to scroll") — a full side-by-side redesign of the whole
+        window wasn't attempted without live iteration, but this cuts the
+        longest repeating block roughly in half.
+      - Scan window: added `MyDSL.applyScanBadgeHover()` — Steven asked
+        for RightHere's existing visible `[Known]/[Seen]/[Unknown]` badge
+        on the main Scan body too, but that's raw copied game text (`selectCurrentLine()
+        `+`copy()`+`appendBuffer()`, "move text, don't invent it"), not
+        decho-built like RightHere — editing the pasted line to add
+        visible badge text is the same class of manipulation already
+        tried once (a left-margin space) and abandoned as not worth the
+        risk. Used the safer, already-proven hover technique instead
+        (same as AffectsView/equipment-line hover): `selectString()`+
+        `setLink()` attaches a tooltip showing the state, without
+        touching the visible text at all. If Steven wants a genuinely
+        visible inline badge instead of hover, that needs the riskier
+        insertText() approach and should be discussed first.
+      - LocationView: found and fixed a real bug while investigating the
+        "location/portrait changed after the Mudlet update" report —
+        `M.clear()` updated the caption text but never actually cleared
+        `M.ui.image`, so a room with no picture right after one that HAD
+        a picture would keep showing the previous room's stale image
+        instead of a blank/missing state.
+      All syntax-checked; Scan's new capture path also verified via a
+      structural test harness (rawName field populated correctly, full
+      trigger chain runs with no errors). None of this is visually
+      confirmed live yet.
+- [ ] **Location/Portrait "ran smoother before the Mudlet update" —
+      partially investigated, root cause NOT found, needs more specifics
+      from Steven.** Checked: Portrait's own code hasn't changed since
+      2026-07-12 (git log), and a fresh screenshot (`Screenshot_20260716_
+      174348.png`) shows Portrait rendering correctly. Location's panel
+      in that same screenshot was fully blank — no image AND no "No room
+      picture" caption text either, which shouldn't happen if `M.render()`
+      reached its normal missing-picture path (that path, and the
+      `M.clear()` bug just above, are real but don't fully explain a
+      totally blank window with no caption). Need: which Mudlet version
+      is currently running (Help > About), and whether this is
+      specifically about Location, Portrait, or both — "ran smoother"
+      could mean scaling/quality, timing/flicker, or something else
+      entirely; a plain description or a fresh screenshot showing the
+      actual visual problem (not just a room with no picture assigned)
+      would narrow this down a lot faster than more static code reading.
 - [ ] **New: Layer 4 item identification, first slice, built 2026-07-16 —
       dofile() steps confirmed done (inferred live: an error surfaced
       from inside `MyDSL_ItemReference.lua`'s own event handler, which
@@ -347,26 +428,6 @@ guessing at patterns with zero corpus evidence.
       likely a persisted-state issue (a prior test session left it
       visible and `MyDSL.Windows.saveState()` saved that) rather than a
       code default bug — not yet investigated.
-- [ ] **LiveView's "age" field is mislabeled — it isn't DSL's real age
-      stat.** Steven corrected 2026-07-16: "the age skill and the years
-      line in score are connected and set age in game" (see
-      `DSL_Helpfiles/age.txt` — age is a roleplay-only stat, set by
-      `practice age` at a trainer, never decreases, never auto-advances;
-      `MyDSL_DataLayer.lua`'s score parser already captures the real
-      value as `scoreBlock.years`, confirmed live in `log/*.html`, e.g.
-      `YEARS: 037`, but it's never displayed anywhere). `ageText()`
-      (`MyDSL_LiveView.lua:377`) computes a completely different number
-      — elapsed real-world time since character creation, converted via
-      an empirically-derived ratio — which was built intentionally
-      2026-07-12 per Steven's own spec at the time ("uses in-game time to
-      tell you when your ingame birthday is"), not a miscalculation: the
-      math is internally correct for what it does (verified 49y4m against
-      Kien's real creation timestamp). The bug is presenting that number
-      under the label "age" next to a character whose actual DSL age
-      (from `YEARS:`) is a different, real, already-captured number.
-      Needs Steven's call: relabel the current field (e.g. "played") and
-      leave it as-is, add the real `scoreBlock.years` value alongside it,
-      or replace it outright — not fixed yet, no code changed.
 
 ---
 
@@ -383,9 +444,32 @@ guessing at patterns with zero corpus evidence.
       confirmed first-person text anywhere in the corpus.
 - [ ] **Command vocabulary — more IC/human-speak, less `mydsl <module>
       <verb>`.** Design direction, not scoped.
-- [ ] Item-clickable reference module — depends on Layer 4.
-- [ ] Census (from UI) interacting with the reference module — depends on
-      Layer 4.
+- [ ] Census (from UI) interacting with the reference module — Layer 4
+      (ItemLore/ItemReference) now exists (2026-07-16), so this is
+      unblocked whenever picked up; not yet scoped otherwise.
+- [ ] **DSL event/date reminder module** — Steven: "a DSL reminder that
+      allows you to enter events and dates and have it come up as a
+      reminder when logged in or playing that such and such event will
+      start soon... I believe there are also events in the calendar or
+      holidays of the DSL wiki. Some way to connect this to Discord would
+      be optimal! There is a Mudlet calendar for Achaea on GitHub that
+      might help." Not scoped — needs: what counts as an "event" (manually
+      entered vs. scraped from the DSL wiki calendar/holidays), whether
+      Discord integration is in scope for this pass or a separate ask
+      (would be the first outbound-network integration in this project —
+      worth a design discussion given the passive-observation-only
+      philosophy has so far meant zero outbound calls), and whether the
+      referenced Achaea Mudlet calendar package is worth checking for a
+      reusable pattern before building fresh.
+- [ ] **Mapper/LocationView: distinguish same-named rooms** — Steven (in
+      notes_utf8.txt, tied to the deferred mapper integration): "when we
+      do the mapper integration I want the mapper and the location window
+      to be able to distinguish similar rooms, so unless the name,
+      description, exits, and all text color are the same they should be
+      able to distinguish one same named room from another, then we need
+      a way for location view to determine the room and picture reliably."
+      Not scoped — depends on the mapper integration itself (DEFERRED
+      section below), no new work without that go-ahead first.
 - [ ] State-scoped sound toggle — generic pattern for an alias to turn a
       sound on for a state and reliably turn it off when the state ends.
 - [ ] **Real gaps found while compiling `docs/CapturedPatterns_Reference.txt`
@@ -465,6 +549,14 @@ Timers. Real candidates for future integration, none urgent:
 ---
 
 ## DECISIONS RECORDED
+- **LiveView's "age" field — confirmed correct as-is, 2026-07-16.**
+  Steven: "if the age in live is how many ingame months/years have past
+  since creation, that is a good." No relabel/replace needed — the
+  displayed figure (elapsed real-world time since character creation,
+  converted via `ageText()`'s empirical ratio) is exactly what he wants
+  shown there, distinct from DSL's own separate roleplay age stat
+  (`practice age`/score's `YEARS:` line), which stays uncaptured/
+  undisplayed by design.
 - **Itemstat trigger retirement — sequencing confirmed 2026-07-16, per
   Steven: "itemstat will retire when we have made the item identification
   db and module."** Not proactively tracked as a live risk in the
