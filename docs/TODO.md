@@ -14,6 +14,44 @@ DEFERRED gets started without an explicit go-ahead.
 
 ---
 
+## PACKAGING — fresh-install status
+- [ ] **`MyDSL_Full.mpackage` built 2026-07-17, not yet install-tested.**
+      Real blocker found and solved: the native Script wiring (which
+      `.lua` files get `dofile()`d, in what order) lives entirely in
+      Mudlet's own session state (`current/*.xml`), which is gitignored
+      and was never captured anywhere reproducible — and the existing
+      wiring uses hardcoded absolute paths tied to this exact machine/
+      profile (`/home/owner/Desktop/Mudlet/mudlet-data/profiles/DSL2/...`),
+      which would break verbatim on any other install. Fixed by building
+      a real, standard-format `.mpackage` (verified against EMCOChat.mpackage/
+      generic_mapper.mpackage's actual structure) that embeds each of the
+      31 confirmed script modules' current source directly in the XML,
+      not a path reference — fully portable. Every embedded script was
+      round-trip diffed against its actual git-tracked source file after
+      building: byte-for-byte identical. The 31-file load order was
+      extracted directly from the live `current/*.xml`, not guessed.
+      **Does not include PNP's base client, EMCOChat, generic_mapper, or
+      DslColors_Core** — MyDSL is a layer on top of those, not a
+      replacement; those need to already be installed. EMCOChat/
+      generic_mapper already have real `.mpackage` files in
+      `~/Downloads/`; DslColors has a raw XML export there too. No
+      packaged/documented process exists for the PNP base-client step —
+      that's always been manual, undocumented, outside this session's
+      visibility. One required manual step confirmed: disable the native
+      `(autowhere)` alias. Two more native items (a trigger named
+      "English Multi-Line Exits Trigger" and one named "bumps into you
+      causing you to lose your balance.") were found disabled in the
+      working profile with no documented reason found anywhere in this
+      project's history — flagged for Steven to check, not assumed to be
+      MyDSL requirements. Full detail: `INSTALL.md` shipped alongside the
+      package. Checked `~/Downloads/00_MyDSL_v4C_FreshProfile_CleanInstall_
+      FULL.mpackage` (an existing file with a similar name) first —
+      confirmed it's from an entirely different, pre-rewrite architecture
+      (module names like "MyDSL.SourceCore"/"MyDSL.WindowCore" don't exist
+      anywhere in the current codebase), not reused.
+
+---
+
 ## LOW PRIORITY — script wiring
 - [ ] ChatWrapper tab active/inactive CSS still hardcoded — no ThemeEngine
       hookup. Real design pass, not a mechanical fix.
