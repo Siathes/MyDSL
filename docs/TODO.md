@@ -15,36 +15,71 @@ DEFERRED gets started without an explicit go-ahead.
 ---
 
 ## PACKAGING — fresh-install status
-- [ ] **`MyDSL_Full.mpackage` built 2026-07-17, install-tested once —
-      came back "missing emco", now fixed, needs a second install test.**
-      Real blocker found and solved: the native Script wiring (which
-      `.lua` files get `dofile()`d, in what order) lives entirely in
-      Mudlet's own session state (`current/*.xml`), which is gitignored
-      and was never captured anywhere reproducible — and the existing
-      wiring uses hardcoded absolute paths tied to this exact machine/
-      profile (`/home/owner/Desktop/Mudlet/mudlet-data/profiles/DSL2/...`),
-      which would break verbatim on any other install. Fixed by building
-      a real, standard-format `.mpackage` (verified against EMCOChat.mpackage/
-      generic_mapper.mpackage's actual structure) that embeds each script
-      module's current source directly in the XML, not a path reference —
-      fully portable. Every embedded script is round-trip diffed against
-      its actual git-tracked source file after every build: byte-for-byte
-      identical. Load order extracted directly from the live
-      `current/*.xml`, not guessed. Checked
+- [ ] **`MyDSL_Full.mpackage` — built, revised twice from real install
+      feedback, needs a third fresh-install test.** History: (1) first
+      build embedded every script's actual source directly in the XML
+      (not a `dofile()` path reference — the live wiring's native
+      `current/*.xml`, gitignored, used hardcoded absolute paths tied to
+      this machine, `/home/owner/Desktop/Mudlet/mudlet-data/profiles/
+      DSL2/...`, which would break verbatim anywhere else); checked
       `~/Downloads/00_MyDSL_v4C_FreshProfile_CleanInstall_FULL.mpackage`
-      (an existing file with a similar name) first — confirmed it's from
-      an entirely different, pre-rewrite architecture, not reused.
-      **Real install test result**: the separate EMCOChat package wasn't
-      actually installed, so `MyDSL_ChatWrapper.lua`'s
-      `require("EMCOChat.emco")` failed and the chat window never came
-      up. Fixed 2026-07-17 -- see the EMCO cannibalization entry directly
-      below, which removes this dependency entirely rather than just
-      documenting it as a prerequisite. Package now bundles 32 scripts
-      (added `MyDSL_EMCO.lua`), no longer needs EMCOChat installed at
-      all. **Still does not include PNP's base client, generic_mapper, or
-      DslColors_Core** — MyDSL is a layer on top of those, not a
+      first, confirmed it's from an entirely different pre-rewrite
+      architecture, not reused. (2) Real install test came back "missing
+      emco" — the separate EMCOChat package wasn't installed, so
+      `require("EMCOChat.emco")` failed. Fixed by cannibalizing EMCO's
+      real class (MIT licensed, github.com/demonnic/EMCO,
+      `~/Downloads/EMCO-2.9.0.zip`, `src/resources/emco.lua`, 2,353
+      lines) directly into the codebase instead of just documenting the
+      dependency — confirmed via a full diff against the real source
+      that only two lines changed (the `loggingconsole.lua` optional-
+      require, unused by MyDSL and broken under `dofile()` vs.
+      `require()`, replaced with `local LC = nil`; and the class exposed
+      as `MyDSL.EMCO`). `demontools.lua` (EMCO's sibling file in the same
+      repo) not ported — confirmed via grep `emco.lua` itself never
+      references it. Also ported EMCO's native alias vocabulary (`emco
+      addtab/remtab/gag/ungag/gaglist/notify/unnotify/blink/blankLine/
+      color/fontSize/timestamp/save/load/show/hide/title`), adapted to
+      operate on MyDSL's real chat window instead of the original
+      `demonnic.container` those aliases targeted (dead weight this
+      project has hidden forever). Not ported: `emco update` (self-
+      uninstaller, excluded per CLAUDE.md's standing mandate), `emco
+      lock`/`unlock` (`lockContainer()`/`unlockContainer()` are an
+      Adjustable.Container-specific API already misapplied to the wrong
+      object type twice in this project's history —
+      `MyDSL_AlterformView.lua`/`MyDSL_MoonWeather.lua`). (3) Per Steven
+      ("do we need chat wrapper? can it be all rolled into one chat?" /
+      "everything under MyDSL namespace again... it should all be under
+      MyDSL"), merged `MyDSL_EMCO.lua` + `MyDSL_ChatWrapper.lua` into one
+      file, `MyDSL_Chat.lua` (one dofile()-order slot instead of two),
+      and eliminated the `demonnic.*` global entirely — the chat instance
+      that used to live at the bare global `demonnic.chat` is now
+      `MyDSL.Chat.emco`; confirmed via a full-codebase grep that no live
+      code references `demonnic.*` anywhere anymore (the only remaining
+      mentions are inside EMCO's own dead YATCO-migration helper methods
+      — a legacy-config converter for EMCO's predecessor, which this
+      project never used and nothing calls — and in explanatory
+      comments). `MyDSL_ChatTriggers.lua` and `MyDSL_DataLayer.lua`'s one
+      other reference both updated to match. **Package is now genuinely
+      self-contained** — audited all 7 real `dofile()` call sites in the
+      codebase (all settings/DB persistence, none of them code) and
+      confirmed every one checks the file exists first, gracefully
+      defaulting when it doesn't (a fresh profile has no saved data yet,
+      which is expected, not a problem) — the earlier install guide's
+      claim that a few loose `.lua` files needed manually copying onto
+      disk was wrong, corrected. **Real, non-obvious bug caught along the
+      way**: merging two originally-standalone files broke on a genuine
+      Lua rule (`return EMCO`, valid as the last statement of its own
+      chunk, errors when other code follows it in the same file) — caught
+      because a stricter syntax check was used after noticing the
+      original `luajit -e "loadfile(x)" && echo OK` check pattern has a
+      blind spot (`loadfile` returns `nil, err` on failure rather than
+      throwing, so that check always printed OK regardless of the actual
+      parse result). Re-verified every file in the profile with the
+      corrected check after finding this — everything else was clean.
+      Still does not include PNP's base client, `generic_mapper`, or
+      `DslColors_Core` — MyDSL is a layer on top of those, not a
       replacement; those three need to already be installed.
-      generic_mapper already has a real `.mpackage` file in
+      `generic_mapper` already has a real `.mpackage` file in
       `~/Downloads/`; DslColors has a raw XML export there too. No
       packaged/documented process exists for the PNP base-client step —
       that's always been manual, undocumented, outside this session's
@@ -54,53 +89,39 @@ DEFERRED gets started without an explicit go-ahead.
       causing you to lose your balance.") were found disabled in the
       working profile with no documented reason found anywhere in this
       project's history — flagged for Steven to check, not assumed to be
-      MyDSL requirements. Full detail: `INSTALL.md` shipped alongside the
-      package.
-- [ ] **EMCO cannibalized directly into MyDSL, 2026-07-17 — built,
-      structurally verified, not yet install-tested.** Per Steven ("fold
-      emco into mydsl... clean rip... cannibalize emco like we did pnp"),
-      triggered directly by the fresh-install "missing emco" failure
-      above. New `MyDSL_EMCO.lua`: EMCO's real class (MIT licensed,
-      github.com/demonnic/EMCO, source: `~/Downloads/EMCO-2.9.0.zip`,
-      `src/resources/emco.lua`, 2,353 lines) ported essentially verbatim
-      — confirmed via a full diff against the real source that only two
-      lines changed: the `loggingconsole.lua` optional-require (unused
-      by MyDSL; its own `(...):match(...)` require-path detection
-      doesn't survive `dofile()` instead of `require()`) replaced with a
-      plain `local LC = nil`, matching what every one of its 6 downstream
-      nil-guarded call sites already falls back to; and the class also
-      exposed as `MyDSL.EMCO` at the end, matching this project's own
-      naming convention. `demontools.lua`/`loggingconsole.lua` (EMCO's
-      sibling files in the same repo) deliberately not ported — confirmed
-      via grep emco.lua itself never references demontools at all (an
-      unrelated bundled utility library), loggingconsole is the optional
-      unused feature covered above. `MyDSL_ChatWrapper.lua`'s
-      `requireEMCO()` rewritten to read `MyDSL.EMCO` directly instead of
-      `require("EMCOChat...")` — no more external package dependency.
-      Also ported and adapted EMCO's own native alias vocabulary (`emco
-      addtab/remtab/gag/ungag/gaglist/notify/unnotify/blink/blankLine/
-      color/fontSize/timestamp/save/load/show/hide/title`) as MyDSL's own
-      aliases, per this project's established "reuse PNP's/EMCO's
-      existing command vocabulary" philosophy — adapted to operate on
-      MyDSL's real chat window instead of the original `demonnic.container`
-      those aliases targeted (which `C.hideOldPrebuilt()` has always
-      hidden forever, so the un-ported originals would have been no-ops
-      even if the separate package were installed). Not ported: `emco
-      update` (self-uninstaller, explicitly excluded per CLAUDE.md's
-      standing mandate), `emco lock`/`emco unlock`
-      (`lockContainer()`/`unlockContainer()` are an Adjustable.Container-
-      specific API this project has already been burned by misapplying
-      to the wrong object type twice — `MyDSL_AlterformView.lua`/
-      `MyDSL_MoonWeather.lua` — not risking a third time on an unconfirmed
-      Geyser.UserWindow equivalent). Verified: syntax-checked; full
-      round-trip diff confirms only the two intended lines differ from
-      the real source; a structural test confirms the class loads,
-      exposes all ~140 real methods, and `MyDSL.Chat`'s `requireEMCO()`
+      MyDSL requirements. Verified throughout: syntax-checked (corrected
+      method), full round-trip diff confirms every embedded script is
+      byte-for-byte identical to its real source file, a structural test
+      confirms the merged class+window-management module loads cleanly
+      with zero `demonnic` dependency and `MyDSL.Chat`'s `requireEMCO()`
       correctly resolves `MyDSL.EMCO`. Actually constructing a real
       tabbed console needs live Geyser (a lightweight mock can't fully
       replicate Geyser's class-inheritance mechanics for custom fields
-      like `tabHeight`) — not visually confirmed live yet. `MyDSL_Full.mpackage`
-      rebuilt to include this file; needs a second fresh-install test.
+      like `tabHeight`) — not visually confirmed live yet. Full detail:
+      `INSTALL.md` shipped alongside the package.
+- [ ] **Windows resetting position when docking a second window on the
+      fresh profile — likely root cause found, not fixed.** Confirmed
+      NOT a recurrence of the previously-fixed Mudlet 4.21/4.22
+      "suspicious shrinkage" bug (checked the actual running AppImage:
+      still 4.20.1). Confirmed NOT the previously-fixed auto-reflow-on-
+      resize bug either (`MyDSL_LayoutEngine.lua`'s own header comment
+      documents that fix — no `sysWindowResizeEvent` handler exists
+      anywhere in the current codebase, verified via grep). Real
+      difference for a genuinely fresh profile: Mudlet's own native
+      window-geometry cache (`windowLayoutGeometry.dat`/`windowLayout.dat`)
+      lives at `~/.config/mudlet/` directly — confirmed via `find` —
+      **shared across every profile on the machine, not per-profile**.
+      Every UserWindow gets `restoreLayout=true` (`patchUserWindowConstructor()`,
+      `MyDSL_WindowRegistry.lua`), which (confirmed by reading Mudlet's
+      own bundled `GeyserUserWindow.lua` via the mounted AppImage) tells
+      Mudlet's native engine to look up cached geometry by window name in
+      that shared file. Since the fresh "MyDSL" profile uses identically-
+      named windows to the original DSL2 profile, its windows are likely
+      inheriting stale dock-state cached from the original profile's own
+      layout history. Not touched — this exact class of file already
+      caused a real regression once before in this project (TODO.md's
+      own DECISIONS RECORDED: resetting it made the whole panel layout
+      collapse, not fix anything) — needs discussion, not a blind fix.
 
 ---
 
