@@ -279,4 +279,66 @@ MyDSL._aliases.historyStatus = tempAlias(
   [[MyDSL.Route.historyStatus()]]
 )
 
+-- PlayersNear command set -- added 2026-07-16, per Steven ("playersnearyou
+-- window need same options as other windows/help want to change font").
+-- Same shape as History's font+status above (both are routed passive
+-- windows with no dedicated module file); show/hide are thin wrappers
+-- around MyDSL.Windows.show()/hide(), which are already generic by
+-- window name, so no new logic was needed for those two.
+function MyDSL.Route.showPlayersNear() MyDSL.Windows.show("MyDSL_PlayersNear") end
+function MyDSL.Route.hidePlayersNear() MyDSL.Windows.hide("MyDSL_PlayersNear") end
+
+function MyDSL.Route.setPlayersNearFont(size)
+  size = tonumber(size)
+  if not size then echo("usage: mydsl playersnear font <size>\n"); return end
+  if size < 6 then size = 6 end
+  if size > 18 then size = 18 end
+  FONT_SIZE_OVERRIDES.MyDSL_PlayersNear = size
+  local entry = MyDSL.Windows and MyDSL.Windows.registry
+                and MyDSL.Windows.registry.MyDSL_PlayersNear
+  if entry and entry.console then
+    entry.console:setFontSize(size)
+  end
+  MyDSL.Windows.setFontSize("MyDSL_PlayersNear", size)
+  echo("MyDSL_PlayersNear font=" .. tostring(size) .. "\n")
+end
+
+function MyDSL.Route.playersNearStatus()
+  local diskVal = "?"
+  if MyDSL.Windows and MyDSL.Windows.loadFontSizes and MyDSL.Windows.fontSizes then
+    local before = MyDSL.Windows.fontSizes.MyDSL_PlayersNear
+    MyDSL.Windows.loadFontSizes()
+    diskVal = tostring(MyDSL.Windows.fontSizes.MyDSL_PlayersNear)
+    if before ~= nil then MyDSL.Windows.fontSizes.MyDSL_PlayersNear = before end
+  end
+  local liveVal = "?"
+  local entry = MyDSL.Windows and MyDSL.Windows.registry
+                and MyDSL.Windows.registry.MyDSL_PlayersNear
+  if entry and entry.console and entry.console.getFontSize then
+    local ok, size = pcall(function() return entry.console:getFontSize() end)
+    if ok then liveVal = tostring(size) end
+  end
+  echo("[MyDSL.Route] playersnear font: disk=" .. diskVal ..
+       "; memory(FONT_SIZE_OVERRIDES)=" .. tostring(FONT_SIZE_OVERRIDES.MyDSL_PlayersNear) ..
+       "; live(widget getFontSize)=" .. liveVal ..
+       "; visible=" .. tostring(entry and entry.visible) .. "\n")
+end
+
+MyDSL._aliases.playersNearShow = tempAlias(
+  "^mydsl playersnear show$",
+  [[MyDSL.Route.showPlayersNear()]]
+)
+MyDSL._aliases.playersNearHide = tempAlias(
+  "^mydsl playersnear hide$",
+  [[MyDSL.Route.hidePlayersNear()]]
+)
+MyDSL._aliases.playersNearFont = tempAlias(
+  "^mydsl playersnear font (\\d+)$",
+  [[MyDSL.Route.setPlayersNearFont(matches[2])]]
+)
+MyDSL._aliases.playersNearStatus = tempAlias(
+  "^mydsl playersnear status$",
+  [[MyDSL.Route.playersNearStatus()]]
+)
+
 debugc("[MyDSL] RouteHelper loaded.")

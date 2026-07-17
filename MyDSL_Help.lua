@@ -225,6 +225,14 @@ MyDSL.Help.modules = {
       { cmd = "mydsl history status", desc = "Diagnostic: shows font size as stored on disk, in memory, and live.", example = "mydsl history status" },
     },
   },
+  { key = "playersnear", title = "Players Near", category = "Targeting & Group", window = "MyDSL_PlayersNear",
+    summary = "Passive display of the \"Players near you:\" list. Never sends commands.",
+    commands = {
+      { cmd = "mydsl playersnear show / hide", desc = "Standard window controls.", example = "mydsl playersnear show" },
+      { cmd = "mydsl playersnear font <n>", desc = "Set the window's font size.", example = "mydsl playersnear font 9" },
+      { cmd = "mydsl playersnear status", desc = "Diagnostic: shows font size as stored on disk, in memory, and live.", example = "mydsl playersnear status" },
+    },
+  },
   { key = "portrait", title = "Portrait", category = "Display & Reference", window = "MyDSL_Portrait",
     summary = "Displays a character portrait image, auto-looked-up by character name.",
     commands = {
