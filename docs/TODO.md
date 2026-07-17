@@ -29,6 +29,71 @@ Fixed in code, verified via syntax checks and/or emulation — none of this
 is closed until Steven confirms it in-game. Full technical detail for any
 item: `git log --oneline` + `docs/CHANGELOG.md`.
 
+- [ ] **2026-07-16 "what's left" build pass — cleared several buildable
+      backlog items, checked out several more that turned out to
+      already be resolved or unconfirmable.** Built:
+      - TargetView Consider: added the remaining 4 of 6 real difficulty
+        tiers (was only 2) — "The perfect match!", "<mob> says 'Do you
+        feel lucky, punk?'.", "<mob> laughs at you mercilessly.", "Death
+        will thank you for your gift." — confirmed via the PNP sibling
+        profile's own log corpus (DSL2's own corpus had zero examples of
+        these rarer tiers). `captureConsider()` just stores the raw line
+        verbatim, so the two nameless tiers needed no special handling.
+      - Item Reference had no `LayoutEngine` default position at all
+        (fell back to a generic corner-ish default, which is why it
+        landed tabbed alongside the much larger Scan/Combat/Bestiary
+        group). Added a real compact default near Portrait/Location, per
+        Steven's "compact... top left corner" ask — **only takes effect
+        after `mydsl layout reset` or a manual drag+`mydsl layout save`**,
+        LayoutEngine can't move an already natively-docked window.
+      - Help window auto-showing on load — root cause confirmed: not a
+        code bug, leftover `visible=true` saved state on Kien/Qinrathaz/
+        Vaelis's window-state files from testing the Help window earlier
+        the same session. Corrected directly to `false`, matching the
+        registry's own intended default (Vrokt's file already had it
+        right, confirming the default logic itself was always correct).
+      - Wired `MyDSL.resolveGroundItem()` (built last pass, never
+        connected to anything) into an actual hover on ground items seen
+        via `look`, same `selectString()`+`setLink()` technique as the
+        equipment hover — only attaches when a real resolution exists,
+        no hover for the fraction of items with no reliable match. Added
+        the "manual map option" Steven asked for: `item map <ground
+        text> = <inventory/equipment name>`, added as a branch inside
+        the existing `item <name>` dispatcher (not a separate alias —
+        a standalone one would have collided with that dispatcher's own
+        catch-all and sent `identify map ...` to the server as a real
+        game command, caught before it shipped). Verified via a
+        structural test: clean matches get a hover, declined matches
+        don't, a manual override both resolves correctly and gets a
+        hover on the next sighting.
+      Checked and found already resolved (no longer open, TODO note was
+      stale): `detect magic`'s onset text and "heart blight" were both
+      already fixed in `docs/CapturedPatterns_Reference.txt`, just not
+      flagged done; "heart blight" moved from a trailing annotation into
+      the main alphabetized table. CreatureLore's `lore <name>` gap was
+      based on a misunderstanding (see DECISIONS RECORDED).
+      Investigated and deliberately NOT built (real reasons, not just
+      time): TargetView aura-based auto-targeting — explicitly marked
+      "not yet scoped" (unlike Consider/debuffs which were marked
+      ready), and building it would require restructuring
+      `parseScanLine()`/`parseLookHereLine()` to preserve aura-tag data
+      they currently discard entirely, plus it changes combat-target
+      selection automatically, which has real correctness stakes if
+      wrong — needs a scoping discussion, not a blind build. TargetView
+      "show debuffs on target" (weaken/slow) — TODO claimed this was
+      "confirmed and ready to build," but a fresh corpus search (DSL2 +
+      the PNP sibling profile) found zero real third-person/observer-
+      side text for either debuff landing on someone else, only
+      self-referential "You feel..." text for when it lands on you. The
+      "confirmed" claim doesn't hold up; not building off an unconfirmed
+      pattern. Quest-tracking (DEFERRED item) — checked the corpus for
+      real quest start/expire/complete message text, found only helpfile
+      prose about how quests work, no actual game echoes; still nothing
+      to build against.
+      All syntax-checked; Consider triggers, ground-item hover, and the
+      manual-map override all verified via structural test harnesses.
+      None of this is visually confirmed live yet.
+
 - [ ] **2026-07-16 UI polish batch, working through notes_utf8.txt.**
       - Chat "no chat is being captured? had to use mydsl chat rebuild" --
         `C.startupSync()` (`MyDSL_ChatWrapper.lua`) already has a 0.4s/
@@ -472,35 +537,21 @@ guessing at patterns with zero corpus evidence.
       section below), no new work without that go-ahead first.
 - [ ] State-scoped sound toggle — generic pattern for an alias to turn a
       sound on for a state and reliably turn it off when the state ends.
-- [ ] **Real gaps found while compiling `docs/CapturedPatterns_Reference.txt`
-      (2026-07-15)** — that doc is a community-facing pattern reference, not
-      itself a code change, but it surfaced several actual DSL2 gaps worth
-      a look later:
-      - TargetView's Consider capture only wires up 2 of a real 6-tier
-        difficulty ladder ("looks like an easy kill." / "is no match for
-        you." are active; "The perfect match!" / "'Do you feel lucky,
-        punk?'." / "laughs at you mercilessly." / "Death will thank you for
-        your gift." are real DSL2 native-XML text, confirmed identical in
-        the PNP-family profiles too, but never wired in).
-      - `detect magic`'s onset text was always blank in the ported spell
-        table (PNP's own source has no onset for it) — "Your eyes tingle."
-        is a high-confidence candidate (consistently follows `detect magic`
-        in the log corpus) but not yet swapped in.
-      - "heart blight" (distinct from "bone blight") is a real spell
-        missing from DSL2's affects-echo table entirely.
-      - DSL2's CreatureLore may only parse `look`/`scan` mob text, not the
-        `lore <name>` command's own per-field output (base health/damage/
-        training cycle/immunities/resistances/tactics lines) — a sibling
-        profile's older CreatureDB parses `lore` output directly; worth
-        checking DSL2 actually covers the same fields.
-      - A whole quest-tracking mechanic (quest start/expire/timer messages)
-        has zero coverage anywhere in DSL2 — matches the already-tracked
-        "Data-driven notes/quest tracking" DEFERRED item below, not a new
-        ask, just confirms real message text exists to build against
-        whenever that's picked up.
-      None of this is scoped/started — feature creep is still paused.
-      Flagging so it isn't lost; the full source text for all of it is in
-      `docs/CapturedPatterns_Reference.txt`.
+- [ ] **A whole quest-tracking mechanic (quest start/expire/timer
+      messages) has zero coverage anywhere in DSL2** — matches the
+      already-tracked "Data-driven notes/quest tracking" DEFERRED item
+      below, not a new ask, confirms real message text exists to build
+      against whenever that's picked up. (The other 3 gaps flagged
+      alongside this one on 2026-07-15 are resolved as of 2026-07-16:
+      Consider now wires up all 6 real difficulty tiers, not 2 —
+      `MyDSL_TargetView.lua`; `detect magic`/`heart blight` were already
+      fixed in `docs/CapturedPatterns_Reference.txt`, just not flagged
+      done; CreatureLore's `lore <name>` gap turned out to be based on a
+      misunderstanding — checked `DSL_Helpfiles/lore.txt` and
+      `creaturelore.txt` directly: `lore` is a general item-only skill
+      that auto-fires on look/examine, has nothing to do with creatures;
+      `creaturelore <target>` is DSL's one real creature-info command,
+      and DSL2 already captures it correctly.)
 
 ---
 
@@ -549,6 +600,17 @@ Timers. Real candidates for future integration, none urgent:
 ---
 
 ## DECISIONS RECORDED
+- **CreatureLore's `lore <name>` "gap" — confirmed a non-issue,
+  2026-07-16.** The 2026-07-15 note worried DSL2 might only parse
+  `look`/`scan` mob text, not a `lore <name>` command's own per-field
+  creature output. Checked `DSL_Helpfiles/lore.txt` and
+  `creaturelore.txt` directly: `lore` is a general item-only skill
+  (works automatically on look/examine, nothing to do with creatures at
+  all); `creaturelore <target>` is DSL's one real creature-info command,
+  and `beginCreatureLore()`/`loreStart` (`MyDSL_DataLayer.lua`) already
+  captures it correctly. The "sibling profile's CreatureDB parses lore
+  output directly" claim that prompted this couldn't be independently
+  verified against the actual sibling profile files on this machine.
 - **LiveView's "age" field — confirmed correct as-is, 2026-07-16.**
   Steven: "if the age in live is how many ingame months/years have past
   since creation, that is a good." No relabel/replace needed — the
