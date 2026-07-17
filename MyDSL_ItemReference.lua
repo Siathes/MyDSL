@@ -283,6 +283,7 @@ function IR.init()
     [[
       local name = matches[2]
       local fontSize = name:match("^font%s+(%d+)$")
+      local mapGround, mapTarget = name:match("^map%s+(.-)%s*=%s*(.+)$")
       if name == "hide" then
         if MyDSL and MyDSL.ItemReference then MyDSL.ItemReference.hide() end
       elseif name == "show" then
@@ -293,6 +294,19 @@ function IR.init()
         if MyDSL and MyDSL.ItemReference then MyDSL.ItemReference.rebuild() end
       elseif fontSize then
         if MyDSL and MyDSL.ItemReference then MyDSL.ItemReference.setFont(fontSize) end
+      elseif mapGround then
+        -- "item map <ground item text> = <inventory/equipment item name>"
+        -- added 2026-07-16, the manual override for the real fraction of
+        -- items the automatic fuzzy ground-to-inventory match correctly
+        -- declines (no shared substring). Added as a branch here, not a
+        -- separate alias, because a standalone "^item map (.+)$"-shaped
+        -- alias would also match this dispatcher's own catch-all below
+        -- and send "identify map ... = ..." to the server as a real game
+        -- command -- confirmed by re-reading this exact alias before
+        -- adding the feature.
+        if MyDSL and MyDSL.setGroundItemOverride then
+          MyDSL.setGroundItemOverride(mapGround, mapTarget)
+        end
       else
         send("identify " .. name, false)
         if MyDSL and MyDSL.ItemReference then

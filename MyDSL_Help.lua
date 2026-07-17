@@ -203,6 +203,8 @@ MyDSL.Help.modules = {
       { cmd = "item font <n>", desc = "Set the window's font size.", example = "item font 9" },
       { cmd = "mydsl itemlore import", desc = "One-time bulk import of the shatteredarchive.com item-database scrape into the item DB.", example = "mydsl itemlore import" },
       { cmd = "(hover on equipped items)", desc = "Equipped items in the main console's `eq` output show a hover tooltip with quick stats and a click to open Item Reference -- the original text is never altered.", example = "eq" },
+      { cmd = "(hover on ground items)", desc = "Ground items seen via `look` get the same hover treatment whenever they can be resolved to a known equipped/carried/identified item -- best-effort only, some items have no reliable connection to their ground description and get no hover.", example = "look" },
+      { cmd = "item map <ground item text> = <inventory/equipment item name>", desc = "Manually link a ground item's text to a known item, for the real fraction the automatic match can't connect on its own.", example = "item map a mallet used to shape metal = a shaping mallet" },
     },
   },
 

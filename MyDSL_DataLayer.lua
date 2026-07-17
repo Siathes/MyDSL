@@ -343,6 +343,14 @@ MyDSL.State.creaturelore = MyDSL.State.creaturelore or { last_updated = 0 }  -- 
 -- just the current one.)
 MyDSL.State.equipment    = MyDSL.State.equipment    or { last_updated = 0 }  -- text: worn/wielded equipment by slot
 MyDSL.State.inventory    = MyDSL.State.inventory    or { last_updated = 0, items = {} }  -- text: carried items ("i"/"inv")
+-- Manual ground-item-to-inventory/equipment overrides, keyed by ground
+-- item key -- per Steven ("best effort mapping is fine, maybe a manual
+-- map option"). Deliberately NOT part of MyDSL.State.scan (which resets
+-- on every beginLook()/beginScan()) -- a manual correction should survive
+-- room changes and re-looks, not just the one room it was set in.
+-- In-memory only for now (resets on profile reload); not persisted to
+-- disk yet.
+MyDSL.State.groundItemOverrides = MyDSL.State.groundItemOverrides or {}
 MyDSL.State.combat = MyDSL.State.combat or {
   active      = {},    -- keyed by target-key; each entry: {target_display, target_condition, by_attacker, started_at}
   history     = {},    -- array of snapshots (same shape), most recent first
@@ -1895,6 +1903,41 @@ function MyDSL.captureGroundItem(line)
   else
     scan.groundItems[key] = { raw = line, name = name, key = key, count = 1 }
   end
+  MyDSL.applyGroundItemHover(name, key)
+end
+
+-- applyGroundItemHover(name, key) -- added 2026-07-16, wires
+-- MyDSL.resolveGroundItem() (built the prior pass, never connected to any
+-- UI) into an actual hover, same "move text, don't invent it" technique
+-- as the equipment-line hover in parseEquipLine(): selectString()+
+-- setLink() on the raw line already sitting in the main console, never
+-- touching its visible text. Only attaches a hover when a resolution
+-- actually exists (manual override, ItemLore DB hit, or an unambiguous
+-- fuzzy match) -- the real fraction of ground items with no resolution
+-- at all (per Steven's own "best effort" framing) get no hover, not a
+-- fabricated one.
+function MyDSL.applyGroundItemHover(name, key)
+  if not (selectString and setLink) then return end
+  local resolved = MyDSL.resolveGroundItem and MyDSL.resolveGroundItem(key)
+  if not resolved then return end
+  local rec = MyDSL.ItemLore and MyDSL.ItemLore.get and MyDSL.ItemLore.get(resolved.key or key)
+  local hint = "Resolved to \"" .. tostring(resolved.name) .. "\" (" .. tostring(resolved.source) .. ")"
+  if rec then
+    if rec.itemType then hint = hint .. " -- " .. rec.itemType end
+    if rec.damageDice then hint = hint .. " -- " .. rec.damageDice .. " (avg " .. tostring(rec.damageAvg) .. ")" end
+    if rec.armorClass then
+      local ac = rec.armorClass
+      hint = hint .. string.format(" -- AC %s/%s/%s/%s", tostring(ac.pierce), tostring(ac.bash), tostring(ac.slash), tostring(ac.magic))
+    end
+  end
+  hint = hint .. " -- Click for Item Reference"
+  local cmd = string.format(
+    'if MyDSL and MyDSL.ItemReference then MyDSL.ItemReference.render("%s"); MyDSL.ItemReference.show() end',
+    tostring(resolved.name):gsub('"', '\\"'))
+  local okSel, selected = pcall(selectString, "main", name, 1)
+  if okSel and selected then
+    pcall(setLink, "main", cmd, hint)
+  end
 end
 
 -- isUnparsedPresenceLine() -- broadened 2026-07-09, third confirmed live
@@ -2406,6 +2449,11 @@ function MyDSL.resolveGroundItem(key)
   local ground = MyDSL.State.scan and MyDSL.State.scan.groundItems and MyDSL.State.scan.groundItems[key]
   if not ground then return nil end
 
+  -- Manual override wins outright -- see MyDSL.setGroundItemOverride()
+  -- below ("item map <ground text> = <inventory/equipment text>").
+  local override = MyDSL.State.groundItemOverrides and MyDSL.State.groundItemOverrides[key]
+  if override then return { key = override, name = override, source = "manual" } end
+
   if MyDSL.ItemLore and MyDSL.ItemLore.get then
     local rec = MyDSL.ItemLore.get(key)
     if rec then return { key = key, name = rec.name or ground.name, source = "itemlore" } end
@@ -2430,6 +2478,25 @@ function MyDSL.resolveGroundItem(key)
   end
 
   return bestFuzzyMatch(ground.name, candidates)
+end
+
+-- MyDSL.setGroundItemOverride(groundText, targetText) -- the "manual map
+-- option" Steven asked for, for the real fraction of items where the
+-- automatic fuzzy match correctly declines (no shared substring) but the
+-- player knows for certain it's the same item. Keyed by the ground text's
+-- own itemKey() so it applies to every future sighting of that same
+-- ground description, not just the one currently in view.
+function MyDSL.setGroundItemOverride(groundText, targetText)
+  groundText = trim(tostring(groundText or ""))
+  targetText = trim(tostring(targetText or ""))
+  if groundText == "" or targetText == "" then
+    echo("usage: item map <ground item text> = <inventory/equipment item name>\n")
+    return
+  end
+  local key = itemKey(groundText)
+  MyDSL.State.groundItemOverrides = MyDSL.State.groundItemOverrides or {}
+  MyDSL.State.groundItemOverrides[key] = targetText
+  echo("Ground item \"" .. groundText .. "\" manually mapped to \"" .. targetText .. "\".\n")
 end
 
 -- Shared body-line parser -- both identify and lore blocks use the same
