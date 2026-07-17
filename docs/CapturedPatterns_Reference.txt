@@ -422,6 +422,7 @@ Generic melee (basic attack results, not tied to a named skill):
   flash bomb: "You've been blinded!!" / "You rub your eyes. Hey!! All the little flashing spots are gone!"
   focus aggression: "Your thoughts become concise and focused on killing!" / "You are no longer focused on your aggression."
   giant strength: "Your muscles surge with heightened power!" / "You feel weaker."
+  heart blight: onset "Your heart blight has taken hold of" / observer-side "stumbles in pain!" / fail "Your blight failed to take hold." (**[UNCONFIRMED]** — found via the PNP-family sibling profiles' native XML, not in DSL_PNP_Affects.echoes.lua at all; distinct from "bone blight" above)
   holy flame: "Holy flames errupt all about you!" / "The holy flames about your body subside."
   holy presence: "You feel a holy presence protecting you." / "You feel the holy presence leave your body."
   influence confidence: "Your confidence in yourself grows stronger." / "You are no longer confident in your hitting ability."
@@ -441,12 +442,6 @@ Generic melee (basic attack results, not tied to a named skill):
   water breathing: "You feel strange as you start having trouble breathing air." / "You start gasping for air as you can breath normally again!"
   we come, we come: {"The song enrages your groupmates and demoralizes your enemies." / "Your song enrages your groupmates and demoralized your enemies."} / "The bard's ally song leaves your mind"
   withstand death: "Death has no power over you." / "You shiver as you become susceptible to death again."
-
--- **[UNCONFIRMED — missing from PNP's table entirely]** "heart blight"
-   (distinct from "bone blight", which IS in the table above) — found via
-   the PNP-family sibling profiles' native XML, not in DSL_PNP_Affects.echoes.lua
-   at all: --
-  heart blight: onset "Your heart blight has taken hold of" / observer-side "stumbles in pain!" / fail "Your blight failed to take hold."
 
 -- Random Affects (flavor stat-fluctuation lines, a passive periodic
    mechanic distinct from spells) — **[NATIVE ONLY]**, cross-confirmed
