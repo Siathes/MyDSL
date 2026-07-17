@@ -21,6 +21,16 @@ DEFERRED gets started without an explicit go-ahead.
       carry-over data, not a module — superseded by
       `MyDSL/creaturelore_db.lua`. Tracked in git, unused. Confirm with
       Steven before deleting.
+- [ ] `MyDSL.Windows.setTitle` doesn't exist anywhere in
+      `MyDSL_WindowRegistry.lua` — found during the 2026-07-16 full
+      codebase review. One call site (`MyDSL_AffectsView.lua:952`,
+      `A.setTitle()`) is both existence-guarded and `pcall`-wrapped, so
+      it's a silent permanent no-op, not a crash risk — but it means
+      renaming the Affects window's title never actually notifies
+      WindowRegistry, per that code's own comment about avoiding a
+      "spam" feedback loop. Not fixed — unclear whether
+      `Windows.setTitle` was removed deliberately or just never built;
+      needs a decision, not a blind guess at what it should do.
 
 ---
 
