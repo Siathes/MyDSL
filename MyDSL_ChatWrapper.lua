@@ -1,10 +1,19 @@
 --[[=====================================================================
   MyDSL.ChatWrapper v4C11 QuietWindowSetup
   ----------------------------------------------------------------------
-  Minimal MyDSL wrapper for Demonnic EMCOChat using the proven Emberline
-  creation model:
+  Creates/configures the MyDSL-owned chat tab console using the proven
+  Emberline creation model:
 
     demonnic.chat = emco:new(config, MyDSL_Chat_UserWindow)
+
+  As of 2026-07-17, "emco" here is MyDSL.EMCO -- the real EMCO class
+  ported directly into MyDSL_EMCO.lua (Steven: "fold emco into mydsl...
+  cannibalize emco like we did pnp"), not the separate EMCOChat package.
+  A fresh-install test came back "missing emco" -- confirmed the whole
+  chat window depended on a package this project never actually captured
+  anywhere. This file's own logic/API surface is unchanged; only
+  requireEMCO() (below) changed, from require("EMCOChat...") to reading
+  MyDSL.EMCO directly.
 
   v4C4 fix:
     - v4C3 created correctly, but append() failed in EMCOChat/emco.lua with:
@@ -180,20 +189,22 @@ function C.loadSettings()
 end
 
 
+-- requireEMCO() -- rewritten 2026-07-17, per Steven ("fold emco into
+-- mydsl... clean rip... cannibalize emco like we did pnp"). Real blocker
+-- found live: a fresh-install test came back "missing emco" -- this used
+-- to require() the separate EMCOChat package, an external dependency
+-- never actually captured anywhere in this project. EMCO's real class
+-- (MIT licensed) is now ported directly into MyDSL_EMCO.lua (dofile()'d
+-- earlier in the load order, exposes itself as MyDSL.EMCO) -- no more
+-- external package dependency for chat at all. Kept the same function
+-- name/signature/call sites below unchanged so nothing else in this file
+-- needed to change.
 local function requireEMCO()
-  local ok, emco = pcall(require, "EMCOChat.emco")
-  if ok and emco then
-    C._emcoClass = emco
+  if MyDSL and MyDSL.EMCO then
+    C._emcoClass = MyDSL.EMCO
     return true
   end
-
-  ok, emco = pcall(require, "EMCOChat")
-  if ok and emco then
-    C._emcoClass = emco.emco or emco
-    return true
-  end
-
-  return err("EMCOChat not found. Install EMCOChat first.")
+  return err("MyDSL.EMCO not found -- MyDSL_EMCO.lua must load before MyDSL_ChatWrapper.lua.")
 end
 
 local function haveWindowCore()
@@ -669,6 +680,152 @@ function C.test(tab, msg)
   ce("test appended to " .. tab)
 end
 
+-- ---- EMCO-vocabulary handlers, ported 2026-07-17 -----------------------
+-- Cannibalized from EMCOChat's own native alias tree (per Steven, "clean
+-- rip... cannibalize emco like we did pnp"), adapted to operate on
+-- MyDSL's real chat object/window instead of demonnic.container (the old
+-- native Adjustable.Container this project has hidden forever -- see
+-- C.hideOldPrebuilt()). Real EMCOChat source (for comparison):
+-- ~/Downloads/EMCO-2.9.0.zip, src/aliases/EMCO/*.lua. Original aliases
+-- read demonnic.helpers.echo/setConfig and demonnic.config -- none of
+-- that "prebuilt EMCO" convenience layer exists here (it was part of the
+-- separate package's own Code.lua bootstrap, never MyDSL's), so each
+-- handler below calls the real EMCO instance methods directly instead.
+-- Not ported: "emco update" (self-uninstaller, explicitly excluded per
+-- CLAUDE.md), "emco lock"/"emco unlock" (lockContainer()/
+-- unlockContainer() are an Adjustable.Container-specific API this
+-- project has already been burned by misapplying to the wrong object
+-- type twice -- MyDSL_AlterformView.lua/MyDSL_MoonWeather.lua -- not
+-- risking a third time on an unconfirmed Geyser.UserWindow equivalent).
+
+function C.addTab(tabName, pos)
+  local ch = C.emco or (demonnic and demonnic.chat)
+  if not ch then ce("no demonnic.chat"); return end
+  if table.contains(ch.consoles, tabName) then
+    ce(tostring(tabName) .. " already exists!")
+    return
+  end
+  ch:addTab(tabName, tonumber(pos))
+  ce("added tab: " .. tostring(tabName))
+end
+
+function C.remTab(tabName)
+  local ch = C.emco or (demonnic and demonnic.chat)
+  if not ch then ce("no demonnic.chat"); return end
+  if not table.contains(ch.consoles, tabName) then
+    ce(tostring(tabName) .. " does not exist to remove. Current tabs: " .. table.concat(ch.consoles, ", "))
+    return
+  end
+  ch:removeTab(tabName)
+  ce("removed tab: " .. tostring(tabName))
+end
+
+function C.addGag(pattern)
+  local ch = C.emco or (demonnic and demonnic.chat)
+  if not ch then ce("no demonnic.chat"); return end
+  if ch:addGag(pattern) then
+    ce("Successfully added '" .. tostring(pattern) .. "' as a gag pattern")
+  else
+    ce("Unable to add '" .. tostring(pattern) .. "' as a gag pattern, this is usually because it's already added.")
+  end
+end
+
+function C.removeGag(pattern)
+  local ch = C.emco or (demonnic and demonnic.chat)
+  if not ch then ce("no demonnic.chat"); return end
+  if ch:removeGag(pattern) then
+    ce("Successfully removed '" .. tostring(pattern) .. "' as a gag pattern")
+  else
+    ce("Unable to remove '" .. tostring(pattern) .. "' as a gag pattern, this is usually because it hasn't been set.")
+  end
+end
+
+function C.gagList()
+  local ch = C.emco or (demonnic and demonnic.chat)
+  if not ch then ce("no demonnic.chat"); return end
+  local patterns = {}
+  for pattern in pairs(ch.gags or {}) do patterns[#patterns + 1] = pattern end
+  table.sort(patterns)
+  ce("Gagging report (Lua patterns, not regex):")
+  if #patterns == 0 then
+    ce("  (none)")
+  else
+    for _, pattern in ipairs(patterns) do ce("  " .. pattern) end
+  end
+end
+
+function C.addNotifyTab(tabName)
+  local ch = C.emco or (demonnic and demonnic.chat)
+  if not ch then ce("no demonnic.chat"); return end
+  local ok = ch:addNotifyTab(tabName)
+  if ok then
+    ce("Enabled OS notifications for tab " .. tostring(tabName))
+  elseif ok == false then
+    ce("Tab " .. tostring(tabName) .. " already had notifications enabled!")
+  else
+    ce("Tab " .. tostring(tabName) .. " does not exist")
+  end
+end
+
+function C.removeNotifyTab(tabName)
+  local ch = C.emco or (demonnic and demonnic.chat)
+  if not ch then ce("no demonnic.chat"); return end
+  local ok = ch:removeNotifyTab(tabName)
+  if ok then
+    ce("Disabled OS notifications for tab " .. tostring(tabName))
+  elseif ok == false then
+    ce("Tab " .. tostring(tabName) .. " already had notifications disabled!")
+  else
+    ce("Tab " .. tostring(tabName) .. " does not exist")
+  end
+end
+
+function C.setBlink(value)
+  local ch = C.emco or (demonnic and demonnic.chat)
+  if not ch then ce("no demonnic.chat"); return end
+  if ch:fuzzyBoolean(value) then ch:enableBlink() else ch:disableBlink() end
+  ce("blink=" .. tostring(ch:fuzzyBoolean(value)))
+end
+
+function C.setBlankLine(value)
+  local ch = C.emco or (demonnic and demonnic.chat)
+  if not ch then ce("no demonnic.chat"); return end
+  if ch:fuzzyBoolean(value) then ch:enableBlankLine() else ch:disableBlankLine() end
+  ce("blankLine=" .. tostring(ch:fuzzyBoolean(value)))
+end
+
+-- "emco color <option> <value>" -- the original read/wrote a shared
+-- demonnic.config table that EMCO's constructor consulted for defaults;
+-- MyDSL's chat window is already built (createInWindow()'s own explicit
+-- cfg table), so mutating a config table nothing re-reads would silently
+-- do nothing. Calls the matching live EMCO setter directly instead.
+local EMCO_COLOR_SETTERS = {
+  activeBorder = "setActiveTabCSS",
+  activeColor = "setActiveTabBGColor",
+  inactiveColor = "setInactiveTabBGColor",
+  activeText = "setActiveTabFGColor",
+  inactiveText = "setInactiveTabFGColor",
+  background = "setConsoleColor",
+  windowBorder = "setTabBoxCSS",
+  title = nil, -- not a color; handled by "emco title" separately
+}
+
+function C.setColor(option, value)
+  local ch = C.emco or (demonnic and demonnic.chat)
+  if not ch then ce("no demonnic.chat"); return end
+  local setter = EMCO_COLOR_SETTERS[option]
+  if not setter or not ch[setter] then
+    local names = {}
+    for k in pairs(EMCO_COLOR_SETTERS) do if EMCO_COLOR_SETTERS[k] then names[#names+1] = k end
+    end
+    table.sort(names)
+    ce("Unknown color option '" .. tostring(option) .. "'. Valid options: " .. table.concat(names, ", "))
+    return
+  end
+  ch[setter](ch, value)
+  ce("Set color for " .. option .. " to " .. tostring(value))
+end
+
 function C.installAliases()
   if C.aliasesInstalled then return end
 
@@ -696,16 +853,48 @@ function C.installAliases()
   tempAlias([[^mydsl chat test (\S+)\s+(.+)$]], [[MyDSL.Chat.test(matches[2], matches[3])]])
   tempAlias([[^mydsl chat test$]], [[MyDSL.Chat.test("All", "MyDSL ChatWrapper v4C4 test line.")]])
 
+  -- ---- EMCO vocabulary, ported 2026-07-17 -- see the handler functions'
+  -- own header comment above for what changed and why. "emco show"/
+  -- "emco hide"/"emco title" now genuinely work (unlike the old native
+  -- versions, which acted on the dead demonnic.container) since MyDSL
+  -- owns the whole stack now -- no more split-brain "which show/hide is
+  -- the real one" situation, so these are direct synonyms for the
+  -- existing "mydsl chat show/hide" handlers, not new logic.
+  tempAlias([[^emco addtab (\S+)(?:\s+(\d+))?$]], [[MyDSL.Chat.addTab(matches[2], matches[3])]])
+  tempAlias([[^emco remtab (.+)$]], [[MyDSL.Chat.remTab(matches[2])]])
+  tempAlias([[^emco gag (.+)$]], [[MyDSL.Chat.addGag(matches[2])]])
+  tempAlias([[^emco ungag (.+)$]], [[MyDSL.Chat.removeGag(matches[2])]])
+  tempAlias([[^emco gaglist$]], [[MyDSL.Chat.gagList()]])
+  tempAlias([[^emco notify (.+)$]], [[MyDSL.Chat.addNotifyTab(matches[2])]])
+  tempAlias([[^emco unnotify (.+)$]], [[MyDSL.Chat.removeNotifyTab(matches[2])]])
+  tempAlias([[^emco blink (\S+)$]], [[MyDSL.Chat.setBlink(matches[2])]])
+  tempAlias([[^emco blankLine (\S+)$]], [[MyDSL.Chat.setBlankLine(matches[2])]])
+  tempAlias([[^emco color (\S+) (.+)$]], [[MyDSL.Chat.setColor(matches[2], matches[3])]])
+  tempAlias([[^emco fontSize (\d+)$]], [[MyDSL.Chat.setFont(matches[2])]])
+  tempAlias([[^emco timestamp (\S+)$]], [[MyDSL.Chat.setTimestamp(matches[2])]])
+  tempAlias([[^emco save$]], [[MyDSL.Chat.saveSettings(); MyDSL.Chat.status()]])
+  tempAlias([[^emco load$]], [[MyDSL.Chat.loadSettings(); MyDSL.Chat.applyFont(); MyDSL.Chat.applyWrap(); MyDSL.Chat.applyTimestamp(); MyDSL.Chat.status()]])
+  tempAlias([[^emco show$]], [[MyDSL.Chat.show()]])
+  tempAlias([[^emco hide$]], [[MyDSL.Chat.hide()]])
+  tempAlias([[^emco title (.+)$]], [[
+    local title = matches[2]
+    if title == "clear" then title = "-= Chat =-" end
+    if MyDSL and MyDSL.Chat and MyDSL.Chat.window and MyDSL.Chat.window.setTitle then
+      pcall(function() MyDSL.Chat.window:setTitle(title) end)
+    end
+  ]])
+
   C.aliasesInstalled = true
 end
 
--- Neutralize EMCO's own "emco update" alias -- confirmed live in this
--- profile's native alias tree (current/autosave.xml), it silently
--- uninstalls EMCOChat and reinstalls a vanilla copy from GitHub, wiping any
--- of our customization. Disabled rather than killed outright so it's still
--- visible/inspectable in the Alias Manager if ever needed, just inert.
--- Only exception to this file's "does NOT disable stock EMCO triggers"
--- design note -- self-update is a safety issue, not a feature choice.
+-- Neutralize EMCO's own "emco update" alias, IF the separate EMCOChat
+-- package happens to also be installed for some other reason -- confirmed
+-- live (pre-2026-07-17) that alias silently uninstalls EMCOChat and
+-- reinstalls a vanilla copy from GitHub, wiping any customization. Not a
+-- real dependency anymore as of 2026-07-17 (EMCO's actual class is now
+-- ported directly into MyDSL_EMCO.lua, no separate package needed at
+-- all), but harmless to leave as a defensive no-op -- exists() just
+-- returns 0 and this does nothing if that alias was never installed.
 local function disableEmcoUpdateAlias()
   local ok, id = pcall(exists, "emco update", "alias")
   if ok and id and id ~= 0 then
