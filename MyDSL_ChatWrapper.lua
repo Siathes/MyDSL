@@ -419,6 +419,21 @@ function C.startupSync()
       C.revive("startup-5s-check")
     end
   end)
+
+  -- Second-chance guard, added 2026-07-16 per Steven ("no chat is being
+  -- captured? had to use mydsl chat rebuild"). The 5s guard above assumes
+  -- layout restoration always finishes within 5 seconds; if it doesn't
+  -- (system under heavier load, more windows to restore, etc.), nothing
+  -- after that ever retries, and chat stays silently un-routed until a
+  -- manual "mydsl chat rebuild". One more check, far enough out that a
+  -- slow boot has every reasonable chance to have finished by then.
+  tempTimer(15.0, function()
+    if not MyDSL or not MyDSL.Chat then return end
+    if not C.emco or not (demonnic and demonnic.chat) or not C.state.windowReady then
+      C.createInWindow()
+      C.state.lastAction = "startup-15s-guard-create"
+    end
+  end)
 end
 
 function C.applyFont()
