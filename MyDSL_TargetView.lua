@@ -1007,12 +1007,8 @@ function TV.init()
   -- log-corpus regression test, isn't in PNP source (DSL_PNP_*.lua never
   -- mentions "consider" at all), and considerLine2's "^\.\.\. " pattern
   -- only ever matched an unrelated "..." emote line, never real consider
-  -- output. Only two difficulty tiers have a confirmed real example in
-  -- the corpus so far -- DSL almost certainly has more (a graduated
-  -- difficulty ladder is standard for this command per DSL_Helpfiles/
-  -- consider.txt's "tells you what your chances are"), but adding
-  -- unconfirmed tiers would repeat the exact mistake being fixed here.
-  -- Add more as real examples are captured.
+  -- output. Only two difficulty tiers had a confirmed real example in this
+  -- profile's own corpus at the time.
   TV._triggers.considerEasyKill = tempRegexTrigger(
     "^[A-Z][\\w' -]*? looks like an easy kill\\.$",
     function()
@@ -1023,6 +1019,47 @@ function TV.init()
   )
   TV._triggers.considerNoMatch = tempRegexTrigger(
     "^[A-Z][\\w' -]*? is no match for you\\.$",
+    function()
+      if MyDSL and MyDSL.Target then
+        MyDSL.Target.captureConsider(getCurrentLine())
+      end
+    end
+  )
+  -- Remaining 4 of the real 6-tier ladder, added 2026-07-16 -- confirmed
+  -- via the PNP sibling profile's own log corpus (../Dark & Shattered
+  -- Lands - PNP/log/, DSL2's own corpus had zero examples of these rarer
+  -- tiers), same DSL command, same text: "The perfect match!" (weakest
+  -- mob, no name prefix -- captureConsider() just stores the raw line,
+  -- doesn't need to parse a name out of it, so a nameless line works
+  -- exactly the same as a named one), "<mob> says 'Do you feel lucky,
+  -- punk?'.", "<mob> laughs at you mercilessly.", and "Death will thank
+  -- you for your gift." (strongest mob, also no name prefix).
+  TV._triggers.considerPerfectMatch = tempRegexTrigger(
+    "^The perfect match!$",
+    function()
+      if MyDSL and MyDSL.Target then
+        MyDSL.Target.captureConsider(getCurrentLine())
+      end
+    end
+  )
+  TV._triggers.considerFeelLucky = tempRegexTrigger(
+    "^[A-Z][\\w' -]*? says 'Do you feel lucky, punk\\?'\\.$",
+    function()
+      if MyDSL and MyDSL.Target then
+        MyDSL.Target.captureConsider(getCurrentLine())
+      end
+    end
+  )
+  TV._triggers.considerLaughsMercilessly = tempRegexTrigger(
+    "^[A-Z][\\w' -]*? laughs at you mercilessly\\.$",
+    function()
+      if MyDSL and MyDSL.Target then
+        MyDSL.Target.captureConsider(getCurrentLine())
+      end
+    end
+  )
+  TV._triggers.considerDeathThanksYou = tempRegexTrigger(
+    "^Death will thank you for your gift\\.$",
     function()
       if MyDSL and MyDSL.Target then
         MyDSL.Target.captureConsider(getCurrentLine())
