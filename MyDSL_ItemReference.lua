@@ -29,10 +29,6 @@ local IR_MC  = "MyDSL_ItemReference_MC"
 -- Local helpers
 ------------------------------------------------------------------------
 
-local function hrule(char, width)
-  return string.rep(char or "─", width or 38)
-end
-
 -- No trim() here on purpose -- confirmed MyDSL_CreatureReference.lua's
 -- own equivalent normalization doesn't trim either (its render(name)
 -- just does name:lower():gsub(...) directly); every real caller already
@@ -69,14 +65,14 @@ function IR.render(name)
     rec = MyDSL.State.itemlore
   end
 
-  decho(IR_MC, string.format("<68,68,68>%s\n<r>", hrule("─")))
+  -- Rule lines removed 2026-07-16, per Steven ("remove some vertical
+  -- spacing... to reduce the amount that need to scroll"), same treatment
+  -- as Bestiary/Focus the same day.
   decho(IR_MC, string.format("<255,255,153>%s<r>\n", name))
-  decho(IR_MC, string.format("<68,68,68>%s\n<r>", hrule("─")))
 
   if not rec then
     decho(IR_MC, "<136,136,136>No item data yet.\n<r>")
     decho(IR_MC, "<102,102,102>Try `identify <name>` or `lore <name>` in-game.\n<r>")
-    decho(IR_MC, string.format("<68,68,68>%s\n<r>", hrule("─")))
     return
   end
 
@@ -95,8 +91,6 @@ function IR.render(name)
     decho(IR_MC, string.format("<136,136,136>Flags: <170,170,255>%s<r>\n", rec.extraFlags))
   end
 
-  decho(IR_MC, "\n")
-
   -- Weapon block
   if rec.weaponType or rec.damageDice then
     decho(IR_MC, "<255,204,68>Weapon<r>\n")
@@ -106,7 +100,6 @@ function IR.render(name)
         rec.damageDice, rec.damageAvg and tostring(rec.damageAvg) or "?"))
     end
     if rec.weaponFlags then decho(IR_MC, string.format("  <136,136,136>Flags: <255,215,65>%s<r>\n", rec.weaponFlags)) end
-    decho(IR_MC, "\n")
   end
 
   -- Armor block
@@ -116,7 +109,6 @@ function IR.render(name)
     decho(IR_MC, string.format(
       "  <136,136,136>AC: <204,204,204>%s pierce, %s bash, %s slash, %s magic<r>\n",
       tostring(ac.pierce), tostring(ac.bash), tostring(ac.slash), tostring(ac.magic)))
-    decho(IR_MC, "\n")
   end
 
   if rec.size or rec.condition then
@@ -133,7 +125,6 @@ function IR.render(name)
     if rec.weightMultiplier then
       decho(IR_MC, string.format("  <136,136,136>Weight multiplier: <204,204,204>%s%%<r>\n", tostring(rec.weightMultiplier)))
     end
-    decho(IR_MC, "\n")
   end
 
   -- Spell charges (wand) / spell list (potion/pill/scroll)
@@ -152,15 +143,26 @@ function IR.render(name)
     decho(IR_MC, string.format("<136,136,136>Holds: <204,204,204>%s<r>\n", rec.drinkLiquid))
   end
 
-  -- Affects (the real bonuses/enchants -- identify-only, never from lore)
+  -- Affects (the real bonuses/enchants -- identify-only, never from lore).
+  -- Two per line, 2026-07-16, per Steven ("make 2 columns... reduce the
+  -- amount that need to scroll") -- a full side-by-side column redesign
+  -- of the whole window risks looking worse without live iteration, but
+  -- pairing affects (usually the longest repeating list in a record) cuts
+  -- this specific block's line count roughly in half at no design risk.
   if rec.affects and #rec.affects > 0 then
-    decho(IR_MC, "\n<255,204,68>Affects<r>\n")
-    for _, a in ipairs(rec.affects) do
-      decho(IR_MC, string.format("  <170,170,255>%s <136,136,136>by <204,204,204>%s<r>\n", a.stat, tostring(a.amount)))
+    decho(IR_MC, "<255,204,68>Affects<r>\n")
+    for i = 1, #rec.affects, 2 do
+      local a = rec.affects[i]
+      local cell = string.format("<170,170,255>%s <136,136,136>by <204,204,204>%s<r>",
+        a.stat, tostring(a.amount))
+      local b = rec.affects[i + 1]
+      if b then
+        cell = cell .. "   " .. string.format("<170,170,255>%s <136,136,136>by <204,204,204>%s<r>",
+          b.stat, tostring(b.amount))
+      end
+      decho(IR_MC, "  " .. cell .. "\n")
     end
   end
-
-  decho(IR_MC, "\n")
 
   -- Completeness + source/date
   local state = "unknown"
@@ -175,8 +177,6 @@ function IR.render(name)
     decho(IR_MC, string.format("<136,136,136>Last identified: <204,204,204>%s<r>\n",
       os.date("%Y-%m-%d", rec.lastIdentified)))
   end
-
-  decho(IR_MC, string.format("<68,68,68>%s\n<r>", hrule("─")))
 end
 
 
@@ -240,9 +240,12 @@ function IR.ensureUI()
     IR._mc.item = Geyser.MiniConsole:new({
       name      = IR_MC,
       x = 0, y = 0, width = "100%", height = "100%",
-      wrapWidth = 300,
       scrollBar = true,
     }, irWin)
+    -- Adaptive word wrap -- same fix applied to Bestiary/Focus 2026-07-16
+    -- (same "reduce scrolling" ask); static wrapWidth=300 didn't track
+    -- this window's actual docked width.
+    pcall(function() IR._mc.item:enableAutoWrap() end)
   end
 
   local itemFont = MyDSL.Windows.getFontSize(IR_WIN, 9)

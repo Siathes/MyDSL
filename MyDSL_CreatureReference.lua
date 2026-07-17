@@ -48,12 +48,6 @@ local function formatNumber(n)
   return result:match("^,(.+)$") or result
 end
 
--- Returns a string of repeated char padded to width, useful for rule lines.
-local function hrule(char, width)
-  return string.rep(char or "─", width or 38)
-end
-
-
 ------------------------------------------------------------------------
 -- render(name)  —  draws the lore record for `name`
 ------------------------------------------------------------------------
@@ -77,15 +71,14 @@ function CR.render(name)
     rec = MyDSL.State.creaturelore
   end
 
-  -- Header rule + name
-  decho(CR_MC, string.format("<68,68,68>%s\n<r>", hrule("─")))
+  -- Name header. Dash rule lines removed 2026-07-16, per Steven ("remove
+  -- the --- lines in bestiary to save space") -- hrule() had no other
+  -- callers left, so removed it too rather than leave dead code.
   decho(CR_MC, string.format("<255,204,68>%s<r>\n", name))
-  decho(CR_MC, string.format("<68,68,68>%s\n<r>", hrule("─")))
 
   if not rec then
     decho(CR_MC, "<136,136,136>No lore data yet.\n<r>")
     decho(CR_MC, "<102,102,102>Click [Lore] in Focus window to capture.\n<r>")
-    decho(CR_MC, string.format("<68,68,68>%s\n<r>", hrule("─")))
     return
   end
 
@@ -102,19 +95,23 @@ function CR.render(name)
     "<136,136,136>Race: <204,204,204>%-12s <136,136,136>Lvl: <204,204,204>%-4s <136,136,136>Align: <204,204,204>%s<r>\n",
     race_str, lvl_str, align_str))
 
-  -- HP / Kill count
-  local hp_str    = formatNumber(rec.hp)
-  local kills_str = rec.killCount and tostring(rec.killCount) or "0"
-  decho(CR_MC, string.format(
-    "<136,136,136>HP:   <204,204,204>%-14s <136,136,136>Kills: <204,204,204>%s<r>\n",
-    hp_str, kills_str))
-
-  -- Avg XP / Last XP
-  local avg_xp  = formatNumber(rec.avgXP)
-  local last_xp = formatNumber(rec.lastXP)
-  decho(CR_MC, string.format(
-    "<136,136,136>Avg XP: <255,204,68>%-12s <136,136,136>Last XP: <255,204,68>%s<r>\n",
-    avg_xp, last_xp))
+  -- HP. Kills/Avg XP/Last XP dropped 2026-07-16, per Steven ("bestiary
+  -- window not showing health and xp"). Investigated: HP already works
+  -- correctly whenever a creature has real creaturelore data (reads
+  -- straight off rec.hp, populated from "The base health of this
+  -- creature is N." during a real capture) -- blank HP just means that
+  -- specific creature was only ever "seen", never actually lore'd.
+  -- Kills/avgXP/lastXP, though, have NO capture path anywhere in this
+  -- codebase (confirmed via grep -- those fields only ever existed in
+  -- the stale DSL1 MyDSL_creaturelore.lua reference file); DSL's own
+  -- `creaturelore` skill doesn't report kill count or XP at all (per
+  -- DSL_Helpfiles/creaturelore.txt), so nothing could ever fill them.
+  -- MyDSL_TargetView.lua's Focus window already reached this same
+  -- conclusion 2026-07-11 and omits them entirely rather than showing
+  -- permanent placeholders -- matching that here instead of displaying
+  -- an always-empty "Kills: 0 / Avg XP: ? / Last XP: ?" row.
+  local hp_str = formatNumber(rec.hp)
+  decho(CR_MC, string.format("<136,136,136>HP: <204,204,204>%s<r>\n", hp_str))
 
   decho(CR_MC, "\n")
 
@@ -168,8 +165,6 @@ function CR.render(name)
       "<136,136,136>Last lored: <204,204,204>%s<r>\n",
       os.date("%Y-%m-%d", rec.last_updated)))
   end
-
-  decho(CR_MC, string.format("<68,68,68>%s\n<r>", hrule("─")))
 end
 
 
@@ -282,9 +277,16 @@ function CR.ensureUI()
     CR._mc.lore = Geyser.MiniConsole:new({
       name      = CR_MC,
       x = 0, y = 0, width = "100%", height = "100%",
-      wrapWidth = 300,
       scrollBar = true,
     }, crWin)
+    -- Adaptive word wrap, per Steven ("bestiary... needs word wrap") --
+    -- same real Mudlet API already proven working for History
+    -- (MyDSL_RouteHelper.lua): computes wrapAt from the console's own
+    -- live pixel width, and MiniConsole's reposition() override already
+    -- recalls it automatically on resize, no extra wiring needed. Static
+    -- wrapWidth=300 (removed above) didn't track this window's actual
+    -- (much narrower, docked) width at all.
+    pcall(function() CR._mc.lore:enableAutoWrap() end)
   end
 
   -- Font size now persisted per-window (2026-07-15, "bring Scan/Group/

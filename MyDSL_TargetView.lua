@@ -528,12 +528,6 @@ local function listField(label, tbl, color)
   return string.format("<136,136,136>%s: <68,68,68>(none)<r>", label)
 end
 
--- tvRule(mc) -- thin dashed divider, matching the design mockup's row
--- separators between the button grid and the stat block.
-local function tvRule(mc)
-  tvLog(mc, "<48,54,58>" .. string.rep("-", 46) .. "<r>\n")
-end
-
 -- conditionBarColor -- added 2026-07-11 per Steven ("should have
 -- healthbars that work on the enemies health message"), colored by the
 -- same 7-tier order MyDSL.getTargetCondition() returns (7=excellent,
@@ -773,7 +767,8 @@ function TV.render()
     local lore = MyDSL.CreatureLore and MyDSL.CreatureLore.get(tKey)
 
     if lore then
-      tvRule(statsMc)
+      -- Rule line removed 2026-07-16, per Steven ("focus needs... lose
+      -- the ---- lines for more space").
       -- Real bug, found live 2026-07-12 via screenshot ("Race: tinker
       -- gnomeLvl: 45", no space at all): %-12s only guarantees a MINIMUM
       -- width, it doesn't add padding once the value is already at or
@@ -794,7 +789,6 @@ function TV.render()
       if lore.tactics and #lore.tactics > 0 then
         tvLog(statsMc, listField("Tactics", lore.tactics, "255,204,68") .. "\n")
       end
-      tvRule(statsMc)
       tvLog(statsMc, listField("Immune", lore.immunities, "68,204,170") .. "  " ..
                 listField("Resist", lore.resists, "68,204,170") .. "\n")
       tvLog(statsMc, listField("Vuln", lore.vulns, "204,68,68") .. "  " ..
@@ -836,10 +830,16 @@ function TV.init()
     TV._mc.stats = Geyser.MiniConsole:new({
       name      = TARGET_MC .. "_Stats",
       x = "0%", y = "32%", width = "100%", height = "68%",
-      wrapWidth = 300,
       fontSize  = TV.config.fontSize,
       scrollBar = false,
     }, targetWin)
+    -- Adaptive word wrap, per Steven ("focus needs wrapping text for
+    -- stats") -- same real Mudlet API already proven working for History
+    -- (MyDSL_RouteHelper.lua): computes wrapAt from the console's own
+    -- live pixel width, recalculated automatically on resize. Static
+    -- wrapWidth=300 (removed above) never matched this window's actual
+    -- (much narrower, docked) width.
+    pcall(function() TV._mc.stats:enableAutoWrap() end)
   end
   if TV._mc.stats then TV._mc.stats:setFontSize(TV.config.fontSize) end
 
