@@ -2,8 +2,13 @@
 -- MyDSL_ChatTriggers.lua  --  Layer 3: Chat channel routing
 -- =============================================================================
 -- Intercepts chat channel lines and routes them to EMCO tabs via
--- demonnic.chat:append(). Lines are removed from the main console.
--- Must load LAST — demonnic.chat is created by ChatWrapper (position 8).
+-- MyDSL.Chat.emco:append(). Lines are removed from the main console.
+-- Must load LAST — MyDSL.Chat.emco is created by MyDSL_Chat.lua (formerly
+-- MyDSL_ChatWrapper.lua). Updated 2026-07-17: this used to read the bare
+-- global demonnic.chat (EMCO's own historical convention, inherited from
+-- the separate EMCOChat package this project no longer depends on) --
+-- per Steven ("everything under MyDSL namespace"), now reads
+-- MyDSL.Chat.emco directly instead.
 -- =============================================================================
 
 MyDSL              = MyDSL              or {}
@@ -31,8 +36,8 @@ deregisterTriggers()
 
 local function route(tabName, pattern, gag)
   local id = tempRegexTrigger(pattern, function()
-    if demonnic and demonnic.chat then
-      demonnic.chat:append(tabName)
+    if MyDSL and MyDSL.Chat and MyDSL.Chat.emco then
+      MyDSL.Chat.emco:append(tabName)
     end
     -- Restored 2026-07-08 now that routing itself is confirmed working
     -- live (per Steven) -- this is what actually moves the line to the

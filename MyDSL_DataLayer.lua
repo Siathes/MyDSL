@@ -168,7 +168,7 @@ MyDSL._aliases.logCategoryToggle = tempAlias(
   "^mydsl log (\\S+) (on|off)$",
   [[local cat = matches[2]
     if cat == "chat" then
-      local ch = demonnic and demonnic.chat
+      local ch = MyDSL and MyDSL.Chat and MyDSL.Chat.emco
       if ch then
         if matches[3] == "off" then ch:disableAllLogging() else ch:enableAllLogging() end
         echo("Chat logging " .. matches[3] .. ".\n")
