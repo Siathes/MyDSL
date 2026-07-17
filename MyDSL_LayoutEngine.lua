@@ -90,6 +90,23 @@ MyDSL.Layout.defaults = MyDSL.Layout.defaults or {
   -- MyDSL_Location: room/area name display (top-left).
   MyDSL_Location         = { x=0.00, y=0.18, w=0.10, h=0.18 },
 
+  -- MyDSL_ItemReference: top-left, next to Portrait/Location -- added
+  -- 2026-07-16, had no LayoutEngine entry at all before this (fell back
+  -- to the generic "5%,5%,35%,30%" default, which is also why it landed
+  -- tabbed alongside the much larger Scan/Combat/Bestiary group instead
+  -- of anywhere near this corner). Per Steven ("compact... to fit in the
+  -- top left corner... some items will have to scroll, I understand,
+  -- just trying to reduce the amount that need to scroll") -- deliberately
+  -- small (comparable to Portrait/Location's own footprint), scrolling
+  -- inside it is expected, not something this size is trying to avoid.
+  -- Only takes effect on a fresh layout ("mydsl layout reset") or after
+  -- a manual drag+resize + "mydsl layout save" -- LayoutEngine only
+  -- governs a window's position the very first time it's ever created;
+  -- Mudlet's own native docking state (persisted outside this profile)
+  -- governs it after that, and this file can't move an already-docked
+  -- window on its own.
+  MyDSL_ItemReference    = { x=0.10, y=0.05, w=0.20, h=0.20 },
+
   -- MyDSL_Focus (renamed from MyDSL_Target 2026-07-11): left side mid —
   -- focus/target info and health bar.
   MyDSL_Focus            = { x=0.00, y=0.36, w=0.18, h=0.24 },
