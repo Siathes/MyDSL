@@ -185,11 +185,17 @@ function GV.render()
     local tag_color = (m.class == "Mob") and "136,136,68" or "68,136,204"
     gvLog(mc, string.format("<%s>[%-3s]<r> ", tag_color, m.class))
 
-    -- Name: clickable to set Target; mobs warm tan, players near-white; max 20 chars.
+    -- Name: clickable to set Target; mobs warm tan, players near-white.
+    -- Column width narrowed 20 -> 14 chars, 2026-07-16, per Steven
+    -- ("reduce space in group window between name and stats") -- 20 was
+    -- always padding out to a full 20 characters even for short player
+    -- names (e.g. "Kien"), leaving a large visible gap before hp%; still
+    -- fixed-width (not fully dynamic) so the hp/mana/move columns stay
+    -- aligned across rows regardless of name length.
     local name_color = m.is_mob and "204,170,100" or "204,204,204"
-    local display_name = cutText(m.name, 20)
+    local display_name = cutText(m.name, 14)
     gvLogLink(mc,
-      string.format("<%s>%-20s<r>", name_color, display_name),
+      string.format("<%s>%-14s<r>", name_color, display_name),
       string.format("MyDSL.GroupView.setTarget(%d)", idx),
       "Click to target: " .. m.name,
       true)
