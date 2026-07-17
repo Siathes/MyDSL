@@ -570,6 +570,12 @@ function M.clear(caption)
   M.ensureUI()
   if not (M.ui and M.ui.image and M.ui.caption) then return end
   M.applyBaseStyle()
+  -- Real bug found 2026-07-16 (investigating Steven's "something has
+  -- changed in location and portrait" report): this never actually
+  -- cleared M.ui.image, only updated the caption text -- entering a room
+  -- with no picture right after one that HAD a picture left the previous
+  -- room's stale image on screen instead of showing blank/missing state.
+  M.ui.image:echo("")
   M.ui.caption:echo(caption or "")
   M.currentPath = nil
   M.currentRoom = nil
