@@ -1662,13 +1662,61 @@ function MyDSL.beginScan(mode, direction)
     if t == "Players near you:" then MyDSL.endScan(); return end
     if t:match("^.+%'s group:$") then MyDSL.endScan(); return end
     if t == "Looking around you see:" then return end  -- skip header if re-seen
-    if MyDSL.parseScanLine then MyDSL.parseScanLine(ln) end
+    local newRow = nil
+    if MyDSL.parseScanLine then
+      local before = #MyDSL.State.scan.rows
+      MyDSL.parseScanLine(ln)
+      if #MyDSL.State.scan.rows > before then
+        newRow = MyDSL.State.scan.rows[#MyDSL.State.scan.rows]
+      end
+    end
     selectCurrentLine()
     copy()
     if MyDSL.ScanView and MyDSL.ScanView.ui and MyDSL.ScanView.ui.scanConsole then
       MyDSL.ScanView.ui.scanConsole:appendBuffer()
+      MyDSL.applyScanBadgeHover(newRow)
     end
   end)
+end
+
+-- applyScanBadgeHover(row) -- added 2026-07-16, per Steven ("scan window
+-- should show seen/known flags"). RightHere already shows a visible
+-- [Known]/[Seen]/[Unknown] badge (SV.renderRightHere(), MyDSL_ScanView.lua)
+-- because that panel is decho-built from scratch every time. The Scan
+-- body itself is raw copied game text (selectCurrentLine()+copy()+
+-- appendBuffer() above) -- "move text, don't invent it" -- so a visible
+-- inline badge would mean editing the pasted line after the fact, the
+-- same mechanism already tried once for a left-margin space and reverted
+-- ("no visible changes... not a big enough issue to chase"). Uses the
+-- safer, already-proven hover technique instead (same as AffectsView's
+-- applyLinks() / the equipment-line hover in parseEquipLine()):
+-- selectString()+setLink() on the just-appended line, tooltip only, never
+-- touches the visible text. Selects on the pre-resolution rawName (not
+-- the possibly-substituted display name) so it still matches the literal
+-- on-screen text even for a "Known" mob whose resolved name differs from
+-- what the game actually printed.
+function MyDSL.applyScanBadgeHover(row)
+  if not row or not row.is_mob then return end
+  if not (MyDSL.CreatureLore and MyDSL.CreatureLore.knownState) then return end
+  if not (selectString and setLink) then return end
+  local mc = MyDSL.ScanView and MyDSL.ScanView.ui and MyDSL.ScanView.ui.scanConsole
+  if not mc then return end
+  -- Known fixed name (MyDSL_ScanView.lua's SCAN_MC constant), not read off
+  -- the Geyser object -- matches how the rest of this codebase treats
+  -- console window names (e.g. AffectsView's A.config.windowName) as
+  -- known string literals rather than introspected object fields.
+  local windowName = "MyDSL_Scan_MC"
+  local state = MyDSL.CreatureLore.knownState(row.key)
+  local hint
+  if state == "known" then hint = "Known -- lore data captured"
+  elseif state == "seen" then hint = "Seen -- not yet lore'd"
+  else hint = "Unknown -- never seen before this scan" end
+  local target = row.rawName or row.name
+  if not target or target == "" then return end
+  local okSel, selected = pcall(selectString, windowName, target, 1)
+  if okSel and selected then
+    pcall(setLink, windowName, "", hint)
+  end
 end
 
 function MyDSL.parseScanLine(line)
@@ -1699,6 +1747,7 @@ function MyDSL.parseScanLine(line)
     raw     = line,
     name    = dispName,
     display = dispName,
+    rawName = name,  -- pre-resolution captured name -- see applyScanBadgeHover()
     key     = key,
     where   = where,
     is_mob  = is_mob,
@@ -2953,9 +3002,13 @@ function MyDSL.parseCombatConditionLine(line)
 
   -- PNP's battle_data.screen_condition/window_condition equivalent -- a
   -- single pending note, flushed alongside the next round summary.
+  -- "has" inserted 2026-07-16, per Steven ("missing the word 'has'
+  -- between mob name and state") -- confirmed live via log/*.html:
+  -- "A gray wolf cub big wounds [30-49%]" read with no connecting verb
+  -- at all between name and label.
   local pct = CONDITION_PERCENT[label] or ""
   MyDSL.State.combat.pending_condition = {
-    screen = "<255,68,255>" .. name .. "<r> " .. label .. (pct ~= "" and (" [" .. pct .. "]") or ""),
+    screen = "<255,68,255>" .. name .. "<r> has " .. label .. (pct ~= "" and (" [" .. pct .. "]") or ""),
     window = "<255,68,68>" .. name .. "<r> [" .. pct .. "]\n",
   }
 
