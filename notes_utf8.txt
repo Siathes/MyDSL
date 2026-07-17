@@ -14,6 +14,28 @@ low level charcaters cant see timers for affects, can we add the affects without
 
 ========== PROJECT NOTES ==========
 
+a DSL reminder that allows you to enter events and dates and have it come up as a remnder when logged in or playing thatsuch and such event will start soon, such event will happen in x days. i believe ther are also events in the calender or holidays of the dsl wiki. some way to connect thsi to discord would be optimal! there is a mudlet calender for Achaea on github that might help
+
+incombat on the enemy life echo its missing the word "has" btween mob name and state?
+
+if the age in live is how many ingame months/years have past since creation, that is a good.
+
+something has changed in location and portrait after the mudlet update and patch. can we revert the image code to before the mudlet update or check that code because it ran smoother before
+
+focus needs wraping text for stats, lose the ---- lines for more space
+
+remove the --- lines in bestiary to save space also. also needs word wrap
+
+reduce space in group window between name and stats
+
+playersnearyou window need same options as other windows/help want to change font
+
+bestiary window not showing health and xp items
+
+scan window should show seen/known flags
+
+itemreference window: remove some vertical spacing and make 2 columns to better fit the window? screenshot of current size and placement, some items will have to scroll i understand, just trying to reduce the amount that need to scroll
+
 we will need a quest module, for a way to track the quest timer, location, item, and the rest of the quest info.
 
 as we identify mobs, it should create a table to look up and find more accurate tags for targets. example. when you walk in a room and look righthere populates with mobs in the room. however those mob names are inaccurate for targeting. If we created a table saying "A gnome machinist is here, replacing parts where needed." is the same as the scan "a gnome machinist" then using the propper scan name, the the populating of righthere would be much more affective and accurate. so like creaturelore needs to recognize a mob in the room and map it to a scan/creaturelore. the item on the ground needs a map to the inventory/equipment (we can discuss for clarity)
@@ -23,7 +45,7 @@ item reference - lets compact the item reference window a little to fit in the t
 help window pops up every load, suggestions to have it hide until needed?
 
 ========== IDEAS ==========
-
+when we do the mapper integration i want the mapper and the location window to be able to distinguish similar rooms, so unless the name, decsription,exits, and all text color are the same they should be able to distinguish one same named room from another, then we need a way for location view to determine the room and picture reliably
 
 
 ========== IN-GAME CHECKLIST (2026-07-07) ==========

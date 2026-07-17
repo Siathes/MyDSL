@@ -196,6 +196,44 @@ guessing at patterns with zero corpus evidence.
       still pay off even when the profile looks mostly like debug noise;
       sampling one large file isn't representative. Worth repeating for
       other specific phrases if this comes up again.
+- [ ] **Fuzzy name-matching (mob ID + item ground-mapping) — built
+      2026-07-16, needs live confirmation.** Ported the tolerant-matching
+      technique found in the Shattered Archive client's own equipment
+      code (`useEquipmentDeltas.ts`): normalize both sides (strip leading
+      article, ground-sentence suffixes, punctuation), score exact=100 /
+      substring-either-direction=50, and refuse to pick a winner on a tie
+      — a false merge is worse than no match. Added as
+      `normalizeForMatch()`/`bestFuzzyMatch()` in `MyDSL_DataLayer.lua`
+      (right before `resolveMobName()`), shared by two callers:
+      - **`resolveMobName()`** (mob ID in RightHere/CreatureLore) — used
+        to be exact-key-only, so a generic/truncated `look` capture (e.g.
+        "a gnome" from "A gnome is here using levers...") could never
+        resolve to a fuller CreatureLore-known name ("gnome machinist")
+        since those are different keys. Now tries the current room's own
+        `scan.byName` capture first (small, same-room-visit, least
+        collision risk — matches Steven's own example exactly), then
+        falls back to the full CreatureLore DB.
+      - **`MyDSL.resolveGroundItem(key)`** (new) — ItemLore's counterpart.
+        Requires two new capture pipelines that didn't exist before this:
+        ground-item storage (`MyDSL.captureGroundItem()`, wired into
+        `beginLook()`'s fixture-line branch — these lines used to be
+        skipped and discarded, never stored) and inventory capture
+        (`MyDSL.beginInventory()`/`parseInventoryLine()`/`endInventory()`,
+        triggered on `"You are carrying:"`, same begin/body/end shape as
+        equip capture — inventory capture didn't exist at all before this).
+        Checks ItemLore's own DB by exact key first, then fuzzy-matches
+        against every known equipment slot + inventory item.
+      Verified via a structural test harness (`test/mudlet_mock.lua` +
+      the real functions): mob resolution correctly resolves "a gnome" to
+      "a gnome machinist" via scan.byName; inventory capture correctly
+      parses counts/flags/plain lines; ground-item capture correctly
+      stores items previously only skipped; `resolveGroundItem()`
+      correctly matches "a decanter of endless water" against the
+      inventory candidate and correctly declines to match "a mallet used
+      to shape metal" against "a shaping mallet" (no shared substring —
+      the honest "best effort, not everything" behavior Steven asked
+      for). Not yet wired into any display/hover UI — this is the
+      resolver only. Syntax-checked.
 - [ ] **RightHere silently dropping mobs listed after an uncovered
       item-flavor-text line — fixed 2026-07-16, needs live confirmation.**
       Found via a structural trace of a real room-look
