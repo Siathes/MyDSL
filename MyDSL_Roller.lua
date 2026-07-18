@@ -38,6 +38,16 @@ MyDSL.Roller  = MyDSL.Roller  or {}
 local R = MyDSL.Roller
 R.goal = R.goal or 241
 R.rolls = R.rolls or { str = {}, int = {}, wis = {}, dex = {}, con = {}, total = {} }
+-- Per-stat floors -- added 2026-07-17, per user request ("set min command
+-- that they can enter the minimum value of each stat"). Independent of
+-- R.goal (the total-sum threshold, unchanged): a roll can meet the goal
+-- and still get rejected if any one stat is below its own configured
+-- minimum, since a high total can hide one crippled stat. Not present in
+-- PNP's own DSL_PNP_Roller.lua (checked -- it only ever had the total
+-- goal), so this is new functionality, not a port. nil means "no floor
+-- set" for that stat.
+R.mins = R.mins or { str = nil, int = nil, wis = nil, dex = nil, con = nil }
+local STAT_ORDER = { "str", "int", "wis", "dex", "con" }
 
 MyDSL.Roller._triggers = MyDSL.Roller._triggers or {}
 MyDSL.Roller._aliases  = MyDSL.Roller._aliases  or {}
@@ -69,8 +79,38 @@ function R.setGoal(goal)
   echo("Roller goal set to: " .. R.goal .. ".\n")
 end
 
+-- setMin(stat, value) -- sets stat's own floor. A value of 0 (or anything
+-- <= 0) clears the floor entirely (every real stat is always > 0, so 0
+-- is meaningless as a requirement) -- lets "set min str 0" undo a floor
+-- without needing a separate "clear min" alias.
+function R.setMin(stat, value)
+  stat = tostring(stat or ""):lower()
+  local isValidStat = false
+  for _, s in ipairs(STAT_ORDER) do
+    if s == stat then isValidStat = true; break end
+  end
+  if not isValidStat then
+    echo("usage: set min <str|int|wis|dex|con> <number>\n")
+    return
+  end
+  local n = tonumber(value)
+  if not n then
+    echo("usage: set min <str|int|wis|dex|con> <number>\n")
+    return
+  end
+  if n <= 0 then
+    R.mins[stat] = nil
+    echo(string.format("Roller minimum for %s cleared.\n", stat:sub(1,1):upper() .. stat:sub(2)))
+  else
+    R.mins[stat] = n
+    echo(string.format("Roller minimum for %s set to: %d.\n", stat:sub(1,1):upper() .. stat:sub(2), n))
+  end
+end
+
 function R.reset()
   R.rolls = { str = {}, int = {}, wis = {}, dex = {}, con = {}, total = {} }
+  -- R.mins (like R.goal) intentionally survives a reset -- "reset roll"
+  -- clears accumulated roll statistics, not your configured targets.
   echo("Roller stats reset.\n")
 end
 
@@ -78,7 +118,7 @@ function R.showStats()
   local order = { "str", "int", "wis", "dex", "con", "total" }
   if #R.rolls.total == 0 then echo("No rolls recorded yet.\n"); return end
   echo(string.format("Rolls: %d\n", #R.rolls.total))
-  echo(string.format("%-5s %5s %5s %5s %7s\n", "", "MIN", "MAX", "AVG", "STDEV"))
+  echo(string.format("%-5s %5s %5s %5s %7s %7s\n", "", "MIN", "MAX", "AVG", "STDEV", "MIN REQ"))
   for _, stat in ipairs(order) do
     local arr = R.rolls[stat]
     local min, max, sum = arr[1], arr[1], 0
@@ -88,8 +128,9 @@ function R.showStats()
       sum = sum + v
     end
     local avg = round(sum / #arr)
-    echo(string.format("%-5s %5d %5d %5d %7.1f\n",
-      stat:sub(1,1):upper() .. stat:sub(2), min, max, avg, stdev(arr)))
+    local reqStr = stat == "total" and tostring(R.goal) or tostring(R.mins[stat] or "--")
+    echo(string.format("%-5s %5d %5d %5d %7.1f %7s\n",
+      stat:sub(1,1):upper() .. stat:sub(2), min, max, avg, stdev(arr), reqStr))
   end
 end
 
@@ -109,7 +150,29 @@ local function newRoll(str, int, wis, dex, con)
     "\n<cyan>[Roll Total: %d]<reset> Str=%d Int=%d Wis=%d Dex=%d Con=%d\n",
     total, str, int, wis, dex, con))
 
-  if total < R.goal then
+  -- Per-stat floor check -- added 2026-07-17. Checked independently of
+  -- the total/goal check below: a roll can clear the goal and still get
+  -- rejected if any one stat is under its own configured minimum, since
+  -- a high total can hide one crippled stat. Reports the FIRST failing
+  -- stat (in Str/Int/Wis/Dex/Con order) -- a roll failing on multiple
+  -- stats at once doesn't need every failure listed, just enough to
+  -- explain the reject.
+  local statValues = { str = str, int = int, wis = wis, dex = dex, con = con }
+  local failedStat, failedValue, failedMin = nil, nil, nil
+  for _, stat in ipairs(STAT_ORDER) do
+    local minReq = R.mins[stat]
+    if minReq and statValues[stat] < minReq then
+      failedStat, failedValue, failedMin = stat, statValues[stat], minReq
+      break
+    end
+  end
+
+  if failedStat then
+    cecho(string.format(
+      "<red>[Reject]<reset> %s is %d, below its minimum of %d. Sending n.\n",
+      failedStat:sub(1,1):upper() .. failedStat:sub(2), failedValue, failedMin))
+    tempTimer(0.2, function() send("n") end)
+  elseif total < R.goal then
     cecho(string.format(
       "<red>[Reject]<reset> Total is %d, below goal %d. Sending n.\n",
       total, R.goal))
@@ -134,8 +197,11 @@ MyDSL.Roller._triggers.roll = tempRegexTrigger(
 )
 
 -- Reuses PNP's own command vocabulary verbatim (set goal/roll stats/
--- reset roll), per CLAUDE.md's command-surface mandate.
+-- reset roll), per CLAUDE.md's command-surface mandate. "set min <stat>
+-- <n>" is new (see R.mins comment above) but matches "set goal <n>"'s
+-- own shape so it doesn't feel like a bolted-on command.
 MyDSL.Roller._aliases.setGoal = tempAlias([[^set goal (.*)$]], [[MyDSL.Roller.setGoal(matches[2])]])
+MyDSL.Roller._aliases.setMin = tempAlias([[^set min (str|int|wis|dex|con) (.*)$]], [[MyDSL.Roller.setMin(matches[2], matches[3])]])
 MyDSL.Roller._aliases.rollStats = tempAlias([[^roll stats$]], [[MyDSL.Roller.showStats()]])
 MyDSL.Roller._aliases.resetRoll = tempAlias([[^reset roll$]], [[MyDSL.Roller.reset()]])
 
