@@ -15,90 +15,30 @@ DEFERRED gets started without an explicit go-ahead.
 ---
 
 ## PACKAGING — fresh-install status
-- [ ] **`MyDSL_Full.mpackage` — built, revised twice from real install
-      feedback, needs a third fresh-install test.** History: (1) first
-      build embedded every script's actual source directly in the XML
-      (not a `dofile()` path reference — the live wiring's native
-      `current/*.xml`, gitignored, used hardcoded absolute paths tied to
-      this machine, `/home/owner/Desktop/Mudlet/mudlet-data/profiles/
-      DSL2/...`, which would break verbatim anywhere else); checked
-      `~/Downloads/00_MyDSL_v4C_FreshProfile_CleanInstall_FULL.mpackage`
-      first, confirmed it's from an entirely different pre-rewrite
-      architecture, not reused. (2) Real install test came back "missing
-      emco" — the separate EMCOChat package wasn't installed, so
-      `require("EMCOChat.emco")` failed. Fixed by cannibalizing EMCO's
-      real class (MIT licensed, github.com/demonnic/EMCO,
-      `~/Downloads/EMCO-2.9.0.zip`, `src/resources/emco.lua`, 2,353
-      lines) directly into the codebase instead of just documenting the
-      dependency — confirmed via a full diff against the real source
-      that only two lines changed (the `loggingconsole.lua` optional-
-      require, unused by MyDSL and broken under `dofile()` vs.
-      `require()`, replaced with `local LC = nil`; and the class exposed
-      as `MyDSL.EMCO`). `demontools.lua` (EMCO's sibling file in the same
-      repo) not ported — confirmed via grep `emco.lua` itself never
-      references it. Also ported EMCO's native alias vocabulary (`emco
-      addtab/remtab/gag/ungag/gaglist/notify/unnotify/blink/blankLine/
-      color/fontSize/timestamp/save/load/show/hide/title`), adapted to
-      operate on MyDSL's real chat window instead of the original
-      `demonnic.container` those aliases targeted (dead weight this
-      project has hidden forever). Not ported: `emco update` (self-
-      uninstaller, excluded per CLAUDE.md's standing mandate), `emco
-      lock`/`unlock` (`lockContainer()`/`unlockContainer()` are an
-      Adjustable.Container-specific API already misapplied to the wrong
-      object type twice in this project's history —
-      `MyDSL_AlterformView.lua`/`MyDSL_MoonWeather.lua`). (3) Per Steven
-      ("do we need chat wrapper? can it be all rolled into one chat?" /
-      "everything under MyDSL namespace again... it should all be under
-      MyDSL"), merged `MyDSL_EMCO.lua` + `MyDSL_ChatWrapper.lua` into one
-      file, `MyDSL_Chat.lua` (one dofile()-order slot instead of two),
-      and eliminated the `demonnic.*` global entirely — the chat instance
-      that used to live at the bare global `demonnic.chat` is now
-      `MyDSL.Chat.emco`; confirmed via a full-codebase grep that no live
-      code references `demonnic.*` anywhere anymore (the only remaining
-      mentions are inside EMCO's own dead YATCO-migration helper methods
-      — a legacy-config converter for EMCO's predecessor, which this
-      project never used and nothing calls — and in explanatory
-      comments). `MyDSL_ChatTriggers.lua` and `MyDSL_DataLayer.lua`'s one
-      other reference both updated to match. **Package is now genuinely
-      self-contained** — audited all 7 real `dofile()` call sites in the
-      codebase (all settings/DB persistence, none of them code) and
-      confirmed every one checks the file exists first, gracefully
-      defaulting when it doesn't (a fresh profile has no saved data yet,
-      which is expected, not a problem) — the earlier install guide's
-      claim that a few loose `.lua` files needed manually copying onto
-      disk was wrong, corrected. **Real, non-obvious bug caught along the
-      way**: merging two originally-standalone files broke on a genuine
-      Lua rule (`return EMCO`, valid as the last statement of its own
-      chunk, errors when other code follows it in the same file) — caught
-      because a stricter syntax check was used after noticing the
-      original `luajit -e "loadfile(x)" && echo OK` check pattern has a
-      blind spot (`loadfile` returns `nil, err` on failure rather than
-      throwing, so that check always printed OK regardless of the actual
-      parse result). Re-verified every file in the profile with the
-      corrected check after finding this — everything else was clean.
-      Still does not include PNP's base client, `generic_mapper`, or
-      `DslColors_Core` — MyDSL is a layer on top of those, not a
-      replacement; those three need to already be installed.
-      `generic_mapper` already has a real `.mpackage` file in
-      `~/Downloads/`; DslColors has a raw XML export there too. No
-      packaged/documented process exists for the PNP base-client step —
-      that's always been manual, undocumented, outside this session's
-      visibility. One required manual native step confirmed: disable the
-      native `(autowhere)` alias. Two more native items (a trigger named
-      "English Multi-Line Exits Trigger" and one named "bumps into you
-      causing you to lose your balance.") were found disabled in the
-      working profile with no documented reason found anywhere in this
-      project's history — flagged for Steven to check, not assumed to be
-      MyDSL requirements. Verified throughout: syntax-checked (corrected
-      method), full round-trip diff confirms every embedded script is
-      byte-for-byte identical to its real source file, a structural test
-      confirms the merged class+window-management module loads cleanly
-      with zero `demonnic` dependency and `MyDSL.Chat`'s `requireEMCO()`
-      correctly resolves `MyDSL.EMCO`. Actually constructing a real
-      tabbed console needs live Geyser (a lightweight mock can't fully
-      replicate Geyser's class-inheritance mechanics for custom fields
-      like `tabHeight`) — not visually confirmed live yet. Full detail:
-      `INSTALL.md` shipped alongside the package.
+- [ ] **`MyDSL_Full.mpackage` — one combined package, several rounds of
+      real fresh-install feedback fixed, still needs a full live
+      confirmation pass.** Current contents (33 scripts + GameplayTriggers
+      + movement/door keys + DslColors, one import): the 31 MyDSL modules,
+      chat fully self-contained (EMCO ported in, `MyDSL_Chat.lua`, no
+      separate EMCOChat dependency), namespace fully MyDSL-owned (no
+      `demonnic.*` left anywhere), `MyDSL_MovementSounds.lua` (recovered
+      from a native-only script the earlier builds missed entirely — this
+      is why the NumPad keys silently did nothing on the fresh profile),
+      the native GameplayTriggers/keys/DslColors content scrubbed of every
+      hardcoded character name and machine-specific path (sound triggers
+      now resolve via `getMudletHomeDir()`, two door/portal triggers that
+      could only ever fire for one specific character rewritten as
+      wildcarded regex), and DslColors' own title list merged with
+      Steven's full accumulated `dslcolor title` additions. `Sounds.zip`/
+      `RoomPics.zip` ship separately (media can't be embedded in a
+      `.mpackage`) — placement instructions in `INSTALL.md`.
+      Still true from the original build: no packaged/documented process
+      for the PNP base-client prerequisite (always manual, outside this
+      session's visibility); `generic_mapper`/`DslColors` raw exports
+      already sit in `~/Downloads/`. One required manual native step
+      confirmed: disable the native `(autowhere)` alias. Full history:
+      `CHANGELOG.md`; day-to-day detail: `INSTALL.md` shipped alongside
+      the package.
 - [ ] **Windows resetting position when docking a second window on the
       fresh profile — likely root cause found, not fixed.** Confirmed
       NOT a recurrence of the previously-fixed Mudlet 4.21/4.22
@@ -126,6 +66,12 @@ DEFERRED gets started without an explicit go-ahead.
 ---
 
 ## LOW PRIORITY — script wiring
+- [ ] Native trigger "bumps into you causing you to lose your balance."
+      found disabled in the working profile with no documented reason —
+      flagged 2026-07-17, not yet investigated (its sibling flag, "English
+      Multi-Line Exits Trigger", turned out to be correctly disabled —
+      it's for MUDs with a different multi-line exits format than DSL's;
+      this one hasn't been checked the same way yet).
 - [ ] ChatWrapper tab active/inactive CSS still hardcoded — no ThemeEngine
       hookup. Real design pass, not a mechanical fix.
 - [ ] `MyDSL_creaturelore.lua` (lowercase, profile root) is stale DSL1
@@ -647,15 +593,25 @@ guessing at patterns with zero corpus evidence.
       philosophy has so far meant zero outbound calls), and whether the
       referenced Achaea Mudlet calendar package is worth checking for a
       reusable pattern before building fresh.
-- [ ] **Mapper/LocationView: distinguish same-named rooms** — Steven (in
-      notes_utf8.txt, tied to the deferred mapper integration): "when we
-      do the mapper integration I want the mapper and the location window
-      to be able to distinguish similar rooms, so unless the name,
-      description, exits, and all text color are the same they should be
-      able to distinguish one same named room from another, then we need
-      a way for location view to determine the room and picture reliably."
-      Not scoped — depends on the mapper integration itself (DEFERRED
-      section below), no new work without that go-ahead first.
+- [ ] **Mapper/LocationView: distinguish same-named rooms — built
+      2026-07-17, needs live confirmation.** Investigated first: confirmed
+      `generic_mapper` already keeps same-named-but-different rooms as
+      genuinely separate map nodes (no mapper-side bug), and traced its
+      own room-matching to run entirely synchronously inside its own
+      script/triggers — a hands-off wrapper can't feed it new criteria
+      before the fact anyway. Turned out the actual need is 100%
+      LocationView-side and needs zero mapper involvement:
+      `MyDSL_LocationView.lua` already resolved pictures by room-name text
+      alone. Built `MyDSL.captureRoomDescription()`
+      (`MyDSL_DataLayer.lua`, a new rolling-line-buffer capture of the
+      room's own description + color) and `M.resolveVariant()`
+      (`MyDSL_LocationView.lua`) — matches description first, falls back
+      to exits, keeps color per-variant for a future tiebreak. First-seen
+      variant of a name keeps the plain filename, each new variant gets
+      `Name (2).png`/`(3).png`/etc — zero renaming needed for the ~215
+      existing picture files. New `mydsl location variants [room]`
+      command. Verified via a structural test harness; not yet confirmed
+      against a real same-named-room encounter in-game.
 - [ ] State-scoped sound toggle — generic pattern for an alias to turn a
       sound on for a state and reliably turn it off when the state ends.
 - [ ] **A whole quest-tracking mechanic (quest start/expire/timer
@@ -690,8 +646,6 @@ guessing at patterns with zero corpus evidence.
 - [ ] **Layer 4: Reference library** (items, mobs, lore) — not started.
       Check `~/Downloads/Shattered-Archive-release-dev.zip` before
       building from scratch.
-- [ ] **Mapper hardening/MyDSL integration** — deferred until current UI
-      workload finishes.
 - [ ] **Data-driven notes/quest tracking** — streamline `notes_utf8.txt`'s
       in-game feature/quest items via data files instead of manual notes.
 - [ ] **Consolidate all native Mudlet objects into one package** — per
