@@ -129,6 +129,40 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       themselves are Qt's binary serialization format, confirmed not
       practically parseable directly -- this live debug-echo path is the
       real diagnostic route.
+      **Major update, same day, from Steven's own screenshots + debug
+      log**: this IS reproducing, and traced to a specific, real
+      mechanism. Two different code paths handle "arriving at a new
+      room": `find_link()` (searches by coordinate position stepping from
+      the current room; creates a new room via `create_room()` if nothing
+      matches -- this is the path that produces the "creates an
+      additional room" symptom) vs `map.find_me()` (searches by NAME
+      across the whole area; if nothing matches, only echoes an error and
+      leaves `map.currentRoom` untouched -- **this is the path that
+      produces "position display stuck on the previous room"**, since
+      nothing ever calls `set_room()` or `create_room()` on this branch).
+      Confirmed directly from a screenshot's debug log: arriving at "The
+      Tail of the Stone Dragon" rejected 5 already-existing same-named
+      candidate rooms (13702/13703/13707/13708/13709) each for a specific
+      missing exit direction, then hit `(error): Room not found in map
+      database` -- the `map.find_me()` dead-end, explaining exactly why
+      Steven's position display stayed on "The Wings of the Stone Dragon"
+      after really walking to the Tail. `move_map()` only takes the
+      room-creating `find_link()` path when BOTH `map.mapping` and the
+      captured move direction are truthy; confirmed via the same log that
+      `map.mapping` should be `true` (only one "start mapping", zero
+      "stop mapping" the whole session) -- pointing instead at the
+      captured move direction (`move`, drawn from `move_queue`) being
+      empty/nil at the exact moment this room resolved, i.e. a movement-
+      queue desync, not a mapping-toggle issue. This is the SAME
+      `move_queue` this fork's own `onMoveFailCleanup()` comment already
+      flagged as fragile ("stale look/search entries can sit ahead of the
+      failed move"). Added one more debug-only diagnostic echo right at
+      the `find_link()`/`find_me()` decision point in `move_map()`,
+      printing `map.mapping`/`move`/`random_move` at that exact instant --
+      the next real occurrence will show directly whether `move` really
+      is nil, confirming or ruling out the move-queue-desync theory
+      before attempting a fix. No fix shipped yet -- still gathering
+      evidence, not guessing.
 - [ ] **DSL Generic Mapper fork brought into the repo, reviewed, and
       hardened — needs a manual install swap + live confirmation.** Per
       Steven ("its time to incorporate the mapper and make it for DSL not

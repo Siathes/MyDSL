@@ -3194,6 +3194,23 @@ local function move_map()
             elseif special[move] and (vision_fail or check_room(special[move], map.currentName, map.currentExits, onlyName)) then
                 set_room(special[move])
             elseif not vision_fail then
+                -- DSL hardening: diagnostic echo (debug-only) -- added to
+                -- pin down a real report (position display stuck on the
+                -- previous room after a real move, "(error): Room not
+                -- found in map database" in the log) that traces to this
+                -- exact branch: find_link() (coordinate-search, DOES
+                -- create a new room if nothing matches) only runs when
+                -- BOTH map.mapping and move are truthy; otherwise it
+                -- falls to map.find_me() (name-search among existing
+                -- rooms only, does NOT create a room and does NOT move
+                -- map.currentRoom if nothing matches -- the player's
+                -- tracked position silently stays on the room they left).
+                -- Confirmed via a real log that "stop mapping" was never
+                -- run this session, so map.mapping should be true --
+                -- this echo will show directly whether move was nil/empty
+                -- instead (a move_queue desync) the next time this
+                -- happens. Enable with "map config debug true".
+                map.echo("move_map(): map.mapping=" .. tostring(map.mapping) .. " move=" .. tostring(move) .. " random_move=" .. tostring(random_move), true)
                 if map.mapping and move then
                     find_link(map.currentName, map.currentExits, move, map.configs.max_search_distance)
                 else
