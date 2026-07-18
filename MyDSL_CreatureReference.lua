@@ -248,7 +248,6 @@ end
 function CR.rebuild()
   if CR._mc.lore then pcall(function() CR._mc.lore:hide() end) end
   CR._mc.lore = nil
-  CR._autoWrapSet = nil
   CR.ensureUI()
   CR.render(nil)
 end
@@ -291,21 +290,10 @@ function CR.ensureUI()
 
   -- Adaptive word wrap, per Steven ("bestiary... needs word wrap") --
   -- same real Mudlet API already proven working for History
-  -- (MyDSL_RouteHelper.lua): computes wrapAt from the console's own
-  -- live pixel width, and MiniConsole's reposition() override already
-  -- recalls it automatically on resize, no extra wiring needed. Static
-  -- wrapWidth=300 (removed above) didn't track this window's actual
-  -- (much narrower, docked) width at all. Moved to run AFTER
-  -- setFontSize() 2026-07-18 -- real bug found investigating an identical
-  -- ItemReference report: enableAutoWrap() computes wrapAt from the
-  -- console's font AT CALL TIME, so calling it before the font resized
-  -- from Mudlet's default locked in the wrong wrap width until the user
-  -- happened to manually resize the window. Guarded to run once per
-  -- window, matching the old create-time-only call.
-  if CR._mc.lore and not CR._autoWrapSet then
-    pcall(function() CR._mc.lore:enableAutoWrap() end)
-    CR._autoWrapSet = true
-  end
+  -- (MyDSL_RouteHelper.lua). Shared helper (MyDSL_WindowRegistry.lua)
+  -- handles the "must run after setFontSize()" ordering and the
+  -- per-console once-only guard.
+  MyDSL.Windows.enableAdaptiveWrap(CR._mc.lore)
 
   -- Theme-driven background/font, added 2026-07-11 (this console had no
   -- font size or color set at all before -- fell back to Mudlet's tiny

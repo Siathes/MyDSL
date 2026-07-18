@@ -392,9 +392,15 @@ function M.roomData()
       -- changing which source wins for room/exits/etc.) lets the
       -- description tier -- checked first in resolveVariant() -- match
       -- again for a room whose static description never changed.
-      if not data.description or data.description == "" then
+      if not data.description then
         local stateRoom = MyDSL and MyDSL.State and MyDSL.State.room
-        if stateRoom and stateRoom.name == data.room then
+        -- safeStr() both sides -- ultrareview found stateRoom.name is set
+        -- raw from GMCP (MyDSL_DataLayer.lua's gmcp.room_data handler),
+        -- with no trim, while data.room already went through safeStr()
+        -- above. If DSL's GMCP room field is ever whitespace-padded, a
+        -- raw-vs-trimmed comparison would silently fail to match the same
+        -- room and this whole backfill would no-op with no visible error.
+        if stateRoom and safeStr(stateRoom.name) == data.room then
           data.description = safeStr(stateRoom.description) or data.description
           data.descColor = stateRoom.descColor or data.descColor
         end

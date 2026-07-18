@@ -564,6 +564,31 @@ function MyDSL.Windows.setFontSize(windowName, size)
   MyDSL.Windows.saveFontSizes()
 end
 
+-- enableAdaptiveWrap(consoleObj) -- shared wrap-enable step, extracted
+-- 2026-07-18 after a /ultrareview found the same enableAutoWrap()-after-
+-- setFontSize()-plus-guard sequence hand-copied into MyDSL_ItemReference.lua,
+-- MyDSL_CreatureReference.lua, and MyDSL_TargetView.lua, each with its own
+-- ad hoc module-level guard flag (IR._autoWrapSet/CR._autoWrapSet/
+-- TV._autoWrapSet) -- and two of those three copies then shipped a real bug
+-- (ItemReference/CreatureReference's rebuild() nulled the console to force
+-- recreation but never reset the module-level flag, so the recreated
+-- console never got enableAutoWrap() called on it again). Storing the
+-- guard ON THE CONSOLE OBJECT ITSELF instead of the owning module fixes
+-- the whole bug class structurally, not per rebuild() call site: a freshly
+-- created Geyser.MiniConsole naturally has no _autoWrapSet field yet, so
+-- rebuild()/recreation paths need no special-case reset at all. Must be
+-- called AFTER the console's real font size is applied -- enableAutoWrap()
+-- computes its wrap column from the console's font at the moment it's
+-- called (confirmed via MyDSL_RouteHelper.lua's own comment sourcing
+-- Mudlet's GeyserMiniConsole.lua), so calling it before a font resize
+-- would lock in the wrong wrap width, same as the original bug this whole
+-- fix started from.
+function MyDSL.Windows.enableAdaptiveWrap(consoleObj)
+  if not consoleObj or consoleObj._autoWrapSet or not consoleObj.enableAutoWrap then return end
+  pcall(function() consoleObj:enableAutoWrap() end)
+  consoleObj._autoWrapSet = true
+end
+
 MyDSL.Windows.loadFontSizes()
 
 echo("[MyDSL] WindowRegistry: font sizes loaded from " .. FONT_FILE() .. " (" ..

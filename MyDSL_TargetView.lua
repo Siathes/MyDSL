@@ -838,23 +838,13 @@ function TV.init()
 
   -- Adaptive word wrap, per Steven ("focus needs wrapping text for
   -- stats") -- same real Mudlet API already proven working for History
-  -- (MyDSL_RouteHelper.lua): computes wrapAt from the console's own
-  -- live pixel width, recalculated automatically on resize. Static
-  -- wrapWidth=300 (removed above) never matched this window's actual
-  -- (much narrower, docked) width. Moved to run AFTER setFontSize()
-  -- 2026-07-18 -- real bug found investigating an identical ItemReference
-  -- report: enableAutoWrap() computes wrapAt from the console's font AT
-  -- CALL TIME. The constructor above already takes a fontSize option, but
-  -- the very next line's redundant setFontSize() call (pre-existing, not
-  -- new here) is itself evidence that option alone wasn't reliable --
-  -- calling enableAutoWrap() before that explicit call locked in the
-  -- wrong wrap width until the user happened to manually resize the
-  -- window. Guarded to run once per window, matching the old
-  -- create-time-only call.
-  if TV._mc.stats and not TV._autoWrapSet then
-    pcall(function() TV._mc.stats:enableAutoWrap() end)
-    TV._autoWrapSet = true
-  end
+  -- (MyDSL_RouteHelper.lua). The constructor above already takes a
+  -- fontSize option, but the very next line's redundant setFontSize()
+  -- call (pre-existing, not new here) is itself evidence that option
+  -- alone wasn't reliable -- shared helper (MyDSL_WindowRegistry.lua)
+  -- handles the "must run after setFontSize()" ordering and the
+  -- per-console once-only guard.
+  MyDSL.Windows.enableAdaptiveWrap(TV._mc.stats)
 
   -- Theme-driven background/font for the stats console. fontSize is the
   -- persisted user override (TV.config.fontSize, added 2026-07-11 per

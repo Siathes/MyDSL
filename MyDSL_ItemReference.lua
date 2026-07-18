@@ -233,7 +233,6 @@ end
 function IR.rebuild()
   if IR._mc.item then pcall(function() IR._mc.item:hide() end) end
   IR._mc.item = nil
-  IR._autoWrapSet = nil
   IR.ensureUI()
   IR.render(nil)
 end
@@ -269,18 +268,11 @@ function IR.ensureUI()
 
   -- Adaptive word wrap -- same fix applied to Bestiary/Focus 2026-07-16
   -- (same "reduce scrolling" ask); static wrapWidth=300 didn't track
-  -- this window's actual docked width. Must run AFTER setFontSize():
-  -- enableAutoWrap() computes wrapAt from the console's font at the
-  -- moment it's called (confirmed via MyDSL_RouteHelper.lua's own
-  -- comment sourcing Mudlet's GeyserMiniConsole.lua) -- calling it before
-  -- the font was resized from Mudlet's default locked in the wrong wrap
-  -- width until the user happened to manually resize the window. Guarded
-  -- so it only runs once per window (matches the old create-time-only
-  -- call) rather than every ensureUI().
-  if IR._mc.item and not IR._autoWrapSet then
-    pcall(function() IR._mc.item:enableAutoWrap() end)
-    IR._autoWrapSet = true
-  end
+  -- this window's actual docked width. Shared helper (MyDSL_WindowRegistry.lua)
+  -- handles the "must run after setFontSize()" ordering and the per-console
+  -- once-only guard -- see its own comment for why the guard lives on the
+  -- console object itself, not a module-level flag.
+  MyDSL.Windows.enableAdaptiveWrap(IR._mc.item)
 
   if MyDSL.Theme and MyDSL.Theme.styleConsole then
     MyDSL.Theme.styleConsole(IR._mc.item, IR_WIN, itemFont)
