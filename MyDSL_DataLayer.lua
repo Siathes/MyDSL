@@ -1924,6 +1924,42 @@ function MyDSL.captureGroundItem(line)
   MyDSL.applyGroundItemHover(name, key)
 end
 
+-- buildItemStatsSuffix(rec) -- extracted 2026-07-18. Every item-hover
+-- call site (ground item, equipment, inventory, container-holds) had its
+-- own copy-pasted version of this exact stat-formatting logic -- found
+-- while investigating Steven's "some have click for item reference, and
+-- some have stats, how do we populate the hover tip with stats": all four
+-- copies only showed damage info when rec.damageDice was present (real
+-- in-game `identify` data only). Steven's own ItemLore DB (checked
+-- directly) confirms the bulk scrape import already ran successfully
+-- (6,085 items with itemType, 1,562 with armorClass) -- but the scrape's
+-- weapon records only ever have rec.damageAvg (a precomputed average,
+-- e.g. "damageAvg=[[3.5]]"), never rec.damageDice (exact dice notation
+-- like "3d4" only exists in real `identify` captures) -- so ~1,474
+-- scrape-imported weapons had real damage data sitting in the record that
+-- every hover site was silently throwing away, since nothing gated on
+-- damageAvg alone. Now shows whichever is available, preferring the
+-- fuller identify-derived damageDice when both exist. One shared
+-- function instead of four copies specifically so this kind of fix (or
+-- the next one) doesn't need to land in four places and risk drifting
+-- apart again.
+function MyDSL.buildItemStatsSuffix(rec)
+  if not rec then return "" end
+  local out = ""
+  if rec.itemType then out = out .. " -- " .. rec.itemType end
+  if rec.damageDice then
+    out = out .. " -- " .. rec.damageDice .. " (avg " .. tostring(rec.damageAvg) .. ")"
+  elseif rec.damageAvg then
+    out = out .. " -- avg dmg " .. tostring(rec.damageAvg)
+  end
+  if rec.armorClass then
+    local ac = rec.armorClass
+    out = out .. string.format(" -- AC %s/%s/%s/%s",
+      tostring(ac.pierce), tostring(ac.bash), tostring(ac.slash), tostring(ac.magic))
+  end
+  return out
+end
+
 -- applyGroundItemHover(name, key) -- added 2026-07-16, wires
 -- MyDSL.resolveGroundItem() (built the prior pass, never connected to any
 -- UI) into an actual hover, same "move text, don't invent it" technique
@@ -1940,15 +1976,7 @@ function MyDSL.applyGroundItemHover(name, key)
   if not resolved then return end
   local rec = MyDSL.ItemLore and MyDSL.ItemLore.get and MyDSL.ItemLore.get(resolved.key or key)
   local hint = "Resolved to \"" .. tostring(resolved.name) .. "\" (" .. tostring(resolved.source) .. ")"
-  if rec then
-    if rec.itemType then hint = hint .. " -- " .. rec.itemType end
-    if rec.damageDice then hint = hint .. " -- " .. rec.damageDice .. " (avg " .. tostring(rec.damageAvg) .. ")" end
-    if rec.armorClass then
-      local ac = rec.armorClass
-      hint = hint .. string.format(" -- AC %s/%s/%s/%s", tostring(ac.pierce), tostring(ac.bash), tostring(ac.slash), tostring(ac.magic))
-    end
-  end
-  hint = hint .. " -- Click for Item Reference"
+    .. MyDSL.buildItemStatsSuffix(rec) .. " -- Click for Item Reference"
   local cmd = string.format(
     'if MyDSL and MyDSL.ItemReference then MyDSL.ItemReference.render("%s"); MyDSL.ItemReference.show() end',
     tostring(resolved.name):gsub('"', '\\"'))
@@ -3449,18 +3477,7 @@ function MyDSL.parseEquipLine(rawSlot, rest)
   if itemName ~= "" and setLink and selectString then
     local key = itemName:lower():gsub("^[Aa]n? ", ""):gsub("^[Tt]he ", "")
     local rec = MyDSL.ItemLore and MyDSL.ItemLore.get and MyDSL.ItemLore.get(key)
-    local hint = "Click for Item Reference"
-    if rec then
-      if rec.itemType then hint = hint .. " -- " .. rec.itemType end
-      if rec.damageDice then
-        hint = hint .. " -- " .. rec.damageDice .. " (avg " .. tostring(rec.damageAvg) .. ")"
-      end
-      if rec.armorClass then
-        local ac = rec.armorClass
-        hint = hint .. string.format(" -- AC %s/%s/%s/%s",
-          tostring(ac.pierce), tostring(ac.bash), tostring(ac.slash), tostring(ac.magic))
-      end
-    end
+    local hint = "Click for Item Reference" .. MyDSL.buildItemStatsSuffix(rec)
     local cmd = string.format(
       'if MyDSL and MyDSL.ItemReference then MyDSL.ItemReference.render("%s"); MyDSL.ItemReference.show() end',
       itemName:gsub('"', '\\"'))
@@ -3551,18 +3568,7 @@ function MyDSL.parseInventoryLine(line)
   -- MyDSL.parseEquipLine()'s already-working item hover.
   if itemName ~= "" and setLink and selectString then
     local rec = MyDSL.ItemLore and MyDSL.ItemLore.get and MyDSL.ItemLore.get(key)
-    local hint = "Click for Item Reference"
-    if rec then
-      if rec.itemType then hint = hint .. " -- " .. rec.itemType end
-      if rec.damageDice then
-        hint = hint .. " -- " .. rec.damageDice .. " (avg " .. tostring(rec.damageAvg) .. ")"
-      end
-      if rec.armorClass then
-        local ac = rec.armorClass
-        hint = hint .. string.format(" -- AC %s/%s/%s/%s",
-          tostring(ac.pierce), tostring(ac.bash), tostring(ac.slash), tostring(ac.magic))
-      end
-    end
+    local hint = "Click for Item Reference" .. MyDSL.buildItemStatsSuffix(rec)
     local cmd = string.format(
       'if MyDSL and MyDSL.ItemReference then MyDSL.ItemReference.render("%s"); MyDSL.ItemReference.show() end',
       itemName:gsub('"', '\\"'))
@@ -3671,18 +3677,7 @@ function MyDSL.parseContainerHoldsLine(line)
   -- printed line in the main console, never edits/reprints it.
   if setLink and selectString then
     local rec = MyDSL.ItemLore and MyDSL.ItemLore.get and MyDSL.ItemLore.get(key)
-    local hint = "Click for Item Reference"
-    if rec then
-      if rec.itemType then hint = hint .. " -- " .. rec.itemType end
-      if rec.damageDice then
-        hint = hint .. " -- " .. rec.damageDice .. " (avg " .. tostring(rec.damageAvg) .. ")"
-      end
-      if rec.armorClass then
-        local ac = rec.armorClass
-        hint = hint .. string.format(" -- AC %s/%s/%s/%s",
-          tostring(ac.pierce), tostring(ac.bash), tostring(ac.slash), tostring(ac.magic))
-      end
-    end
+    local hint = "Click for Item Reference" .. MyDSL.buildItemStatsSuffix(rec)
     local cmd = string.format(
       'if MyDSL and MyDSL.ItemReference then MyDSL.ItemReference.render("%s"); MyDSL.ItemReference.show() end',
       itemName:gsub('"', '\\"'))
