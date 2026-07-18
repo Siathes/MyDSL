@@ -465,8 +465,10 @@ setTriggerStayOpen("English Multi-Line Exits Trigger",1)</script>
 					<string>^The terrain is that of the heated desert\.$</string>
 					<string>^The terrain is very icy\.$</string>
 					<string>^The terrain is that of the hills\.$</string>
+					<string>^There is no terrain, your in the air!!!$</string>
 				</regexCodeList>
 				<regexCodePropertyList>
+					<integer>1</integer>
 					<integer>1</integer>
 					<integer>1</integer>
 					<integer>1</integer>
@@ -5746,6 +5748,16 @@ function map.dsl.normalizeSector(value)
   if value:find("mountains", 1, true) then return "mountain" end
   if value:find("very icy", 1, true) then return "ice" end
   if value:find("undetermined", 1, true) then return "unknown" end
+  -- Real gap found live 2026-07-18, per Steven ("is there a terrain
+  -- color for air? its not adding it to the mapper") -- confirmed via
+  -- his own log: DSL's real response to "terrain" while flying/airborne
+  -- is "There is no terrain, your in the air!!!" -- a completely
+  -- different message shape than every other terrain line (none of the
+  -- others start with "There is no terrain"), so it never matched any
+  -- existing pattern and was silently falling through to the
+  -- catch-all "return value" below (an unrecognized, unnormalized
+  -- string), never getting an environment color.
+  if value:find("no terrain", 1, true) and value:find("in the air", 1, true) then return "air" end
   return value
 end
 
@@ -5921,7 +5933,7 @@ end
 local DSL_SECTOR_ENV_IDS = {
   inside = 20, city = 21, field = 22, forest = 23, hills = 24, tundra = 25,
   desert = 26, mountain = 27, underground = 28, ice = 29, swim = 30,
-  ocean = 31, underwater = 32,
+  ocean = 31, underwater = 32, air = 33,
 }
 
 local DSL_SECTOR_ENV_COLORS = {
@@ -5938,6 +5950,7 @@ local DSL_SECTOR_ENV_COLORS = {
   [30] = {60,120,200,255},   -- swim: blue
   [31] = {30,70,150,255},    -- ocean: deep blue
   [32] = {20,60,90,255},     -- underwater: dark teal
+  [33] = {135,206,235,255},  -- air: sky blue
 }
 
 function map.dsl.registerEnvColors()
@@ -6226,8 +6239,6 @@ function map.dsl.roomRaw()
   cecho(string.format("&lt;grey&gt;Weight source: &lt;white&gt;%s &lt;grey&gt;(%s real movement samples, avg cost=&lt;white&gt;%s&lt;grey&gt;)\n",
     map.dsl.dsl_ud(rid, "dsl.weight_source", "none yet -- still default weight"), tostring(costSamples or 0),
     costSamples and string.format("%.1f", (tonumber(getRoomUserData(rid, "dsl.move_cost_total")) or 0) / costSamples) or "n/a"))
-  cecho("&lt;grey&gt;Recent line buffer:\n&lt;white&gt;")
-  for _, l in ipairs(map.dsl.line_buffer or {}) do echo("  " .. tostring(l) .. "\n") end
 end
 
 -- Register DSL assist handlers. Clear old DSL handlers on script reload to avoid duplicate callbacks.

@@ -90,6 +90,24 @@ Fixed in code, verified via syntax checks and/or emulation — none of this
 is closed until Steven confirms it in-game. Full technical detail for any
 item: `git log --oneline` + `docs/CHANGELOG.md`.
 
+- [ ] **DSL Generic Mapper: real "air" terrain gap, plus dropped the
+      spammy line-buffer dump from `dslroom raw` — fixed 2026-07-18,
+      needs live confirmation.** Per Steven ("is there a terrain color
+      for air? its not adding it to the mapper"). Confirmed via his own
+      live log: DSL's real response to `terrain` while flying/airborne
+      is `"There is no terrain, your in the air!!!"` -- a completely
+      different message shape than every other terrain line (none of the
+      other 11 start with "There is no terrain"), so it never matched
+      any pattern and fell through `normalizeSector()`'s catch-all
+      unrecognized, ungrouped, uncolored. Added the pattern to the DSL
+      Terrain Capture trigger, taught `normalizeSector()` to recognize it
+      as a new `air` sector, and gave it its own environment color (sky
+      blue, ID 33 -- the sequence continues cleanly from the existing
+      12 sector colors). Also removed the "Recent line buffer" dump from
+      `dslroom raw` per Steven's separate note ("it spams the screen and
+      isnt needed") -- the room-block dump in the separate "no room
+      resolved yet" fallback branch is untouched, only this one. Verified
+      the exact real log text normalizes correctly via a structural test.
 - [ ] **DSL Generic Mapper: new fork doesn't recognize Steven's existing,
       already-mapped rooms — instrumented, root cause NOT yet confirmed,
       no fix shipped.** Per Steven: "the new mapper using the generic
