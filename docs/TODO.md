@@ -186,6 +186,19 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       weight, a regen-tick (negative-cost) reading is correctly ignored,
       repeat visits average into a stable weight, and a manually-set
       weight is never overwritten. Not yet live-tested.
+- [ ] **DSL Generic Mapper: `dslroom raw` is now a one-stop room-info
+      command — built 2026-07-18, needs live confirmation.** Per Steven
+      ("can i view room info in this package? like description name
+      weights terrain features etc"). Turned out most of this already
+      existed natively -- `rl`/`room look` (stock Generic Mapper) already
+      shows name, area, coordinates, weight, environment color,
+      description, exits with their weights, special exits, and per-room
+      map features. `dslroom raw` now calls `map.roomLook()` first (reused
+      directly, not re-implemented) and appends only the DSL-specific
+      fields it doesn't know about: GMCP/terrain-command sector, sector
+      conflict flag, and weight source with real movement-sample count +
+      average cost. One command instead of two scattered ones. Not yet
+      live-tested.
 - [ ] **PlayersNear font size not surviving a reload — fixed 2026-07-18,
       needs live confirmation.** `MyDSL_RouteHelper.lua`'s `FONT_SIZE_OVERRIDES`
       seed table only ever read `MyDSL_History`'s size back from disk at

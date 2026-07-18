@@ -6164,25 +6164,26 @@ function map.dsl.roomRaw()
     end
     return
   end
-  map.dsl.echo("Current room raw/debug view")
-  cecho(string.format("&lt;grey&gt;Room: &lt;white&gt;%s &lt;grey&gt;(%s)\n", tostring(getRoomName(rid)), tostring(rid)))
-  local desc = getRoomUserData(rid, "description") or ""
-  if desc ~= "" then
-    cecho("&lt;grey&gt;Description captured by Generic Mapper:\n&lt;white&gt;")
-    for l in desc:gmatch("[^\n]+") do echo("  " .. l .. "\n") end
-  else
-    cecho("&lt;grey&gt;Description captured by Generic Mapper: &lt;white&gt;none\n")
-  end
-  cecho(string.format("&lt;grey&gt;DSL GMCP sector: &lt;white&gt;%s\n", tostring(getRoomUserData(rid, "dsl.gmcp_sector"))))
-  cecho(string.format("&lt;grey&gt;DSL normalized sector: &lt;white&gt;%s\n", tostring(getRoomUserData(rid, "dsl.normalized_sector"))))
-  cecho(string.format("&lt;grey&gt;DSL terrain text: &lt;white&gt;%s\n", tostring(getRoomUserData(rid, "dsl.terrain_text"))))
-  cecho(string.format("&lt;grey&gt;Room weight: &lt;white&gt;%s &lt;grey&gt;(source=&lt;white&gt;%s&lt;grey&gt;, samples=&lt;white&gt;%s&lt;grey&gt;, avg cost=&lt;white&gt;%s&lt;grey&gt;)\n",
-    tostring(getRoomWeight(rid)), tostring(getRoomUserData(rid, "dsl.weight_source")),
-    tostring(getRoomUserData(rid, "dsl.move_cost_samples")),
-    tostring(getRoomUserData(rid, "dsl.move_cost_total")) ~= "nil" and getRoomUserData(rid, "dsl.move_cost_samples") and
-      string.format("%.1f", (tonumber(getRoomUserData(rid, "dsl.move_cost_total")) or 0) / (tonumber(getRoomUserData(rid, "dsl.move_cost_samples")) or 1))
-      or "n/a"))
-  cecho(string.format("&lt;grey&gt;Room environment ID: &lt;white&gt;%s\n", tostring(getRoomEnv(rid))))
+  -- One-stop room report -- per Steven ("can i view room info in this
+  -- package? like description name weights terrain features etc").
+  -- map.roomLook() (the native "rl"/"room look" command) already shows
+  -- name, area, coordinates, weight, environment color, description,
+  -- exits+their weights, special exits, and per-room map features --
+  -- reused directly here instead of re-displaying any of that a second
+  -- time. Only the DSL-specific fields roomLook doesn't know about
+  -- (GMCP/terrain sector, weight source and how many real movement
+  -- samples it's averaged from, sector conflicts) are added afterward.
+  map.roomLook(tostring(rid))
+  map.dsl.echo("DSL assist detail")
+  cecho(string.format("&lt;grey&gt;GMCP sector: &lt;white&gt;%s &lt;grey&gt;terrain-command text: &lt;white&gt;%s\n",
+    tostring(getRoomUserData(rid, "dsl.gmcp_sector")), tostring(getRoomUserData(rid, "dsl.terrain_text"))))
+  cecho(string.format("&lt;grey&gt;Normalized sector: &lt;white&gt;%s &lt;grey&gt;(source=&lt;white&gt;%s&lt;grey&gt;, conflict=&lt;white&gt;%s&lt;grey&gt;)\n",
+    tostring(getRoomUserData(rid, "dsl.normalized_sector")), tostring(getRoomUserData(rid, "dsl.sector_source")),
+    tostring(getRoomUserData(rid, "dsl.sector_conflict"))))
+  local costSamples = tonumber(getRoomUserData(rid, "dsl.move_cost_samples"))
+  cecho(string.format("&lt;grey&gt;Weight source: &lt;white&gt;%s &lt;grey&gt;(%s real movement samples, avg cost=&lt;white&gt;%s&lt;grey&gt;)\n",
+    tostring(getRoomUserData(rid, "dsl.weight_source")), tostring(costSamples or 0),
+    costSamples and string.format("%.1f", (tonumber(getRoomUserData(rid, "dsl.move_cost_total")) or 0) / costSamples) or "n/a"))
   cecho("&lt;grey&gt;Recent line buffer:\n&lt;white&gt;")
   for _, l in ipairs(map.dsl.line_buffer or {}) do echo("  " .. tostring(l) .. "\n") end
 end
