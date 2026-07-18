@@ -1,5 +1,0 @@
-mpackage = [[MyDSL_Full]]
-author = [[DSL2 Project]]
-title = [[DSL Observer UI — Full Package]]
-description = [[DSL Observer UI: Layer 1 Data Collection (DataLayer), Layer 2 Window Management (ThemeEngine, LayoutEngine, WindowRegistry), Layer 3 Display (DataBridge, RouteHelper, TickSource, ChatWrapper, AffectsView, LiveView, TickView, PortraitView, LocationView). Chat routing lives in MyDSL_GameplayTriggers.xml.]]
-version = [[1.1]]

@@ -51,7 +51,7 @@ end
 ------------------------------------------------------------------------
 -- render(name)  —  draws the lore record for `name`
 ------------------------------------------------------------------------
--- Looks up the record in MyDSL_creaturelore.lua DB first (if loaded),
+-- Looks up the record in MyDSL_CreatureLore.lua DB first (if loaded),
 -- then falls back to MyDSL.State.creaturelore if the DB has no entry.
 
 function CR.render(name)
@@ -279,14 +279,6 @@ function CR.ensureUI()
       x = 0, y = 0, width = "100%", height = "100%",
       scrollBar = true,
     }, crWin)
-    -- Adaptive word wrap, per Steven ("bestiary... needs word wrap") --
-    -- same real Mudlet API already proven working for History
-    -- (MyDSL_RouteHelper.lua): computes wrapAt from the console's own
-    -- live pixel width, and MiniConsole's reposition() override already
-    -- recalls it automatically on resize, no extra wiring needed. Static
-    -- wrapWidth=300 (removed above) didn't track this window's actual
-    -- (much narrower, docked) width at all.
-    pcall(function() CR._mc.lore:enableAutoWrap() end)
   end
 
   -- Font size now persisted per-window (2026-07-15, "bring Scan/Group/
@@ -295,6 +287,24 @@ function CR.ensureUI()
   -- all, always just the theme's own default.
   local loreFont = MyDSL.Windows.getFontSize(CR_WIN, 9)
   if CR._mc.lore then CR._mc.lore:setFontSize(loreFont) end
+
+  -- Adaptive word wrap, per Steven ("bestiary... needs word wrap") --
+  -- same real Mudlet API already proven working for History
+  -- (MyDSL_RouteHelper.lua): computes wrapAt from the console's own
+  -- live pixel width, and MiniConsole's reposition() override already
+  -- recalls it automatically on resize, no extra wiring needed. Static
+  -- wrapWidth=300 (removed above) didn't track this window's actual
+  -- (much narrower, docked) width at all. Moved to run AFTER
+  -- setFontSize() 2026-07-18 -- real bug found investigating an identical
+  -- ItemReference report: enableAutoWrap() computes wrapAt from the
+  -- console's font AT CALL TIME, so calling it before the font resized
+  -- from Mudlet's default locked in the wrong wrap width until the user
+  -- happened to manually resize the window. Guarded to run once per
+  -- window, matching the old create-time-only call.
+  if CR._mc.lore and not CR._autoWrapSet then
+    pcall(function() CR._mc.lore:enableAutoWrap() end)
+    CR._autoWrapSet = true
+  end
 
   -- Theme-driven background/font, added 2026-07-11 (this console had no
   -- font size or color set at all before -- fell back to Mudlet's tiny

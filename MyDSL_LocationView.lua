@@ -377,7 +377,30 @@ function M.roomData()
 
   for _, pair in ipairs(sources) do
     local data = roomDataFromTable(pair[1], pair[2])
-    if data then return data end
+    if data then
+      -- Backfill description/descColor from MyDSL.State.room -- real bug
+      -- found 2026-07-18 via location_variants.lua: MyDSL.DB.room (this
+      -- loop's first, near-always-present source, rebuilt on every
+      -- DataBridge sync()) never carries a description at all, so it won
+      -- this loop before MyDSL.State.room (the only source
+      -- captureRoomDescription() ever populates) was even checked --
+      -- 0 of 137 saved variant records ever had a description. That left
+      -- resolveVariant() running on exits-only comparison, and exits
+      -- change when a door/gate opens or closes, so a door being open vs.
+      -- closed on revisit looked like a different room and spawned a
+      -- spurious "new variant" notice. Filling these in here (without
+      -- changing which source wins for room/exits/etc.) lets the
+      -- description tier -- checked first in resolveVariant() -- match
+      -- again for a room whose static description never changed.
+      if not data.description or data.description == "" then
+        local stateRoom = MyDSL and MyDSL.State and MyDSL.State.room
+        if stateRoom and stateRoom.name == data.room then
+          data.description = safeStr(stateRoom.description) or data.description
+          data.descColor = stateRoom.descColor or data.descColor
+        end
+      end
+      return data
+    end
   end
 
   return roomDataFromMapper()

@@ -261,14 +261,25 @@ function IR.ensureUI()
       x = 0, y = 0, width = "100%", height = "100%",
       scrollBar = true,
     }, irWin)
-    -- Adaptive word wrap -- same fix applied to Bestiary/Focus 2026-07-16
-    -- (same "reduce scrolling" ask); static wrapWidth=300 didn't track
-    -- this window's actual docked width.
-    pcall(function() IR._mc.item:enableAutoWrap() end)
   end
 
   local itemFont = MyDSL.Windows.getFontSize(IR_WIN, 9)
   if IR._mc.item then IR._mc.item:setFontSize(itemFont) end
+
+  -- Adaptive word wrap -- same fix applied to Bestiary/Focus 2026-07-16
+  -- (same "reduce scrolling" ask); static wrapWidth=300 didn't track
+  -- this window's actual docked width. Must run AFTER setFontSize():
+  -- enableAutoWrap() computes wrapAt from the console's font at the
+  -- moment it's called (confirmed via MyDSL_RouteHelper.lua's own
+  -- comment sourcing Mudlet's GeyserMiniConsole.lua) -- calling it before
+  -- the font was resized from Mudlet's default locked in the wrong wrap
+  -- width until the user happened to manually resize the window. Guarded
+  -- so it only runs once per window (matches the old create-time-only
+  -- call) rather than every ensureUI().
+  if IR._mc.item and not IR._autoWrapSet then
+    pcall(function() IR._mc.item:enableAutoWrap() end)
+    IR._autoWrapSet = true
+  end
 
   if MyDSL.Theme and MyDSL.Theme.styleConsole then
     MyDSL.Theme.styleConsole(IR._mc.item, IR_WIN, itemFont)
