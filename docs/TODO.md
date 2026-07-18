@@ -148,21 +148,41 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       Steven's position display stayed on "The Wings of the Stone Dragon"
       after really walking to the Tail. `move_map()` only takes the
       room-creating `find_link()` path when BOTH `map.mapping` and the
-      captured move direction are truthy; confirmed via the same log that
-      `map.mapping` should be `true` (only one "start mapping", zero
-      "stop mapping" the whole session) -- pointing instead at the
-      captured move direction (`move`, drawn from `move_queue`) being
-      empty/nil at the exact moment this room resolved, i.e. a movement-
-      queue desync, not a mapping-toggle issue. This is the SAME
-      `move_queue` this fork's own `onMoveFailCleanup()` comment already
-      flagged as fragile ("stale look/search entries can sit ahead of the
-      failed move"). Added one more debug-only diagnostic echo right at
-      the `find_link()`/`find_me()` decision point in `move_map()`,
-      printing `map.mapping`/`move`/`random_move` at that exact instant --
-      the next real occurrence will show directly whether `move` really
-      is nil, confirming or ruling out the move-queue-desync theory
-      before attempting a fix. No fix shipped yet -- still gathering
-      evidence, not guessing.
+      captured move direction are truthy. Initial theory (a `move_queue`
+      desync leaving the captured direction nil) was disproven by the
+      very next debug capture: the added decision-point echo showed
+      `move_map(): map.mapping=nil move=northwest random_move=nil` on
+      *every* move -- `move` was always a real direction; `map.mapping`
+      itself was the nil value. Steven confirmed directly: he hadn't run
+      "start mapping" after this session's reinstall. **Root cause,
+      fully confirmed**: `map.mapping` is one of Generic Mapper's own
+      "protected" fields, kept deliberately in-memory-only (via a
+      metatable, never persisted to disk) so it resets fresh on every
+      script reload -- correct behavior for stock `generic_mapper`
+      (rarely reinstalled), but a real recurring gotcha for this fork,
+      which gets reinstalled with every fix shipped this session. Every
+      reinstall silently reset `map.mapping` to `nil` with nothing
+      telling the player to re-run "start mapping"; every move then fell
+      through to `map.find_me()` (name-search only, does nothing if no
+      match) instead of `find_link()` (matches AND creates rooms) --
+      explaining both "creates a duplicate room" (mapping was on,
+      `check_room()` legitimately rejected a candidate) and "position
+      stuck on the previous room" (mapping was off) as symptoms of the
+      exact same cause. **Fixed**: `start_mapping()`/`stop_mapping()` now
+      persist a `dsl_was_mapping`/`dsl_mapping_area` flag into
+      `map.configs` (which Generic Mapper already saves to disk);
+      `onGenericNewRoom()` checks this flag on the first real room
+      resolution after a reload (not at install time, since
+      `map.currentName`/`map.currentArea` aren't reliably populated that
+      early) and auto-calls `start_mapping()` again if it was on before a
+      *reinstall* -- but not if the player deliberately ran "stop
+      mapping" beforehand. Verified via a dedicated structural test
+      (`test_mapping_persist_restore.lua`) covering: state survives a
+      simulated reload, auto-restores on the first room resolved after,
+      only fires once per reload, and correctly does NOT restore after a
+      deliberate stop. Needs live confirmation: reinstall, do NOT run
+      "start mapping" manually, walk one room, confirm mapping came back
+      on its own.
 - [ ] **DSL Generic Mapper fork brought into the repo, reviewed, and
       hardened — needs a manual install swap + live confirmation.** Per
       Steven ("its time to incorporate the mapper and make it for DSL not

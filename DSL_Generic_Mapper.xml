@@ -3574,6 +3574,28 @@ function map.start_mapping(area_name)
     end
     map.echo("Now mapping in area: " .. area_name)
     map.set("mapping", true)
+    -- DSL hardening: persist mapping state separately from Generic
+    -- Mapper's own "protected" fields (mt.mapping etc, all intentionally
+    -- in-memory-only so they reset fresh on every script reload -- fine
+    -- for stock generic_mapper, rarely reinstalled). Real bug found live
+    -- 2026-07-18: this fork gets reinstalled every time a fix ships, and
+    -- each reinstall silently reset map.mapping to nil with nothing
+    -- telling the player to re-run "start mapping" -- confirmed directly
+    -- via a debug log showing "move_map(): map.mapping=nil" on every
+    -- move. Since map.mapping is nil, move_map() always falls to
+    -- map.find_me() (name-search only) instead of find_link() (which
+    -- both matches AND creates rooms), and find_me() does nothing at all
+    -- when no match is found -- explaining both "creates a duplicate
+    -- room" (mapping was on, check_room legitimately rejected a
+    -- candidate) and "position stuck on the previous room" (mapping was
+    -- off) from the same underlying cause. Stored in map.configs (which
+    -- Generic Mapper already persists to disk) and restored on the next
+    -- real room resolution after a reload -- see onGenericNewRoom() below.
+    if map.configs then
+        map.configs.dsl_was_mapping = true
+        map.configs.dsl_mapping_area = area_name
+        pcall(table.save, profilePath.."/map downloads/configs.lua", map.configs)
+    end
     find_area(area_name)
     rooms = find_room(map.currentName, map.currentArea)
     if table.is_empty(rooms) then
@@ -3589,6 +3611,14 @@ end
 
 function map.stop_mapping()
     map.set("mapping", false)
+    -- DSL hardening: mirror of start_mapping()'s persistence below --
+    -- a deliberate "stop mapping" must also be remembered, so a later
+    -- reinstall doesn't auto-restore mapping the player explicitly
+    -- turned off.
+    if map.configs then
+        map.configs.dsl_was_mapping = false
+        pcall(table.save, profilePath.."/map downloads/configs.lua", map.configs)
+    end
     map.echo("Mapping off.")
 end
 
@@ -6046,6 +6076,27 @@ end
 function map.dsl.onGenericNewRoom()
   -- Let Generic Mapper finish resolving/updating the room first.
   tempTimer(0, [[if map and map.dsl then map.dsl.applyRoomMetadata() end]])
+  -- DSL hardening: auto-restore mapping state after this fork gets
+  -- reinstalled (see start_mapping()'s own comment for the full real-bug
+  -- writeup -- confirmed live via a debug log: "move_map():
+  -- map.mapping=nil" on every move after a reinstall, silently routing
+  -- every room arrival through the non-creating map.find_me() path).
+  -- Checked here rather than at install() time because map.currentName/
+  -- map.currentArea (which start_mapping() needs) are only reliably
+  -- populated once a real room has actually resolved since the reload --
+  -- calling this any earlier would hit start_mapping()'s own "Room
+  -- detection not yet working" guard. Guarded to attempt the restore at
+  -- most once per reload (map.dsl.mapping_restored resets to nil along
+  -- with the rest of map.dsl on a fresh load, same as every other
+  -- session-scoped map.dsl.* field), and only if mapping was genuinely
+  -- on before a deliberate "stop mapping" -- never turns mapping on from
+  -- a false start.
+  if map.configs and map.configs.dsl_was_mapping and not map.mapping and not map.dsl.mapping_restored then
+    map.dsl.mapping_restored = true
+    if map.start_mapping then
+      pcall(map.start_mapping, map.configs.dsl_mapping_area)
+    end
+  end
 end
 
 function map.dsl.onTerrainLine(text)
