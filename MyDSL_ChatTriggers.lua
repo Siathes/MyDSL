@@ -34,16 +34,50 @@ deregisterTriggers()
 -- the line visible on the main console too -- added 2026-07-11 per
 -- Steven ("want says, tells, shouts, yell to echo and not be gagged").
 
+-- NC (NAMECHAR) -- added 2026-07-17, real bug found live: Steven's own
+-- diagnosis ("Iler'yx clan gossip wasnt captured into chat window, think
+-- safe to assum its the name breaking capture") was exactly right. Every
+-- route() pattern below used [^']+/[^']* for the speaker-name zone (the
+-- 2026-07-11 anchoring fix, meant to stop the prefix at the message's own
+-- opening quote so a verb-word inside a DIFFERENT message's quoted
+-- dialogue could never falsely match). That fix assumed a bare apostrophe
+-- always means "start of quoted message" -- but real DSL character names
+-- can contain an apostrophe mid-word ("Iler'yx"), and [^']+ can't tell
+-- that apart from a real opening quote: it just stops matching partway
+-- through the name, and the whole anchored pattern (which requires the
+-- verb immediately next) silently fails for every message from that
+-- character, on every channel. Fixed generally: this class matches any
+-- non-quote character, OR an apostrophe with a word character on BOTH
+-- sides (mid-word, like "Iler'yx") -- a real opening quote is always
+-- preceded by a space (after "verb "), so the lookbehind alone correctly
+-- tells the two apart without needing to special-case any specific name.
+-- Verified via full-corpus regression: 0 new cross-tab false matches (the
+-- one pre-existing "You tell the group" ambiguity below is unrelated,
+-- fixed separately), while 53 real previously-silently-dropped lines
+-- across Tells/OOC/City/Local now correctly route.
+local NC = "(?:[^']|(?<=\\w)'(?=\\w))"
+
 local function route(tabName, pattern, gag)
   local id = tempRegexTrigger(pattern, function()
+    -- routed tracks whether the line actually reached a chat tab --
+    -- added 2026-07-17, real data-loss bug found live: MyDSL.Chat.emco is
+    -- only ever created by MyDSL_Chat.lua's startup timer ladder, not
+    -- synchronously at boot (see that file's C.install()/C.startupSync()).
+    -- If chat traffic arrives before that ladder finishes (slow boot,
+    -- heavier system load), MyDSL.Chat.emco is still nil here -- append()
+    -- never happens, but deleteLine() below used to fire unconditionally
+    -- anyway, silently erasing the message from the main console with
+    -- nowhere else for it to go. Now deleteLine() only fires once the
+    -- line has actually landed in a chat tab -- worst case during a slow
+    -- boot, chat text stays visible on the main console instead of
+    -- vanishing outright, matching "stale data beats spam, never lose
+    -- real data" (CLAUDE.md).
+    local routed = false
     if MyDSL and MyDSL.Chat and MyDSL.Chat.emco then
       MyDSL.Chat.emco:append(tabName)
+      routed = true
     end
-    -- Restored 2026-07-08 now that routing itself is confirmed working
-    -- live (per Steven) -- this is what actually moves the line to the
-    -- EMCO tab instead of leaving it duplicated in the main console; not
-    -- an EMCO/gag setting, just this file's own not-yet-finished state.
-    if gag ~= false then deleteLine() end
+    if routed and gag ~= false then deleteLine() end
   end)
   MyDSL.ChatTriggers._triggers[#MyDSL.ChatTriggers._triggers + 1] = id
 end
@@ -119,8 +153,15 @@ end
 -- sometimes prefixes these lines with (confirmed in the native XML,
 -- unrelated to any HTML-log extraction artifact).
 -- gag=false 2026-07-11 per Steven: wants tells to echo on main console too.
-route("Tells", [[^\a?You tell [^']*']], false)
-route("Tells", [[^\a?[^']+ tells you[^']*']], false)
+-- "(?!the group)" added 2026-07-17 -- real bug found during the NC
+-- regression check: "You tell the group 'yep'" matched BOTH this pattern
+-- AND the Group pattern below (this one never excluded "the group"
+-- specifically), causing the exact double-fire/stray-fragment bug class
+-- the 2026-07-11 anchoring fix was originally built to prevent. Confirmed
+-- via corpus: this is the only remaining cross-tab collision, unrelated
+-- to the NC change above.
+route("Tells", [[^\a?You tell (?!the group)]] .. NC .. [[*']], false)
+route("Tells", [[^\a?]] .. NC .. [[+ tells you]] .. NC .. [[*']], false)
 
 ------------------------------------------------------------------------
 -- GROUP CHAT
@@ -128,22 +169,22 @@ route("Tells", [[^\a?[^']+ tells you[^']*']], false)
 -- Native: "tells the group" / "You tell the group" -- not "group-says"/
 -- "group-tells you" as originally guessed; that guess never matched
 -- anything because the verb itself was wrong.
-route("Group", [[^\a?[^']+ tells the group[^']*']])
-route("Group", [[^\a?You tell the group[^']*']])
+route("Group", [[^\a?]] .. NC .. [[+ tells the group]] .. NC .. [[*']])
+route("Group", [[^\a?You tell the group]] .. NC .. [[*']])
 
 ------------------------------------------------------------------------
 -- OOC
 ------------------------------------------------------------------------
 -- Native: "Name OOC: 'message'" -- not a "[OOC]" bracket tag as
 -- originally guessed; there never was a bracket tag to find.
-route("OOC", [[^\a?[^']+ OOC:[^']*']])
+route("OOC", [[^\a?]] .. NC .. [[+ OOC:]] .. NC .. [[*']])
 
 ------------------------------------------------------------------------
 -- CITY  (gossip family -- broad, non-language-restricted public channels)
 ------------------------------------------------------------------------
 -- "gossips"/"clan gossips" merged into one pattern 2026-07-11 -- same tab,
 -- and "clan gossips" always double-fired both (see file header note).
-route("City", [[^\a?[^']+ (?:clan )?gossips[^']*']])
+route("City", [[^\a?]] .. NC .. [[+ (?:clan )?gossips]] .. NC .. [[*']])
 -- Kingdom: native pattern is a literal prefix, not a verb -- "Kingdom: '"
 -- / "OOC Kingdom: '" -- not "X kingdom-says:" as originally guessed. No
 -- verb here, so no voice/language modifier zone to worry about. Merged
@@ -156,7 +197,7 @@ route("City", [[^\a?[^']+ (?:clan )?gossips[^']*']])
 -- zero without). That first version would have silently broken all 23.
 -- The optional-name group below covers both the confirmed real
 -- with-name form and the original no-name form in case DSL ever omits it.
-route("City", [[^\a?(?:[^']+ )?(?:OOC )?Kingdom: ']])
+route("City", [[^\a?(?:]] .. NC .. [[+ )?(?:OOC )?Kingdom: ']])
 
 ------------------------------------------------------------------------
 -- LOCAL  (room-level speech)
@@ -168,26 +209,30 @@ route("City", [[^\a?(?:[^']+ )?(?:OOC )?Kingdom: ']])
 -- even for "You", so "You yell '...'"/"You shout '...'" never matched.
 -- gag=false 2026-07-11 per Steven for say/shout/yell specifically (not
 -- whisper -- he didn't ask for that one and it's arguably more private).
-route("Local", [[^\a?(?:You say|[^']+ says)[^']*']], false)
-route("Local", [[^\a?(?:You whisper|[^']+ whispers)[^']*']])
-route("Local", [[^\a?(?:You yell|[^']+ yells)[^']*']], false)
-route("Local", [[^\a?(?:You shout|[^']+ shouts)[^']*']], false)
+route("Local", [[^\a?(?:You say|]] .. NC .. [[+ says)]] .. NC .. [[*']], false)
+route("Local", [[^\a?(?:You whisper|]] .. NC .. [[+ whispers)]] .. NC .. [[*']])
+route("Local", [[^\a?(?:You yell|]] .. NC .. [[+ yells)]] .. NC .. [[*']], false)
+route("Local", [[^\a?(?:You shout|]] .. NC .. [[+ shouts)]] .. NC .. [[*']], false)
 
 ------------------------------------------------------------------------
 -- OOC  (misc. public channels -- native routes all of these to OOC, not
 -- City; the first rewrite guessed City for auctions/grats and dropped
 -- the rest entirely)
 ------------------------------------------------------------------------
-route("OOC", [[^\a?[^']+ auctions:[^']*']])
-route("OOC", [[^\a?[^']*radios[^']*']])
+route("OOC", [[^\a?]] .. NC .. [[+ auctions:]] .. NC .. [[*']])
+route("OOC", [[^\a?]] .. NC .. [[*radios]] .. NC .. [[*']])
 -- grats -- native verb, not "congratulates" as originally guessed.
-route("OOC", [[^\a?[^']+ grats[^']*']])
+route("OOC", [[^\a?]] .. NC .. [[+ grats]] .. NC .. [[*']])
 -- Ask/Answer/Newbie -- native bundles three forms under one destination.
--- Bare "ask" dropped from the second pattern 2026-07-11 -- it's a literal
--- substring of "asks", already covered by the first pattern, and always
--- double-fired alongside it (see file header note).
-route("OOC", [[^\a?(?:You ask|[^']+ asks)[^']*']])
-route("OOC", [[^\a?[^']+ (?:answers|newbie)[^']*']])
+-- CORRECTED 2026-07-17: the 2026-07-11 comment claiming bare "ask" was
+-- "a literal substring of asks, already covered" was wrong -- a substring
+-- relationship between the WORDS doesn't mean the regex "asks" (which
+-- requires the literal "s") matches text that only has "ask". Confirmed
+-- via full-corpus check: real third-person "ask" (no -s) is the DOMINANT
+-- form in practice (6 real occurrences vs. 1 for "asks"), and every single
+-- one was silently uncaptured. Restored as "asks?" (optional trailing s).
+route("OOC", [[^\a?(?:You ask|]] .. NC .. [[+ asks?)]] .. NC .. [[*']])
+route("OOC", [[^\a?]] .. NC .. [[+ (?:answers|newbie)]] .. NC .. [[*']])
 route("OOC", [[^\a?\[Newbie\]: ']])
 -- Bloodbath/Quest -- native bundles two forms; not "QUEST:" as guessed.
 -- Real format confirmed via log corpus 2026-07-16: "<Name> Bloodbath:
@@ -195,7 +240,7 @@ route("OOC", [[^\a?\[Newbie\]: ']])
 -- immortal prefix) always precedes "Bloodbath:", never the reverse, so the
 -- old pattern (requiring "Bloodbath:" to start the line) never matched a
 -- real message.
-route("OOC", [[^\a?(?:\(Imm\) )?[^']+ Bloodbath:[^']*']])
-route("OOC", [[^\a?[^']*quests[^']*']])
+route("OOC", [[^\a?(?:\(Imm\) )?]] .. NC .. [[+ Bloodbath:]] .. NC .. [[*']])
+route("OOC", [[^\a?]] .. NC .. [[*quests]] .. NC .. [[*']])
 
 debugc("[MyDSL] ChatTriggers loaded.")

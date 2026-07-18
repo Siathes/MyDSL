@@ -2754,51 +2754,48 @@ function C.revive(reason)
   return true
 end
 
+-- startupSync() -- rewritten 2026-07-17, per Steven ("why are we
+-- rebuilding it every load, doesnt it save the settings? i dont think the
+-- delay rebuild is the right method"). Settings (tabs/colors/font) already
+-- persist and reload correctly via C.loadSettings() -- that was never the
+-- problem. What can't be persisted across a Mudlet restart is the live
+-- EMCO object itself (a running Geyser/Qt widget), same as any Mudlet UI
+-- window -- constructing it once per session isn't the bug, guessing WHEN
+-- to do it was. This whole timer-ladder (0.4/1.5/3.5/5/15s speculative
+-- recreate-or-revive passes) dates back to the very first Layer 3 commit
+-- (2026-06-07) -- BEFORE MyDSL_WindowRegistry.lua's later architecture
+-- discovery that every other MyDSL window can be created synchronously,
+-- deterministically, right after loadWindowLayout() (see that file's own
+-- "SECTION 11: STARTUP SEQUENCE" comment: "No timers: timers fight the
+-- user by snapping windows back mid-session"). Chat was never updated to
+-- match once that was learned -- there's no evidence in this project's
+-- history that EMCO specifically ever needed timers; it's just older code
+-- nobody revisited. Since MyDSL_Chat.lua loads after MyDSL_WindowRegistry.lua
+-- (confirmed via the package's own script load order), loadWindowLayout()
+-- has already completed by the time C.install() runs -- the same
+-- guarantee every other window already relies on with zero race condition.
+-- C.createInWindow() itself sizes EMCO with percentage dimensions ("100%"
+-- of its parent), not hardcoded pixels, so it doesn't need the parent's
+-- layout to "settle" any further than it already has.
+--
+-- One lightweight safety-net timer is kept, not removed outright -- a
+-- single late check, not a five-attempt guessing ladder -- purely
+-- defensive in case something else genuinely goes wrong (a real error
+-- during creation, not a timing race), so chat isn't left dead all
+-- session with no recovery path if that ever happens.
 function C.startupSync()
-  -- UserWindow layout restoration can finish after scripts load. Creating EMCO
-  -- too early can leave its child consoles visually blank/behind until manual
-  -- rebuild. These delayed passes recreate once after layout settles, then only
-  -- resize/revive.
-  local delays = { 0.4, 1.5, 3.5 }
-  for _, delay in ipairs(delays) do
-    tempTimer(delay, function()
+  local ok = C.createInWindow()
+  C.state.lastAction = "startup-sync-immediate"
+
+  if not ok then
+    tempTimer(3.0, function()
       if not (MyDSL and MyDSL.Chat) then return end
-      if not C.emco or not C.emco then
+      if not C.emco or not C.state.windowReady then
         C.createInWindow()
-      elseif delay >= 1.5 then
-        C.revive("startup-" .. tostring(delay))
+        C.state.lastAction = "startup-sync-retry"
       end
     end)
   end
-
-  -- Final check after layout has almost certainly restored.
-  -- Only force-rebuild if something is genuinely broken; otherwise revive()
-  -- (gentle resize/reposition — no content wipe). Old code always rebuilt,
-  -- wiping any chat text that arrived in the first 5 seconds of the session.
-  tempTimer(5.0, function()
-    if not MyDSL or not MyDSL.Chat then return end
-    if not C.emco or not C.emco or not C.state.windowReady then
-      C.createInWindow()
-      C.state.lastAction = "startup-final-guard-create"
-    else
-      C.revive("startup-5s-check")
-    end
-  end)
-
-  -- Second-chance guard, added 2026-07-16 per Steven ("no chat is being
-  -- captured? had to use mydsl chat rebuild"). The 5s guard above assumes
-  -- layout restoration always finishes within 5 seconds; if it doesn't
-  -- (system under heavier load, more windows to restore, etc.), nothing
-  -- after that ever retries, and chat stays silently un-routed until a
-  -- manual "mydsl chat rebuild". One more check, far enough out that a
-  -- slow boot has every reasonable chance to have finished by then.
-  tempTimer(15.0, function()
-    if not MyDSL or not MyDSL.Chat then return end
-    if not C.emco or not C.emco or not C.state.windowReady then
-      C.createInWindow()
-      C.state.lastAction = "startup-15s-guard-create"
-    end
-  end)
 end
 
 function C.applyFont()
