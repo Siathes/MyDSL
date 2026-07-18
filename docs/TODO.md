@@ -90,6 +90,65 @@ Fixed in code, verified via syntax checks and/or emulation — none of this
 is closed until Steven confirms it in-game. Full technical detail for any
 item: `git log --oneline` + `docs/CHANGELOG.md`.
 
+- [ ] **DSL Generic Mapper fork brought into the repo, reviewed, and
+      hardened — needs a manual install swap + live confirmation.** Per
+      Steven ("its time to incorporate the mapper and make it for DSL not
+      generic, too many small issues seem to be occurring"). This
+      supersedes the 2026-07-17 "harden the mapper" investigation
+      (`CHANGELOG.md`), which correctly found no bug in *stock*
+      generic_mapper at the time -- Steven's ask this time is different:
+      replace stock generic_mapper with a maintained DSL-specific fork,
+      not fix a specific bug in the stock one. Found real prior art
+      already sitting in `~/Downloads/` (`DSL_Generic_Mapper_
+      Minimal_Hardening_Scope.md` + versions 0.1.0-0.2.2, dated
+      2026-07-02/03, predating this repo's current workflow) -- a
+      conservative-fork layer on top of unmodified Generic Mapper 2.1.8,
+      never actually deployed (confirmed: the live MyDSL profile was
+      still running stock generic_mapper). Reviewed 0.2.2 in full against
+      its own scope doc: 7 of 8 required hardening items were already
+      correctly implemented (description-matching default, DSL movement-
+      fail/restricted-exit patterns fed into Generic's own onMoveFail
+      handling rather than a parallel system, all 11 required door
+      patterns, GMCP assist that explicitly never creates rooms directly,
+      room-description capture matching our own `MyDSL_DataLayer.lua`
+      technique, sector metadata with a GMCP-vs-terrain-command conflict
+      flag, and a thoroughly-disabled self-updater -- traced every
+      download-related code path to confirm none are reachable anymore).
+      Found and fixed 3 real bugs before deployment: (1) the door-verb
+      command parser used `cmd:match("^(open|close|lock|unlock|pick)...")`
+      -- `|` is not an alternation operator in Lua patterns (that's a
+      regex-only construct), so this could never match ANY real command;
+      the entire door-verb capture was dead code in the shipped 0.2.2
+      build. Fixed with a per-verb loop. (2) Once verb-matching actually
+      worked, a second bug surfaced: "open backpack"/"close pouch"-style
+      container actions (DSL's own help confirms `open <object|
+      direction>` are both real syntax) got silently misattributed to
+      the last movement direction instead of correctly resolving to no
+      room exit at all -- fixed by clearing both pending door/move
+      contexts on a non-directional action. (3) `last_door_command`/
+      `last_move_command` recorded a timestamp that nothing ever checked
+      -- added a 6-second freshness window so a stale context can't be
+      replayed against a much later, unrelated message. All 3 verified
+      via structural tests (`test_mapper_fork_fixes.lua`). Also
+      cross-referenced all patterns in the English Failed Move (25),
+      DSL Door State Capture (15), and DSL Terrain Capture (11) triggers
+      against the full log corpus (DSL2 + MyDSL + PNP/DSL1 sibling
+      profiles): the large majority confirmed real with direct quotes; a
+      handful unconfirmed but harmless (likely valid for other MUDs
+      Generic Mapper supports); one real gap found and fixed -- the
+      "standing too close to the lock" door-block message was hardcoded
+      to one specific NPC name ("A New Thalosian gate guard") when the
+      real message is a generic template any NPC can trigger (confirmed
+      via 4 different real NPCs producing the identical message in
+      sibling logs) -- wildcarded to match any NPC. Brought into the repo
+      as `DSL_Generic_Mapper.xml` (git-tracked source) +
+      `docs/DSL_Generic_Mapper_Scope.md` (the controlling scope note).
+      Packaged separately as `DSL_Generic_Mapper.mpackage` -- this is a
+      **replacement** for stock `generic_mapper`, not additive; installing
+      it requires uninstalling the stock package first (same class of
+      manual step as disabling the native `(autowhere)` alias). Not yet
+      live-tested at all -- needs Steven to actually install it and play
+      for a while before any of this closes.
 - [ ] **PlayersNear font size not surviving a reload — fixed 2026-07-18,
       needs live confirmation.** `MyDSL_RouteHelper.lua`'s `FONT_SIZE_OVERRIDES`
       seed table only ever read `MyDSL_History`'s size back from disk at
