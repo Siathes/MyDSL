@@ -3538,6 +3538,101 @@ end
 
 
 ------------------------------------------------------------------------
+-- 9q.1  CONTAINER HOLDS  ("exam <container>" / "look in <container>")
+------------------------------------------------------------------------
+-- Added 2026-07-17, per Steven ("item identification should work in
+-- donation pits and bins... pattern might be 'holds:'"). Confirmed via
+-- corpus grep: every container (donation pits/bins, satchels, bindles,
+-- backpacks, thief bags, pockets) prints this exact same shape after
+-- `exam <container>` or `look in <container>` -- e.g. "A bin holds:",
+-- "The donation pit holds:", "A leather satchel holds:". Anchored on the
+-- "holds:" suffix itself, not any specific container name or command,
+-- since there's no fixed vocabulary of container names to match against.
+--
+-- Each contained item line is the same "(N) [tags] name" shape
+-- MyDSL.parseInventoryLine() already handles. An older corpus sample
+-- (log/2026-07-03..07-07) showed an extra trailing "-[level] flags,stats"
+-- suffix (e.g. "an academy diploma -[0] M,MD,4Wis,4Con") -- per Steven,
+-- that was injected by an old native trigger that's since been removed,
+-- not real DSL server text; confirmed absent from every current-corpus
+-- example (log/2026-07-16 onward, e.g. "A Robe of Many Pockets holds:" /
+-- "     a Peace Pipe" / "( 3) a tobacco pouch", no suffix on any of them).
+-- No stripping needed for real, current output.
+
+local containerBlock = { items = {} }
+
+function MyDSL.beginContainerHolds(containerName)
+  containerBlock = { container = containerName, items = {} }
+  if MyDSL._triggers.containerBody then
+    pcall(killTrigger, MyDSL._triggers.containerBody)
+    MyDSL._triggers.containerBody = nil
+  end
+  MyDSL._triggers.containerBody = tempRegexTrigger(".*", function()
+    local ln = getCurrentLine()
+    if trim(ln) == "" then MyDSL.endContainerHolds(); return end
+    if MyDSL.parseContainerHoldsLine then MyDSL.parseContainerHoldsLine(ln) end
+  end)
+end
+
+function MyDSL.parseContainerHoldsLine(line)
+  local count, rest = line:match("^%(%s*(%d+)%)%s+(.+)$")
+  if not rest then
+    rest = line:match("^%s+(.+)$")
+    count = "1"
+  end
+  if not rest then return end
+
+  local flags = {}
+  local remaining = rest
+  while true do
+    local flag, tail = remaining:match("^%((.-)%)%s*(.*)$")
+    if not flag then break end
+    flags[#flags + 1] = flag
+    remaining = tail
+  end
+
+  local itemName = trim(remaining)
+  if itemName == "" then return end
+
+  local key = itemName:lower():gsub("^[Aa]n? ", ""):gsub("^[Tt]he ", "")
+  table.insert(containerBlock.items, { item = itemName, flags = flags, count = tonumber(count) or 1 })
+
+  -- Hover/click, same "move text, don't invent it" technique as
+  -- MyDSL.parseEquipLine()'s item hover -- attaches to the already-
+  -- printed line in the main console, never edits/reprints it.
+  if setLink and selectString then
+    local rec = MyDSL.ItemLore and MyDSL.ItemLore.get and MyDSL.ItemLore.get(key)
+    local hint = "Click for Item Reference"
+    if rec then
+      if rec.itemType then hint = hint .. " -- " .. rec.itemType end
+      if rec.damageDice then
+        hint = hint .. " -- " .. rec.damageDice .. " (avg " .. tostring(rec.damageAvg) .. ")"
+      end
+      if rec.armorClass then
+        local ac = rec.armorClass
+        hint = hint .. string.format(" -- AC %s/%s/%s/%s",
+          tostring(ac.pierce), tostring(ac.bash), tostring(ac.slash), tostring(ac.magic))
+      end
+    end
+    local cmd = string.format(
+      'if MyDSL and MyDSL.ItemReference then MyDSL.ItemReference.render("%s"); MyDSL.ItemReference.show() end',
+      itemName:gsub('"', '\\"'))
+    local okSel, selected = pcall(selectString, "main", itemName, 1)
+    if okSel and selected then
+      pcall(setLink, "main", cmd, hint)
+    end
+  end
+end
+
+function MyDSL.endContainerHolds()
+  if MyDSL._triggers.containerBody then
+    pcall(killTrigger, MyDSL._triggers.containerBody)
+    MyDSL._triggers.containerBody = nil
+  end
+end
+
+
+------------------------------------------------------------------------
 -- SECTION 10: TRIGGER REGISTRATION
 ------------------------------------------------------------------------
 -- Score header: "Score for <Name> -= <Title> =- (Companion) *Observer*"
@@ -3967,6 +4062,15 @@ MyDSL._triggers.inventoryStart = tempRegexTrigger(
   function()
     if MyDSL and MyDSL.beginInventory then
       MyDSL.beginInventory()
+    end
+  end
+)
+
+MyDSL._triggers.containerHoldsStart = tempRegexTrigger(
+  "^(.+) holds:$",
+  function()
+    if MyDSL and MyDSL.beginContainerHolds then
+      MyDSL.beginContainerHolds(matches[2])
     end
   end
 )
