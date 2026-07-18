@@ -953,6 +953,10 @@ end
 
 local oldweight = getRoomWeight(room)
 setRoomWeight(room, weight)
+-- DSL hardening: mark this room's weight as manually set, so the DSL
+-- layer's real-movement-cost auto-weighting (map.dsl.applyMoveCost())
+-- never silently overwrites a deliberate manual choice on a later visit.
+setRoomUserData(room, "dsl.weight_source", "manual")
 
 if weight &gt; oldweight then
   map.echo("Increased the room weight on #"..room.." ("..getRoomName(room)..") by "..(weight-oldweight).." to "..weight.." - making it less desirable to travel through.")
@@ -5710,6 +5714,7 @@ function map.dsl.captureCommand(cmd)
   local dir, verb, nonDirectional = dsl_dir_from_command(cmd)
   if verb == "move" then
     map.dsl.last_move_command = { raw = cmd, dir = dir, time = os.time() }
+    map.dsl.captureMovePoints()
   elseif verb and nonDirectional then
     -- Real bug found reviewing this fork before deployment: "open
     -- backpack"/"close pouch"/etc. are real door-verb commands aimed at
@@ -5861,9 +5866,120 @@ function map.dsl.onRoomData()
   -- Do not raise onNewRoom here. GMCP assists Generic Mapper but does not create rooms/links directly.
 end
 
+-- DSL_SECTOR_ENV_IDS / DSL_SECTOR_ENV_COLORS -- per Steven ("hook up all
+-- the features we can... the terrain and room weights"), and per this
+-- fork's own scope doc, which already flagged this as the intended next
+-- step (item 7's own comment: "Support terrain coloring... later"). This
+-- is a cosmetic map-color choice keyed off the sector categories already
+-- confirmed real (map.dsl.normalizeSector()) -- not a data claim, so a
+-- chosen color per sector is fine here (unlike room weight below).
+-- Environment IDs start at 20: Mudlet reserves IDs 1-16 and 257-272 for
+-- its own use (wiki.mudlet.org's Manual:Mapper Functions page), so
+-- anything DSL-specific has to stay outside those ranges.
+local DSL_SECTOR_ENV_IDS = {
+  inside = 20, city = 21, field = 22, forest = 23, hills = 24, tundra = 25,
+  desert = 26, mountain = 27, underground = 28, ice = 29, swim = 30,
+  ocean = 31, underwater = 32,
+}
+
+local DSL_SECTOR_ENV_COLORS = {
+  [20] = {120,120,120,255},  -- inside: grey
+  [21] = {180,180,170,255},  -- city: light stone
+  [22] = {140,200,90,255},   -- field: light green
+  [23] = {30,110,40,255},    -- forest: dark green
+  [24] = {170,140,80,255},   -- hills: tan/brown
+  [25] = {210,225,235,255},  -- tundra: pale blue-white
+  [26] = {225,195,110,255},  -- desert: sand yellow
+  [27] = {100,90,80,255},    -- mountain: dark grey-brown
+  [28] = {60,40,70,255},     -- underground: dark purple
+  [29] = {200,235,240,255},  -- ice: cyan-white
+  [30] = {60,120,200,255},   -- swim: blue
+  [31] = {30,70,150,255},    -- ocean: deep blue
+  [32] = {20,60,90,255},     -- underwater: dark teal
+}
+
+function map.dsl.registerEnvColors()
+  for envID, rgba in pairs(DSL_SECTOR_ENV_COLORS) do
+    pcall(setCustomEnvColor, envID, rgba[1], rgba[2], rgba[3], rgba[4])
+  end
+end
+
+-- applySectorColor(rid, sector) -- color only, from the known DSL
+-- sector. Room WEIGHT is handled separately below by
+-- captureMovePoints()/applyMoveCost() -- per Steven's explicit
+-- correction ("dont make up weights, the room weight should be added as
+-- a player walks through and uses movement points to determine"), weight
+-- must come from real observed movement-point cost, not a guessed
+-- sector->number table. There is no manual-override guard for color:
+-- Mudlet's own native map-UI right-click recolor calls setRoomEnv()
+-- directly with no script hook to intercept it, so a manual UI recolor
+-- could get reverted on that room's next auto-color pass. Accepted
+-- tradeoff -- color is cosmetic, not pathfinding-affecting, unlike
+-- weight (which does have a manual-override guard, see below).
+function map.dsl.applySectorColor(rid, sector)
+  if not rid or not sector or sector == "unknown" then return end
+  if not map.roomexists or not map.roomexists(rid) then return end
+  local envID = DSL_SECTOR_ENV_IDS[sector]
+  if envID and getRoomEnv(rid) ~= envID then
+    pcall(setRoomEnv, rid, envID)
+  end
+end
+
+-- captureMovePoints() / applyMoveCost(rid) -- room weight derived from
+-- REAL observed movement-point cost (gmcp.char_data.move, the same real
+-- GMCP field MyDSL_DataLayer.lua already reads in the companion MyDSL
+-- profile), not a guessed table. Mechanism: record the player's current
+-- move points the instant a real movement command is sent
+-- (sysDataSendRequest fires before the command reaches the server), then
+-- when the destination room resolves, read move points again and store
+-- the delta as this room's observed entry cost. Averaged across repeat
+-- visits (via dsl.move_cost_samples/dsl.move_cost_total room userdata)
+-- so a single visit landing on a natural regen tick doesn't permanently
+-- skew the room's weight.
+function map.dsl.captureMovePoints()
+  if not (gmcp and gmcp.char_data) then return end
+  local mv = tonumber(gmcp.char_data.move)
+  if mv then map.dsl.pending_move_points = mv end
+end
+
+function map.dsl.applyMoveCost(rid)
+  if not rid or not map.roomexists or not map.roomexists(rid) then return end
+  local before = map.dsl.pending_move_points
+  map.dsl.pending_move_points = nil
+  if not before then return end
+  if getRoomUserData(rid, "dsl.weight_source") == "manual" then return end
+  if not (gmcp and gmcp.char_data) then return end
+  local after = tonumber(gmcp.char_data.move)
+  if not after then return end
+
+  local cost = before - after
+  -- Sanity guard, not a guessed weight: natural move-point regen ticking
+  -- between the command and the room resolving can make this negative,
+  -- and an unrelated move-point loss (e.g. a status effect) landing in
+  -- the same window could make it implausibly large for a single step.
+  -- Skip anything outside a plausible single-step range rather than let
+  -- a bad reading corrupt the running average.
+  if cost &lt;= 0 or cost &gt; 20 then return end
+
+  local samples = tonumber(getRoomUserData(rid, "dsl.move_cost_samples")) or 0
+  local total = tonumber(getRoomUserData(rid, "dsl.move_cost_total")) or 0
+  samples = samples + 1
+  total = total + cost
+  setRoomUserData(rid, "dsl.move_cost_samples", tostring(samples))
+  setRoomUserData(rid, "dsl.move_cost_total", tostring(total))
+
+  local avgCost = total / samples
+  local weight = math.max(1, math.floor(avgCost + 0.5))
+  if getRoomWeight(rid) ~= weight then
+    pcall(setRoomWeight, rid, weight)
+  end
+  setRoomUserData(rid, "dsl.weight_source", "auto")
+end
+
 function map.dsl.applyRoomMetadata()
   local rid = map.currentRoom
   if not rid or not map.roomexists or not map.roomexists(rid) then return end
+  map.dsl.applyMoveCost(rid)
   local rd = map.dsl.gmcp and map.dsl.gmcp.room_data or nil
   if not rd then return end
   local sector = map.dsl.normalizeSector(rd.sector)
@@ -5881,6 +5997,7 @@ function map.dsl.applyRoomMetadata()
     end
   end
   setRoomUserData(rid, "dsl.last_seen", tostring(os.time()))
+  map.dsl.applySectorColor(rid, sector)
   map.dsl.last_room_apply = rid
 end
 
@@ -5905,6 +6022,11 @@ function map.dsl.onTerrainLine(text)
       elseif gsec ~= normalized then
         setRoomUserData(rid, "dsl.sector_conflict", "true")
       end
+      -- Color a room from the "terrain" command too, not just GMCP -- a
+      -- player typing "terrain" manually should get the same auto-color
+      -- benefit as GMCP-derived sector data. Weight is unaffected here --
+      -- it only comes from real observed movement-point cost.
+      map.dsl.applySectorColor(rid, getRoomUserData(rid, "dsl.normalized_sector"))
     end
   end
 end
@@ -5970,6 +6092,7 @@ function map.dsl.onDoorLine(text)
 end
 
 function map.dsl.install()
+  map.dsl.registerEnvColors()
   if map.defaults then
     map.defaults.use_description_matching = true
     map.defaults.download_path = ""
@@ -6053,6 +6176,13 @@ function map.dsl.roomRaw()
   cecho(string.format("&lt;grey&gt;DSL GMCP sector: &lt;white&gt;%s\n", tostring(getRoomUserData(rid, "dsl.gmcp_sector"))))
   cecho(string.format("&lt;grey&gt;DSL normalized sector: &lt;white&gt;%s\n", tostring(getRoomUserData(rid, "dsl.normalized_sector"))))
   cecho(string.format("&lt;grey&gt;DSL terrain text: &lt;white&gt;%s\n", tostring(getRoomUserData(rid, "dsl.terrain_text"))))
+  cecho(string.format("&lt;grey&gt;Room weight: &lt;white&gt;%s &lt;grey&gt;(source=&lt;white&gt;%s&lt;grey&gt;, samples=&lt;white&gt;%s&lt;grey&gt;, avg cost=&lt;white&gt;%s&lt;grey&gt;)\n",
+    tostring(getRoomWeight(rid)), tostring(getRoomUserData(rid, "dsl.weight_source")),
+    tostring(getRoomUserData(rid, "dsl.move_cost_samples")),
+    tostring(getRoomUserData(rid, "dsl.move_cost_total")) ~= "nil" and getRoomUserData(rid, "dsl.move_cost_samples") and
+      string.format("%.1f", (tonumber(getRoomUserData(rid, "dsl.move_cost_total")) or 0) / (tonumber(getRoomUserData(rid, "dsl.move_cost_samples")) or 1))
+      or "n/a"))
+  cecho(string.format("&lt;grey&gt;Room environment ID: &lt;white&gt;%s\n", tostring(getRoomEnv(rid))))
   cecho("&lt;grey&gt;Recent line buffer:\n&lt;white&gt;")
   for _, l in ipairs(map.dsl.line_buffer or {}) do echo("  " .. tostring(l) .. "\n") end
 end

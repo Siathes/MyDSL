@@ -149,6 +149,43 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       manual step as disabling the native `(autowhere)` alias). Not yet
       live-tested at all -- needs Steven to actually install it and play
       for a while before any of this closes.
+- [ ] **DSL Generic Mapper: room weight from real movement-point cost +
+      terrain-based room coloring — built 2026-07-18, needs live
+      confirmation.** Per Steven ("hook up all the features we can... the
+      terrain and room weights"), researched Mudlet's own Manual:Mapper
+      Functions wiki page for `setRoomWeight`/`getRoomWeight`/`setRoomEnv`/
+      `setCustomEnvColor` semantics before building anything (confirmed:
+      every room defaults to weight 1, higher = less desirable to
+      pathfind through; environment IDs 1-16 and 257-272 are reserved by
+      Mudlet). First implementation used a hand-picked sector-to-weight
+      table -- Steven caught this immediately ("dont make up weights, the
+      room weight should be added as a player walks through and uses
+      movement points to determine") and it was replaced before shipping.
+      Real mechanism: `map.dsl.captureMovePoints()` records
+      `gmcp.char_data.move` (the same real GMCP field
+      `MyDSL_DataLayer.lua` already reads) the instant a movement command
+      is sent; `map.dsl.applyMoveCost()` reads it again once the
+      destination room resolves and stores the delta as that room's
+      observed entry cost, averaged across repeat visits
+      (`dsl.move_cost_samples`/`dsl.move_cost_total` room userdata) so one
+      visit landing on a natural regen tick can't permanently skew the
+      weight. Guards: cost outside a plausible 1-20 single-step range is
+      discarded rather than corrupting the average; a room the player
+      manually re-weighted via the native `rw` alias is never touched
+      again (that alias now stamps `dsl.weight_source="manual"`). Room
+      coloring is a separate, purely cosmetic feature (not a data claim
+      the way weight is) -- `map.dsl.applySectorColor()` maps the
+      already-confirmed-real sector categories to custom environment
+      colors via `setCustomEnvColor()`/`setRoomEnv()`, registered once at
+      install. No manual-override guard exists for color specifically --
+      Mudlet's native map-UI right-click recolor calls `setRoomEnv()`
+      directly with no script hook to intercept, so a manual UI recolor
+      could get reverted on that room's next auto-color pass; accepted as
+      a cosmetic-only tradeoff. Verified via a dedicated structural test
+      harness (`test_move_cost_weight.lua`): a real cost becomes the room
+      weight, a regen-tick (negative-cost) reading is correctly ignored,
+      repeat visits average into a stable weight, and a manually-set
+      weight is never overwritten. Not yet live-tested.
 - [ ] **PlayersNear font size not surviving a reload — fixed 2026-07-18,
       needs live confirmation.** `MyDSL_RouteHelper.lua`'s `FONT_SIZE_OVERRIDES`
       seed table only ever read `MyDSL_History`'s size back from disk at
