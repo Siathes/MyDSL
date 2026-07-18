@@ -737,13 +737,27 @@ function M.clear(caption)
   M.currentSource = nil
 end
 
-function M.render(path, caption, source, room)
+function M.render(path, caption, source, room, missingCaption)
   M.ensureUI()
   if not (M.ui and M.ui.image and M.ui.caption) then return false end
 
   caption = caption or ""
   if not path or not exists(path) then
-    if M.config.missing == "blank" then
+    -- missingCaption -- added 2026-07-17, per Steven ("mydsl location
+    -- message needs to not goto main display but the location window").
+    -- Lets a caller (M.refresh()'s new-variant notice) show its own
+    -- specific text on the window's own caption label instead of this
+    -- function's generic "No room picture" fallback -- this used to be
+    -- the ONLY option, which is why that notice was going to the main
+    -- console via echoC() instead: this branch previously had no way to
+    -- surface caller-provided text at all. Takes priority over the
+    -- blank/caption "missing" setting -- that toggle is about the
+    -- routine "this room just has no picture" case; a new-variant notice
+    -- is an actionable diagnostic the user needs regardless of whether
+    -- they've turned off the routine chatter.
+    if missingCaption then
+      M.clear(missingCaption)
+    elseif M.config.missing == "blank" then
       M.clear("")
     else
       M.clear("No room picture" .. (room and (": " .. room) or ""))
@@ -825,17 +839,20 @@ function M.refresh(reason)
   M.currentSource = source
   M.lastReason = reason or "refresh"
 
+  local missingCaption = nil
   if variant and variant.isNew and variant.index > 1 and not (path and exists(path)) then
     -- A genuinely new variant of an already-known room name, and no
-    -- picture exists for it yet -- tell Steven exactly what filename to
-    -- create/place, same spirit as M.probe()'s existing diagnostic output.
-    echoC(string.format(
-      "New variant of \"%s\" detected (differs in description/exits from variant %d). "
-      .. "No picture yet -- save one as \"%s\" in %s, or use: mydsl location map %s = <path>",
-      data.room, 1, file or (displayName .. ".png"), M.dir or M.defaultDir(), displayName))
+    -- picture exists for it yet -- surfaced directly in the Location
+    -- window's own caption (fixed 2026-07-17, per Steven: "needs to not
+    -- goto main display but the location window" -- this used to be an
+    -- echoC() to the main console, easy to miss/spam-y; kept as compact
+    -- as the title-bar fallback he floated, since the window's caption
+    -- area is small) rather than the main console.
+    missingCaption = string.format("No picture for this variant.\nExpected: \"%s\"",
+      file or (displayName .. ".png"))
   end
 
-  return M.render(path, M.captionForRoom(data, path, source), source, displayName)
+  return M.render(path, M.captionForRoom(data, path, source), source, displayName, missingCaption)
 end
 
 function M.setByName(room)
