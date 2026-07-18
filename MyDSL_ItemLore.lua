@@ -129,13 +129,27 @@ function IL.importScraped(path)
   path = path or (getMudletHomeDir() .. "/MyDSL/item_scrape_import.lua")
   local f = io.open(path, "r")
   if not f then
-    debugc("[MyDSL] ItemLore: import file not found at " .. tostring(path))
+    -- Fixed 2026-07-18, real bug found live: "mydsl itemlore import"
+    -- silently did nothing on the fresh MyDSL profile (the staging file
+    -- only ever existed in DSL2's own MyDSL/ data dir, never copied over
+    -- -- this is a raw data file, not part of the script package, same
+    -- category as Sounds.zip/RoomPics.zip). The ONLY feedback on a
+    -- missing file was debugc(), which only reaches Mudlet's own debug
+    -- console (closed by default) -- zero visible sign on the main
+    -- console that the command did nothing, or why. Now echo()s a real,
+    -- visible error too, matching every other user-facing message in
+    -- this file.
+    local msg = "[MyDSL] ItemLore: import file not found at " .. tostring(path)
+    echo(msg .. "\n")
+    debugc(msg)
     return
   end
   f:close()
   local ok, records = pcall(dofile, path)
   if not ok or type(records) ~= "table" then
-    debugc("[MyDSL] ItemLore: import file failed to load: " .. tostring(records))
+    local msg = "[MyDSL] ItemLore: import file failed to load: " .. tostring(records)
+    echo(msg .. "\n")
+    debugc(msg)
     return
   end
 
