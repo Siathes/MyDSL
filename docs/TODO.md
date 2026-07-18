@@ -163,16 +163,19 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
 
 - [ ] **2026-07-16 UI polish batch, working through notes_utf8.txt.**
       - Chat "no chat is being captured? had to use mydsl chat rebuild" --
-        `C.startupSync()` (`MyDSL_ChatWrapper.lua`) already has a 0.4s/
-        1.5s/3.5s/5s delayed-check ladder for exactly this class of
-        problem (EMCO window not ready when layout restore finishes late)
-        but nothing retries after 5s -- if that boot happened to take
-        longer, chat stays silently un-routed forever with no further
-        self-heal. Added one more check at 15s as a safety net. Root
-        cause not conclusively proven (no error/reproduction steps beyond
-        the one report), so this is a defensive hardening, not a
-        confirmed fix -- still needs Steven's live confirmation on
-        whether it recurs.
+        root cause actually found 2026-07-17 (was defensive hardening
+        only until then): `MyDSL_Chat.lua`'s EMCO instance was only ever
+        created by a guessed timer ladder (0.4/1.5/3.5/5/15s), a leftover
+        from before this codebase learned `MyDSL_WindowRegistry.lua`'s
+        synchronous, no-timer window-creation pattern; `MyDSL_ChatTriggers.lua`'s
+        `route()` also deleted chat lines from the main console even when
+        EMCO wasn't ready yet, losing them outright rather than just
+        leaving them un-captured. Both fixed: EMCO now creates
+        synchronously at boot (one lightweight fallback timer kept, not a
+        five-attempt ladder); `deleteLine()` only fires once a line has
+        actually reached a tab. Verified via structural test harnesses;
+        still needs Steven's live confirmation that manual "mydsl chat
+        rebuild" is no longer needed.
       - Combat life-echo missing a connecting verb ("A gray wolf cub big
         wounds [30-49%]") — confirmed live via log corpus, fixed: now
         "... has big wounds [30-49%]" (`MyDSL_DataLayer.lua`).
@@ -288,6 +291,21 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       `MyDSL_ItemReference.lua`** (same class of step as Help/
       PromptSetup/AutoWhere before them) — neither `identify`/`lore`
       captures nor `item <name>` will do anything until that's done.
+- [ ] **Item identification extended to container contents, built
+      2026-07-17, needs live confirmation.** Per Steven ("item
+      identification should work in donation pits and bins... pattern
+      might be 'holds:'") — confirmed via corpus grep that every container
+      (donation pits/bins, satchels, bindles, thief bags, pockets) prints
+      the same `<Name> holds:` line after `exam <container>`/`look in
+      <container>`. New `MyDSL.beginContainerHolds()`/
+      `parseContainerHoldsLine()`/`endContainerHolds()` (`MyDSL_DataLayer.lua`,
+      same shape as the equipment/inventory captures) attaches the same
+      hover/click-to-Item-Reference technique those already use. An
+      initial version also stripped a trailing stat suffix seen in an
+      older corpus sample -- per Steven, that was injected by a since-
+      removed native trigger, not real server text, confirmed absent from
+      current output, so that stripping was removed again. Verified via a
+      structural test against 7 real current-corpus line variants.
 - [ ] CharacterAssist: rearm (weapon+shield) — spellup/setspell and the
       blind-vision check are confirmed working (2026-07-15); rearm itself
       hasn't been separately confirmed yet.
@@ -515,7 +533,11 @@ guessing at patterns with zero corpus evidence.
       or `(Imm) <Name> Bloodbath: 'message'` — name always precedes the
       verb, same shape as every other channel in this file. Fixed to
       `^\a?(?:\(Imm\) )?[^']+ Bloodbath:[^']*'`, matching the established
-      style. Syntax-checked.
+      style. Syntax-checked. Superseded 2026-07-17 by a project-wide fix
+      to this same file (see the chat item above) -- every `[^']+` zone
+      (including this one) now uses a name-character class that also
+      tolerates an apostrophe mid-name, so a Bloodbath message from a
+      character with an apostrophe in their name routes correctly too.
 - [ ] **`setspell` bare-command gives no usage feedback — fixed
       2026-07-16, needs live confirmation.** Confirmed Steven's exact
       case (2026-07-16): bare `setspell`, no args. Added
