@@ -92,12 +92,20 @@ function IR.render(name)
   end
 
   -- Weapon block
-  if rec.weaponType or rec.damageDice then
+  -- "or rec.damageAvg" added 2026-07-18 -- same real gap as the hover
+  -- tooltip fix (MyDSL.buildItemStatsSuffix()): scrape-imported weapons
+  -- only ever have damageAvg (a precomputed average), never damageDice
+  -- (exact dice notation only comes from a real in-game `identify`) --
+  -- the damage line was gated strictly on damageDice, so a scrape-only
+  -- weapon's real average damage was silently never shown at all.
+  if rec.weaponType or rec.damageDice or rec.damageAvg then
     decho(IR_MC, "<255,204,68>Weapon<r>\n")
     if rec.weaponType then decho(IR_MC, string.format("  <136,136,136>Type: <204,204,204>%s<r>\n", rec.weaponType)) end
     if rec.damageDice then
       decho(IR_MC, string.format("  <136,136,136>Damage: <204,204,204>%s (avg %s)<r>\n",
         rec.damageDice, rec.damageAvg and tostring(rec.damageAvg) or "?"))
+    elseif rec.damageAvg then
+      decho(IR_MC, string.format("  <136,136,136>Damage: <204,204,204>avg %s<r>\n", tostring(rec.damageAvg)))
     end
     if rec.weaponFlags then decho(IR_MC, string.format("  <136,136,136>Flags: <255,215,65>%s<r>\n", rec.weaponFlags)) end
   end
@@ -128,10 +136,21 @@ function IR.render(name)
   end
 
   -- Spell charges (wand) / spell list (potion/pill/scroll)
+  -- Fixed 2026-07-18, real bug found live (Steven's screenshot: "Charges:
+  -- nil of level nil 'color spray'"). This line assumed spellCharges
+  -- always has all three fields, true only for a real in-game `identify`
+  -- capture -- since scrape-imported records can now populate spellCharges
+  -- with just the spell name (see MyDSL_ItemLore.lua's importScraped()),
+  -- charges/level being genuinely unknown printed literal "nil" instead of
+  -- this file's own established "?" placeholder convention (already used
+  -- just above for rec.material/rec.maxWeight/rec.size).
   if rec.spellCharges then
+    local sc = rec.spellCharges
     decho(IR_MC, string.format(
       "<136,136,136>Charges: <204,204,204>%s of level %s '%s'<r>\n",
-      tostring(rec.spellCharges.charges), tostring(rec.spellCharges.level), rec.spellCharges.spell))
+      sc.charges and tostring(sc.charges) or "?",
+      sc.level and tostring(sc.level) or "?",
+      tostring(sc.spell)))
   end
   if rec.spellList then
     decho(IR_MC, string.format("<136,136,136>Spells (level %s):<r>\n", tostring(rec.spellList.level)))
