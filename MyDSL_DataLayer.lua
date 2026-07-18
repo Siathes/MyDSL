@@ -3493,16 +3493,31 @@ end
 -- log/2026-07-16#17-23-54.html.
 
 local inventoryBlock = {}
+local inventoryBlankStreak = 0
 
+-- Blank-line handling hardened 2026-07-18 -- same fix and same real
+-- reasoning as MyDSL.beginContainerHolds() below (see its comment for the
+-- full writeup): a large "you are carrying" listing can paginate exactly
+-- like a large container, and a single blank line is not a reliable
+-- end-of-listing signal in that case. Preventive hardening -- Steven's
+-- own carried inventory in the confirmed real capture was short enough
+-- not to paginate, so this specific failure mode isn't directly proven
+-- for inventory yet, but the mechanism (and the fix) is identical.
 function MyDSL.beginInventory()
   inventoryBlock = {}
+  inventoryBlankStreak = 0
   if MyDSL._triggers.inventoryBody then
     pcall(killTrigger, MyDSL._triggers.inventoryBody)
     MyDSL._triggers.inventoryBody = nil
   end
   MyDSL._triggers.inventoryBody = tempRegexTrigger(".*", function()
     local ln = getCurrentLine()
-    if trim(ln) == "" then MyDSL.endInventory(); return end
+    if trim(ln) == "" then
+      inventoryBlankStreak = inventoryBlankStreak + 1
+      if inventoryBlankStreak >= 2 then MyDSL.endInventory() end
+      return
+    end
+    inventoryBlankStreak = 0
     if MyDSL.parseInventoryLine then MyDSL.parseInventoryLine(ln) end
   end)
 end
@@ -3526,6 +3541,36 @@ function MyDSL.parseInventoryLine(line)
   if itemName == "" then return end
   local key = itemName:lower():gsub("^[Aa]n? ", ""):gsub("^[Tt]he ", "")
   inventoryBlock[key] = { item = itemName, flags = flags, count = tonumber(count) or 1 }
+
+  -- Hover/click -- fixed 2026-07-18, real bug found live (Steven: "does
+  -- not work on... my direct inventory 'you are carrying'"). This
+  -- function's own header comment already claimed hover was added here
+  -- 2026-07-16 ("you should be able to hover over inventory items not
+  -- just equipment") -- but the actual attach code was never written,
+  -- only the parsing/storage half. Same technique as
+  -- MyDSL.parseEquipLine()'s already-working item hover.
+  if itemName ~= "" and setLink and selectString then
+    local rec = MyDSL.ItemLore and MyDSL.ItemLore.get and MyDSL.ItemLore.get(key)
+    local hint = "Click for Item Reference"
+    if rec then
+      if rec.itemType then hint = hint .. " -- " .. rec.itemType end
+      if rec.damageDice then
+        hint = hint .. " -- " .. rec.damageDice .. " (avg " .. tostring(rec.damageAvg) .. ")"
+      end
+      if rec.armorClass then
+        local ac = rec.armorClass
+        hint = hint .. string.format(" -- AC %s/%s/%s/%s",
+          tostring(ac.pierce), tostring(ac.bash), tostring(ac.slash), tostring(ac.magic))
+      end
+    end
+    local cmd = string.format(
+      'if MyDSL and MyDSL.ItemReference then MyDSL.ItemReference.render("%s"); MyDSL.ItemReference.show() end',
+      itemName:gsub('"', '\\"'))
+    local okSel, selected = pcall(selectString, "main", itemName, 1)
+    if okSel and selected then
+      pcall(setLink, "main", cmd, hint)
+    end
+  end
 end
 
 function MyDSL.endInventory()
@@ -3560,16 +3605,40 @@ end
 -- No stripping needed for real, current output.
 
 local containerBlock = { items = {} }
+local containerBlankStreak = 0
 
+-- Fixed 2026-07-18, real bug found live (Steven: "check mydsl log i dont
+-- get hover over click on the items in the bin im looking at" -- a fresh
+-- raw-text capture of "exam bin" confirmed it): real DSL output for a
+-- large container has a BLANK LINE immediately after "<Name> holds:",
+-- before the first item ("A bin holds:\n\n     a petrified sand wyrm
+-- egg...") -- the original single-blank-line-ends-capture logic (copied
+-- from parseInventoryLine()'s shape) killed the capture on that first
+-- blank line, before a single item was ever parsed, so NOTHING in a
+-- large container ever got a hover. Smaller containers/pouches in the
+-- same real capture ("A small, woven pack holds:", "A backpack holds:")
+-- have no such leading blank line, and large containers also paginate
+-- mid-listing ("[ (C)ontinue, (R)efresh, ... ]:" prompts, each preceded
+-- and followed by a single blank line) -- and back-to-back container
+-- blocks are separated by 1-3 blank lines. A single blank is genuinely
+-- ambiguous in this output; two IN A ROW never occurs mid-listing in the
+-- real capture, only between blocks/around the pager, so that's the
+-- actual end signal now, not a single blank.
 function MyDSL.beginContainerHolds(containerName)
   containerBlock = { container = containerName, items = {} }
+  containerBlankStreak = 0
   if MyDSL._triggers.containerBody then
     pcall(killTrigger, MyDSL._triggers.containerBody)
     MyDSL._triggers.containerBody = nil
   end
   MyDSL._triggers.containerBody = tempRegexTrigger(".*", function()
     local ln = getCurrentLine()
-    if trim(ln) == "" then MyDSL.endContainerHolds(); return end
+    if trim(ln) == "" then
+      containerBlankStreak = containerBlankStreak + 1
+      if containerBlankStreak >= 2 then MyDSL.endContainerHolds() end
+      return
+    end
+    containerBlankStreak = 0
     if MyDSL.parseContainerHoldsLine then MyDSL.parseContainerHoldsLine(ln) end
   end)
 end
