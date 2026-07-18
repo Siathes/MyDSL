@@ -166,6 +166,29 @@ function IL.importScraped(path)
           filledAny = true
         end
       end
+      -- spellInfo -- added 2026-07-18, real gap found live (Steven: "the
+      -- platinum wand is missing the actual spell it uses magic missle
+      -- lvl(30)"). Confirmed the raw scrape record DOES have this --
+      -- "spellInfo=[[magic missile]]" -- it just was never in
+      -- IMPORT_FIELDS at all, so it was silently dropped on every import
+      -- despite being right there in the source file. Not a plain field
+      -- copy like the others: the scrape's spellInfo is just a bare spell
+      -- name string, while a real in-game `identify` capture builds a
+      -- structured spellCharges = {charges=N, level=N, spell="name"}
+      -- table (see MyDSL_DataLayer.lua's parseIdentifyLine()) -- mapped
+      -- into that same field/shape here (charges/level left nil, since
+      -- the scrape has neither) so hover code only ever needs to check
+      -- one field name, and a later real `identify` naturally upgrades
+      -- this to the full charges+level via merge()'s existing
+      -- fill-gaps-only rule, never overwriting a real capture.
+      -- NOTE: the scrape has no separate "spell level" number anywhere
+      -- (confirmed -- only the bare spell name) -- the "lvl(30)" Steven
+      -- remembers can only come from a real `identify` on that specific
+      -- wand; this fix can't recover a number the source data never had.
+      if rec.spellInfo and not existing.spellCharges then
+        existing.spellCharges = { spell = rec.spellInfo }
+        filledAny = true
+      end
       if isNew or filledAny then
         if existing.source == nil then existing.source = "shatteredarchive" end
         if existing.scrapedAt == nil then existing.scrapedAt = os.time() end

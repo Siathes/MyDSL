@@ -1957,6 +1957,22 @@ function MyDSL.buildItemStatsSuffix(rec)
     out = out .. string.format(" -- AC %s/%s/%s/%s",
       tostring(ac.pierce), tostring(ac.bash), tostring(ac.slash), tostring(ac.magic))
   end
+  -- spellCharges/spellList -- added 2026-07-18, per Steven ("the platinum
+  -- wand is missing the actual spell it uses magic missle lvl(30)").
+  -- charges/level are shown only when known -- a scrape-imported record
+  -- only ever has the bare spell name (see IL.importScraped()'s spellInfo
+  -- mapping), while a real in-game `identify` fills in the exact charges
+  -- and level too; nil-safe either way so this doesn't print "nil".
+  if rec.spellCharges then
+    local sc = rec.spellCharges
+    out = out .. " -- '" .. tostring(sc.spell) .. "'"
+    if sc.level then out = out .. " (level " .. tostring(sc.level) .. ")" end
+    if sc.charges then out = out .. " [" .. tostring(sc.charges) .. " charges]" end
+  end
+  if rec.spellList and rec.spellList.spells then
+    out = out .. " -- level " .. tostring(rec.spellList.level) .. " spells: "
+      .. table.concat(rec.spellList.spells, ", ")
+  end
   return out
 end
 
