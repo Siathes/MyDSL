@@ -66,12 +66,6 @@ DEFERRED gets started without an explicit go-ahead.
 ---
 
 ## LOW PRIORITY — script wiring
-- [ ] Native trigger "bumps into you causing you to lose your balance."
-      found disabled in the working profile with no documented reason —
-      flagged 2026-07-17, not yet investigated (its sibling flag, "English
-      Multi-Line Exits Trigger", turned out to be correctly disabled —
-      it's for MUDs with a different multi-line exits format than DSL's;
-      this one hasn't been checked the same way yet).
 - [ ] ChatWrapper tab active/inactive CSS still hardcoded — no ThemeEngine
       hookup. Real design pass, not a mechanical fix.
 - [ ] `MyDSL_creaturelore.lua` (lowercase, profile root) is stale DSL1
@@ -161,74 +155,6 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       manual-map override all verified via structural test harnesses.
       None of this is visually confirmed live yet.
 
-- [ ] **2026-07-16 UI polish batch, working through notes_utf8.txt.**
-      - Chat "no chat is being captured? had to use mydsl chat rebuild" --
-        root cause actually found 2026-07-17 (was defensive hardening
-        only until then): `MyDSL_Chat.lua`'s EMCO instance was only ever
-        created by a guessed timer ladder (0.4/1.5/3.5/5/15s), a leftover
-        from before this codebase learned `MyDSL_WindowRegistry.lua`'s
-        synchronous, no-timer window-creation pattern; `MyDSL_ChatTriggers.lua`'s
-        `route()` also deleted chat lines from the main console even when
-        EMCO wasn't ready yet, losing them outright rather than just
-        leaving them un-captured. Both fixed: EMCO now creates
-        synchronously at boot (one lightweight fallback timer kept, not a
-        five-attempt ladder); `deleteLine()` only fires once a line has
-        actually reached a tab. Verified via structural test harnesses;
-        still needs Steven's live confirmation that manual "mydsl chat
-        rebuild" is no longer needed.
-      - Combat life-echo missing a connecting verb ("A gray wolf cub big
-        wounds [30-49%]") — confirmed live via log corpus, fixed: now
-        "... has big wounds [30-49%]" (`MyDSL_DataLayer.lua`).
-      - PlayersNear had no command surface at all (only History-style
-        routed windows, no dedicated module) — added `mydsl playersnear
-        show/hide/font <n>/status`, mirroring History's own font+status
-        pattern (`MyDSL_RouteHelper.lua`).
-      - Bestiary/Focus/Item Reference: removed the `----`/`──` rule lines
-        (Steven: "lose the ---- lines for more space" / "remove the ---
-        lines in bestiary"); dropped each file's now-unused `hrule()`
-        helper. Replaced each window's static `wrapWidth = 300` (never
-        matched their actual docked width) with `enableAutoWrap()` — the
-        same real, already-proven-working Mudlet API History already
-        uses — for genuine adaptive word wrap.
-      - Bestiary: dropped the always-empty "Kills: 0 / Avg XP: ? / Last
-        XP: ?" row entirely, matching Focus's own 2026-07-11 precedent
-        for the exact same fields (real HP still shows fine when a
-        creature has actual lore data; Kills/XP have no capture path
-        anywhere in this codebase — DSL's `creaturelore` skill doesn't
-        report them at all, confirmed via `DSL_Helpfiles/creaturelore.txt`).
-      - Group: name column narrowed 20 -> 14 chars (was always padding
-        short player names out to a full 20 characters before the hp%
-        stat, per Steven "reduce space in group window between name and
-        stats"); still fixed-width so hp/mana/move stay column-aligned
-        across rows.
-      - Item Reference: Affects list now pairs two entries per line
-        instead of one (Steven: "make 2 columns... reduce the amount that
-        need to scroll") — a full side-by-side redesign of the whole
-        window wasn't attempted without live iteration, but this cuts the
-        longest repeating block roughly in half.
-      - Scan window: added `MyDSL.applyScanBadgeHover()` — Steven asked
-        for RightHere's existing visible `[Known]/[Seen]/[Unknown]` badge
-        on the main Scan body too, but that's raw copied game text (`selectCurrentLine()
-        `+`copy()`+`appendBuffer()`, "move text, don't invent it"), not
-        decho-built like RightHere — editing the pasted line to add
-        visible badge text is the same class of manipulation already
-        tried once (a left-margin space) and abandoned as not worth the
-        risk. Used the safer, already-proven hover technique instead
-        (same as AffectsView/equipment-line hover): `selectString()`+
-        `setLink()` attaches a tooltip showing the state, without
-        touching the visible text at all. If Steven wants a genuinely
-        visible inline badge instead of hover, that needs the riskier
-        insertText() approach and should be discussed first.
-      - LocationView: found and fixed a real bug while investigating the
-        "location/portrait changed after the Mudlet update" report —
-        `M.clear()` updated the caption text but never actually cleared
-        `M.ui.image`, so a room with no picture right after one that HAD
-        a picture would keep showing the previous room's stale image
-        instead of a blank/missing state.
-      All syntax-checked; Scan's new capture path also verified via a
-      structural test harness (rawName field populated correctly, full
-      trigger chain runs with no errors). None of this is visually
-      confirmed live yet.
 - [ ] **Location/Portrait "ran smoother before the Mudlet update" —
       partially investigated, root cause NOT found, needs more specifics
       from Steven.** Checked: Portrait's own code hasn't changed since
@@ -245,67 +171,6 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       entirely; a plain description or a fresh screenshot showing the
       actual visual problem (not just a room with no picture assigned)
       would narrow this down a lot faster than more static code reading.
-- [ ] **New: Layer 4 item identification, first slice, built 2026-07-16 —
-      dofile() steps confirmed done (inferred live: an error surfaced
-      from inside `MyDSL_ItemReference.lua`'s own event handler, which
-      only fires if the module loaded and the identify/lore capture
-      already worked end-to-end), one real bug found and fixed same day,
-      needs a clean live confirmation now.** Real bug: `MyDSL_
-      ItemReference.lua`'s `itemKey()` called a bare `trim()` assuming it
-      was a shared global -- it isn't; every file in this profile that
-      needs `trim()` defines its own local copy (confirmed via grep,
-      ~10+ files), and this new file never did. Fixed by dropping the
-      trim() call entirely -- confirmed `MyDSL_CreatureReference.lua`'s
-      own equivalent normalization doesn't trim either, every real caller
-      already passes an already-clean string. Per Steven ("it
-      should use the skill lore, and the spell identify to fill a
-      database of items stats in game... hover over items for the
-      stats?... a bestiary window type for items?" — answer: both).
-      New `MyDSL_ItemLore.lua` (persistent DB, directly modeled on
-      `MyDSL_CreatureLore.lua`'s proven merge pattern — a later `lore`
-      capture can never downgrade an already-`identify`d item back to
-      partial, confirmed both by design and by a structural test, since
-      `lore`'s own parsed record simply never includes the bonus/enchant
-      fields `identify` does). New `identify`/`lore <item>` capture
-      state machines in `MyDSL_DataLayer.lua`, patterns validated against
-      real captured transcripts (not guessed) via an emulation test
-      before touching real data. New `MyDSL_ItemReference.lua` (Item
-      Reference window, Bestiary's own pattern, full `item <name>|show|
-      hide|status|rebuild|font <n>` family from day one). One-time
-      scrape import from `shatteredarchive.com/items/all-items`
-      (6,085 unique items after dedup) into `MyDSL/item_scrape_import.lua`
-      + `mydsl itemlore import` alias, dry-run validated. Equipment
-      listings in the main console now get a hover tooltip (quick stats)
-      + click (opens Item Reference) on the item name itself, via
-      `selectString()`/`setLink()` — same technique `MyDSL_AffectsView.lua`
-      already uses, chosen specifically because it never touches the
-      game's own text/color (confirmed decho/cecho reconstruction would
-      have discarded the original ANSI coloring). All new/edited files
-      syntax-checked via luajit. **Deliberately NOT in this pass**
-      (each is a net-new capture pipeline, not a retrofit, comparable in
-      size to this whole pass again): inventory (`inv`/`i`) capture +
-      hover, room-floor-item capture + hover, and the native 318-item
-      `itemstats` table as a supplementary import (needs Steven's help
-      decoding its notation first). **Needs Steven to add `dofile(...)`
-      Script entries for `MyDSL_ItemLore.lua` and
-      `MyDSL_ItemReference.lua`** (same class of step as Help/
-      PromptSetup/AutoWhere before them) — neither `identify`/`lore`
-      captures nor `item <name>` will do anything until that's done.
-- [ ] **Item identification extended to container contents, built
-      2026-07-17, needs live confirmation.** Per Steven ("item
-      identification should work in donation pits and bins... pattern
-      might be 'holds:'") — confirmed via corpus grep that every container
-      (donation pits/bins, satchels, bindles, thief bags, pockets) prints
-      the same `<Name> holds:` line after `exam <container>`/`look in
-      <container>`. New `MyDSL.beginContainerHolds()`/
-      `parseContainerHoldsLine()`/`endContainerHolds()` (`MyDSL_DataLayer.lua`,
-      same shape as the equipment/inventory captures) attaches the same
-      hover/click-to-Item-Reference technique those already use. An
-      initial version also stripped a trailing stat suffix seen in an
-      older corpus sample -- per Steven, that was injected by a since-
-      removed native trigger, not real server text, confirmed absent from
-      current output, so that stripping was removed again. Verified via a
-      structural test against 7 real current-corpus line variants.
 - [ ] CharacterAssist: rearm (weapon+shield) — spellup/setspell and the
       blind-vision check are confirmed working (2026-07-15); rearm itself
       hasn't been separately confirmed yet.
@@ -546,43 +411,6 @@ guessing at patterns with zero corpus evidence.
       message (`ce("usage: setspell <bless|fireproof> <spell|wand|
       skill> [name]")`) for malformed input — just wasn't reachable for
       the zero-arg case before. Syntax-checked.
-- [ ] **Item Reference window sizing/position** — Steven wants it
-      compact, docked top-left corner; currently renders correctly
-      (confirmed via screenshot) but as a tall left-side tab alongside
-      Scan/Combat/Bestiary, larger than desired.
-- [ ] **Inventory hover — scope expansion, reverses the plan's original
-      "equipment only" deferral.** Steven: "you should be able to hover
-      over inventory items not just equipment... just worn or inventory I
-      think is fair" (ground-item identification explicitly still out of
-      scope).
-      **Ground-vs-inventory name mapping — answered empirically
-      2026-07-16, not built yet.** Steven asked directly whether there's
-      "a way to map the ground description and inventory description with
-      no real connection." Found a real answer key in
-      `log/2026-07-16#17-23-54.html`: a `get all` / `drop all` / `look`
-      sequence lists ~30 items' bare inventory name immediately next to
-      their room ground-sentence for the same item. Result: roughly 2/3
-      have a clean substring match once the sentence wrapper is stripped
-      (`"a decanter of endless water"` <-> `"A decanter of endless water
-      lies here."`), but a real fraction have no shared substring at all
-      — the ground text is sometimes an independently-written
-      description: `"a bag of holding"` -> `"A strange bag lays here..."`;
-      `"a shaping mallet"` -> `"A mallet used to shape metal..."`; `"a
-      soft felt cap"` -> `"A cap made of soft felt..."`; `"a scroll of
-      enchantment"` -> `"A scroll of magical enchantment..."`; `"a wand
-      of elm wood"` -> `"A wand made of polished elm..."`; `"a shark
-      tooth"` -> `"A tooth of some sort..."`. Honest answer: no, not
-      reliably for every item — a substring/keyword mapping would work
-      for most but should be built as a best-effort optional link (with a
-      way to manually confirm/correct), not assumed complete. Not yet
-      built — needs Steven's go-ahead on that framing before
-      implementing.
-- [ ] **Help window auto-shows on every profile load.** Registered
-      `visible=false` by default in `MyDSL_WindowRegistry.lua`, so this is
-      likely a persisted-state issue (a prior test session left it
-      visible and `MyDSL.Windows.saveState()` saved that) rather than a
-      code default bug — not yet investigated.
-
 ---
 
 ## OPEN — Design ideas, not yet scoped
@@ -616,24 +444,42 @@ guessing at patterns with zero corpus evidence.
       referenced Achaea Mudlet calendar package is worth checking for a
       reusable pattern before building fresh.
 - [ ] **Mapper/LocationView: distinguish same-named rooms — built
-      2026-07-17, needs live confirmation.** Investigated first: confirmed
-      `generic_mapper` already keeps same-named-but-different rooms as
-      genuinely separate map nodes (no mapper-side bug), and traced its
-      own room-matching to run entirely synchronously inside its own
-      script/triggers — a hands-off wrapper can't feed it new criteria
-      before the fact anyway. Turned out the actual need is 100%
-      LocationView-side and needs zero mapper involvement:
-      `MyDSL_LocationView.lua` already resolved pictures by room-name text
-      alone. Built `MyDSL.captureRoomDescription()`
-      (`MyDSL_DataLayer.lua`, a new rolling-line-buffer capture of the
-      room's own description + color) and `M.resolveVariant()`
-      (`MyDSL_LocationView.lua`) — matches description first, falls back
-      to exits, keeps color per-variant for a future tiebreak. First-seen
-      variant of a name keeps the plain filename, each new variant gets
-      `Name (2).png`/`(3).png`/etc — zero renaming needed for the ~215
-      existing picture files. New `mydsl location variants [room]`
-      command. Verified via a structural test harness; not yet confirmed
-      against a real same-named-room encounter in-game.
+      2026-07-17, real root-cause bug found and fixed 2026-07-18, live
+      testing 2026-07-18 confirms the OPEN-door direction but still
+      reports an issue on CLOSE.** Original root cause (confirmed by
+      decoding the live `location_variants.lua` data, Mudlet's
+      reference-indexed `table.save` format, resolved offline with a
+      small script): 0 of 137 saved variant records anywhere ever had a
+      description — 20 rooms had already spuriously split into 2-6
+      "variants" apiece, because `M.roomData()`'s fixed source-priority
+      order let `MyDSL.DB.room` (no description field) win before
+      `MyDSL.State.room` (the only source with one) was ever reached, so
+      `resolveVariant()`'s precise description-tier was dead code and
+      everything fell through to comparing exits alone — which change
+      whenever a door/gate opens or closes. Fixed by having `M.roomData()`
+      backfill `description`/`descColor` from `MyDSL.State.room` after
+      the priority loop picks a winner. Per Steven's 2026-07-18 live test:
+      "open door seems fixed" but "still cause[s] the issue with clos[ed]
+      door." Re-checked `location_variants.lua` after this test: "Inside
+      Arkane's north gate" still shows exactly the same 2 pre-existing
+      variants as before (both still `description=nil`, `seen` unchanged)
+      — no 3rd variant was created, and tracing `resolveVariant()`'s own
+      exits-fallback tier shows BOTH the open and closed exit sets should
+      still correctly match their respective pre-existing (already-split)
+      variant either way, so a fresh spurious split isn't the obvious
+      explanation for what Steven's seeing on close specifically. Genuinely
+      unclear without more specifics — the "new variant" notice
+      (`M.refresh()`'s `missingCaption`) only ever fires once, at the
+      moment a variant is newly created, not on every revisit of an
+      already-known one, and it renders inside the Location window itself
+      (fixed 2026-07-17 to stop going to the main console), so it doesn't
+      show up in the plain-text session log either. **Needs a screenshot
+      or the exact text Steven sees when the door is closed** before
+      changing anything further — the ~20 rooms that already split
+      spuriously before this fix (including this one) are also NOT
+      retroactively cleaned up by it; only new captures are affected, so
+      some of what's being seen now may just be the pre-existing split
+      itself (mismatched/missing picture files per variant), not a new bug.
 - [ ] State-scoped sound toggle — generic pattern for an alias to turn a
       sound on for a state and reliably turn it off when the state ends.
 - [ ] **A whole quest-tracking mechanic (quest start/expire/timer
@@ -665,9 +511,24 @@ guessing at patterns with zero corpus evidence.
       `.lua` file across every Mudlet profile on this machine, build one
       consolidated list. Large, multi-session scope, its own future
       session.
-- [ ] **Layer 4: Reference library** (items, mobs, lore) — not started.
-      Check `~/Downloads/Shattered-Archive-release-dev.zip` before
-      building from scratch.
+- [ ] **Layer 4: Reference library** — items done (`MyDSL_ItemLore.lua`/
+      `MyDSL_ItemReference.lua`, confirmed live 2026-07-18) and mobs/lore
+      done (`MyDSL_CreatureLore.lua`/Bestiary, confirmed earlier). Whatever
+      remains under this heading (areas/zones/general lore, if that was
+      ever the intent) not scoped — check
+      `~/Downloads/Shattered-Archive-release-dev.zip` before building
+      from scratch if picked up.
+- [ ] **Inventory hover scope expansion (hover on carried-not-worn items)
+      + ground-vs-inventory name mapping** — explicitly deferred by
+      Steven 2026-07-18 ("not sure we need"), not a live bug. Equipment
+      hover already works; this was extending it to plain inventory
+      items. The name-mapping half was already answered empirically
+      2026-07-16 (real corpus check found ~2/3 of items have a clean
+      substring match between their ground and inventory text, but a
+      real fraction don't — `"a bag of holding"` -> `"A strange bag lays
+      here..."` — so any mapping would need to be best-effort with a
+      manual-override path, not assumed complete). Revisit only if Steven
+      asks again.
 - [ ] **Data-driven notes/quest tracking** — streamline `notes_utf8.txt`'s
       in-game feature/quest items via data files instead of manual notes.
 - [ ] **Consolidate all native Mudlet objects into one package** — per
