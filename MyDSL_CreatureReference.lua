@@ -248,6 +248,7 @@ end
 function CR.rebuild()
   if CR._mc.lore then pcall(function() CR._mc.lore:hide() end) end
   CR._mc.lore = nil
+  CR._autoWrapSet = nil
   CR.ensureUI()
   CR.render(nil)
 end

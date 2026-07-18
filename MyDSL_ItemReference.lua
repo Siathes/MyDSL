@@ -233,6 +233,7 @@ end
 function IR.rebuild()
   if IR._mc.item then pcall(function() IR._mc.item:hide() end) end
   IR._mc.item = nil
+  IR._autoWrapSet = nil
   IR.ensureUI()
   IR.render(nil)
 end
