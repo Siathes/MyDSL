@@ -2454,7 +2454,7 @@ end
 -- beginCreatureLore() fires on "^Creature:%s" and parses name+race from
 -- the first line. A catch-all feeds body lines to parseCreatureLoreLine().
 -- endCreatureLore() fires on blank line, commits to State, and optionally
--- merges into MyDSL_creaturelore.lua DB if that module is loaded.
+-- merges into MyDSL_CreatureLore.lua DB if that module is loaded.
 
 function MyDSL.beginCreatureLore(line)
   local name, race = line:match("^Creature:%s*(.-)%s+Race:%s*(.+)$")

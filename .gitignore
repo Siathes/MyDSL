@@ -73,3 +73,11 @@ MyDSL_Audit_Phase*/
 
 # Claude Code session data
 .claude/
+
+# Built package output — rebuilt on demand from the SCRIPT_FILES list in the
+# packaging build script and delivered directly each time; committing the
+# binary .mpackage/unpacked-XML build output itself just produces a full
+# binary replace with no meaningful diff every rebuild (confirmed: 17 commits
+# of pure "chore: rebuild" churn before this was untracked 2026-07-18).
+MyDSL_Full.mpackage
+MyDSL_Full/
