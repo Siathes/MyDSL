@@ -27,8 +27,21 @@ MyDSL.Route = MyDSL.Route or {}
 -- report as MyDSL_TargetView.lua's font, fixed the same way), so both
 -- moved to the shared mechanism together, removing the character-name
 -- dependency (and that whole class of timing bug) entirely.
+-- Real bug found 2026-07-18, per Steven ("playersnear you font setting
+-- not persisting"): MyDSL_PlayersNear got its own "mydsl playersnear
+-- font <n>" command 2026-07-16 (below), which correctly writes through
+-- to MyDSL.Windows.setFontSize()'s real disk-backed store -- same
+-- mechanism History uses -- but this seed table was never updated to
+-- also read PlayersNear's size back OUT of that store at file-load time,
+-- so getOrCreateConsole()'s `FONT_SIZE_OVERRIDES[windowName] or 9` always
+-- fell back to the hardcoded default on every reload, silently ignoring
+-- whatever was actually saved on disk. History was the only window
+-- seeded here because it was the only one with a font command when this
+-- table was first written (2026-07-05/07); PlayersNear's font command
+-- was added later without updating this seed to match.
 local FONT_SIZE_OVERRIDES = {
-  MyDSL_History = MyDSL.Windows.getFontSize("MyDSL_History", 7),
+  MyDSL_History     = MyDSL.Windows.getFontSize("MyDSL_History", 7),
+  MyDSL_PlayersNear = MyDSL.Windows.getFontSize("MyDSL_PlayersNear", 9),
 }
 
 -- Display titles for windows this file creates via WindowRegistry --
