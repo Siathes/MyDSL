@@ -199,6 +199,37 @@ route("City", [[^\a?]] .. NC .. [[+ (?:clan )?gossips]] .. NC .. [[*']])
 -- with-name form and the original no-name form in case DSL ever omits it.
 route("City", [[^\a?(?:]] .. NC .. [[+ )?(?:OOC )?Kingdom: ']])
 
+-- Area/kingdom-named channel -- added 2026-07-17, per Steven ("thaxanos
+-- chat to be captured to chat window"), confirmed via a live screenshot
+-- (MyDSL profile, standing in "Southern Gate of Thaxanos"): a completely
+-- different real format from the "Kingdom: '...'" one above --
+-- "(Thaxanos) Wuerthim:  Kraxul, ye around High King?" -- the area/
+-- kingdom name itself in parens as a prefix, speaker name, colon, and the
+-- message with NO enclosing quotes at all. None of this file's other
+-- patterns require a message to end in "'", so this one never matched
+-- anything, silently leaving it on the main console. Genericized to any
+-- name in parens (not hardcoded to "Thaxanos") since this is presumably
+-- one instance of a general per-area/kingdom channel, not literally
+-- specific to that one city.
+-- NAME (letters/apostrophes/spaces only, no digits/brackets/#/%/-) used
+-- for BOTH the parenthetical and the speaker zone, not the generic NC
+-- class every other pattern in this file uses -- caught via full-corpus
+-- regression: a first, broader version of this pattern (NC-based) also
+-- matched container/item-stat lines like "(Fireproof) a bag of holding
+-- -[0] -BP Cap: 500# Max: 25# Wghtx: 50%" (real text confirmed in the
+-- corpus -- these have their own later colon, e.g. "Cap:"/"Max:", so a
+-- permissive middle zone treats the whole item description as a fake
+-- "speaker name"). Requiring an actual name-shape on both sides excludes
+-- all of those while still matching the one confirmed real chat line.
+-- "(?!Imm\))" also excludes this file's one other leading-parenthetical
+-- shape, "(Imm) <Name> Bloodbath: '...'", which would otherwise also
+-- match. Single-screenshot evidence only (no raw session log exists yet
+-- for the new MyDSL profile, and this exact format has zero occurrences
+-- anywhere in the older DSL2 corpus either) -- needs Steven's live
+-- confirmation like every other unconfirmed item this pass.
+local AREA_NAME = [[[A-Za-z][A-Za-z']*(?: [A-Za-z][A-Za-z']*)*]]
+route("City", [[^\a?\((?!Imm\))]] .. AREA_NAME .. [[\)\s+]] .. AREA_NAME .. [[:\s+.+$]])
+
 ------------------------------------------------------------------------
 -- LOCAL  (room-level speech)
 ------------------------------------------------------------------------
