@@ -59,7 +59,7 @@ function MyDSL.DB.sync()
   -- DataLayer key 'class'    → DB key 'class_' (avoids Lua reserved word).
   local sc = MyDSL.State.score or {}
   -- hp/mana/move fallback added 2026-07-11 -- real bug found live
-  -- (Uldek's LiveView health bars stuck at "-- (0%)" despite `score`
+  -- (LiveView health bars stuck at "-- (0%)" despite `score`
   -- having been run and correctly parsed): LiveView's L.data() already
   -- does `live.hp or score.hp` specifically so the score-command text
   -- parse can cover GMCP not having sent char_data.hp yet, but this

@@ -304,7 +304,7 @@ end
 -- PUBLIC: focalMoon()
 ------------------------------------------------------------------------
 -- Returns "red", "white", or "black" based on character alignment.
---   red   = Neutral alignment (Kien's moon, the default)
+--   red   = Neutral alignment (the default)
 --   white = Good alignment
 --   black = Evil alignment
 -- Uses case-insensitive string search so "True Neutral", "Chaotic Good",

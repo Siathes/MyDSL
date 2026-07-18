@@ -19,7 +19,7 @@
 -- Steven every session instead of just once at creation. Corpus-checked:
 -- "Gray Mist of Nothingness" appears in the one fresh-character-creation
 -- log from 2026-07-09 and in zero other logs across the whole recent
--- history (established characters Kien/Vrokt/Qinrathaz never see it) --
+-- history (established characters never see it) --
 -- reasonably confident this is creation-exclusive, though if DSL ever
 -- reuses this exact room+cutscene for some other mechanic (a recall-to-
 -- the-void spell, e.g.) this would need re-scoping.

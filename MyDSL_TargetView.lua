@@ -900,7 +900,7 @@ function TV.init()
     function() TV.render() end
   )
 
-  -- REAL BUG, found live 2026-07-11 from Steven's screenshot + Kien's
+  -- REAL BUG, found live 2026-07-11 from Steven's screenshot + real
   -- logs during an actual fight ("bar isnt working during a fight
   -- either"): TV.render() was ONLY ever triggered by target/lore/theme
   -- changes -- nothing re-rendered when combat-condition data itself

@@ -15,7 +15,7 @@
   Contract:
     - MyDSL.Prompt.enabled is the single boolean controlling gag state.
     - Triggers always fire; they check enabled before calling deleteLine().
-    - State is character-bound: MyDSL/prompt_Kien.lua, etc.
+    - State is character-bound: MyDSL/prompt_<CharName>.lua, etc.
     - Default: enabled=true (UI mode on, prompt gagged).
     - Alias: mydsl prompt on|off|toggle
 =====================================================================]]--

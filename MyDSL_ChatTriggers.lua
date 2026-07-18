@@ -80,7 +80,7 @@ end
 -- ("^\a?You tell .+\s+'.*'$"), but every route() call here was UNANCHORED
 -- (no leading "^") and used a quote-CROSSING ".+" for the prefix -- so a
 -- pattern like ".+ says[^']*'" could match starting from a "says" that
--- occurs INSIDE a different message's own quoted dialogue, e.g. "Vaelis
+-- occurs INSIDE a different message's own quoted dialogue, e.g. "<Name>
 -- tells you 'watch what she says about it'" matched BOTH the Tells
 -- pattern AND the Local "says" pattern. Confirmed via Python re against
 -- real and adversarial lines: when a real message matched two `route()`

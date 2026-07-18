@@ -189,7 +189,7 @@ function GV.render()
     -- Column width narrowed 20 -> 14 chars, 2026-07-16, per Steven
     -- ("reduce space in group window between name and stats") -- 20 was
     -- always padding out to a full 20 characters even for short player
-    -- names (e.g. "Kien"), leaving a large visible gap before hp%; still
+    -- names (e.g. short ones), leaving a large visible gap before hp%; still
     -- fixed-width (not fully dynamic) so the hp/mana/move columns stay
     -- aligned across rows regardless of name length.
     local name_color = m.is_mob and "204,170,100" or "204,204,204"
@@ -238,7 +238,7 @@ end
 ------------------------------------------------------------------------
 -- Body-line gagging is handled inside DataLayer's beginGroup() catch-all
 -- by reading GV.config.gagGroup directly — no trigger needed here for body lines.
--- Only the header line ("Kien's group:") needs a dedicated gag trigger.
+-- Only the header line ("<Name>'s group:") needs a dedicated gag trigger.
 
 function GV.setGag(enabled)
   GV.config.gagGroup = enabled
@@ -246,7 +246,7 @@ function GV.setGag(enabled)
   for _, id in pairs(GV._triggers) do pcall(killTrigger, id) end
   GV._triggers = {}
   if enabled then
-    -- Gag the group header line (e.g. "Kien's group:").
+    -- Gag the group header line (e.g. "<Name>'s group:").
     GV._triggers.gagHeader = tempRegexTrigger(
       "^.+'s group:$",
       function() deleteLine() end
