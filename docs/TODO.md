@@ -90,6 +90,17 @@ Fixed in code, verified via syntax checks and/or emulation — none of this
 is closed until Steven confirms it in-game. Full technical detail for any
 item: `git log --oneline` + `docs/CHANGELOG.md`.
 
+- [ ] **PlayersNear font size not surviving a reload — fixed 2026-07-18,
+      needs live confirmation.** `MyDSL_RouteHelper.lua`'s `FONT_SIZE_OVERRIDES`
+      seed table only ever read `MyDSL_History`'s size back from disk at
+      file load; `MyDSL_PlayersNear`'s font command (added 2026-07-16)
+      never got a matching seed entry, so every reload silently reverted
+      to the hardcoded default regardless of what was actually persisted.
+      Fixed by seeding both. Checked every other window's font
+      persistence for the same class of bug — everyone else reads
+      `MyDSL.Windows.getFontSize()` fresh inside their own render
+      function rather than caching it at load time, so this was specific
+      to RouteHelper's two routed windows.
 - [ ] **2026-07-16 "what's left" build pass — cleared several buildable
       backlog items, checked out several more that turned out to
       already be resolved or unconfirmable.** Built:
