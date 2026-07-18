@@ -185,7 +185,29 @@ function IL.importScraped(path)
       -- (confirmed -- only the bare spell name) -- the "lvl(30)" Steven
       -- remembers can only come from a real `identify` on that specific
       -- wand; this fix can't recover a number the source data never had.
-      if rec.spellInfo and not existing.spellCharges then
+      --
+      -- RESTRICTED to wand/staff 2026-07-18, real bug found live (Steven:
+      -- "seems to affect wands and potions, maybe scrolls" -- a "yellow
+      -- potion with red swirls" example). Checked the site's own raw HTML
+      -- directly (curl): wands/staves always have exactly one clean spell
+      -- name in this field (confirmed: 152/152 real wand/staff records,
+      -- zero exceptions) -- but potions/scrolls/pills can carry up to 4
+      -- spells packed into the SAME field with no real delimiter, e.g.
+      -- data-spell="cure light light cure blindness" or "haste reserved
+      -- reserved" ("reserved" marks an empty slot). Attempted a greedy
+      -- longest-match parse against a 113-entry spell-name dictionary
+      -- built from DSL_Helpfiles/*spells.txt -- only ~30% of these
+      -- strings resolved unambiguously; the rest have real structural
+      -- ambiguity (e.g. is "faerie fog fog detect good" one spell "faerie
+      -- fog" + a stray repeated "fog" + "detect good", or something else
+      -- entirely?) that can't be resolved with confidence from the
+      -- concatenated string alone. Rather than guess and risk showing a
+      -- WRONG spell name as if verified, potion/scroll/pill spellInfo is
+      -- simply not imported -- those items get real spell data only from
+      -- an actual in-game `identify`/`lore`, same as before this fix
+      -- existed at all. Wand/staff keeps the reliable mapping.
+      if rec.spellInfo and not existing.spellCharges
+      and (rec.itemType == "wand" or rec.itemType == "staff") then
         existing.spellCharges = { spell = rec.spellInfo }
         filledAny = true
       end
@@ -205,6 +227,37 @@ function IL.importScraped(path)
     added, supplemented, untouched, (function() local n=0; for _ in pairs(IL.db) do n=n+1 end; return n end)())
   echo(msg .. "\n")
   debugc(msg)
+end
+
+-- cleanupBadSpellCharges() -- added 2026-07-18, one-time fixup for
+-- anyone (Steven included) who already ran "mydsl itemlore import" before
+-- the wand/staff restriction above existed. importScraped()'s own
+-- fill-gaps-only rule means a stale, wrongly-imported spellCharges
+-- (potion/scroll spellInfo mapped in when it shouldn't have been) can
+-- never self-correct on a later re-import -- it only fills gaps, never
+-- overwrites. Only clears spellCharges that are clearly scrape-derived
+-- junk: wrong item type AND no charges/level at all (a real `identify`
+-- always fills both, so this can't accidentally delete real captured
+-- data). One-time command, not part of the regular surface -- same
+-- category as "mydsl itemlore import" itself.
+function IL.cleanupBadSpellCharges()
+  local cleaned = 0
+  for key, rec in pairs(IL.db) do
+    if rec.spellCharges and rec.itemType ~= "wand" and rec.itemType ~= "staff"
+    and rec.spellCharges.charges == nil and rec.spellCharges.level == nil then
+      rec.spellCharges = nil
+      cleaned = cleaned + 1
+    end
+  end
+  if cleaned > 0 then IL.save() end
+  local msg = string.format("[MyDSL] ItemLore cleanup: cleared %d bad spellCharges entries (wrong item type, scrape-only data).", cleaned)
+  echo(msg .. "\n")
+  debugc(msg)
+end
+
+if not IL._cleanupAliasInstalled then
+  tempAlias("^mydsl itemlore cleanup$", [[MyDSL.ItemLore.cleanupBadSpellCharges()]])
+  IL._cleanupAliasInstalled = true
 end
 
 IL.load()

@@ -4155,6 +4155,22 @@ MyDSL._triggers.containerHoldsStart = tempRegexTrigger(
   end
 )
 
+-- "search <container>" -- added 2026-07-18, per Steven ("the item
+-- reference doest seem to get the search list. 'your search of a bin
+-- finds:' can see sample of a scroll of identity in logs"). A real,
+-- different command from `exam`/`look in` (confirmed via a fresh log
+-- capture: "Your search of a bin finds:\n     a scroll of identify"),
+-- with the exact same item-line shape parseContainerHoldsLine() already
+-- handles -- routes to the same capture, just a different anchor phrase.
+MyDSL._triggers.containerSearchStart = tempRegexTrigger(
+  "^Your search of (.+) finds:$",
+  function()
+    if MyDSL and MyDSL.beginContainerHolds then
+      MyDSL.beginContainerHolds(matches[2])
+    end
+  end
+)
+
 ------------------------------------------------------------------------
 -- Identify / item-lore triggers
 ------------------------------------------------------------------------
