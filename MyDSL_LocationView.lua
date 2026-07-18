@@ -39,6 +39,8 @@
     mydsl location map <room name> = <absolute/image/path>
     mydsl location unmap <room name>
     mydsl location maps
+    mydsl location variants
+    mydsl location variants <room name>
     mydsl location fit cover|stretch|contain|fill
     mydsl location missing caption|blank
     mydsl location title <title text>
@@ -199,6 +201,22 @@ function M.profileFile()
   return join(M.dir or M.defaultDir(), "location_profiles.lua")
 end
 
+-- roomVariants uses a SEPARATE file via Mudlet's own table.save()/
+-- table.load() -- added 2026-07-17, see M.resolveVariant() below.
+-- This file's own hand-rolled saveTable()/loadTable() above only
+-- serializes two levels deep (a table of scalars); roomVariants needs a
+-- real nested structure (room name -> array of variant records, each
+-- with its own color sub-table), which saveTable() would silently
+-- mangle (it calls serializeScalar() on a table value, producing a
+-- useless "table: 0x..." string). table.save()/table.load() are
+-- Mudlet's real, fully-recursive serializer, already used everywhere
+-- else in this codebase for exactly this shape of data (CreatureLore's
+-- DB, ItemLore, affects files) -- reused here rather than extending the
+-- shallow custom one.
+function M.variantsFile()
+  return join(M.dir or M.defaultDir(), "location_variants.lua")
+end
+
 function M.loadProfiles()
   M.dir = M.dir or M.defaultDir()
   ensureDir(M.dir)
@@ -210,6 +228,11 @@ function M.loadProfiles()
   M.config.shown = (data.shown ~= nil) and data.shown or M.config.shown
   M.config.font = tonumber(data.font or M.config.font) or M.config.font
   M.config.frame = (data.frame ~= nil) and data.frame or M.config.frame
+
+  M.roomVariants = M.roomVariants or {}
+  if exists(M.variantsFile()) then
+    pcall(function() table.load(M.variantsFile(), M.roomVariants) end)
+  end
 end
 
 function M.saveProfiles()
@@ -225,6 +248,12 @@ function M.saveProfiles()
     frame = M.config.frame,
   }
   return saveTable(M.profileFile(), data)
+end
+
+function M.saveVariants()
+  M.dir = M.dir or M.defaultDir()
+  ensureDir(M.dir)
+  pcall(table.save, M.variantsFile(), M.roomVariants or {})
 end
 
 local function flattenExits(exits)
@@ -248,8 +277,19 @@ local function roomDataFromTable(r, sourceName)
   local area = safeStr(r.area or r.zone)
   local terrain = safeStr(r.terrain or r.sector)
   local exits = safeStr(r.exitsText or r.exitText or r.exits_text) or flattenExits(r.exits)
+  -- description/descColor -- added 2026-07-17, for same-name-room
+  -- disambiguation (see M.resolveVariant() below). Only MyDSL.State.room
+  -- (MyDSL_DataLayer.lua's captureRoomDescription()) ever populates
+  -- these; other sources (gmcp.room_data direct, mapper fallback) simply
+  -- won't have them, which resolveVariant() treats as "no disambiguating
+  -- data this time" rather than a mismatch.
+  local description = safeStr(r.description)
+  local descColor = r.descColor
   if room then
-    return { room = room, area = area, terrain = terrain, exits = exits, source = sourceName }
+    return {
+      room = room, area = area, terrain = terrain, exits = exits,
+      description = description, descColor = descColor, source = sourceName,
+    }
   end
   return nil
 end
@@ -418,6 +458,121 @@ function M.pathForRoom(room)
   local first = candidates[1]
   if first then return first.path, first.source, first.file end
   return nil, nil, nil
+end
+
+------------------------------------------------------------------------
+-- Same-name room disambiguation -- added 2026-07-17
+------------------------------------------------------------------------
+-- Per Steven: two rooms can share a name but differ in description/exits
+-- (confirmed the generic_mapper package itself already keeps these as
+-- properly separate rooms on the map -- this is purely a LocationView
+-- picture-resolution problem, nothing here talks to the mapper at all).
+--
+-- variantDisplayName(room, index) is the one convention used for BOTH
+-- the picture filename and the manual `mydsl location map` override key,
+-- so they always agree: index 1 (the first-seen variant of any room
+-- name) keeps the plain name -- e.g. "Wall Road" -> "Wall Road.png" --
+-- so every one of the existing ~215 real picture files needs zero
+-- renaming. Each later-discovered distinct variant gets the next slot:
+-- "Wall Road (2)" -> "Wall Road (2).png", and so on.
+function M.variantDisplayName(room, index)
+  room = safeStr(room) or "Unknown room"
+  index = tonumber(index) or 1
+  if index <= 1 then return room end
+  return room .. " (" .. index .. ")"
+end
+
+-- Three-value comparison: true (confirmed same), false (confirmed
+-- different), nil (not enough data on one or both sides to say either
+-- way). Keeping "unknown" distinct from "different" is what lets
+-- resolveVariant() below fall back to the original room instead of
+-- spawning a spurious new variant when a particular capture just didn't
+-- have full data (e.g. a fallback data source with no description).
+local function tristateMatch(a, b)
+  if a == nil or b == nil or a == "" or b == "" then return nil end
+  return a == b
+end
+
+-- resolveVariant(room, data) -- the actual matching ladder: description
+-- first, exits as the deeper fallback (per Steven: "go deeper to exit
+-- comparison if needed"), color stored per-variant for a future manual
+-- tiebreak but not auto-split on today -- real per-line coloring is
+-- confirmed to exist in DSL's output (title vs. body print in
+-- consistently different colors), but there's no confirmed real case
+-- yet of two SAME-NAMED rooms differing only in body color, so this
+-- isn't wired into the automatic decision until one actually shows up.
+-- No disambiguating data at all (neither description nor exits present
+-- on this particular capture) resolves to the original variant #1
+-- rather than guessing -- "stale/default beats a fabricated split."
+function M.resolveVariant(room, data)
+  room = safeStr(room)
+  if not room then return nil end
+  data = data or {}
+  M.roomVariants = M.roomVariants or {}
+  local list = M.roomVariants[room]
+
+  if not list or #list == 0 then
+    M.roomVariants[room] = {
+      { description = data.description, exits = data.exits, color = data.descColor, seen = 1 },
+    }
+    M.saveVariants()
+    return { name = room, index = 1, isNew = true }
+  end
+
+  for idx, v in ipairs(list) do
+    if tristateMatch(data.description, v.description) == true then
+      v.seen = (v.seen or 0) + 1
+      return { name = M.variantDisplayName(room, idx), index = idx, isNew = false }
+    end
+  end
+  for idx, v in ipairs(list) do
+    if tristateMatch(data.exits, v.exits) == true
+    and tristateMatch(data.description, v.description) ~= false then
+      v.seen = (v.seen or 0) + 1
+      return { name = M.variantDisplayName(room, idx), index = idx, isNew = false }
+    end
+  end
+
+  if data.description == nil and data.exits == nil then
+    return { name = M.variantDisplayName(room, 1), index = 1, isNew = false }
+  end
+
+  local idx = #list + 1
+  table.insert(list, { description = data.description, exits = data.exits, color = data.descColor, seen = 1 })
+  M.saveVariants()
+  return { name = M.variantDisplayName(room, idx), index = idx, isNew = true }
+end
+
+function M.listVariants(room)
+  room = safeStr(room)
+  M.roomVariants = M.roomVariants or {}
+  local names = {}
+  if room then
+    names = { room }
+  else
+    for r in pairs(M.roomVariants) do table.insert(names, r) end
+    table.sort(names)
+  end
+
+  cecho("\n<cyan>[MyDSL.Location variants]<reset>\n")
+  local shown = 0
+  for _, r in ipairs(names) do
+    local list = M.roomVariants[r]
+    if list and (room or #list > 1) then
+      shown = shown + 1
+      cecho("  <green>" .. tostring(r) .. "<reset>\n")
+      for idx, v in ipairs(list) do
+        local file = M.variantDisplayName(r, idx) .. ".png"
+        local descPreview = v.description and (v.description:sub(1, 60) .. (#v.description > 60 and "..." or "")) or "(none captured)"
+        cecho(string.format(
+          "    [%d] file=%-28s seen=%-4s exits=%-20s desc=%s\n",
+          idx, file, tostring(v.seen or 0), tostring(v.exits or "(none)"), descPreview))
+      end
+    end
+  end
+  if shown == 0 then
+    cecho(room and "  no variants recorded for that room yet\n" or "  no rooms have more than one variant yet\n")
+  end
 end
 
 function M.captionForRoom(roomData, path, source)
@@ -662,11 +817,25 @@ function M.refresh(reason)
     M.lastReason = reason or "no-room-data"
     return false
   end
-  local path, source, file = M.pathForRoom(data.room)
+
+  local variant = M.resolveVariant(data.room, data)
+  local displayName = (variant and variant.name) or data.room
+  local path, source, file = M.pathForRoom(displayName)
   M.currentFile = file
   M.currentSource = source
   M.lastReason = reason or "refresh"
-  return M.render(path, M.captionForRoom(data, path, source), source, data.room)
+
+  if variant and variant.isNew and variant.index > 1 and not (path and exists(path)) then
+    -- A genuinely new variant of an already-known room name, and no
+    -- picture exists for it yet -- tell Steven exactly what filename to
+    -- create/place, same spirit as M.probe()'s existing diagnostic output.
+    echoC(string.format(
+      "New variant of \"%s\" detected (differs in description/exits from variant %d). "
+      .. "No picture yet -- save one as \"%s\" in %s, or use: mydsl location map %s = <path>",
+      data.room, 1, file or (displayName .. ".png"), M.dir or M.defaultDir(), displayName))
+  end
+
+  return M.render(path, M.captionForRoom(data, path, source), source, displayName)
 end
 
 function M.setByName(room)
@@ -831,6 +1000,7 @@ function M.help()
   mydsl location map <room name> = <absolute/image/path>
   mydsl location unmap <room name>
   mydsl location maps
+  mydsl location variants [room name]
   mydsl location fit cover|stretch|contain|fill
   mydsl location missing caption|blank
   mydsl location title <title text>
@@ -885,6 +1055,8 @@ local function locationCommand(rest)
   if mapRoom and mapPath then M.mapRoom(mapRoom, mapPath); return end
   local unmap = rest:match("^unmap%s+(.+)$"); if unmap then M.unmapRoom(unmap); return end
   if rest == "maps" then M.listMaps(); return end
+  if rest == "variants" then M.listVariants(); return end
+  local variantsRoom = rest:match("^variants%s+(.+)$"); if variantsRoom then M.listVariants(variantsRoom); return end
   local fit = rest:match("^fit%s+(%S+)$"); if fit then M.setFit(fit); return end
   local miss = rest:match("^missing%s+(%S+)$"); if miss then M.setMissing(miss); return end
   local title = rest:match("^title%s+(.+)$"); if title then M.setTitle(title); return end

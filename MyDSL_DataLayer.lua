@@ -371,8 +371,8 @@ MyDSL.State.combat = MyDSL.State.combat or {
   last_updated = 0,
 }
 
--- Per-character persistent storage.  Keyed by character name so Kien,
--- Vrokt, Olyndros etc each have completely separate saved state.
+-- Per-character persistent storage.  Keyed by character name so each
+-- logged-in character has completely separate saved state.
 MyDSL.Data = MyDSL.Data or {}
 
 -- Lua callback listeners registered by display modules via MyDSL.on().
@@ -857,7 +857,7 @@ MyDSL.load()
 -- active during the score block.
 --
 -- The score block has three "^---" separator lines:
---   Line 1: "Score for Kien -= Zandreya =- ..."  → beginScore()
+--   Line 1: "Score for <Name> -= <Title> =- ..."  → beginScore()
 --   Line 2: "---..."                              → first separator, skip
 --   Lines 3-N: main stat body                    → parseScoreLine()
 --   Line N+1: "---..."                            → middle separator, skip
@@ -902,7 +902,7 @@ function MyDSL.parseScoreLine(line)
   -- Created: <weekday> <month> <day> <hh:mm:ss> <year>  -- added
   -- 2026-07-12 for LiveView's in-game age display, per Steven. Real
   -- current format confirmed in docs/DSL_CommandRef.md and live corpus
-  -- (e.g. "Created: Wed May 21 15:20:26 2025", Kien's own real score
+  -- (e.g. "Created: Wed May 21 15:20:26 2025", from a real captured score
   -- output). A bare numeric fallback ("Created:  07.28.2024", no
   -- time-of-day) also seen in older captures -- handled too, in case any
   -- character still shows it. Stores a real Lua timestamp
@@ -1345,8 +1345,8 @@ function MyDSL.beginWho() whoBlock = {} end
 -- PARENS, so `entry.clan` was always nil, and the leftover "(WANTED)"/
 -- "(VR)" parenthetical text shifted every word after it by one position,
 -- corrupting `kingdom` and `name` for any WANTED or clan-tagged entry
--- (confirmed: "[27 Goblin Bnd] (WANTED) (VR) Vrokt." parsed as
--- kingdom="()" name="(VR)" instead of org="VR" name="Vrokt"). Also dropped
+-- (confirmed: "[27 Goblin Bnd] (WANTED) (VR) <Name>." parsed as
+-- kingdom="()" name="(VR)" instead of org="VR" name="<Name>"). Also dropped
 -- "QUIET" -- never found anywhere in log/ or DSL_CommandRef.md, unconfirmed.
 function MyDSL.parseWhoLine(line)
   local level, race, class = line:match("%[%s*(%d+)%s+([%w%-]+)%s+(%w+)%]")
@@ -1408,7 +1408,7 @@ end
 ------------------------------------------------------------------------
 -- 9i  GROUP
 ------------------------------------------------------------------------
--- Example: "[51 War] Olyndros                  100% hp 100% mana 100% mv"
+-- Example: "[51 War] <Name>                     100% hp 100% mana 100% mv"
 --          "[30 Mob] A throughbred stallion    100% hp 100% mana 100% mv"
 -- beginGroup() is called by a permanent trigger on "^.+'s group:$".
 -- It installs a catch-all body trigger that feeds each line to
@@ -1441,10 +1441,10 @@ function MyDSL.parseGroupLine(line)
   -- %s* after "[" added 2026-07-11 -- real bug found live: DSL right-justifies
   -- the level in a fixed-width field, so single-digit levels get a leading
   -- space ("[ 1 Mob] An untrained guardhand ...") instead of none
-  -- ("[51 War] Olyndros ..."). The old pattern required a digit immediately
+  -- ("[51 War] <Name> ..."). The old pattern required a digit immediately
   -- after "[", so it silently failed to match ANY line (self included) once
-  -- a group member's level dropped below 10 -- confirmed via
-  -- Vaelis's real "[ 1 Mob]"/"[ 1 Mag]" group listing, which is what caused
+  -- a group member's level dropped below 10 -- confirmed via a real
+  -- "[ 1 Mob]"/"[ 1 Mag]" group listing, which is what caused
   -- the reported "follower not showing in group" symptom.
   local level, class, name, hp, mana, mv =
     line:match("%[%s*(%d+)%s+(%a+)%]%s+(.-)%s+(%d+)%%%s+hp%s+(%d+)%%%s+mana%s+(%d+)%%%s+mv")
@@ -1628,10 +1628,28 @@ local function resolveMobName(key, capturedName)
     if hit then return hit.name end
   end
 
-  if cl and cl.db then
+  -- Fixed 2026-07-17, real bug found live: this loop used to accept ANY
+  -- cl.db record as a fuzzy-match candidate, including bare markSeen()
+  -- stubs (knownState "seen", not "known") -- so a `look` capture minutes
+  -- (or moments) earlier in the SAME room could get fuzzy-matched onto a
+  -- `scan` capture of the same mob and overwrite scan's own perfectly
+  -- good name with look's, purely because look happened to run first and
+  -- its stub landed in the shared db. Confirmed live via screenshot:
+  -- RightHere showed "A gray wolf cub wanders"/"A small green lizard
+  -- wanders" (look's own captured text, verb included per the
+  -- parseLookHereLine fallback-pattern fix just below) even after `scan`
+  -- ran and correctly parsed "a gray wolf cub, right here."/"a lizard,
+  -- right here." -- because cl.db's stub for the look-derived key
+  -- ("gray wolf cub wanders") fuzzy-substring-matched scan's own shorter
+  -- capture and won. Restricting candidates to real "known" (hasLore)
+  -- records only -- matching this function's own step-1 exact-match rule
+  -- and its original design intent ("a 'known' hit there is a
+  -- definitively-correct name") -- means a bare sighting can never
+  -- clobber another capture's name via this path again.
+  if cl and cl.db and cl.hasLore then
     local candidates = {}
     for k, rec in pairs(cl.db) do
-      if k ~= key and rec and rec.name then
+      if k ~= key and rec and rec.name and cl.hasLore(rec) then
         candidates[#candidates + 1] = { name = rec.name, key = k }
       end
     end
@@ -1994,7 +2012,7 @@ end
 function MyDSL.beginLook()
   -- REAL GOTCHA, found live 2026-07-12 -- Steven discovered GMCP is not
   -- enabled by default for newly created DSL characters (confirmed on
-  -- Vexgar: traced a full real play session, autowhere/improve/scan/look
+  -- one character: traced a full real play session, autowhere/improve/scan/look
   -- all working normally, but zero MyDSL debug output past boot and zero
   -- character-bound files ever created). MyDSL.character.identified only
   -- ever fires from the gmcp.login_data handler above -- if GMCP itself
@@ -2102,6 +2120,17 @@ function MyDSL.parseLookHereLine(line)
             or rest:match("^(.-) stands here%f[%A]")
             or rest:match("^(.-) sits here%f[%A]")
             or rest:match("^(.-) hovers%f[%A]")
+            -- "wanders here" added 2026-07-17 -- confirmed live (screenshot
+            -- + corpus check, 90 real occurrences across log/*.html) common
+            -- enough to deserve its own pattern like the others above,
+            -- rather than falling through to the broad "^An? .+ here"
+            -- fallback below, which greedily captures the verb along with
+            -- the name ("A gray wolf cub wanders" instead of "A gray wolf
+            -- cub") -- cosmetic on its own, but that verb-polluted name
+            -- also got stored into CreatureLore's "seen" stub for this key
+            -- (see resolveMobName()'s fix above), so fixing the capture
+            -- here prevents the bad name from ever entering the db too.
+            or rest:match("^(.-) wanders here%f[%A]")
             or rest:match("^([Aa]n? .+) here%f[%A]")
             or rest:match("^([Tt]he .+) here%f[%A]")
             or rest:match("^([Aa]n? .+) in the room%f[%A]")
@@ -2151,6 +2180,120 @@ end
 
 
 ------------------------------------------------------------------------
+-- 9o.1b  ROOM DESCRIPTION + COLOR CAPTURE (for LocationView same-name
+--        room disambiguation)
+------------------------------------------------------------------------
+-- Added 2026-07-17, per Steven ("i need a way for locationview to
+-- distinguish between [same-named rooms] and then pull the proper
+-- file"). MyDSL never captured the room's own prose description before
+-- this -- only mob/item presence lines (parseLookHereLine/
+-- captureGroundItem) got extracted from a room-look. beginLook() itself
+-- can't see this text either: it's anchored on "[Exits: ...]" (see its
+-- own header comment) and only starts capturing lines AFTER that point,
+-- but the description prints BEFORE it, between the room's title line
+-- and "[Exits: ...]".
+--
+-- Same technique generic_mapper's own Map Script already uses internally
+-- (confirmed by reading it directly) to solve the identical problem: an
+-- always-on rolling buffer of recent raw lines, scanned backward from a
+-- known anchor to recover the text that came before it, rather than a
+-- forward capture pegged to a fragile "this is the title line" pattern
+-- match. GMCP already gives a reliable room name (MyDSL.State.room.name,
+-- set by the gmcp.room_data handler above) to anchor the backward scan
+-- on, so no new text-pattern guessing is needed for the title line
+-- itself.
+--
+-- Capped at 40 lines -- only ever needs to reach back to the most recent
+-- room title, never further; a real room description is always much
+-- shorter than that. Read-only (getCurrentLine/getFgColor), never sends
+-- anything -- passive observation only, matching every other capture in
+-- this file.
+local ROOM_LINE_BUFFER_MAX = 40
+MyDSL._roomLineBuffer = MyDSL._roomLineBuffer or {}
+
+MyDSL._triggers.roomLineBuffer = tempRegexTrigger(".*", function()
+  local ln = getCurrentLine()
+  if ln == nil then return end
+  local color = nil
+  local ok, r, g, b = pcall(function()
+    selectCurrentLine()
+    return getFgColor()
+  end)
+  if ok and r then color = { r, g, b } end
+  local buf = MyDSL._roomLineBuffer
+  buf[#buf + 1] = { text = ln, color = color }
+  if #buf > ROOM_LINE_BUFFER_MAX then table.remove(buf, 1) end
+end)
+
+-- normalizeRoomDescription(desc) -- collapses whitespace/line-wrap
+-- differences so trivial formatting quirks don't cause two identical
+-- room descriptions to look like different variants. Same rationale
+-- confirmed working in DSL1's own patched generic_mapper (its
+-- clean_description_storage()/normalize_description() functions, read
+-- directly for reference) -- ported the technique, not the code, since
+-- this operates on MyDSL's own capture, not generic_mapper's.
+function MyDSL.normalizeRoomDescription(desc)
+  desc = tostring(desc or "")
+  desc = desc:gsub("\r\n", "\n"):gsub("\r", "\n")
+  -- Strip any stray "[Exits: ...]" text that leaked into the captured
+  -- range (defensive -- see captureRoomDescription()'s own filter below,
+  -- this is a second layer in case a differently-shaped exits line slips
+  -- through untouched).
+  desc = desc:gsub("%s*%[Exits:%s*[^%]]*%]%s*", " ")
+  desc = desc:gsub("%s+", " ")
+  return trim(desc)
+end
+
+-- captureRoomDescription() -- called from the "[Exits: ...]" trigger,
+-- same anchor beginLook() itself uses. Scans MyDSL._roomLineBuffer
+-- backward for the most recent line matching the room's own GMCP name
+-- (the closest match going backward is always the right one -- same
+-- reasoning generic_mapper's own backward scan uses), then takes every
+-- non-blank line after it (up to but excluding the current "[Exits:...]"
+-- line, filtered defensively regardless of buffer/trigger firing order)
+-- as the description. Stores onto MyDSL.State.room, alongside the color
+-- of the first real description line -- a coarse but real per-room color
+-- signature (confirmed via real log corpus: title and body print in
+-- consistently different colors from each other, though no confirmed
+-- case yet of two same-named rooms differing in body color specifically
+-- -- this just makes the data available for whenever one shows up).
+function MyDSL.captureRoomDescription()
+  local roomName = MyDSL.State.room and MyDSL.State.room.name
+  if not roomName or roomName == "" then return end
+  local buf = MyDSL._roomLineBuffer
+  if not buf or #buf == 0 then return end
+
+  local titleTrim = trim(roomName)
+  local titleIdx = nil
+  for i = #buf, 1, -1 do
+    if trim(buf[i].text) == titleTrim then
+      titleIdx = i
+      break
+    end
+  end
+  if not titleIdx then return end
+
+  local descLines, descColor = {}, nil
+  for i = titleIdx + 1, #buf do
+    local entry = buf[i]
+    local t = trim(entry.text)
+    if t ~= "" and not t:match("^%[?Exits:") then
+      table.insert(descLines, entry.text)
+      if not descColor and entry.color then descColor = entry.color end
+    end
+  end
+  if #descLines == 0 then return end
+
+  local rawDesc = table.concat(descLines, "\n")
+  update("room", {
+    description    = MyDSL.normalizeRoomDescription(rawDesc),
+    descriptionRaw = rawDesc,
+    descColor      = descColor,
+  })
+end
+
+
+------------------------------------------------------------------------
 -- 9o.2  PLAYERS NEAR YOU
 ------------------------------------------------------------------------
 -- Fixed 2026-07-05, per Steven: "Players near you:" (fired every ~20s by
@@ -2173,7 +2316,7 @@ end
 -- MyDSL_PlayersNear right along with real players. Confirmed live:
 -- "A tinker gnome mage is in awful condition." and bare "S" lines (the
 -- Stunning proc flag's own wire text) both showed up mixed in with real
--- "Meshkin   A Sloped Hall" / "Uldek   Arena" entries. Real body lines
+-- "<Name>   A Sloped Hall" / "<Name>   Arena" entries. Real body lines
 -- never end in sentence punctuation and always have a wide column-
 -- padding gap between name and room (confirmed shape, see the header
 -- comment above) -- a condition sentence ends in "." and a bare proc
@@ -2203,7 +2346,7 @@ end
 -- output call doesn't update the cursor position") -- each appendBuffer()
 -- call always lands its copied text as its OWN new line in the
 -- destination console, regardless of where echo() thinks the cursor is.
--- That's why the screenshots showed "Kien" and the room name ("The Magic
+-- That's why the screenshots showed the character name and the room name ("The Magic
 -- Facility"/"Advanced Magics") as two separate stacked lines with no
 -- visible gap between them -- the con:echo("  ") calls were writing to a
 -- stale cursor position that never lined up with either appended line.
@@ -3172,7 +3315,7 @@ end
 --
 -- Rewritten 2026-07-05 to use PNP's actual technique: don't try to resolve
 -- identity from the proc line's own text (frequently a weapon name, not a
--- person -- e.g. "A grand arcanium hoopak draws life from Kien.") -- just
+-- person -- e.g. "A grand arcanium hoopak draws life from <Name>.") -- just
 -- attach to whichever attacker/target/noun the most recent damage line
 -- involved (MyDSL.State.combat.last_attacker/last_target/last_noun, set at
 -- the end of parseCombatDamageLine). This replaces the old pseudo-
@@ -3397,7 +3540,7 @@ end
 ------------------------------------------------------------------------
 -- SECTION 10: TRIGGER REGISTRATION
 ------------------------------------------------------------------------
--- Score header: "Score for Kien -= Zandreya =- (Companion) *Observer*"
+-- Score header: "Score for <Name> -= <Title> =- (Companion) *Observer*"
 -- Pattern matches only the first 10 chars so the full decorated header line
 -- fires beginScore(). charName is captured as the first word after "Score for ".
 -- beginScore() then installs the catch-all trigger for the body lines.
@@ -3471,7 +3614,7 @@ MyDSL._triggers.timeLine = tempRegexTrigger(
 ------------------------------------------------------------------------
 -- Fires on every prompt line 2 — far more frequent than sunrise/sunset triggers.
 -- PCRE: "^==-[A-Z]" matches "==-Night...", "==-Day...", "==-Dawn..." etc.
--- Also matches "==-Kien" (name echo) but parsePromptLine() drops it (no " - HH:MM :: ").
+-- Also matches "==-<Name>" (name echo) but parsePromptLine() drops it (no " - HH:MM :: ").
 
 MyDSL._triggers.promptLine = tempRegexTrigger(
   "^==-[A-Z]",
@@ -3597,6 +3740,9 @@ MyDSL._triggers.scanDir = tempRegexTrigger(
 MyDSL._triggers.lookExits = tempRegexTrigger(
   "^\\s*\\[Exits: .*\\]\\s*$",
   function()
+    -- Captures the room description (see 9o.1b above) before beginLook()
+    -- resets scan.rightHere -- both key off this exact same anchor line.
+    if MyDSL and MyDSL.captureRoomDescription then MyDSL.captureRoomDescription() end
     if MyDSL and MyDSL.beginLook then MyDSL.beginLook() end
   end
 )
@@ -3759,7 +3905,7 @@ MyDSL._triggers.wimpySet = tempRegexTrigger(
 -- When a dragon's vitality is gone, the dragon will permanently die" --
 -- a dragon-only permadeath-countdown stat, not present for any other
 -- race. Real format confirmed from Steven's own cecho breadcrumb in
--- log/2026-07-07#20-17-54.html (typed `stat` on Qinrathaz):
+-- log/2026-07-07#20-17-54.html (typed `stat` on a dragon character):
 -- "Str: 72(80)  Int: 60(72)  Wis: 60(72)  Dex: 60(60)  Con: 66(82)
 -- Vit: 20" -- captures just the trailing "Vit: N", which only appears
 -- at all for dragon characters (confirmed no "Vit:" field anywhere in
@@ -3780,7 +3926,7 @@ MyDSL._triggers.vitalitySet = tempRegexTrigger(
 ------------------------------------------------------------------------
 -- Group trigger
 ------------------------------------------------------------------------
--- Fires on "Kien's group:" (any character name followed by "'s group:").
+-- Fires on "<Name>'s group:" (any character name followed by "'s group:").
 -- Installs the body catch-all via beginGroup(); endGroup() kills it on
 -- blank line and commits to State.group.
 
