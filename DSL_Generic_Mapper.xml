@@ -5614,6 +5614,23 @@ function map.dsl.echo(msg)
   cecho("\n&lt;yellow&gt;[DSL Generic Mapper] &lt;reset&gt; " .. tostring(msg) .. "\n")
 end
 
+-- dsl_ud(rid, key, placeholder) -- real bug found via Steven's own
+-- "dslroom raw" output ("Room weight: 1 (source=, samples=, avg
+-- cost=0.0)"): getRoomUserData() returns an EMPTY STRING for an unset
+-- key, not nil -- so plain tostring(getRoomUserData(...)) silently
+-- displayed a blank instead of a clear "not set yet" placeholder. Every
+-- display line below reads room userdata through this helper instead of
+-- calling getRoomUserData()/tostring() directly, so this can't recur
+-- field-by-field. (Functional code elsewhere -- applyMoveCost(),
+-- onTerrainLine() -- was already unaffected: it compares against a
+-- specific non-empty string like "manual", or already explicitly checks
+-- for "" itself, so this was a display-only bug.)
+function map.dsl.dsl_ud(rid, key, placeholder)
+  local v = getRoomUserData(rid, key)
+  if v == nil or v == "" then return placeholder or "?" end
+  return v
+end
+
 function map.dsl.updateDisabled()
   map.update_waiting = nil
   if map.update_timer then killTimer(map.update_timer); map.update_timer = nil end
@@ -6153,9 +6170,9 @@ function map.dsl.roomRaw()
   if not rid or not map.roomexists or not map.roomexists(rid) then
     map.dsl.echo("No current Generic Mapper room is resolved. Showing latest DSL assist capture instead.")
     local rd = map.dsl.gmcp and map.dsl.gmcp.room_data or {}
-    cecho(string.format("&lt;grey&gt;GMCP room: &lt;white&gt;%s\n", tostring(rd.room)))
-    cecho(string.format("&lt;grey&gt;GMCP exits: &lt;white&gt;%s\n", tostring(map.dsl.last_visible_exits or dsl_join_exits_from_gmcp(rd.exits))))
-    cecho(string.format("&lt;grey&gt;GMCP sector: &lt;white&gt;%s &lt;grey&gt;normalized=&lt;white&gt;%s\n", tostring(rd.sector), tostring(map.dsl.gmcp and map.dsl.gmcp.normalized_sector)))
+    cecho(string.format("&lt;grey&gt;GMCP room: &lt;white&gt;%s\n", rd.room or "?"))
+    cecho(string.format("&lt;grey&gt;GMCP exits: &lt;white&gt;%s\n", map.dsl.last_visible_exits or dsl_join_exits_from_gmcp(rd.exits)))
+    cecho(string.format("&lt;grey&gt;GMCP sector: &lt;white&gt;%s &lt;grey&gt;normalized=&lt;white&gt;%s\n", rd.sector or "?", (map.dsl.gmcp and map.dsl.gmcp.normalized_sector) or "?"))
     if map.dsl.last_raw_room_block then
       cecho("&lt;grey&gt;Latest visible room block:\n&lt;white&gt;")
       for l in tostring(map.dsl.last_raw_room_block):gmatch("[^\n]+") do echo("  " .. l .. "\n") end
@@ -6176,13 +6193,13 @@ function map.dsl.roomRaw()
   map.roomLook(tostring(rid))
   map.dsl.echo("DSL assist detail")
   cecho(string.format("&lt;grey&gt;GMCP sector: &lt;white&gt;%s &lt;grey&gt;terrain-command text: &lt;white&gt;%s\n",
-    tostring(getRoomUserData(rid, "dsl.gmcp_sector")), tostring(getRoomUserData(rid, "dsl.terrain_text"))))
+    map.dsl.dsl_ud(rid, "dsl.gmcp_sector", "none yet"), map.dsl.dsl_ud(rid, "dsl.terrain_text", "not typed yet")))
   cecho(string.format("&lt;grey&gt;Normalized sector: &lt;white&gt;%s &lt;grey&gt;(source=&lt;white&gt;%s&lt;grey&gt;, conflict=&lt;white&gt;%s&lt;grey&gt;)\n",
-    tostring(getRoomUserData(rid, "dsl.normalized_sector")), tostring(getRoomUserData(rid, "dsl.sector_source")),
-    tostring(getRoomUserData(rid, "dsl.sector_conflict"))))
+    map.dsl.dsl_ud(rid, "dsl.normalized_sector", "unknown"), map.dsl.dsl_ud(rid, "dsl.sector_source", "none yet"),
+    map.dsl.dsl_ud(rid, "dsl.sector_conflict", "false")))
   local costSamples = tonumber(getRoomUserData(rid, "dsl.move_cost_samples"))
   cecho(string.format("&lt;grey&gt;Weight source: &lt;white&gt;%s &lt;grey&gt;(%s real movement samples, avg cost=&lt;white&gt;%s&lt;grey&gt;)\n",
-    tostring(getRoomUserData(rid, "dsl.weight_source")), tostring(costSamples or 0),
+    map.dsl.dsl_ud(rid, "dsl.weight_source", "none yet -- still default weight"), tostring(costSamples or 0),
     costSamples and string.format("%.1f", (tonumber(getRoomUserData(rid, "dsl.move_cost_total")) or 0) / costSamples) or "n/a"))
   cecho("&lt;grey&gt;Recent line buffer:\n&lt;white&gt;")
   for _, l in ipairs(map.dsl.line_buffer or {}) do echo("  " .. tostring(l) .. "\n") end

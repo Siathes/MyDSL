@@ -199,6 +199,31 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       conflict flag, and weight source with real movement-sample count +
       average cost. One command instead of two scattered ones. Not yet
       live-tested.
+- [ ] **DSL Generic Mapper: `dslroom raw` showed blank fields instead of
+      "not set yet" — fixed 2026-07-18, confirmed against Steven's real
+      log output.** Steven's own live test surfaced `Room weight: 1
+      (source=, samples=, avg cost=0.0)` -- checked the actual log
+      (`MyDSL/log/2026-07-18#14-04-19.html`) and confirmed the real root
+      cause: `getRoomUserData()` returns an EMPTY STRING for an unset
+      key, not `nil` -- so plain `tostring(getRoomUserData(...))` silently
+      printed a blank instead of a clear placeholder. New
+      `map.dsl.dsl_ud(rid, key, placeholder)` helper wraps every display
+      read in `roomRaw()`/`dslroom raw` so this can't recur field-by-field;
+      confirmed the underlying weighting/coloring *logic* was never
+      affected by this (it already compared against a specific non-empty
+      string like `"manual"`, or explicitly checked for `""` itself where
+      it mattered) -- purely a display bug. Also confirmed via the same
+      log why that specific room showed 0 movement samples: the
+      character was flying the entire time (`MV` stayed at 140/140
+      across every prompt line in the log, never dropping), and DSL
+      appears not to charge movement points for flying -- the
+      real-cost-based weight system can only ever learn from movement
+      that actually costs MV, so a flying character will rarely
+      accumulate real weight data. Not a bug, a real limitation of this
+      specific data source; noted for Steven, not silently assumed.
+      Verified via a dedicated structural test
+      (`test_dsl_ud_display_fix.lua`) replaying the exact blank-output
+      scenario. Not yet re-tested live.
 - [ ] **PlayersNear font size not surviving a reload — fixed 2026-07-18,
       needs live confirmation.** `MyDSL_RouteHelper.lua`'s `FONT_SIZE_OVERRIDES`
       seed table only ever read `MyDSL_History`'s size back from disk at
