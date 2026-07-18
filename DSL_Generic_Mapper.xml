@@ -2958,7 +2958,15 @@ local function check_room(roomID, name, exits, onlyName)
         t_exits[stubmap[i]] = tonumber(getRoomUserData(roomID,"exit " .. stubmap[i])) or (tonumber(getRoomUserData(roomID,"stub " .. stubmap[i])) and 0) or (tonumber(getRoomUserData(roomID,"stub" .. stubmap[i])) and 0) -- for old version
     end
     for k,v in ipairs(exits) do
-        if short[v] and not table.contains(t_exits,v) then return false end
+        if short[v] and not table.contains(t_exits,v) then
+            -- DSL hardening: diagnostic echo (debug-only, mirrors the
+            -- description-mismatch echo below) -- added so a real exits
+            -- discrepancy shows up in the log the same way a description
+            -- mismatch does, rather than only ever being visible as an
+            -- unexplained duplicate room. Enable with "map config debug true".
+            map.echo("Room " .. roomID .. " rejected: incoming exit '" .. tostring(v) .. "' not found among its known exits", true)
+            return false
+        end
         t_exits[v] = nil
     end
     local exits_match = table.is_empty(t_exits) or check_doors(roomID,t_exits)

@@ -90,6 +90,45 @@ Fixed in code, verified via syntax checks and/or emulation — none of this
 is closed until Steven confirms it in-game. Full technical detail for any
 item: `git log --oneline` + `docs/CHANGELOG.md`.
 
+- [ ] **DSL Generic Mapper: new fork doesn't recognize Steven's existing,
+      already-mapped rooms — instrumented, root cause NOT yet confirmed,
+      no fix shipped.** Per Steven: "the new mapper using the generic
+      mapper data is not recognizing the old rooms so i manually place
+      rooms on top of eachother in the map editor window and use merge
+      rooms command." Two separate things got conflated mid-investigation
+      and had to be walked back: "The Wing of the Stone Dragon" showing
+      up as multiple same-named-but-different-text rooms is confirmed by
+      Steven to be **real DSL game design** (a themed maze with
+      intentionally repeated room names, different physical rooms) --
+      `MyDSL_LocationView.lua`'s own variant system (`name`/`name (2)`/
+      `name (3)`, already built) is exactly the intended mechanism for
+      assigning separate pictures to these, not a mapper bug. An attempted
+      "fix" that made `check_room()` accumulate description variants
+      instead of ever rejecting a mismatch was built on the wrong premise
+      (confusing this with issue below) and was fully reverted before
+      shipping -- would have broken the maze differentiation this fork
+      exists to protect. **The real, still-open issue**: `check_room()`
+      has two unconditional hard-reject checks before description is ever
+      considered -- exact room name match, then exits compatibility --
+      neither has any leniency for a formatting/capture difference the
+      way the description check does (empty stored description = adopt,
+      not reject). Root cause not yet confirmed: could be name capture,
+      exits capture, or something else entirely; none of today's other
+      mapper changes (bug fixes, weight/color, dslroom raw) touch this
+      code path, so if this is a regression it most likely predates this
+      session, inherited from the original unintegrated 0.1.0-0.2.2 fork.
+      Added a debug-only diagnostic echo to the exits-rejection path
+      (`check_room()`) mirroring the one the description check already
+      had, so a real rejection now shows its exact reason in the log
+      instead of only ever surfacing as an unexplained duplicate room.
+      **Next step**: Steven runs `map config debug true`, walks into one
+      already-mapped room he's certain exists, and reports what the log
+      shows -- either a clean match (nothing to investigate) or a
+      "Room X rejected: ..." line with the specific reason, which is real
+      evidence to fix from instead of another guess. `.dat` map files
+      themselves are Qt's binary serialization format, confirmed not
+      practically parseable directly -- this live debug-echo path is the
+      real diagnostic route.
 - [ ] **DSL Generic Mapper fork brought into the repo, reviewed, and
       hardened — needs a manual install swap + live confirmation.** Per
       Steven ("its time to incorporate the mapper and make it for DSL not
