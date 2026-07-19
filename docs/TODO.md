@@ -68,24 +68,6 @@ DEFERRED gets started without an explicit go-ahead.
       `MyDSL_CreatureLore.lua`) — cosmetic only (the build script derives
       the real name from the dofile path, not the display name), but worth
       renaming for anyone reading the Script Editor directly.
-- [ ] **Before importing the rebuilt `MyDSL_Full.mpackage`: run `lua
-      getPackages()` (or check Package Manager) first — real uncertainty
-      found 2026-07-19, not fully resolved.** Content-level conflict check
-      passed cleanly (33/33 scripts, 247/247 triggers, 45/45 keys all
-      match by name, only `MyDSL_ItemLore` differs in content — see
-      `docs/CHANGELOG.md`). But the live profile's Trigger content is
-      currently tagged `MyDSL_GameplayTriggers`/`DslColors_v1_0` as
-      separate top-level packages, not wrapped under one `MyDSL_Full`
-      package the way the rebuilt file ships them — likely a residual
-      effect of the emergency wipe-and-reimport recovery (same root-cause
-      class as the `mpkg` Lua error found earlier today: a plain XML
-      reimport doesn't necessarily restore Mudlet's real internal package
-      registry to match the XML's own `packageName` tags). If
-      `getPackages()` shows `MyDSL_GameplayTriggers`/`DslColors_v1_0` as
-      their own separately-installed packages, reinstalling `MyDSL_Full`
-      might not cleanly replace them — risk of ending up with duplicate
-      triggers rather than lost ones. Can't be resolved from static file
-      analysis alone; needs this one live check before Steven imports.
 - [ ] **Windows resetting position when docking a second window on the
       fresh profile — likely root cause found, not fixed.** Confirmed
       NOT a recurrence of the previously-fixed Mudlet 4.21/4.22
