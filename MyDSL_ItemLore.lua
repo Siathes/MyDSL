@@ -21,6 +21,30 @@
 -- capture can NEVER downgrade an already-`identify`d item back to
 -- partial -- it simply never includes those keys in the first place. No
 -- separate "partial vs. full" merge path is needed; this is automatic.
+--
+-- Real bug found live 2026-07-19, per Steven ("when an item is identified
+-- in game, it doesnt replace the shattered archive info and persist. it
+-- reverts to shattered info not the identified info"). Confirmed by
+-- decoding the live itemlore_db.lua: a real in-game identify of "badger
+-- claw" ("... extra flags none.") correctly updated affects/damageDice/
+-- lastIdentified/source, but left a stale scrape-imported
+-- extraFlags="2 hit, 2 dam" in place untouched. Root cause: the
+-- fill-if-non-nil rule above is only safe for `lore`'s genuine partiality
+-- -- `identify` is authoritative, and DSL's real identify output always
+-- reports an explicit value for these fields (e.g. "extra flags none"),
+-- which our own parser turns into Lua `nil` -- indistinguishable, to plain
+-- merge(), from "this capture doesn't know." So a real identify
+-- confirming an item has NO flags/bonuses/AC/etc. could never clear a
+-- wrong or stale scrape-derived value already sitting in that field. See
+-- FULL_STAT_FIELDS below for the fix: identify captures now authoritatively
+-- clear these fields to nil when absent, instead of preserving whatever
+-- was there before. Items already identified once under the old buggy
+-- behavior need a fresh in-game identify to clear their stale fields --
+-- there's no way to tell retroactively, from the DB alone, which stored
+-- values are real vs. leftover scrape data, so no blanket auto-cleanup is
+-- safe here (same reasoning as the spellCharges cleanup below, which COULD
+-- be done safely only because it had an unambiguous "wrong item type"
+-- signal to key off).
 -- =============================================================================
 
 MyDSL           = MyDSL           or {}
@@ -78,16 +102,37 @@ local FIELDS = {
   "spellCharges", "spellList", "drinkLiquid", "affects",
 }
 
--- merge(rec) -- upsert by rec.key. Only overwrites fields present
--- (non-nil) in the new capture, leaving everything else untouched. Same
--- defensive shape as CreatureLore.merge() (a partial/interrupted capture
--- can't blank out good data), and the mechanism that makes the
--- lore-can't-downgrade-identify guarantee above hold automatically.
+-- Fields `identify` (the spell) reports authoritatively -- confirmed
+-- against real transcripts that identify always gives an explicit answer
+-- for each of these (its own conditional block either prints with a real
+-- value, or the field is confirmed genuinely absent for this item), never
+-- a "didn't check" gap. `lore` never reports any of these at all, so it
+-- never sets rec[f] for them and this list has no effect on a lore merge.
+local FULL_STAT_FIELDS = {
+  "extraFlags", "weaponType", "damageDice", "damageAvg", "weaponFlags",
+  "armorClass", "size", "condition", "capacity", "maxWeight",
+  "weightMultiplier", "spellCharges", "spellList", "drinkLiquid", "affects",
+}
+
+-- merge(rec) -- upsert by rec.key. Fields present (non-nil) in the new
+-- capture always overwrite. For a real `identify` capture specifically
+-- (rec.source == "identify"), an absent FULL_STAT_FIELDS entry is treated
+-- as confirmed-empty and clears any existing value (see the file-header
+-- writeup for why) -- everything else (name/itemType/weight/value/level/
+-- material, always present in a real identify; anything from `lore`,
+-- which never sets these fields to begin with) keeps the original
+-- fill-if-non-nil behavior, so a partial `lore` capture still can't
+-- downgrade an already-identified item.
 function IL.merge(rec)
   if not rec or not rec.key or rec.key == "" then return end
   local existing = IL.db[rec.key] or {}
+  local isIdentify = rec.source == "identify"
   for _, f in ipairs(FIELDS) do
-    if rec[f] ~= nil then existing[f] = rec[f] end
+    if rec[f] ~= nil then
+      existing[f] = rec[f]
+    elseif isIdentify and table.contains(FULL_STAT_FIELDS, f) then
+      existing[f] = nil
+    end
   end
   existing.key            = rec.key
   existing.lastIdentified = os.time()

@@ -405,6 +405,24 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       `room_data` staleness guard added. Swim/ocean/underwater terrain gap
       investigated, not guessed at (tracked in `docs/DSL_CommandRef.md`'s
       STILL NEEDED section). Full detail: `docs/CHANGELOG.md` (2026-07-19).
+- [ ] **ItemLore: identify couldn't clear stale shatteredarchive-scraped
+      fields — fixed 2026-07-19, needs live confirmation.** Per Steven
+      ("when an item is identified in game, it doesnt replace the
+      shattered archive info and persist. it reverts to shattered info
+      not the identified info"). `IL.merge()` treated a confirmed-empty
+      `identify` result (e.g. real "extra flags none") the same as
+      `lore`'s genuine partiality, so a stale/wrong scrape-imported value
+      in `extraFlags`/`weaponFlags`/`armorClass`/`affects`/`spellCharges`/
+      `spellList`/`drinkLiquid`/size+condition+capacity+maxWeight+
+      weightMultiplier could never get cleared by a real identify.
+      Confirmed live via "badger claw"'s actual DB record. Fixed:
+      identify captures now authoritatively clear these fields when
+      absent; `lore`'s fill-gaps-only behavior is unaffected. Verified via
+      a new real structural test (`test/test_itemlore_merge_fix.lua`, 9
+      assertions, all passing). **Items already identified once before
+      this fix still need a fresh in-game identify** to clear their own
+      stale fields — no safe blanket auto-cleanup exists (no per-field
+      provenance tracking to tell real data from scrape leftovers).
 
 ---
 
