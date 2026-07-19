@@ -51,13 +51,43 @@ local STAT_ORDER = { "str", "int", "wis", "dex", "con" }
 
 MyDSL.Roller._triggers = MyDSL.Roller._triggers or {}
 MyDSL.Roller._aliases  = MyDSL.Roller._aliases  or {}
+-- ID of the currently pending automatic-rejection timer, and a generation
+-- counter bumped on every roll -- added 2026-07-18 after a live bug: a
+-- roll that failed goal scheduled a delayed send("n"); before that timer
+-- fired, the next roll came in and passed goal (paused for manual
+-- review), but the stale timer fired anyway and rejected the good roll
+-- out from under the player. The generation check in scheduleReject()
+-- lets a stale timer recognize it belongs to an old roll and no-op.
+MyDSL.Roller._rejectTimer = MyDSL.Roller._rejectTimer or nil
+MyDSL.Roller._rollGeneration = tonumber(MyDSL.Roller._rollGeneration) or 0
+MyDSL.Roller.paused = false
+local function cancelRejectTimer()
+  if not MyDSL.Roller._rejectTimer then return end
+  pcall(killTimer, MyDSL.Roller._rejectTimer)
+  MyDSL.Roller._rejectTimer = nil
+end
 local function deregister()
+  cancelRejectTimer()
   for _, id in pairs(MyDSL.Roller._triggers) do pcall(killTrigger, id) end
   for _, id in pairs(MyDSL.Roller._aliases) do pcall(killAlias, id) end
   MyDSL.Roller._triggers = {}
   MyDSL.Roller._aliases = {}
+  MyDSL.Roller.paused = false
 end
 deregister()
+
+-- Disable the old permanent native GUI trigger this module replaced (see
+-- file header) -- added 2026-07-18 after confirming live that it was
+-- never actually killed on port, so it kept running in parallel with
+-- this script and independently sent "n" to the game (with its own,
+-- separately-configured goal) even when this module correctly judged a
+-- roll good and paused. Without this, a qualifying roll can still get
+-- auto-rejected by the leftover native trigger regardless of anything
+-- this file does.
+if type(exists) == "function" and exists("roller", "trigger") > 0 then
+  disableTrigger("roller")
+  debugc("[MyDSL] Disabled legacy native trigger named 'roller'.")
+end
 
 local function round(n) return math.floor(n + 0.5) end
 
@@ -134,10 +164,25 @@ function R.showStats()
   end
 end
 
+local function scheduleReject()
+  cancelRejectTimer()
+  local generation = R._rollGeneration
+  R._rejectTimer = tempTimer(0.2, function()
+    R._rejectTimer = nil
+    if generation ~= R._rollGeneration then return end -- superseded by a newer roll
+    if R.paused then return end -- this roll already qualified, don't reject it
+    send("n")
+  end)
+end
+
 local function newRoll(str, int, wis, dex, con)
   str, int, wis, dex, con = tonumber(str), tonumber(int), tonumber(wis), tonumber(dex), tonumber(con)
   if not (str and int and wis and dex and con) then return end
   local total = str + int + wis + dex + con
+
+  R._rollGeneration = R._rollGeneration + 1
+  R.paused = false
+  cancelRejectTimer()
 
   table.insert(R.rolls.str, str)
   table.insert(R.rolls.int, int)
@@ -171,15 +216,17 @@ local function newRoll(str, int, wis, dex, con)
     cecho(string.format(
       "<red>[Reject]<reset> %s is %d, below its minimum of %d. Sending n.\n",
       failedStat:sub(1,1):upper() .. failedStat:sub(2), failedValue, failedMin))
-    tempTimer(0.2, function() send("n") end)
+    -- Small delay so it answers after the Keep prompt appears (same
+    -- timing as the native trigger).
+    scheduleReject()
   elseif total < R.goal then
     cecho(string.format(
       "<red>[Reject]<reset> Total is %d, below goal %d. Sending n.\n",
       total, R.goal))
-    -- Small delay so it answers after the Keep prompt appears (same
-    -- timing as the native trigger).
-    tempTimer(0.2, function() send("n") end)
+    scheduleReject()
   else
+    cancelRejectTimer()
+    R.paused = true
     cecho(string.format(
       "<green>[PAUSE]<reset> Total is %d, goal is %d or higher. Review manually!\n",
       total, R.goal))
@@ -189,8 +236,10 @@ local function newRoll(str, int, wis, dex, con)
   end
 end
 
+-- Anchored 2026-07-18 -- unanchored, this could match a stat block embedded
+-- inside unrelated output instead of only a stat-roll line by itself.
 MyDSL.Roller._triggers.roll = tempRegexTrigger(
-  [[\[?Str:\s*(\d+)\s+Int:\s*(\d+)\s+Wis:\s*(\d+)\s+Dex:\s*(\d+)\s+Con:\s*(\d+)\]?]],
+  [[^\s*\[?Str:\s*(\d+)\s+Int:\s*(\d+)\s+Wis:\s*(\d+)\s+Dex:\s*(\d+)\s+Con:\s*(\d+)\]?\s*]],
   function()
     newRoll(matches[2], matches[3], matches[4], matches[5], matches[6])
   end
