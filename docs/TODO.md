@@ -39,20 +39,53 @@ DEFERRED gets started without an explicit go-ahead.
       confirmed: disable the native `(autowhere)` alias. Full history:
       `CHANGELOG.md`; day-to-day detail: `INSTALL.md` shipped alongside
       the package.
-- [ ] **The actual package-build script has no durable, repo-tracked copy
-      — found 2026-07-19 when a rebuild was needed and it was gone.**
-      `build_mydsl_package.py` (does the real work: splices the 247 native
-      Triggers/45 Keys/2 hand-placed Scripts from a healthy snapshot into
-      the 31 git-tracked `.lua` dofiles) was written into a session-scoped
-      scratchpad directory, not this repo, so it no longer exists anywhere
-      on this machine. Today's rebuild (see `docs/CHANGELOG.md`, ItemLore
-      fix) had to patch the already-built `.mpackage`'s XML directly
-      instead (safe for a single-file change, since the file's own
-      structure was already correct — but not a substitute for the real
-      script, and not something to keep doing by hand every time). Worth
-      writing this for real and committing it (the `.mpackage` build
-      *output* stays gitignored, but the script that produces it shouldn't
-      be ephemeral).
+- [x] ~~The actual package-build script has no durable, repo-tracked copy~~
+      — **fixed 2026-07-19**: `build_mydsl_package.py` rewritten from
+      scratch and committed to the repo (the original was lost with a
+      session scratchpad). Bundles the git-tracked `.lua` dofiles (read
+      fresh from disk, list auto-derived from DSL2's own reference
+      `current/*.xml`, not hardcoded) plus native-only content pulled from
+      the newest `current/*.xml` in the live MyDSL profile. Fails loudly
+      on any structural mismatch instead of silently under-counting. Full
+      detail + 3 real gaps it surfaced while being written:
+      `docs/CHANGELOG.md` (2026-07-19).
+- [ ] **DSL2's own dev reference profile has 3 dofile-wiring gaps — found
+      2026-07-19 while writing the real build script, not yet fixed
+      (manual Script Editor step, can't be done via file edit).**
+      1. `MyDSL_Chat.lua` and `MyDSL_MovementSounds.lua` are both real,
+      git-tracked files with no `dofile()` entry in DSL2's Script Editor —
+      same class of gap as the older `MyDSL_PromptSetup` miss. The build
+      script now works around this (reads both fresh from disk directly),
+      but the real fix is adding the two `dofile()` entries so this
+      doesn't keep depending on a workaround. 2. A stale `dofile()` entry
+      for `MyDSL_ChatWrapper.lua` still exists in DSL2's Script Editor —
+      that file was deleted when merged into `MyDSL_Chat.lua` (commit
+      `4aca249`), but the old Script entry pointing at it was never
+      removed. The build script skips it (loud warning), but it should be
+      deleted by hand. 3. Two Script entries have display names that don't
+      match their real filenames (`MyDsl_Alterform` for
+      `MyDSL_AlterformView.lua`, `MyDSL_Creaturelore` for
+      `MyDSL_CreatureLore.lua`) — cosmetic only (the build script derives
+      the real name from the dofile path, not the display name), but worth
+      renaming for anyone reading the Script Editor directly.
+- [ ] **Before importing the rebuilt `MyDSL_Full.mpackage`: run `lua
+      getPackages()` (or check Package Manager) first — real uncertainty
+      found 2026-07-19, not fully resolved.** Content-level conflict check
+      passed cleanly (33/33 scripts, 247/247 triggers, 45/45 keys all
+      match by name, only `MyDSL_ItemLore` differs in content — see
+      `docs/CHANGELOG.md`). But the live profile's Trigger content is
+      currently tagged `MyDSL_GameplayTriggers`/`DslColors_v1_0` as
+      separate top-level packages, not wrapped under one `MyDSL_Full`
+      package the way the rebuilt file ships them — likely a residual
+      effect of the emergency wipe-and-reimport recovery (same root-cause
+      class as the `mpkg` Lua error found earlier today: a plain XML
+      reimport doesn't necessarily restore Mudlet's real internal package
+      registry to match the XML's own `packageName` tags). If
+      `getPackages()` shows `MyDSL_GameplayTriggers`/`DslColors_v1_0` as
+      their own separately-installed packages, reinstalling `MyDSL_Full`
+      might not cleanly replace them — risk of ending up with duplicate
+      triggers rather than lost ones. Can't be resolved from static file
+      analysis alone; needs this one live check before Steven imports.
 - [ ] **Windows resetting position when docking a second window on the
       fresh profile — likely root cause found, not fixed.** Confirmed
       NOT a recurrence of the previously-fixed Mudlet 4.21/4.22
