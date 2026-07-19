@@ -698,47 +698,6 @@ guessing at patterns with zero corpus evidence.
       philosophy has so far meant zero outbound calls), and whether the
       referenced Achaea Mudlet calendar package is worth checking for a
       reusable pattern before building fresh.
-- [ ] **LocationView: room-ID-keyed picture assignment — replaces the
-      whole same-named-room text-heuristic system, built 2026-07-19, per
-      Steven ("i think i would like to simplify this ... assign it a room
-      picture (automatically where possible, manual where duplicates
-      arise)"), needs live confirmation.** The 2026-07-18/07-19 fixes to
-      the old `resolveVariant()` text-heuristic system (backfilling
-      description, then fixing the capture race that could attribute an
-      unrelated room's description to the wrong name) were real, but
-      Steven's own follow-up was right that the underlying approach was
-      still fragile — guessing sameness/difference from description/exits
-      text will always have edge cases. Replaced entirely: picture
-      assignment is now keyed by the Mudlet mapper's own room ID (unique
-      per physical room, already how the mapper itself tells two
-      same-named rooms apart), not room name. First room ID to reach a
-      given name auto-claims its existing picture file; any other room ID
-      sharing that name gets no automatic picture (a real, confirmed
-      duplicate, not a guess) and needs `mydsl location set <path>` while
-      standing in it — which now actually persists, unlike the old
-      `M.setImage()`. Also discovered the DSL_Generic_Mapper fork already
-      captures a real per-room description/exits/terrain into its own
-      `map.dat` (`use_description_matching` forced on by default) — so
-      `MyDSL_DataLayer.lua`'s own parallel (and previously buggy)
-      room-description capture was fully retired, not just fixed, since
-      nothing needs it anymore. New `mydsl location info` command surfaces
-      that mapper-native data directly. `location_variants.lua` (the old
-      system's data file) is now dead/unused — the emptied file from the
-      2026-07-19 reset stays on disk but nothing reads it anymore.
-      Verified via 2 new structural tests (9 assertions: auto-claim,
-      conflict detection, cached re-resolution, manual persistence) plus
-      the existing 5-assertion LocationView test suite, all passing.
-      Full detail: `docs/CHANGELOG.md` (2026-07-19).
-- [ ] **LocationView: 2 smaller real bugs fixed 2026-07-19 during the same
-      review, needs live confirmation.** `M.renderMode` was hardcoded to
-      `"cover"` regardless of which fit mode actually rendered (cosmetic,
-      `mydsl location status` misreported it). `M.onThemeChanged()` passed
-      a bare `nil` caption to `render()`, blanking the caption label on
-      every theme switch since nothing stored the last real caption to
-      fall back to — `render()` now stores `M.currentCaption`. Verified
-      via `test/test_locationview_fixes.lua` (5 assertions); required
-      adding `get_width()`/`get_height()` stubs to
-      `test/mudlet_mock.lua`'s Geyser.Label mock (didn't exist before).
 - [ ] State-scoped sound toggle — generic pattern for an alias to turn a
       sound on for a state and reliably turn it off when the state ends.
 - [ ] **A whole quest-tracking mechanic (quest start/expire/timer
