@@ -3448,6 +3448,76 @@ end
 
 
 ------------------------------------------------------------------------
+-- 9p.2  OTHER CHARACTERS'/CREATURES' EQUIPMENT ("<Name> is using:")
+------------------------------------------------------------------------
+-- Added 2026-07-19, per Steven ("integrate the eq of others hover text
+-- note") -- confirmed real format via log corpus for both a mob
+-- ("Brash is using:", log/2026-07-16#18-07-53.html) and a real player/
+-- dragon character ("Qinrathaz is using:",
+-- MyDSL/log/2026-07-19#16-33-40.html): identical body-line shape to
+-- your own "You are using:" listing (same "<slot>  (flags) item name"
+-- format, confirmed multi-slot in the Qinrathaz capture -- light/
+-- finger/neck x2/head/wrist x2/held all present and correctly
+-- formatted), just prefixed with the subject's name instead of "You".
+--
+-- Deliberately hover-only, no state accumulation: unlike your own
+-- equipment, this must NOT touch MyDSL.State.equipment (that table
+-- specifically drives CharacterAssist's rearm/spellup decisions about
+-- YOUR OWN gear -- someone else's equipment has nothing to do with
+-- that), so there's no begin/end block to assemble or an `update()` to
+-- call, just the same per-line hover technique parseEquipLine() already
+-- uses, reused directly rather than duplicated with a different shape.
+function MyDSL.beginOthersEquip(name)
+  if MyDSL._triggers.othersEquipBody then
+    pcall(killTrigger, MyDSL._triggers.othersEquipBody)
+    MyDSL._triggers.othersEquipBody = nil
+  end
+  MyDSL._triggers.othersEquipBody = tempRegexTrigger(".*", function()
+    local ln = getCurrentLine()
+    if trim(ln) == "" then
+      if MyDSL._triggers.othersEquipBody then
+        pcall(killTrigger, MyDSL._triggers.othersEquipBody)
+        MyDSL._triggers.othersEquipBody = nil
+      end
+      return
+    end
+    local rawSlot, rest = ln:match("^<([a-z ]+)>%s*(.+)$")
+    if rawSlot and MyDSL.parseOthersEquipLine then MyDSL.parseOthersEquipLine(rest) end
+  end)
+end
+
+function MyDSL.parseOthersEquipLine(rest)
+  if rest == "(nothing)" then return end
+  local remaining = rest
+  while true do
+    local flag, tail = remaining:match("^%((.-)%)%s*(.*)$")
+    if not flag then break end
+    remaining = tail
+  end
+  local itemName = trim(remaining)
+  if itemName == "" or not (setLink and selectString) then return end
+
+  -- Same hover technique as parseEquipLine()'s own already-proven one
+  -- (selectString()+setLink() on the raw, already-printed line -- "move
+  -- text, don't invent it"). Reads ItemLore for a stats suffix if this
+  -- exact item's already known from somewhere else (your own identify/
+  -- lore captures, or a scrape import); doesn't write anything back --
+  -- seeing someone else hold an item tells us nothing about its stats,
+  -- only identify/lore on it would, and that's unchanged.
+  local key = itemName:lower():gsub("^[Aa]n? ", ""):gsub("^[Tt]he ", "")
+  local rec = MyDSL.ItemLore and MyDSL.ItemLore.get and MyDSL.ItemLore.get(key)
+  local hint = "Click for Item Reference" .. MyDSL.buildItemStatsSuffix(rec)
+  local cmd = string.format(
+    'if MyDSL and MyDSL.ItemReference then MyDSL.ItemReference.render("%s"); MyDSL.ItemReference.show() end',
+    itemName:gsub('"', '\\"'))
+  local okSel, selected = pcall(selectString, "main", itemName, 1)
+  if okSel and selected then
+    pcall(setLink, "main", cmd, hint)
+  end
+end
+
+
+------------------------------------------------------------------------
 -- 9q  INVENTORY  ("i"/"inv")
 ------------------------------------------------------------------------
 -- Added 2026-07-16, per Steven ("you should be able to hover over
@@ -4073,6 +4143,21 @@ MyDSL._triggers.equipStart = tempRegexTrigger(
   function()
     if MyDSL and MyDSL.beginEquip then
       MyDSL.beginEquip()
+    end
+  end
+)
+
+-- "<Name> is using:" -- someone/something else's equipment (see 9p.2
+-- above). "^You are using:$" (immediately above) already matches "You"
+-- exactly, so this pattern excludes it explicitly to avoid registering
+-- a second, redundant body-capture trigger for the exact same block.
+MyDSL._triggers.othersEquipStart = tempRegexTrigger(
+  "^(.+) is using:$",
+  function()
+    local name = matches[2]
+    if name == "You" then return end
+    if MyDSL and MyDSL.beginOthersEquip then
+      MyDSL.beginOthersEquip(name)
     end
   end
 )

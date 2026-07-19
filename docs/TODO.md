@@ -698,6 +698,15 @@ guessing at patterns with zero corpus evidence.
       philosophy has so far meant zero outbound calls), and whether the
       referenced Achaea Mudlet calendar package is worth checking for a
       reusable pattern before building fresh.
+- [ ] **"Eq of others" hover — built 2026-07-19, per Steven ("integrate
+      the eq of others hover text note"), needs live confirmation.** Item
+      hover now applies to other characters'/creatures' equipment
+      listings ("<Name> is using:"), same technique as your own equipment
+      hover, confirmed against real corpus text for both a mob and a real
+      player/dragon character. Hover-only, no state written anywhere
+      (doesn't touch `MyDSL.State.equipment`, which is specifically about
+      your own gear). Verified via `test/test_others_equipment_hover.lua`
+      (6 assertions). Full detail: `docs/CHANGELOG.md` (2026-07-19).
 - [ ] State-scoped sound toggle — generic pattern for an alias to turn a
       sound on for a state and reliably turn it off when the state ends.
 - [ ] **A whole quest-tracking mechanic (quest start/expire/timer
