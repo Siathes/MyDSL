@@ -2346,6 +2346,34 @@ end
 -- consistently different colors from each other, though no confirmed
 -- case yet of two same-named rooms differing in body color specifically
 -- -- this just makes the data available for whenever one shows up).
+--
+-- Real, confirmed bug fixed 2026-07-19, per Steven ("location window ...
+-- wont display the images anymore and keep showing the multiroom message
+-- instead"). Root-caused by decoding the live location_variants.lua data:
+-- e.g. "A Beautiful Courtyard" had 4 "variants" whose stored descriptions
+-- were actually a hallway, a hall of statues, a ballroom, and a throne
+-- room -- four completely unrelated real rooms, not legitimate same-named
+-- variants (unlike the confirmed-real "Stone Dragon maze" case). "An
+-- alleyway"'s variant 4 was a byte-for-byte duplicate of the real "On the
+-- Porch of the Fellowship Saloon" description. Root cause: the backward
+-- scan searched the WHOLE rolling buffer for the most recent line matching
+-- MyDSL.State.room.name (GMCP-driven, can race ahead of the text stream
+-- during fast movement -- same class of race already found and fixed in
+-- DSL_Generic_Mapper.xml's speedwalk door-command misattribution the same
+-- day) with no lower bound -- if the anchor name was even slightly stale/
+-- ahead by the time this fired, or the room's title text is a common/
+-- reused one, it could walk straight past the current room's own display
+-- block and match an OLDER occurrence of the same generic title several
+-- rooms back, silently grabbing that unrelated room's real description.
+-- Fixed: the scan now stops at the nearest prior room-block boundary (an
+-- "[Exits: ...]" line) instead of scanning past it -- if the anchor name
+-- hasn't shown up yet within the CURRENT block, that's treated as "no
+-- description captured this time" (same as before this fix, when nothing
+-- matched at all) rather than reaching backward into a previous room's
+-- text and mis-attributing it. LocationView already tolerates a nil
+-- description gracefully (falls back to exits-only variant matching, or
+-- variant #1 if neither is available), so this is a strictly safer
+-- failure mode than the silent cross-contamination it replaces.
 function MyDSL.captureRoomDescription()
   local roomName = MyDSL.State.room and MyDSL.State.room.name
   if not roomName or roomName == "" then return end
@@ -2353,10 +2381,29 @@ function MyDSL.captureRoomDescription()
   if not buf or #buf == 0 then return end
 
   local titleTrim = trim(roomName)
+
+  -- Skip past this call's own "[Exits: ...]" anchor line(s) at the tail
+  -- first -- whether the buffering trigger already recorded the current
+  -- anchor line by the time this runs depends on trigger firing order
+  -- between two same-priority triggers matching the same line, which
+  -- isn't guaranteed either way. Only once past that do we start
+  -- enforcing the "stop at a previous block's boundary" rule below.
+  local i = #buf
+  while i >= 1 and trim(buf[i].text):match("^%[?Exits:") do
+    i = i - 1
+  end
+
   local titleIdx = nil
-  for i = #buf, 1, -1 do
-    if trim(buf[i].text) == titleTrim then
-      titleIdx = i
+  for j = i, 1, -1 do
+    local t = trim(buf[j].text)
+    if t == titleTrim then
+      titleIdx = j
+      break
+    end
+    if t:match("^%[?Exits:") then
+      -- Hit a previous room-block boundary before finding the title line
+      -- -- it isn't in THIS block. Stop here rather than matching an
+      -- older, unrelated room's title further back.
       break
     end
   end

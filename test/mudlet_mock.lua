@@ -173,6 +173,12 @@ for _, m in ipairs({
 }) do
   StubWidget[m] = function(...) return true end
 end
+-- Geyser.Label's real get_width()/get_height() -- used by LocationView's/
+-- PortraitView's contain/stretch image-scaling HTML builders. Fixed
+-- non-zero defaults so those code paths can actually be exercised under
+-- test instead of always hitting their "box has no size yet" bail-out.
+StubWidget.get_width = function(...) return 300 end
+StubWidget.get_height = function(...) return 200 end
 
 _G.Geyser = _G.Geyser or {
   UserWindow = StubWidget,

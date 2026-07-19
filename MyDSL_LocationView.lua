@@ -764,6 +764,7 @@ function M.clear(caption)
   M.currentPath = nil
   M.currentRoom = nil
   M.currentSource = nil
+  M.currentCaption = nil
 end
 
 function M.render(path, caption, source, room, missingCaption)
@@ -848,7 +849,17 @@ function M.render(path, caption, source, room, missingCaption)
   M.currentPath = path
   M.currentRoom = room
   M.currentSource = source
-  M.renderMode = "cover"
+  M.currentCaption = caption
+  -- Real bug fixed 2026-07-19, found during a full review: this was
+  -- hardcoded to "cover" unconditionally, so `mydsl location status`'s
+  -- render= field always claimed "cover" even when stretch/contain's own
+  -- real renderer above actually ran successfully. Now reflects which
+  -- path actually rendered this image.
+  if rendered then
+    M.renderMode = M.config.fit
+  else
+    M.renderMode = "cover"
+  end
   return true
 end
 
@@ -1069,7 +1080,12 @@ end
 -- Added 2026-07-11 alongside named ThemeEngine presets.
 function M.onThemeChanged()
   M.applyBaseStyle()
-  if M.currentPath then M.render(M.currentPath, nil, M.currentSource, M.currentRoom) end
+  -- Real bug fixed 2026-07-19, found during a full review: passed a bare
+  -- `nil` caption here, and since render() had nowhere to recover the
+  -- last real caption text from, it defaulted to "" -- blanking the
+  -- caption label on every single theme switch until the next room
+  -- refresh. render() now stores M.currentCaption; reuse it here instead.
+  if M.currentPath then M.render(M.currentPath, M.currentCaption, M.currentSource, M.currentRoom) end
 end
 
 function M.installEvents()

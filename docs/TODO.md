@@ -716,43 +716,36 @@ guessing at patterns with zero corpus evidence.
       philosophy has so far meant zero outbound calls), and whether the
       referenced Achaea Mudlet calendar package is worth checking for a
       reusable pattern before building fresh.
-- [ ] **Mapper/LocationView: distinguish same-named rooms — built
-      2026-07-17, real root-cause bug found and fixed 2026-07-18, live
-      testing 2026-07-18 confirms the OPEN-door direction but still
-      reports an issue on CLOSE.** Original root cause (confirmed by
-      decoding the live `location_variants.lua` data, Mudlet's
-      reference-indexed `table.save` format, resolved offline with a
-      small script): 0 of 137 saved variant records anywhere ever had a
-      description — 20 rooms had already spuriously split into 2-6
-      "variants" apiece, because `M.roomData()`'s fixed source-priority
-      order let `MyDSL.DB.room` (no description field) win before
-      `MyDSL.State.room` (the only source with one) was ever reached, so
-      `resolveVariant()`'s precise description-tier was dead code and
-      everything fell through to comparing exits alone — which change
-      whenever a door/gate opens or closes. Fixed by having `M.roomData()`
-      backfill `description`/`descColor` from `MyDSL.State.room` after
-      the priority loop picks a winner. Per Steven's 2026-07-18 live test:
-      "open door seems fixed" but "still cause[s] the issue with clos[ed]
-      door." Re-checked `location_variants.lua` after this test: "Inside
-      Arkane's north gate" still shows exactly the same 2 pre-existing
-      variants as before (both still `description=nil`, `seen` unchanged)
-      — no 3rd variant was created, and tracing `resolveVariant()`'s own
-      exits-fallback tier shows BOTH the open and closed exit sets should
-      still correctly match their respective pre-existing (already-split)
-      variant either way, so a fresh spurious split isn't the obvious
-      explanation for what Steven's seeing on close specifically. Genuinely
-      unclear without more specifics — the "new variant" notice
-      (`M.refresh()`'s `missingCaption`) only ever fires once, at the
-      moment a variant is newly created, not on every revisit of an
-      already-known one, and it renders inside the Location window itself
-      (fixed 2026-07-17 to stop going to the main console), so it doesn't
-      show up in the plain-text session log either. **Needs a screenshot
-      or the exact text Steven sees when the door is closed** before
-      changing anything further — the ~20 rooms that already split
-      spuriously before this fix (including this one) are also NOT
-      retroactively cleaned up by it; only new captures are affected, so
-      some of what's being seen now may just be the pre-existing split
-      itself (mismatched/missing picture files per variant), not a new bug.
+- [ ] **Mapper/LocationView: distinguish same-named rooms — the real root
+      cause behind BOTH this item's 2026-07-18 open/close mystery AND
+      Steven's 2026-07-19 "location window won't display images, keeps
+      showing the multiroom message" report is now understood and fixed.**
+      The 2026-07-18 fix here (backfilling description from
+      `MyDSL.State.room`) was real but incomplete -- the actual capture in
+      `MyDSL_DataLayer.lua`'s `captureRoomDescription()` could silently
+      attribute a completely unrelated room's description to the current
+      room name during fast movement (a text/GMCP race, same class as the
+      mapper's zero-wait speedwalk bug). This is almost certainly what
+      caused the door open-vs-closed asymmetry too, not a separate
+      mystery. Full root-cause + fix: `docs/CHANGELOG.md` (2026-07-19).
+      **Still open, needs Steven's decision**: the ~144 rooms that already
+      spuriously split before this fix are not retroactively cleaned up by
+      it (same "can't tell good data from bad after the fact" limitation
+      as the ItemLore fix above) — recommended: reset
+      `location_variants.lua` to empty and let it relearn from scratch,
+      but that also forgets the legitimately-different multi-variant rooms
+      (Stone Dragon maze, etc.) until they're revisited. Not done without
+      Steven's go-ahead.
+- [ ] **LocationView: 2 smaller real bugs fixed 2026-07-19 during the same
+      review, needs live confirmation.** `M.renderMode` was hardcoded to
+      `"cover"` regardless of which fit mode actually rendered (cosmetic,
+      `mydsl location status` misreported it). `M.onThemeChanged()` passed
+      a bare `nil` caption to `render()`, blanking the caption label on
+      every theme switch since nothing stored the last real caption to
+      fall back to — `render()` now stores `M.currentCaption`. Verified
+      via `test/test_locationview_fixes.lua` (5 assertions); required
+      adding `get_width()`/`get_height()` stubs to
+      `test/mudlet_mock.lua`'s Geyser.Label mock (didn't exist before).
 - [ ] State-scoped sound toggle — generic pattern for an alias to turn a
       sound on for a state and reliably turn it off when the state ends.
 - [ ] **A whole quest-tracking mechanic (quest start/expire/timer
