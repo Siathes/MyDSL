@@ -4106,7 +4106,21 @@ local function name_search()
     if map.configs.use_description_matching and #description_lines &gt; 0 then
         map.prompt.description = table.concat(description_lines, "\n")
         map.echo("Description captured: " .. map.prompt.description:sub(1, 100) .. (#map.prompt.description &gt; 100 and "..." or ""), true)
-    else
+    elseif not map.prompt.description or map.prompt.description == "" then
+        -- Only clear it when nothing else already provided one this room --
+        -- fixed 2026-07-19 (code review, correctness bug). This used to
+        -- unconditionally nil map.prompt.description whenever this
+        -- function's OWN description_lines search came up empty. But
+        -- name_search() only runs at all when map.prompt.room is falsy
+        -- (see handle_exits()'s `map.prompt.room or name_search()`) -- and
+        -- map.dsl.beforeExits() can independently populate
+        -- map.prompt.description from its own GMCP-line-buffer capture
+        -- (extractVisibleRoomBlock()) even in that exact scenario, e.g.
+        -- when GMCP's room_data.room field happens to be empty for this
+        -- specific prompt. If this function's own (weaker/different) scan
+        -- then found nothing, it was silently wiping out a perfectly good
+        -- description beforeExits() had already captured. Now it only
+        -- clears a description that isn't already set.
         map.prompt.description = nil
     end
     return room_name
@@ -5631,8 +5645,22 @@ map.dsl.base = "Generic Mapper 2.1.8"
 map.dsl.gmcp = map.dsl.gmcp or {}
 map.dsl.line_buffer = map.dsl.line_buffer or {}
 map.dsl.last_command = map.dsl.last_command or nil
-map.dsl.last_door_command = map.dsl.last_door_command or nil
-map.dsl.last_move_command = map.dsl.last_move_command or nil
+-- Converted to FIFO queues 2026-07-19 (code review, correctness bug):
+-- these used to be single overwritable slots. map.speedwalk()'s zero-wait
+-- branch (speedwalk_wait=false, speedwalk_delay=0 -- both real,
+-- user-toggleable configs) sends every queued direction and auto-inserted
+-- door-clearing command in one tight loop with no delay between sends.
+-- captureCommand() fired once per send, so the single slot settled on the
+-- LAST command in the batch before any server reply returned -- every
+-- door-state line streaming back afterward (e.g. "It's already open." for
+-- an earlier door) got attributed to that same final direction instead of
+-- the one that actually produced it. A FIFO queue lets each door-state
+-- reply consume the command context in the same order the commands were
+-- actually sent, which is the one ordering guarantee a text MUD protocol
+-- does give us (the server processes and replies to input in order).
+map.dsl.door_command_queue = map.dsl.door_command_queue or {}
+map.dsl.move_command_queue = map.dsl.move_command_queue or {}
+local DSL_COMMAND_QUEUE_MAX = 10
 map.dsl.last_terrain_text = map.dsl.last_terrain_text or nil
 map.dsl.last_door_line = map.dsl.last_door_line or nil
 map.dsl.last_room_apply = map.dsl.last_room_apply or nil
@@ -5691,6 +5719,24 @@ local DSL_CONTEXT_TIMEOUT = 6
 
 local function dsl_context_fresh(entry)
   return entry ~= nil and entry.time ~= nil and (os.time() - entry.time) &lt;= DSL_CONTEXT_TIMEOUT
+end
+
+-- door_command_queue/move_command_queue helpers -- see the queue
+-- conversion comment near their declaration above for why these replaced
+-- the old single overwritable slots.
+local function dsl_push_command(queue, entry)
+  table.insert(queue, entry)
+  while #queue > DSL_COMMAND_QUEUE_MAX do table.remove(queue, 1) end
+end
+
+-- Pops (and discards) entries until it finds one still within
+-- DSL_CONTEXT_TIMEOUT, or the queue runs out.
+local function dsl_pop_fresh_command(queue)
+  while #queue > 0 do
+    local entry = table.remove(queue, 1)
+    if dsl_context_fresh(entry) then return entry end
+  end
+  return nil
 end
 
 -- DSL_DOOR_VERBS -- real bug found reviewing this fork before deployment:
@@ -5767,7 +5813,7 @@ function map.dsl.captureCommand(cmd)
   map.dsl.last_command = cmd
   local dir, verb, nonDirectional = dsl_dir_from_command(cmd)
   if verb == "move" then
-    map.dsl.last_move_command = { raw = cmd, dir = dir, time = os.time() }
+    dsl_push_command(map.dsl.move_command_queue, { raw = cmd, dir = dir, time = os.time() })
     map.dsl.captureMovePoints()
   elseif verb and nonDirectional then
     -- Real bug found reviewing this fork before deployment: "open
@@ -5777,22 +5823,48 @@ function map.dsl.captureCommand(cmd)
     -- onDoorLine()'s fallback chain (`cmd and cmd.dir or move and
     -- move.dir`) would silently use the LAST MOVEMENT direction instead,
     -- misattributing a container's "It's already open." to whatever exit
-    -- the player last walked through. Clearing BOTH pending contexts (not
-    -- just the door one) here means the response to a container action
-    -- is correctly attributed to nothing -- a container action means any
+    -- the player last walked through. Pushing a dir=nil marker onto BOTH
+    -- queues (not just the door one) reserves this command's own place in
+    -- the reply order with "no direction," so its eventual reply is
+    -- correctly attributed to nothing -- a container action means any
     -- earlier movement is no longer what a new door-state message would
-    -- be describing either.
-    map.dsl.last_door_command = nil
-    map.dsl.last_move_command = nil
+    -- be describing either, and this must not shift positions in the
+    -- queue the way clearing/wiping it entirely would.
+    dsl_push_command(map.dsl.door_command_queue, { raw = cmd, dir = nil, verb = verb, time = os.time() })
+    dsl_push_command(map.dsl.move_command_queue, { raw = cmd, dir = nil, time = os.time() })
   elseif verb then
-    map.dsl.last_door_command = { raw = cmd, dir = dir, verb = verb, time = os.time() }
+    dsl_push_command(map.dsl.door_command_queue, { raw = cmd, dir = dir, verb = verb, time = os.time() })
   end
 end
 
+local DSL_LINE_BUFFER_MAX = 80
+local DSL_LINE_BUFFER_HIGH_WATER = 160
+
+-- Batch-trims instead of shifting one line off the front every single call
+-- -- fixed 2026-07-19 after a PVP perf audit found this ran on EVERY line
+-- of ALL game output (registered on onNewLine, not scoped to moves), and
+-- table.remove(buf,1) is O(n): once the buffer hit its cap, every
+-- subsequent line paid for shifting ~80 elements down by one, and text
+-- volume is highest exactly during combat/PVP, not during movement. Now
+-- the buffer is allowed to grow to a high-water mark before trimming back
+-- down to the real cap in one pass, amortizing that cost across many
+-- lines instead of paying it on every single one. Still a plain
+-- 1-indexed array afterward, so extractVisibleRoomBlock()'s consumption
+-- of it is unaffected.
 function map.dsl.captureLine()
   if not line then return end
-  table.insert(map.dsl.line_buffer, tostring(line))
-  while #map.dsl.line_buffer &gt; 80 do table.remove(map.dsl.line_buffer, 1) end
+  local buf = map.dsl.line_buffer
+  buf[#buf + 1] = tostring(line)
+  local oldLen = #buf
+  if oldLen &gt; DSL_LINE_BUFFER_HIGH_WATER then
+    local excess = oldLen - DSL_LINE_BUFFER_MAX
+    for i = 1, DSL_LINE_BUFFER_MAX do
+      buf[i] = buf[i + excess]
+    end
+    for i = DSL_LINE_BUFFER_MAX + 1, oldLen do
+      buf[i] = nil
+    end
+  end
 end
 
 
@@ -5863,18 +5935,36 @@ function map.dsl.extractVisibleRoomBlock(room_name)
   return table.concat(desc, "\n"), table.concat(raw, "\n")
 end
 
+-- How stale a GMCP room_data payload can be and still be trusted here --
+-- fixed 2026-07-19 (code review): there was previously no sequencing check
+-- at all tying a given room_data payload to the specific visible-text
+-- block beforeExits() is processing right now. docs/DSL_CommandRef.md
+-- confirms char_data/room_data normally fire together on every prompt, so
+-- a genuinely current payload should be at most a fraction of a second
+-- old by the time the exits line triggers this function -- 2 seconds
+-- gives real margin for processing lag without being so long it could
+-- plausibly still be describing the PREVIOUS room.
+local DSL_GMCP_ROOMDATA_TIMEOUT = 2
+
 function map.dsl.beforeExits(exits)
   map.prompt = map.prompt or {}
   exits = tostring(exits or ""):trim()
   local rd = map.dsl.gmcp and map.dsl.gmcp.room_data or {}
+  local rdFresh = map.dsl.gmcp and map.dsl.gmcp.room_data_time
+    and (os.time() - map.dsl.gmcp.room_data_time) &lt;= DSL_GMCP_ROOMDATA_TIMEOUT
 
-  -- GMCP assists Generic Mapper by filling prompt fields. It does not create rooms or links by itself.
-  if rd.room and tostring(rd.room):trim() ~= "" then
+  -- GMCP assists Generic Mapper by filling prompt fields. It does not
+  -- create rooms or links by itself. Only trust rd.room when it's fresh --
+  -- otherwise this is still holding a previous room's payload (GMCP hasn't
+  -- sent a new one yet for this arrival), and falling through to the
+  -- text-based capture below is safer than filing the new room's visible
+  -- text under the old room's name.
+  if rdFresh and rd.room and tostring(rd.room):trim() ~= "" then
     map.prompt.room = tostring(rd.room):trim()
   end
   if exits ~= "" then
     map.prompt.exits = exits
-  elseif rd.exits then
+  elseif rdFresh and rd.exits then
     map.prompt.exits = dsl_join_exits_from_gmcp(rd.exits)
   end
 
@@ -5888,19 +5978,33 @@ function map.dsl.beforeExits(exits)
   map.dsl.last_visible_exits = map.prompt.exits
 end
 
+-- Rewritten 2026-07-19 (code review, correctness bug): the previous version
+-- also re-searched the WHOLE queue by value for the failed direction and
+-- removed the first backward match, on the theory that a stale "look"
+-- entry (from search_on_look) could sit at position 1 and cause stock's
+-- own `table.remove(move_queue,1)` (map.eventHandler, registered earlier,
+-- always fires first on this same event) to remove the wrong thing,
+-- leaving the actual failed direction still queued somewhere else.
+-- Real bug: there is no way to tell "stock's removal was already correct"
+-- apart from "stock grabbed a stale look instead" from inside this
+-- function -- both look identical (a queue with no obvious problem). On a
+-- repeated-direction route (e.g. north,east,north where the first north
+-- fails), stock's removal is already correct, but the old code's blind
+-- value-search would then find and delete the SECOND, still-legitimate
+-- future "north", silently dropping a real queued step. Since
+-- search_on_look is now kept reliably off by install() (see the sticky
+-- fix above), "look" should never actually reach move_queue in the first
+-- place, so stock's own removal will always correctly target the failed
+-- move -- this function no longer needs to (unsoundly) second-guess it.
+-- What's left is defense-in-depth for a player who manually re-enables
+-- search_on_look: strip any stale "look" left stuck at the very FRONT of
+-- the queue. Restricting this to the front only (never a full scan) means
+-- it can never remove a genuinely future-queued direction, however many
+-- times that direction repeats later in the route.
 function map.dsl.onMoveFailCleanup()
-  -- Generic removes the first queued move. In DSL testing, stale look/search entries can sit ahead of the failed move.
-  -- Remove stale look entries and the actual failed DSL direction so a rejected exit cannot be linked later.
   if type(move_queue) ~= "table" then return end
-  local failed = map.dsl.last_move_command and map.dsl.last_move_command.dir or nil
-  for i = #move_queue, 1, -1 do
-    local v = tostring(move_queue[i] or "")
-    if v == "look" then
-      table.remove(move_queue, i)
-    elseif failed and (v == failed or v == (dsl_short_dirs[failed] or "")) then
-      table.remove(move_queue, i)
-      break
-    end
+  while move_queue[1] == "look" do
+    table.remove(move_queue, 1)
   end
 end
 
@@ -5913,6 +6017,10 @@ function map.dsl.onRoomData()
   if not gmcp or not gmcp.room_data then return end
   local rd = gmcp.room_data
   map.dsl.gmcp.room_data = table.deepcopy and table.deepcopy(rd) or rd
+  -- Stamped 2026-07-19 (code review): timestamps this specific payload so
+  -- beforeExits() can tell a fresh room_data apart from one that's still
+  -- sitting from a previous room. See the freshness check there for why.
+  map.dsl.gmcp.room_data_time = os.time()
   map.dsl.gmcp.room_name = rd.room
   map.dsl.gmcp.exits = rd.exits
   map.dsl.gmcp.sector = rd.sector
@@ -6002,7 +6110,10 @@ function map.dsl.applyMoveCost(rid)
   local before = map.dsl.pending_move_points
   map.dsl.pending_move_points = nil
   if not before then return end
-  if getRoomUserData(rid, "dsl.weight_source") == "manual" then return end
+  -- Read once, reused below for the compare-before-write at the end
+  -- (was a second identical getRoomUserData call before 2026-07-19).
+  local weightSource = getRoomUserData(rid, "dsl.weight_source")
+  if weightSource == "manual" then return end
   if not (gmcp and gmcp.char_data) then return end
   local after = tonumber(gmcp.char_data.move)
   if not after then return end
@@ -6014,7 +6125,19 @@ function map.dsl.applyMoveCost(rid)
   -- the same window could make it implausibly large for a single step.
   -- Skip anything outside a plausible single-step range rather than let
   -- a bad reading corrupt the running average.
-  if cost &lt;= 0 or cost &gt; 20 then return end
+  if cost &lt;= 0 or cost &gt; 20 then
+    -- Debug-only visibility added 2026-07-19 (code review): this guard
+    -- used to discard silently in both directions with zero diagnostics --
+    -- a real cost over 20 (plausible for swim/mountain/climb with
+    -- encumbrance) would be thrown away forever with no visible sign that
+    -- weight-learning had quietly stopped working for that room. map.echo
+    -- itself no-ops immediately when map.configs.debug is off, so this adds
+    -- no cost by default -- see "Enable with map config debug true".
+    map.echo("applyMoveCost(): discarded implausible cost " .. tostring(cost) ..
+      " for room " .. tostring(rid) .. " (before=" .. tostring(before) ..
+      " after=" .. tostring(after) .. ")", true)
+    return
+  end
 
   local samples = tonumber(getRoomUserData(rid, "dsl.move_cost_samples")) or 0
   local total = tonumber(getRoomUserData(rid, "dsl.move_cost_total")) or 0
@@ -6028,37 +6151,73 @@ function map.dsl.applyMoveCost(rid)
   if getRoomWeight(rid) ~= weight then
     pcall(setRoomWeight, rid, weight)
   end
-  setRoomUserData(rid, "dsl.weight_source", "auto")
+  -- Skip the write once this room is already marked "auto" -- fixed
+  -- 2026-07-19 (PVP perf audit): this used to run unconditionally on
+  -- every single move through an already-weighted room.
+  if weightSource ~= "auto" then
+    setRoomUserData(rid, "dsl.weight_source", "auto")
+  end
+end
+
+-- Writes only when the new value actually differs from what's already
+-- stored -- added 2026-07-19 (PVP perf audit). Repeat visits to an
+-- already-mapped room (fleeing/chasing through known coliseum rooms) were
+-- rewriting identical gmcp_room/gmcp_sector/normalized_sector/
+-- sector_source/terrain_text/sector_conflict values on every single
+-- arrival; each setRoomUserData call takes Mudlet's shared map lock, so
+-- skipping the ones that would be no-ops cuts real per-move overhead.
+local function dsl_setIfChanged(rid, key, value)
+  if tostring(getRoomUserData(rid, key)) ~= tostring(value) then
+    setRoomUserData(rid, key, value)
+  end
 end
 
 function map.dsl.applyRoomMetadata()
   local rid = map.currentRoom
   if not rid or not map.roomexists or not map.roomexists(rid) then return end
   map.dsl.applyMoveCost(rid)
+  setRoomUserData(rid, "dsl.last_seen", tostring(os.time()))
+  map.dsl.last_room_apply = rid
   local rd = map.dsl.gmcp and map.dsl.gmcp.room_data or nil
   if not rd then return end
+  -- Same staleness guard as beforeExits() -- fixed 2026-07-19 (code
+  -- review): without this, a room_data payload that's still describing
+  -- the PREVIOUS room (GMCP hasn't sent a fresh one yet for this arrival)
+  -- could get filed onto the NEW room's userdata instead. Only the
+  -- GMCP-derived fields below need this guard -- last_seen/last_room_apply
+  -- above are visit bookkeeping, correct regardless of GMCP freshness.
+  local rdFresh = map.dsl.gmcp.room_data_time
+    and (os.time() - map.dsl.gmcp.room_data_time) &lt;= DSL_GMCP_ROOMDATA_TIMEOUT
+  if not rdFresh then return end
   local sector = map.dsl.normalizeSector(rd.sector)
-  if rd.room then setRoomUserData(rid, "dsl.gmcp_room", tostring(rd.room)) end
-  if rd.sector then setRoomUserData(rid, "dsl.gmcp_sector", tostring(rd.sector)) end
-  setRoomUserData(rid, "dsl.normalized_sector", sector)
-  setRoomUserData(rid, "dsl.sector_source", rd.sector and "gmcp" or "unknown")
+  if rd.room then dsl_setIfChanged(rid, "dsl.gmcp_room", tostring(rd.room)) end
+  if rd.sector then dsl_setIfChanged(rid, "dsl.gmcp_sector", tostring(rd.sector)) end
+  dsl_setIfChanged(rid, "dsl.normalized_sector", sector)
+  dsl_setIfChanged(rid, "dsl.sector_source", rd.sector and "gmcp" or "unknown")
   if map.dsl.last_terrain_text then
-    setRoomUserData(rid, "dsl.terrain_text", map.dsl.last_terrain_text)
+    dsl_setIfChanged(rid, "dsl.terrain_text", map.dsl.last_terrain_text)
     local tsec = map.dsl.normalizeSector(map.dsl.last_terrain_text)
     if tsec ~= "unknown" and sector ~= "unknown" and tsec ~= sector then
-      setRoomUserData(rid, "dsl.sector_conflict", "true")
+      dsl_setIfChanged(rid, "dsl.sector_conflict", "true")
     else
-      setRoomUserData(rid, "dsl.sector_conflict", "false")
+      dsl_setIfChanged(rid, "dsl.sector_conflict", "false")
     end
   end
-  setRoomUserData(rid, "dsl.last_seen", tostring(os.time()))
   map.dsl.applySectorColor(rid, sector)
-  map.dsl.last_room_apply = rid
 end
 
+-- Called inline, not deferred -- fixed 2026-07-19 (PVP perf audit). This
+-- used to defer applyRoomMetadata() through a tempTimer(0,...), with a
+-- comment claiming it needed to "let Generic Mapper finish resolving the
+-- room first." Traced the actual event order: stock's own onNewRoom
+-- handler (map.eventHandler, registered earlier at load) runs synchronously
+-- and fully resolves map.currentRoom via handle_exits()/capture_room_info()
+-- before this handler's body even starts, since Mudlet dispatches anonymous
+-- handlers for one raiseEvent call in registration order, not through the
+-- event/timer queue. The deferral bought nothing but one extra Qt
+-- event-loop round-trip of latency on every single move.
 function map.dsl.onGenericNewRoom()
-  -- Let Generic Mapper finish resolving/updating the room first.
-  tempTimer(0, [[if map and map.dsl then map.dsl.applyRoomMetadata() end]])
+  map.dsl.applyRoomMetadata()
 end
 
 function map.dsl.onTerrainLine(text)
@@ -6101,8 +6260,24 @@ function map.dsl.onDoorLine(text)
   text = tostring(text or line or ""):trim()
   if text == "" then return end
   map.dsl.last_door_line = text
-  local cmd = dsl_context_fresh(map.dsl.last_door_command) and map.dsl.last_door_command or nil
-  local move = dsl_context_fresh(map.dsl.last_move_command) and map.dsl.last_move_command or nil
+  -- Checked before consuming any queued command context -- fixed
+  -- 2026-07-19 alongside the queue conversion: this line doesn't use
+  -- cmd/move/dir at all (it parses its own directions straight out of the
+  -- text), so it must not pop a queue entry meant for a still-pending
+  -- command's real reply. Moved above the pops that follow so this early
+  -- return can't consume anything.
+  local opened = text:match("^Opened doors?:%s*(.+)$")
+  if opened then
+    if opened ~= "none" then
+      for d in opened:gmatch("%a+") do
+        local odir = dsl_long_dirs[d]
+        if odir then map.dsl.setGenericDoor(odir, "open") end
+      end
+    end
+    return
+  end
+  local cmd = dsl_pop_fresh_command(map.dsl.door_command_queue)
+  local move = dsl_pop_fresh_command(map.dsl.move_command_queue)
   local dir = cmd and cmd.dir or move and move.dir or nil
   local state
   if text:match("^It's already open%.$") then state = "open" end
@@ -6133,16 +6308,6 @@ function map.dsl.onDoorLine(text)
     if cmd.verb == "lock" then state = "locked" end
     if cmd.verb == "unlock" then state = "closed" end
   end
-  local opened = text:match("^Opened doors?:%s*(.+)$")
-  if opened then
-    if opened ~= "none" then
-      for d in opened:gmatch("%a+") do
-        local odir = dsl_long_dirs[d]
-        if odir then map.dsl.setGenericDoor(odir, "open") end
-      end
-    end
-    return
-  end
   if dir and state then map.dsl.setGenericDoor(dir, state) end
 end
 
@@ -6154,13 +6319,21 @@ function map.dsl.install()
   end
   if map.configs then
     -- First DSL fork install should force description matching on, because DSL repeated room names are common.
+    -- search_on_look defaults off for the same reason (queued "look" entries
+    -- interacting with move_queue during a failed move caused a real bug,
+    -- see onMoveFailCleanup) -- but first-install-only, same as
+    -- use_description_matching. Fixed 2026-07-19: this used to run
+    -- unconditionally on every install() call (every reload/reconnect),
+    -- silently reverting a player's own "map config search_on_look true"
+    -- with no message. Now it only sets the default once, same as the
+    -- description-matching default right above it.
     if not map.configs.dsl_generic_mapper_seen then
       map.configs.use_description_matching = true
+      map.configs.search_on_look = false
     end
     map.configs.dsl_generic_mapper_seen = true
     map.configs.dsl_generic_mapper_version = map.dsl.version
     map.configs.download_path = ""
-    map.configs.search_on_look = false
   end
   map.save = map.save or {}
   map.save.ignore_patterns = map.save.ignore_patterns or {}
