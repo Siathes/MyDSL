@@ -108,99 +108,6 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       isnt needed") -- the room-block dump in the separate "no room
       resolved yet" fallback branch is untouched, only this one. Verified
       the exact real log text normalizes correctly via a structural test.
-- [ ] **DSL Generic Mapper: new fork doesn't recognize Steven's existing,
-      already-mapped rooms — instrumented, root cause NOT yet confirmed,
-      no fix shipped.** Per Steven: "the new mapper using the generic
-      mapper data is not recognizing the old rooms so i manually place
-      rooms on top of eachother in the map editor window and use merge
-      rooms command." Two separate things got conflated mid-investigation
-      and had to be walked back: "The Wing of the Stone Dragon" showing
-      up as multiple same-named-but-different-text rooms is confirmed by
-      Steven to be **real DSL game design** (a themed maze with
-      intentionally repeated room names, different physical rooms) --
-      `MyDSL_LocationView.lua`'s own variant system (`name`/`name (2)`/
-      `name (3)`, already built) is exactly the intended mechanism for
-      assigning separate pictures to these, not a mapper bug. An attempted
-      "fix" that made `check_room()` accumulate description variants
-      instead of ever rejecting a mismatch was built on the wrong premise
-      (confusing this with issue below) and was fully reverted before
-      shipping -- would have broken the maze differentiation this fork
-      exists to protect. **The real, still-open issue**: `check_room()`
-      has two unconditional hard-reject checks before description is ever
-      considered -- exact room name match, then exits compatibility --
-      neither has any leniency for a formatting/capture difference the
-      way the description check does (empty stored description = adopt,
-      not reject). Root cause not yet confirmed: could be name capture,
-      exits capture, or something else entirely; none of today's other
-      mapper changes (bug fixes, weight/color, dslroom raw) touch this
-      code path, so if this is a regression it most likely predates this
-      session, inherited from the original unintegrated 0.1.0-0.2.2 fork.
-      Added a debug-only diagnostic echo to the exits-rejection path
-      (`check_room()`) mirroring the one the description check already
-      had, so a real rejection now shows its exact reason in the log
-      instead of only ever surfacing as an unexplained duplicate room.
-      **Next step**: Steven runs `map config debug true`, walks into one
-      already-mapped room he's certain exists, and reports what the log
-      shows -- either a clean match (nothing to investigate) or a
-      "Room X rejected: ..." line with the specific reason, which is real
-      evidence to fix from instead of another guess. `.dat` map files
-      themselves are Qt's binary serialization format, confirmed not
-      practically parseable directly -- this live debug-echo path is the
-      real diagnostic route.
-      **Major update, same day, from Steven's own screenshots + debug
-      log**: this IS reproducing, and traced to a specific, real
-      mechanism. Two different code paths handle "arriving at a new
-      room": `find_link()` (searches by coordinate position stepping from
-      the current room; creates a new room via `create_room()` if nothing
-      matches -- this is the path that produces the "creates an
-      additional room" symptom) vs `map.find_me()` (searches by NAME
-      across the whole area; if nothing matches, only echoes an error and
-      leaves `map.currentRoom` untouched -- **this is the path that
-      produces "position display stuck on the previous room"**, since
-      nothing ever calls `set_room()` or `create_room()` on this branch).
-      Confirmed directly from a screenshot's debug log: arriving at "The
-      Tail of the Stone Dragon" rejected 5 already-existing same-named
-      candidate rooms (13702/13703/13707/13708/13709) each for a specific
-      missing exit direction, then hit `(error): Room not found in map
-      database` -- the `map.find_me()` dead-end, explaining exactly why
-      Steven's position display stayed on "The Wings of the Stone Dragon"
-      after really walking to the Tail. `move_map()` only takes the
-      room-creating `find_link()` path when BOTH `map.mapping` and the
-      captured move direction are truthy. Initial theory (a `move_queue`
-      desync leaving the captured direction nil) was disproven by the
-      very next debug capture: the added decision-point echo showed
-      `move_map(): map.mapping=nil move=northwest random_move=nil` on
-      *every* move -- `move` was always a real direction; `map.mapping`
-      itself was the nil value. Steven confirmed directly: he hadn't run
-      "start mapping" after this session's reinstall. **Root cause,
-      fully confirmed**: `map.mapping` is one of Generic Mapper's own
-      "protected" fields, kept deliberately in-memory-only (via a
-      metatable, never persisted to disk) so it resets fresh on every
-      script reload -- correct behavior for stock `generic_mapper`
-      (rarely reinstalled), but a real recurring gotcha for this fork,
-      which gets reinstalled with every fix shipped this session. Every
-      reinstall silently reset `map.mapping` to `nil` with nothing
-      telling the player to re-run "start mapping"; every move then fell
-      through to `map.find_me()` (name-search only, does nothing if no
-      match) instead of `find_link()` (matches AND creates rooms) --
-      explaining both "creates a duplicate room" (mapping was on,
-      `check_room()` legitimately rejected a candidate) and "position
-      stuck on the previous room" (mapping was off) as symptoms of the
-      exact same cause. **Fixed**: `start_mapping()`/`stop_mapping()` now
-      persist a `dsl_was_mapping`/`dsl_mapping_area` flag into
-      `map.configs` (which Generic Mapper already saves to disk);
-      `onGenericNewRoom()` checks this flag on the first real room
-      resolution after a reload (not at install time, since
-      `map.currentName`/`map.currentArea` aren't reliably populated that
-      early) and auto-calls `start_mapping()` again if it was on before a
-      *reinstall* -- but not if the player deliberately ran "stop
-      mapping" beforehand. Verified via a dedicated structural test
-      (`test_mapping_persist_restore.lua`) covering: state survives a
-      simulated reload, auto-restores on the first room resolved after,
-      only fires once per reload, and correctly does NOT restore after a
-      deliberate stop. Needs live confirmation: reinstall, do NOT run
-      "start mapping" manually, walk one room, confirm mapping came back
-      on its own.
 - [ ] **DSL Generic Mapper fork brought into the repo, reviewed, and
       hardened — needs a manual install swap + live confirmation.** Per
       Steven ("its time to incorporate the mapper and make it for DSL not
@@ -453,6 +360,51 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       conditions are per Steven's own direct in-game knowledge, not
       independently log-corpus-confirmed — flag if another state turns
       out to need a skip too.
+- [ ] **Roller double-reject bug — fixed 2026-07-18, needs live
+      confirmation.** The legacy native `roller` trigger was never
+      disabled after the 2026-07-07 Lua port, so it kept independently
+      sending "n" in parallel with the module — a roll that cleared goal
+      and printed `[PAUSE]...Review manually!` could still get
+      auto-rejected out from under the player. Now disables the native
+      trigger on load; also fixed a stale-reject-timer race (roll-
+      generation counter + `R.paused` flag) and anchored the stat-line
+      regex to the start of the line. Syntax-checked via luajit; no
+      structural test exists for this despite the original changelog
+      entry's phrasing — see `docs/CHANGELOG.md`'s 2026-07-19 correction.
+      Needs confirmation on the next reroll.
+- [ ] **PVP performance pass — built 2026-07-19, needs live confirmation
+      during an actual fight.** Code-audit-based (no per-line timestamps
+      exist in any log): fixed `logWindow()`'s per-combat-line `mkdir -p`
+      shell spawn, `MyDSL.save()`'s synchronous full-table disk write on
+      every affect event (now debounced 1.5s + flushed on disconnect/
+      exit), the raw-capture trigger matching every line even while off,
+      the mapper's O(n) line-buffer shift on every line of game output,
+      and unconditional `setRoomUserData()` rewrites on every room
+      arrival. Full detail + what was deliberately not touched (combat-
+      regex lookbehind, weather double-parse, etc.): `docs/CHANGELOG.md`
+      (2026-07-19).
+- [ ] **Data-loss incident: `MyDSL_Full.mpackage` reinstall wiped native
+      triggers/keys — recovered 2026-07-19, package rebuild fixed going
+      forward.** Reinstalling wiped ~247 hand-built native Triggers, all
+      45 Keybindings, and 2 hand-placed Scripts that lived inside the
+      same Mudlet package folder but weren't known to the build script.
+      Recovered from a snapshot XML; the package build now splices those
+      real native blocks in directly, so a reinstall is a genuinely
+      complete replacement rather than a lossy one. **Still true going
+      forward**: anything Steven adds to that native folder by hand is
+      invisible to the next rebuild unless it's git-tracked or moved to a
+      separately-named folder Mudlet won't touch on reinstall — not yet
+      done, worth doing before the next hand-added native item. Full
+      detail: `docs/CHANGELOG.md` (2026-07-19).
+- [ ] **Mapper code-review — 7 of 10 findings fixed 2026-07-19, needs live
+      confirmation.** Real correctness fixes: `onMoveFailCleanup()`'s
+      unsound re-search removed, `search_on_look` no longer resets on
+      every reload, zero-wait speedwalk door/move misattribution fixed via
+      real FIFO queues, `applyMoveCost()`'s silent discard now has debug
+      visibility, `name_search()` no longer wipes a good description, GMCP
+      `room_data` staleness guard added. Swim/ocean/underwater terrain gap
+      investigated, not guessed at (tracked in `docs/DSL_CommandRef.md`'s
+      STILL NEEDED section). Full detail: `docs/CHANGELOG.md` (2026-07-19).
 
 ---
 
@@ -814,6 +766,18 @@ Timers. Real candidates for future integration, none urgent:
 ---
 
 ## DECISIONS RECORDED
+- **Mapper: `start mapping` stays a manual gate, not auto-persisted —
+  confirmed 2026-07-18, per Steven.** Root cause of "new mapper doesn't
+  recognize existing rooms" / "position stuck on the previous room" is
+  fully understood: `map.mapping` is one of Generic Mapper's own
+  in-memory-only "protected" fields, so it always resets to `nil` on a
+  script reload — every reinstall silently turns mapping off until
+  `start mapping` is run again. An auto-persist/auto-restore fix was
+  built, then reverted same day: the manual gate is intentional
+  (deliberate control over when new rooms get created), not a bug.
+  Steven manually re-running `start mapping` after every reinstall is
+  expected, not tracked as an open item. Full trace: `docs/CHANGELOG.md`
+  (2026-07-18).
 - **CreatureLore's `lore <name>` "gap" — confirmed a non-issue,
   2026-07-16.** The 2026-07-15 note worried DSL2 might only parse
   `look`/`scan` mob text, not a `lore <name>` command's own per-field

@@ -460,6 +460,24 @@ during Phase B but never checked off here.** Corrected:
 - [ ] `equipment` / `eq` — equipped items format — still genuinely not captured, no parser exists
 - [ ] `affects` — spell list (text fallback format) — GMCP path works; text-fallback format still uncaptured
 - [ ] Day/night transition messages — exact text for History routing — still uncaptured
+- [ ] `terrain` command's real output while swimming/in the ocean/underwater —
+      confirmed real terrain-command output shapes so far (full corpus grep,
+      2026-07-19): "The terrain is that of fields/the forest/the heated
+      desert.", "The terrain is very icy.", "The terrain type is
+      undetermined.", "It's hard to see the terrain indoors.", "There is no
+      terrain, your in the air!" (this last one is the confirmed "air"
+      pattern already wired into `DSL_Generic_Mapper.xml`'s `normalizeSector()`
+      and its native "DSL Terrain Capture" trigger). Zero occurrences of
+      anything swim/ocean/underwater-shaped in the available corpus (578
+      log files + PNP files + `DSL_Helpfiles/terrain.txt`, which only
+      documents usage syntax, not output). `normalizeSector()`'s `exact`
+      table already has `swim`/`ocean`/`underwater` entries, but with no
+      `:find()` substring fallback and no matching native trigger pattern
+      — same class of gap the "air" fix closed, but deliberately NOT
+      guessed at, per this project's no-invented-patterns rule (the
+      original room-weight table was rejected for the same reason). Add
+      the real pattern here the next time Steven types `terrain` while
+      swimming/at sea/underwater, then wire it the same way "air" was.
 
 ---
 

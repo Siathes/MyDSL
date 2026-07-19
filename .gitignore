@@ -81,3 +81,6 @@ MyDSL_Audit_Phase*/
 # of pure "chore: rebuild" churn before this was untracked 2026-07-18).
 MyDSL_Full.mpackage
 MyDSL_Full/
+# Same reasoning, same class of file -- rebuilt package output for the DSL
+# Generic Mapper fork (source is DSL_Generic_Mapper.xml, which stays tracked).
+DSL_Generic_Mapper.mpackage
