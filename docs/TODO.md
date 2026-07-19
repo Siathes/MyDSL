@@ -728,14 +728,14 @@ guessing at patterns with zero corpus evidence.
       mapper's zero-wait speedwalk bug). This is almost certainly what
       caused the door open-vs-closed asymmetry too, not a separate
       mystery. Full root-cause + fix: `docs/CHANGELOG.md` (2026-07-19).
-      **Still open, needs Steven's decision**: the ~144 rooms that already
-      spuriously split before this fix are not retroactively cleaned up by
-      it (same "can't tell good data from bad after the fact" limitation
-      as the ItemLore fix above) — recommended: reset
-      `location_variants.lua` to empty and let it relearn from scratch,
-      but that also forgets the legitimately-different multi-variant rooms
-      (Stone Dragon maze, etc.) until they're revisited. Not done without
-      Steven's go-ahead.
+      **`location_variants.lua` reset to empty 2026-07-19, per Steven
+      ("perform the reset")** — the ~144 pre-existing spuriously-split
+      rooms are gone; every room relearns its variant(s) fresh from the
+      next visit onward using the fixed capture logic. Pre-reset file
+      backed up to scratchpad, not deleted. Legitimately-different
+      multi-variant rooms (Stone Dragon maze, etc.) will need a revisit to
+      re-split — expected, not a bug. Needs live confirmation that images
+      display correctly again.
 - [ ] **LocationView: 2 smaller real bugs fixed 2026-07-19 during the same
       review, needs live confirmation.** `M.renderMode` was hardcoded to
       `"cover"` regardless of which fit mode actually rendered (cosmetic,
