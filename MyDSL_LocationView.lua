@@ -578,18 +578,56 @@ function M.pathForRoomId(roomId, name)
     return M.roomPictures[key], "assigned"
   end
 
+  local sawExistingButClaimed = false
+
   local candidates = M.candidatePathsForRoom(name)
   for _, c in ipairs(candidates) do
     if exists(c.path) then
       if key and M.isFileClaimedByOther(c.path, key) then
-        return nil, "conflict"
+        sawExistingButClaimed = true
+      else
+        if key then
+          M.roomPictures[key] = c.path
+          M.saveRoomPictures()
+        end
+        return c.path, c.source, c.file
       end
-      if key then
-        M.roomPictures[key] = c.path
-        M.saveRoomPictures()
-      end
-      return c.path, c.source, c.file
     end
+  end
+
+  -- Real bug fixed 2026-07-19, per Steven (6 real "The Tail of the Stone
+  -- Dragon" rooms -- the first auto-claimed correctly, but the second
+  -- just said "no picture assigned" instead of finding the already-
+  -- existing "(2)" file left over from the old variant system). The
+  -- plain-name lookup above only ever tries the unnumbered filename --
+  -- for a themed maze that already has per-room numbered picture files
+  -- from before, those need checking too, not just newly suggesting a
+  -- fresh one. Walk the same "(2)", "(3)", ... convention
+  -- M.fileForRoomVariant() uses, claiming the first EXISTING file that
+  -- isn't already claimed by a different room ID. Doesn't stop at the
+  -- first missing slot (gaps are plausible -- these files may have been
+  -- renamed/pruned by hand over time); capped at 50, cheap either way
+  -- since this only runs once per never-before-seen room ID.
+  local dir = M.dir or M.defaultDir()
+  for idx = 2, 50 do
+    local file = M.fileForRoomVariant(name, idx)
+    if not file then break end
+    local path = join(dir, file)
+    if exists(path) then
+      if key and M.isFileClaimedByOther(path, key) then
+        sawExistingButClaimed = true
+      else
+        if key then
+          M.roomPictures[key] = path
+          M.saveRoomPictures()
+        end
+        return path, "auto-variant", file
+      end
+    end
+  end
+
+  if sawExistingButClaimed then
+    return nil, "conflict"
   end
   return nil, nil, nil
 end
@@ -874,22 +912,18 @@ function M.refresh(reason)
 
   local missingCaption = nil
   if not path and data.roomId then
-    -- Suggested filename -- added 2026-07-19, per Steven ("can it auto
-    -- increment in the style we did before ... until no file is present
-    -- then ask?"). Same "Name (2).png" convention the old variant system
-    -- used, just computed fresh each time from what's actually on disk
-    -- instead of a persisted per-room index -- tells Steven exactly what
-    -- to save a new picture as, whether this is a genuine duplicate or a
-    -- room that's just never had a picture at all.
-    local suggestedFile = M.nextAvailableFilename(data.room)
+    -- Kept SHORT deliberately -- fixed 2026-07-19, real bug confirmed via
+    -- screenshot: the earlier version of this message (room name +
+    -- suggested filename + the full `mydsl location set` line, 3-4 lines)
+    -- visibly ran off the edge of the caption strip, which is only ~17%
+    -- of the window's height and not word-wrapped. The caption area isn't
+    -- the place for a multi-line diagnostic -- the suggested filename +
+    -- full detail now live in `mydsl location info` (no space constraint
+    -- on the main console) instead of being crammed in here.
     if source == "conflict" then
-      missingCaption = string.format(
-        "No picture assigned to this room yet.\nShares a name with another pictured room.\nSave a picture as: \"%s\"\nThen: mydsl location set %s",
-        tostring(suggestedFile), tostring(suggestedFile))
+      missingCaption = "Shares a name with another pictured room.\nmydsl location info"
     else
-      missingCaption = string.format(
-        "No picture assigned to this room yet.\nSave a picture as: \"%s\"\nThen: mydsl location set %s",
-        tostring(suggestedFile), tostring(suggestedFile))
+      missingCaption = "No picture assigned yet.\nmydsl location info"
     end
   end
 
@@ -1097,6 +1131,16 @@ function M.info()
     cecho("  description:\n    " .. tostring(data.description):gsub("\n", "\n    ") .. "\n")
   else
     cecho("  description: (none captured yet)\n")
+  end
+  -- Suggested filename -- added 2026-07-19 alongside moving this out of
+  -- the window's own tiny caption strip (see M.refresh()'s comment on
+  -- the same date -- the caption area is too small to show this and got
+  -- visibly cut off, confirmed via screenshot). The main console has no
+  -- such space constraint, so the fuller message belongs here instead.
+  if not M.currentPath then
+    local suggestedFile = M.nextAvailableFilename(data.room)
+    cecho("  suggested filename: <yellow>\"" .. tostring(suggestedFile) .. "\"<reset>\n")
+    cecho("  then: mydsl location set " .. tostring(suggestedFile) .. "\n")
   end
 end
 

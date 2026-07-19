@@ -64,6 +64,25 @@ local path2b, source2b = M.pathForRoomId("200", "Test Room")
 check("a manually-assigned room ID resolves cleanly afterward",
   path2b == tmpDir .. "/Test Room.png" and source2b == "assigned")
 
+-- Real bug fixed 2026-07-19, per Steven's 6 real "The Tail of the Stone
+-- Dragon" rooms: the first room ID auto-claimed correctly, but the
+-- second just said "no picture" instead of finding an already-existing
+-- "(2)" file left over from the old variant system. pathForRoomId() must
+-- check numbered variant files too, not just the plain name.
+local f3a = io.open(tmpDir .. "/Tail Room.png", "w"); f3a:write("fake"); f3a:close()
+local f3b = io.open(tmpDir .. "/Tail Room (2).png", "w"); f3b:write("fake"); f3b:close()
+local pathA, sourceA = M.pathForRoomId("400", "Tail Room")
+check("first room ID claims the plain-name file", sourceA == "auto-safe")
+local pathB, sourceB = M.pathForRoomId("401", "Tail Room")
+check("second room ID finds the pre-existing numbered variant instead of giving up",
+  pathB == tmpDir .. "/Tail Room (2).png" and sourceB == "auto-variant")
+check("the numbered-variant claim persists too", M.roomPictures["401"] == pathB)
+-- A third room ID, same name, with no more pre-existing files -- must
+-- correctly fall through to "conflict", not invent anything.
+local pathC, sourceC = M.pathForRoomId("402", "Tail Room")
+check("a third room ID with no existing file left to claim reports conflict",
+  pathC == nil and sourceC == "conflict")
+
 -- fileForRoomVariant()/nextAvailableFilename() -- the 2026-07-19
 -- auto-increment-suggestion feature ("can it auto increment in the style
 -- we did before ... until no file is present then ask?").
