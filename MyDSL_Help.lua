@@ -258,7 +258,7 @@ MyDSL.Help.modules = {
       { cmd = "dir [path]", desc = "Show or set the room-picture directory.", example = "mydsl location dir" },
       { cmd = "probe [name]", desc = "Diagnose why a lookup isn't finding an image.", example = "mydsl location probe" },
       { cmd = "name <name>", desc = "Load a specific room's picture by name.", example = "mydsl location name Arkane Square" },
-      { cmd = "set <path>", desc = "Assign a picture to the room you're currently standing in -- persists by room ID, the fix for two rooms sharing a name.", example = "mydsl location set roompics/arkane_square.png" },
+      { cmd = "set <filename>", desc = "Assign a picture to the room you're currently standing in -- takes a bare filename from the roompics folder (or a full path), persists by room ID, the fix for two rooms sharing a name. The window tells you the exact filename to save as when one's needed.", example = "mydsl location set \"The Wing of the Stone Dragon (2).png\"" },
       { cmd = "map <room> = <path> / unmap <room> / maps", desc = "Manually override, remove, or list room→image mappings by name (doesn't require being there).", example = "mydsl location maps" },
       { cmd = "fit <mode> / missing <mode> / title <text> / debug <mode>", desc = "Display tuning and diagnostics.", example = "mydsl location fit stretch" },
     },

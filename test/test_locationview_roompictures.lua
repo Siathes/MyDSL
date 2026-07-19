@@ -64,6 +64,41 @@ local path2b, source2b = M.pathForRoomId("200", "Test Room")
 check("a manually-assigned room ID resolves cleanly afterward",
   path2b == tmpDir .. "/Test Room.png" and source2b == "assigned")
 
+-- fileForRoomVariant()/nextAvailableFilename() -- the 2026-07-19
+-- auto-increment-suggestion feature ("can it auto increment in the style
+-- we did before ... until no file is present then ask?").
+check("fileForRoomVariant index 1 is the plain name",
+  M.fileForRoomVariant("The Wing of the Stone Dragon", 1) == "The Wing of the Stone Dragon.png")
+check("fileForRoomVariant index 2 uses the old ' (N)' suffix convention",
+  M.fileForRoomVariant("The Wing of the Stone Dragon", 2) == "The Wing of the Stone Dragon (2).png")
+
+-- "Test Room.png" already exists on disk (claimed by room 100); the next
+-- suggestion must skip it and land on "Test Room (2).png".
+local suggestedFile, suggestedPath = M.nextAvailableFilename("Test Room")
+check("nextAvailableFilename skips an existing file and suggests (2)",
+  suggestedFile == "Test Room (2).png" and suggestedPath == (tmpDir .. "/Test Room (2).png"))
+
+-- Once that suggested file actually exists too, the next suggestion must
+-- skip to (3).
+local f2 = io.open((tmpDir .. "/Test Room (2).png"), "w"); f2:write("fake"); f2:close()
+local suggestedFile2 = M.nextAvailableFilename("Test Room")
+check("nextAvailableFilename keeps incrementing past additional taken slots",
+  suggestedFile2 == "Test Room (3).png")
+
+-- resolveImageInput() -- bare filename resolves against M.dir; an
+-- absolute path passes through unchanged (backward compatible).
+check("resolveImageInput resolves a bare filename against M.dir",
+  M.resolveImageInput("Test Room (2).png") == (tmpDir .. "/Test Room (2).png"))
+check("resolveImageInput passes an absolute path through unchanged",
+  M.resolveImageInput("/some/absolute/path.png") == "/some/absolute/path.png")
+
+-- setImage() end-to-end with a bare filename (not a full path) -- the
+-- actual ask: "instead of set path, can we set filename".
+_G.getPlayerRoom = function() return 300 end
+M.setImage("Test Room (2).png")
+check("setImage() accepts a bare filename and resolves+persists it",
+  M.roomPictures["300"] == (tmpDir .. "/Test Room (2).png"))
+
 os.execute("rm -rf " .. tmpDir)
 
 print("")

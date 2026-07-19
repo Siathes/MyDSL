@@ -44,7 +44,7 @@
     mydsl location probe
     mydsl location probe <room name>
     mydsl location name <room name>
-    mydsl location set <absolute/image/path>
+    mydsl location set <filename in roompics dir, or /absolute/path>
     mydsl location map <room name> = <absolute/image/path>
     mydsl location unmap <room name>
     mydsl location maps
@@ -424,6 +424,51 @@ function M.fileForRoom(room)
   file = trim(file)
   if file == "" then return nil end
   return file .. ".png"
+end
+
+-- fileForRoomVariant(room, index) / nextAvailableFilename(room) -- added
+-- 2026-07-19, per Steven ("can we set filename since it will be in the
+-- same location as others, and can it auto increment in the style we
+-- did before... until no file is present then ask?"). Reuses the exact
+-- naming CONVENTION the old text-heuristic variant system used ("Room
+-- Name (2).png", "(3).png", ...) -- that part of the old design was
+-- fine, only the guessing-which-visit-is-which-variant part was fragile
+-- and got replaced by room-ID keying. This just tells Steven which
+-- filename is free to save a new picture under; it doesn't create or
+-- reserve anything by itself.
+function M.fileForRoomVariant(room, index)
+  local base = M.fileForRoom(room)
+  if not base then return nil end
+  index = tonumber(index) or 1
+  if index <= 1 then return base end
+  return base:gsub("%.png$", "") .. " (" .. index .. ").png"
+end
+
+function M.nextAvailableFilename(room)
+  local dir = M.dir or M.defaultDir()
+  local idx = 1
+  while idx <= 999 do
+    local file = M.fileForRoomVariant(room, idx)
+    if not file then return nil, nil end
+    local path = join(dir, file)
+    if not exists(path) then return file, path end
+    idx = idx + 1
+  end
+  return M.fileForRoomVariant(room, idx), join(dir, M.fileForRoomVariant(room, idx))
+end
+
+-- resolveImageInput(input) -- lets `mydsl location set` take a bare
+-- filename (resolved against the same roompics directory every other
+-- picture lives in) instead of requiring a full absolute path every
+-- time, since that's where a manually-saved picture will actually be.
+-- An input that already looks like an absolute path is used as-is
+-- (backward compatible with the original `mydsl location set
+-- <absolute/image/path>` usage).
+function M.resolveImageInput(input)
+  input = safeStr(input)
+  if not input then return nil end
+  if input:sub(1, 1) == "/" then return input end
+  return join(M.dir or M.defaultDir(), input)
 end
 
 function M.legacyFileForRoom(room)
@@ -829,12 +874,22 @@ function M.refresh(reason)
 
   local missingCaption = nil
   if not path and data.roomId then
+    -- Suggested filename -- added 2026-07-19, per Steven ("can it auto
+    -- increment in the style we did before ... until no file is present
+    -- then ask?"). Same "Name (2).png" convention the old variant system
+    -- used, just computed fresh each time from what's actually on disk
+    -- instead of a persisted per-room index -- tells Steven exactly what
+    -- to save a new picture as, whether this is a genuine duplicate or a
+    -- room that's just never had a picture at all.
+    local suggestedFile = M.nextAvailableFilename(data.room)
     if source == "conflict" then
-      missingCaption = "No picture assigned to this room yet.\n"
-        .. "Shares a name with another pictured room -- use: mydsl location set <path>"
+      missingCaption = string.format(
+        "No picture assigned to this room yet.\nShares a name with another pictured room.\nSave a picture as: \"%s\"\nThen: mydsl location set %s",
+        tostring(suggestedFile), tostring(suggestedFile))
     else
-      missingCaption = "No picture assigned to this room yet.\n"
-        .. "Use: mydsl location set <path>"
+      missingCaption = string.format(
+        "No picture assigned to this room yet.\nSave a picture as: \"%s\"\nThen: mydsl location set %s",
+        tostring(suggestedFile), tostring(suggestedFile))
     end
   end
 
@@ -854,7 +909,7 @@ function M.setByName(room)
   return M.render(path, M.captionForRoom(data, path, source), source, room)
 end
 
--- setImage(path) -- "manual where duplicates arise" (per Steven). Updated
+-- setImage(input) -- "manual where duplicates arise" (per Steven). Updated
 -- 2026-07-19 to actually persist: it used to only force the display for
 -- the current moment (M.manualPath was never read back by anything, a
 -- dead field even before this change), so the same "no picture assigned"
@@ -863,10 +918,15 @@ end
 -- exactly the real-world flow this command exists for: you're standing
 -- in the ambiguous room, you tell it which picture belongs here, and it
 -- stays assigned every time you come back.
-function M.setImage(path)
-  path = safeStr(path)
+-- Updated again same day: accepts a bare filename (resolved against the
+-- roompics directory every other picture already lives in, via
+-- M.resolveImageInput()) instead of requiring a full absolute path --
+-- matches M.refresh()'s own suggested-filename message exactly, so
+-- Steven can copy-paste the filename it already showed him.
+function M.setImage(input)
+  local path = M.resolveImageInput(input)
   if not path then
-    echoR("Usage: mydsl location set <absolute/image/path>")
+    echoR("Usage: mydsl location set <filename or /absolute/path>")
     return false
   end
   M.manualPath = path
@@ -1049,7 +1109,7 @@ function M.help()
   mydsl location dir [absolute/path]
   mydsl location probe [room name]
   mydsl location name <room name>
-  mydsl location set <absolute/image/path>   (assigns to the room you're standing in)
+  mydsl location set <filename, or /absolute/path>   (assigns to the room you're standing in)
   mydsl location map <room name> = <absolute/image/path>   (assigns by name, doesn't require being there)
   mydsl location unmap <room name>
   mydsl location maps
