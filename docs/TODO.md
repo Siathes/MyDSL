@@ -776,6 +776,23 @@ Timers. Real candidates for future integration, none urgent:
 ---
 
 ## DECISIONS RECORDED
+- **"Passive observation only, never send automatic game commands" is
+  suspended for leveling/questing automation addons — confirmed
+  2026-07-19, per Steven ("the no automation is suspended for thes
+  modules, they will be outside addons for the ui, for the specific
+  task of automating these features").** Scope of the exception is
+  narrow and explicit, not a blanket policy change: it applies only to
+  a leveling-assist module (auto-navigate known hunting grounds,
+  auto-engage mobs) and a questing-assist module (auto-run `pquest`
+  flow), both sourced from real community Mudlet scripts found on the
+  DSL forums (forum ID 111, "Mudlet Scripts") via the
+  `~/Documents/DSL/dsl-knowledge-base` project. These ship as **separate
+  outside addons**, not part of the core MyDSL passive-observation UI
+  stack — the rest of DSL2 (Location, Combat, TargetView, etc.) keeps
+  the original passive-only rule unchanged; this exception doesn't
+  generalize to any other module without a similarly explicit ask. See
+  `docs/CHANGELOG.md` (2026-07-19) for the source-validation work and
+  whatever gets built from it.
 - **Mapper: `start mapping` stays a manual gate, not auto-persisted —
   confirmed 2026-07-18, per Steven.** Root cause of "new mapper doesn't
   recognize existing rooms" / "position stuck on the previous room" is
