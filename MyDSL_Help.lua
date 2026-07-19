@@ -311,10 +311,33 @@ MyDSL.Help.modules = {
       { cmd = "autowhere <on|off|status>", desc = "Periodic `where` polling every 20s -- skips a tick while sleeping/fighting/blind instead of sending it blindly.", example = "autowhere on" },
     },
   },
+
+  -- ---- Automation / Assist ----
+  -- Unlike every other module listed here, MyDSL_Leveling.lua SENDS real
+  -- game commands -- an explicit, narrow exception to this project's
+  -- normal passive-observation-only rule (Steven, 2026-07-19; see that
+  -- file's own header comment and docs/TODO.md's DECISIONS RECORDED
+  -- section). A future MyDSL_Questing.lua will join this same category.
+  { key = "leveling", title = "Leveling", category = "Automation / Assist", window = "MyDSL_Leveling",
+    summary = "Automated hunting-area leveling assist: navigates to a known area, walks its circuit, and fights enabled mobs. Sends real game commands -- opt-in per area/mob.",
+    commands = {
+      { cmd = "mydsl leveling import", desc = "Load the seed area data (39 forum-sourced hunting areas).", example = "mydsl leveling import" },
+      { cmd = "mydsl leveling areas", desc = "List known areas with level range and enabled mob counts.", example = "mydsl leveling areas" },
+      { cmd = "mydsl leveling start <area>", desc = "Navigate to the area (mapper speedwalk if the start room is known, else manual directions), then wait paused for you to prep.", example = "mydsl leveling start gahboom" },
+      { cmd = "mydsl leveling resume", desc = "Begin or continue the walk-and-fight loop. Also resumes a paused run.", example = "mydsl leveling resume" },
+      { cmd = "mydsl leveling pause", desc = "Freeze the run in place until resumed.", example = "mydsl leveling pause" },
+      { cmd = "mydsl leveling stop", desc = "End the session entirely.", example = "mydsl leveling stop" },
+      { cmd = "mydsl leveling status", desc = "Show current area/step/kills/xp.", example = "mydsl leveling status" },
+      { cmd = "mydsl leveling scan [area]", desc = "Add mobs seen in your CURRENT room to an area -- the auto-fill-mobs shortcut.", example = "mydsl leveling scan" },
+      { cmd = "mydsl leveling show/hide <area> <mob|all>", desc = "Toggle whether a mob (or all mobs) in an area get fought.", example = "mydsl leveling hide gahboom janitor" },
+      { cmd = "mydsl leveling area new/delete <name>", desc = "Add or remove a custom area.", example = "mydsl leveling area new my spot" },
+      { cmd = "mydsl leveling hp <percent>", desc = "HP percent auto-stop safety net, on top of DSL's own wimpy (0 disables).", example = "mydsl leveling hp 30" },
+    },
+  },
 }
 
 -- Category display order (main console + overview page both follow this).
-local CATEGORY_ORDER = { "Vitals & Combat", "Targeting & Group", "Display & Reference", "Setup & Diagnostics" }
+local CATEGORY_ORDER = { "Vitals & Combat", "Targeting & Group", "Display & Reference", "Setup & Diagnostics", "Automation / Assist" }
 
 
 ------------------------------------------------------------------------

@@ -119,6 +119,43 @@ Fixed in code, verified via syntax checks and/or emulation — none of this
 is closed until Steven confirms it in-game. Full technical detail for any
 item: `git log --oneline` + `docs/CHANGELOG.md`.
 
+- [ ] **`MyDSL_Leveling.lua` — new leveling-assist addon, built 2026-07-19,
+      not yet installed or live-tested.** Per Steven's ask (auto-navigate
+      known hunting areas, auto-engage enabled mobs, easy area/mob
+      maintenance for new users) plus a same-day follow-up round
+      (mapper-based navigate-to-area, pause-before-start/pause-resume,
+      the followers/line-spacing shared-risk dependency) — see the
+      approved plan and this file's own header comment for full design.
+      Ships as a **separate outside addon** (per the passive-observation
+      exception recorded below), NOT part of `MyDSL_Full.mpackage`/
+      `build_mydsl_package.py` — needs its own manual `dofile()` wiring
+      in Mudlet's Script Editor before it can run at all. Seed data:
+      `MyDSL/leveling_areas_seed.lua`, 39 real hunting areas from the DSL
+      forums (forum 111 "Mudlet Scripts", thread 99388), with a real
+      syntax bug in the raw forum-quoted table (every entry duplicated as
+      `["name"] = ["name"] = {...}`) mechanically fixed during import, and
+      4 later-thread corrections applied (weeds +3 mobs, cryfield
+      renamed from "crystfield" with its full mob list, hedgemaze's dead
+      mob removed, jixpk's missing rooms fixed) plus 1 new area (muck)
+      added. Reuses existing infrastructure rather than reinventing it:
+      `MyDSL.on("scan", ...)` (no duplicate room-capture trigger chain),
+      the real `DSL_Generic_Mapper.xml` fork's `map.speedwalk()`,
+      `MyDSL_CharacterAssist.lua`'s failsafe-timer pattern, and
+      `MyDSL_TargetView.lua`'s single-word kill-keyword rule (own tiny
+      copy, not an export, to keep the addon boundary clean of core-file
+      edits). Verified via a 21-assertion structural test harness
+      (`test/test_leveling.lua`): seed import (all 39 areas, the syntax
+      fix, the cryfield rename), mob show/hide toggling, scan-event-
+      driven mob recognition, kill-stealing "finish this room first"
+      behavior, the XP-gain advance trigger, the failsafe dead-man's-
+      switch, and the HP%-threshold safety net. Also added one
+      `MyDSL.Windows.registry` entry (`MyDSL_Leveling`, visible=false,
+      same on-demand precedent as Bestiary/Help/Item Reference) and one
+      `MyDSL.Help.modules` entry under a new "Automation / Assist"
+      category. **Nothing here is live-tested** — needs Steven to
+      actually wire the dofile, run `mydsl leveling import`, and try a
+      real area (navigate-to-area, pause/resume, a full walk-and-fight
+      pass, HP safety stop, failsafe timeout) before any of this closes.
 - [ ] **DSL Generic Mapper: real "air" terrain gap, plus dropped the
       spammy line-buffer dump from `dslroom raw` — fixed 2026-07-18,
       needs live confirmation.** Per Steven ("is there a terrain color

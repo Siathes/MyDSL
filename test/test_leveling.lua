@@ -1,0 +1,158 @@
+-- Structural test for MyDSL_Leveling.lua (2026-07-19 leveling-assist addon).
+-- Covers: seed-area import (fixes the real ["x"]=["x"]={...} syntax bug
+-- present in the forum-sourced data), mob show/hide toggling, scan-event-
+-- driven mob recognition (reuses MyDSL_DataLayer.lua's scan.rightHere,
+-- no duplicate trigger chain), kill-stealing "finish room first" behavior,
+-- the failsafe dead-man's-switch, and the HP safety-net auto-stop.
+--
+-- Run: luajit test/test_leveling.lua
+
+package.path = package.path .. ";./test/?.lua"
+require("mudlet_mock")
+
+dofile("MyDSL_DataLayer.lua")
+dofile("MyDSL_Leveling.lua")
+
+local L = MyDSL.Leveling
+local failures = 0
+local function check(name, cond)
+  if cond then print("PASS: " .. name) else print("FAIL: " .. name); failures = failures + 1 end
+end
+
+------------------------------------------------------------------------
+-- 1. Seed import
+------------------------------------------------------------------------
+L.importSeedAreas("MyDSL/leveling_areas_seed.lua")
+local areaCount = 0
+for _ in pairs(L.areas) do areaCount = areaCount + 1 end
+check("imports all 39 areas", areaCount == 39)
+check("fixed the duplicated-key syntax bug (gahboom loads with real dirs/mobs)",
+  L.areas["gahboom"] and #L.areas["gahboom"].dirs == 51)
+check("gahboom's excavator mob has the AlexK-tested single-word kill keyword",
+  L.areas["gahboom"].mobs["excavator"] and L.areas["gahboom"].mobs["excavator"].kill_kw == "excavator")
+check("crystfield was renamed to cryfield per the later forum correction",
+  L.areas["cryfield"] ~= nil and L.areas["crystfield"] == nil)
+check("re-running import is non-destructive (still 39, not 78)", (function()
+  L.importSeedAreas("MyDSL/leveling_areas_seed.lua")
+  local n = 0; for _ in pairs(L.areas) do n = n + 1 end
+  return n == 39
+end)())
+
+------------------------------------------------------------------------
+-- 2. Mob show/hide toggling
+------------------------------------------------------------------------
+L.setMobEnabled("gahboom", "excavator", false)
+check("hide disables a single mob", L.areas["gahboom"].mobs["excavator"].enabled == false)
+L.setMobEnabled("gahboom", "excavator", true)
+check("show re-enables a single mob", L.areas["gahboom"].mobs["excavator"].enabled == true)
+L.setMobEnabled("gahboom", "all", false)
+local anyEnabled = false
+for _, m in pairs(L.areas["gahboom"].mobs) do if m.enabled then anyEnabled = true end end
+check("hide all disables every mob in the area", not anyEnabled)
+L.setMobEnabled("gahboom", "all", true)
+
+------------------------------------------------------------------------
+-- 3. Scan-event-driven mob recognition (no duplicate trigger chain --
+--    reuses MyDSL.on("scan", ...) fed by MyDSL_DataLayer.lua's own
+--    scan.rightHere capture)
+------------------------------------------------------------------------
+L.session.state = "active"
+L.session.areaKey = "gahboom"
+L.session.stepIndex = 1
+L.session.awaitingRoom = true
+L.session.mobsInRoom = {}
+_G.__sentCommands = {}
+
+MyDSL.State.scan = MyDSL.State.scan or {}
+MyDSL.State.scan.rightHere = {
+  excavator_entry = { raw = "A gnome stone excavator is here.", is_mob = true, key = "gnome stone excavator" },
+  heat_entry      = { raw = "A gnome in a protective heat suit is studying here.", is_mob = true, key = "gnome in a protective heat suit" },
+  fixture_entry   = { raw = "A pile of rubble lies here.", is_mob = false, key = "pile of rubble" },
+}
+MyDSL.emit("scan")
+
+check("scan event no longer awaiting room (consumed)", L.session.awaitingRoom == false)
+check("a kill command was sent for a recognized enabled mob", (function()
+  for _, cmd in ipairs(_G.__sentCommands) do
+    if cmd == "kill excavator" or cmd == "kill heat" then return true end
+  end
+  return false
+end)())
+check("exactly one mob is still queued after popping the first", #L.session.mobsInRoom == 1)
+check("the non-mob fixture line was never queued", (function()
+  for _, k in ipairs(L.session.mobsInRoom) do
+    if k ~= "excavator" and k ~= "heat" then return false end
+  end
+  return true
+end)())
+
+------------------------------------------------------------------------
+-- 4. Kill-stealing: finish remaining enabled mobs in the room before
+--    advancing (improvement over AlexK's "abandon room" default)
+------------------------------------------------------------------------
+check("pendingKillMobKey is set while a kill command is outstanding",
+  L.session.pendingKillMobKey == "excavator" or L.session.pendingKillMobKey == "heat")
+local killStolenTrig = _G.__triggers[L._triggers.killStolen]
+_G.matches = { "They aren't here." }
+_G.__sentCommands = {}
+killStolenTrig.func()
+check("kill-stealing/'they aren't here' tries the NEXT mob in this room, not the next step",
+  #_G.__sentCommands == 1 and (_G.__sentCommands[1] == "kill excavator" or _G.__sentCommands[1] == "kill heat"))
+check("room's mob queue is now empty", #L.session.mobsInRoom == 0)
+
+------------------------------------------------------------------------
+-- 5. XP-gain trigger advances kill count and clears the pending kill
+------------------------------------------------------------------------
+L.session.mobsInRoom = {}
+L.session.pendingKillMobKey = "excavator"
+local killedBefore, xpBefore = L.session.stats.killed, L.session.stats.xp
+_G.matches = { "You receive 1726 experience points.", "1726" }
+local xpTrig = _G.__triggers[L._triggers.xpGain]
+xpTrig.func()
+check("xp-gain trigger increments kill/xp stats", L.session.stats.killed == killedBefore + 1
+  and L.session.stats.xp == xpBefore + 1726)
+check("xp-gain trigger clears pendingKillMobKey", L.session.pendingKillMobKey == nil)
+
+------------------------------------------------------------------------
+-- 6. Failsafe dead-man's-switch
+------------------------------------------------------------------------
+local capturedFailsafeFn = nil
+local realTempTimer = _G.tempTimer
+_G.tempTimer = function(delay, fn) capturedFailsafeFn = fn; return 999 end
+L.session.state = "active"
+L.armFailsafe()
+_G.tempTimer = realTempTimer
+check("armFailsafe schedules a callback", capturedFailsafeFn ~= nil)
+if capturedFailsafeFn then capturedFailsafeFn() end
+check("failsafe firing stops the session", L.session.state == "stopped")
+
+------------------------------------------------------------------------
+-- 7. HP safety net
+------------------------------------------------------------------------
+L.session.state = "active"
+L.session.hpThreshold = 30
+MyDSL.State.char = MyDSL.State.char or {}
+MyDSL.State.char.hp = 100
+MyDSL.State.char.max_hp = 1000
+MyDSL.emit("char")
+check("HP safety net stops the session when HP% drops below threshold", L.session.state == "stopped")
+
+L.session.state = "active"
+MyDSL.State.char.hp = 900
+MyDSL.State.char.max_hp = 1000
+MyDSL.emit("char")
+check("HP safety net leaves a healthy session running", L.session.state == "active")
+
+L.session.hpThreshold = 0
+MyDSL.State.char.hp = 10
+MyDSL.emit("char")
+check("HP safety net does nothing when disabled (threshold 0)", L.session.state == "active")
+
+print("")
+if failures == 0 then
+  print("ALL PASS")
+  os.exit(0)
+else
+  print(failures .. " FAILURE(S)")
+  os.exit(1)
+end

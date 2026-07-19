@@ -217,6 +217,14 @@ MyDSL.Windows.registry = MyDSL.Windows.registry or {
   -- Layer 4, first slice (2026-07-16) -- on-demand reference window, same
   -- visible=false precedent as MyDSL_CreatureReference (Bestiary).
   MyDSL_ItemReference    = { obj=nil, type="UserWindow", visible=false, created=false },
+  -- Leveling-assist addon (MyDSL_Leveling.lua, 2026-07-19) -- on-demand
+  -- status/log window, same visible=false precedent as CreatureReference/
+  -- Help/ItemReference. Note: unlike every other module in this registry,
+  -- MyDSL_Leveling.lua sends real game commands -- an explicit, narrow
+  -- exception (see that file's own header comment and docs/TODO.md's
+  -- DECISIONS RECORDED section) -- but its window itself is just a plain
+  -- status display, nothing different about its registry entry.
+  MyDSL_Leveling         = { obj=nil, type="UserWindow", visible=false, created=false },
 
   -- ---- Adjustable.Container windows (anchored inside the main Mudlet console) --
 

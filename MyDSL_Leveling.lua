@@ -1,0 +1,803 @@
+-- =============================================================================
+-- MyDSL_Leveling.lua  --  Leveling-assist addon (SENDS REAL GAME COMMANDS)
+-- =============================================================================
+-- Added 2026-07-19. Unlike every other MyDSL_*.lua file, this module
+-- deliberately sends automatic game commands (movement, "kill <mob>",
+-- "drop <n> silver", optional buff-reapply) -- an explicit, narrow exception
+-- to the project's normal "passive observation only" rule, granted by
+-- Steven: "the no automation is suspended for thes modules, they will be
+-- outside addons for the ui, for the specific task of automating these
+-- features." Scope is limited to this file and a future MyDSL_Questing.lua
+-- -- see docs/TODO.md's DECISIONS RECORDED section. Every other module in
+-- this profile stays passive-only.
+--
+-- Ported/redesigned from AlexK's 2015 community "Leveling" Mudlet package
+-- (dsl-mud.org forums), with the raw hunting-area data (MyDSL/
+-- leveling_areas_seed.lua) sourced and corrected from forum 111 "Mudlet
+-- Scripts" thread 99388 "Leveling.areas Combined". Reuses this codebase's
+-- own existing infrastructure instead of AlexK's 3-trigger room-capture
+-- chain: MyDSL_DataLayer.lua's scan.rightHere (fed by the SAME "[Exits: "
+-- anchor AlexK's own capture used), the real DSL_Generic_Mapper.xml fork's
+-- map.speedwalk()/getPath(), and MyDSL_CharacterAssist.lua's dead-man's-
+-- switch failsafe-timer pattern.
+-- =============================================================================
+
+MyDSL         = MyDSL         or {}
+MyDSL.Leveling = MyDSL.Leveling or {}
+
+local L = MyDSL.Leveling
+
+-- Safe-reload: kill old handlers/triggers/aliases/timers on every load,
+-- same boilerplate as every other MyDSL Layer 3 module (TargetView,
+-- CombatView, CharacterAssist).
+for _, id in pairs(L._handlers or {}) do pcall(killAnonymousEventHandler, id) end
+for _, id in pairs(L._triggers or {}) do pcall(killTrigger, id) end
+for _, id in pairs(L._aliases  or {}) do pcall(killAlias, id) end
+if L._failsafeTimer then pcall(killTimer, L._failsafeTimer) end
+
+L._handlers = {}
+L._triggers = {}
+L._aliases  = {}
+L._failsafeTimer = nil
+L._mc = L._mc or {}
+L.aliasesMade = false
+
+local WIN = "MyDSL_Leveling"
+local MC  = "MyDSL_Leveling_MC"
+
+
+------------------------------------------------------------------------
+-- SECTION 1: LOCAL HELPERS (each MyDSL module carries its own small
+-- copies of these -- established project convention, see MyDSL_DataLayer
+-- .lua's safeFileName() comment and MyDSL_LocationView.lua's exists()/
+-- join()/ensureDir()).
+------------------------------------------------------------------------
+
+local function ce(msg) cecho("\n<cyan>[MyDSL.Leveling]<reset> " .. tostring(msg) .. "\n") end
+local function trim(s) return s and s:match("^%s*(.-)%s*$") or "" end
+
+local function exists(path)
+  if not path then return false end
+  if io and io.exists then return io.exists(path) end
+  local f = io.open(path, "rb")
+  if f then f:close(); return true end
+  return false
+end
+
+local function join(dir, file)
+  if not dir or not file then return nil end
+  if string.sub(dir, -1) == "/" then return dir .. file end
+  return dir .. "/" .. file
+end
+
+local function ensureDir(path)
+  if not path or path == "" then return end
+  pcall(function() os.execute('mkdir -p "' .. tostring(path):gsub('"', '\\"') .. '"') end)
+end
+
+local function profileDir()
+  return (getMudletHomeDir and getMudletHomeDir()) or "."
+end
+
+local function dataDir() return join(profileDir(), "MyDSL") end
+
+-- Same last-word-reduction TargetView's private commandArg() uses --
+-- confirmed live (MyDSL_TargetView.lua): DSL's own kill/target keyword
+-- matching only succeeds on a single word. Kept as our own tiny copy
+-- rather than exporting TargetView's private local, to keep this file's
+-- "separate outside addon" boundary strict (no edits to a passive-
+-- observation core module just for this addon's benefit).
+local function normalizeName(s)
+  s = tostring(s or ""):lower()
+  s = s:gsub('[",.]', " ")
+  s = s:gsub("^a%s+", ""):gsub("^an%s+", ""):gsub("^the%s+", "")
+  s = s:gsub("%s+", " ")
+  return trim(s)
+end
+
+local function commandArg(name)
+  local s = normalizeName(name or "")
+  if s == "" then return "" end
+  return s:match("(%S+)$") or s
+end
+
+-- Derive a short display label from a captured room-presence line, for
+-- status/help display only -- never used for matching (matching against
+-- scan.rightHere is always exact-string on the "raw" field). Strips
+-- leading parentheticals/articles and trailing verb-phrase filler.
+local function deriveLabel(raw)
+  local rest = trim(raw or "")
+  while true do
+    local stripped = rest:match("^%([^()]+%)%s*(.+)$")
+    if not stripped then break end
+    rest = stripped
+  end
+  rest = rest:gsub("^[Aa]n? ", ""):gsub("^[Tt]he ", "")
+  local cut = rest:find(" is here") or rest:find(" stands here") or rest:find(" sits here")
+           or rest:find(" hovers") or rest:find(" wanders here") or rest:find(",")
+  if cut then rest = rest:sub(1, cut - 1) end
+  return trim(rest)
+end
+
+-- mapperRoomId() -- same defensive fallback chain MyDSL_LocationView.lua's
+-- own mapperRoomId() uses (getPlayerRoom() first, then a few common mapper-
+-- package globals), copied rather than exported for the same addon-
+-- boundary reason as commandArg() above.
+local function validRoomId(id)
+  if id == nil then return nil end
+  local s = tostring(id)
+  if s == "" or s == "0" or s == "-1" or s == "nil" then return nil end
+  return id
+end
+
+local function call(fn, ...)
+  if type(fn) ~= "function" then return nil end
+  local ok, ret = pcall(fn, ...)
+  if ok then return ret end
+  return nil
+end
+
+local function mapperRoomId()
+  local id = validRoomId(call(_G.getPlayerRoom))
+  if id then return id end
+  local candidates = {
+    _G.currentRoom, _G.current_room, _G.currentRoomID, _G.current_room_id,
+    _G.map and (_G.map.currentRoom or _G.map.current_room or _G.map.room or _G.map.currentRoomID),
+    _G.mapper and (_G.mapper.currentRoom or _G.mapper.current_room or _G.mapper.room or _G.mapper.currentRoomID),
+  }
+  for _, v in ipairs(candidates) do
+    id = validRoomId(v)
+    if id then return id end
+  end
+  return nil
+end
+
+
+------------------------------------------------------------------------
+-- SECTION 2: PERSISTENCE
+------------------------------------------------------------------------
+-- Same table.save()/table.load(file, target) 2-arg pattern
+-- MyDSL_LocationView.lua's roomPictures uses -- the 2-arg form is
+-- required (table.load has no return value; a documented recurring bug
+-- in this codebase otherwise).
+
+function L.areasFile() return join(dataDir(), "leveling_areas.lua") end
+
+function L.loadAreas()
+  L.areas = L.areas or {}
+  if exists(L.areasFile()) then
+    pcall(function() table.load(L.areasFile(), L.areas) end)
+  end
+end
+
+function L.saveAreas()
+  ensureDir(dataDir())
+  pcall(table.save, L.areasFile(), L.areas or {})
+end
+
+-- importSeedAreas(path) -- same non-destructive merge-into-live-db pattern
+-- as MyDSL_CreatureLore.lua's importScraped()/bestiary_scrape_import.lua.
+-- The seed file ships in AlexK's original raw shape (dirs/allowed_mobs/
+-- description/levels) -- converted to our schema here rather than shipping
+-- pre-converted, mirroring CreatureLore's own two-stage scrape->live-db
+-- pattern. Never overwrites an area the user already has (so re-running
+-- "mydsl leveling import" after hand-editing mobs is always safe).
+function L.importSeedAreas(path)
+  path = path or join(dataDir(), "leveling_areas_seed.lua")
+  local f = io.open(path, "r")
+  if not f then
+    debugc("[MyDSL] Leveling: seed file not found at " .. tostring(path))
+    return
+  end
+  f:close()
+  local ok, rawAreas = pcall(dofile, path)
+  if not ok or type(rawAreas) ~= "table" then
+    debugc("[MyDSL] Leveling: seed file failed to load: " .. tostring(rawAreas))
+    return
+  end
+
+  L.areas = L.areas or {}
+  local added, skipped = 0, 0
+  for name, def in pairs(rawAreas) do
+    local key = normalizeName(name)
+    if L.areas[key] then
+      skipped = skipped + 1
+    else
+      local mobs = {}
+      for abbrev, raw in pairs(def.allowed_mobs or {}) do
+        mobs[abbrev] = {
+          raw = raw, label = deriveLabel(raw), kill_kw = commandArg(abbrev), enabled = true,
+        }
+      end
+      L.areas[key] = {
+        name = name, dirs = def.dirs or {}, mobs = mobs,
+        levels = def.levels or "Unknown.", description = def.description or "",
+        startRoomId = nil, roomPath = {}, source = "seed",
+      }
+      added = added + 1
+    end
+  end
+  L.saveAreas()
+  local msg = string.format(
+    "[MyDSL] Leveling import: %d new area(s), %d already present (left untouched).", added, skipped)
+  echo(msg .. "\n")
+  debugc(msg)
+end
+
+
+------------------------------------------------------------------------
+-- SECTION 3: SESSION STATE (non-persisted)
+------------------------------------------------------------------------
+
+L.session = L.session or {
+  state             = "stopped",  -- stopped | navigating | paused | active
+  areaKey           = nil,
+  stepIndex         = 1,
+  awaitingRoom      = false,
+  mobsInRoom        = {},
+  pendingKillMobKey = nil,
+  stats             = { killed = 0, xp = 0, started = nil },
+  hpThreshold        = 30,   -- percent; 0 disables
+  failsafeSeconds    = 30,
+  buffs              = {},   -- {fury=cmd, haste=cmd, detects=cmd, sanc=cmd}
+}
+
+
+------------------------------------------------------------------------
+-- SECTION 4: WINDOW / UI (on-demand, visible=false -- same precedent as
+-- MyDSL_CreatureReference.lua)
+------------------------------------------------------------------------
+
+function L.ensureUI()
+  local win = MyDSL.Windows and MyDSL.Windows.ensure(WIN)
+  if win and win.setTitle then pcall(function() win:setTitle("-= Leveling =-") end) end
+  if not L._mc.log then
+    L._mc.log = Geyser.MiniConsole:new({
+      name = MC, x = 0, y = 0, width = "100%", height = "100%", scrollBar = true,
+    }, win)
+  end
+  local fontSize = MyDSL.Windows and MyDSL.Windows.getFontSize(WIN, 9) or 9
+  if L._mc.log then L._mc.log:setFontSize(fontSize) end
+  if MyDSL.Windows and MyDSL.Windows.enableAdaptiveWrap then
+    MyDSL.Windows.enableAdaptiveWrap(L._mc.log)
+  end
+end
+
+function L.log(text)
+  if L._mc.log then L._mc.log:decho(text .. "\n") end
+end
+
+function L.show() if MyDSL.Windows then MyDSL.Windows.show(WIN) end end
+function L.hide() if MyDSL.Windows then MyDSL.Windows.hide(WIN) end end
+
+
+------------------------------------------------------------------------
+-- SECTION 5: FAILSAFE (dead-man's-switch, same pattern as
+-- MyDSL_CharacterAssist.lua's CA._failsafeTimer)
+------------------------------------------------------------------------
+
+function L.armFailsafe()
+  if L._failsafeTimer then killTimer(L._failsafeTimer); L._failsafeTimer = nil end
+  L._failsafeTimer = tempTimer(L.session.failsafeSeconds, function()
+    ce("Failsafe: no activity for " .. L.session.failsafeSeconds .. "s -- stopping.")
+    L.stop()
+  end)
+end
+
+function L.resetFailsafe()
+  if L.session.state == "active" then L.armFailsafe() end
+end
+
+function L.clearFailsafe()
+  if L._failsafeTimer then killTimer(L._failsafeTimer); L._failsafeTimer = nil end
+end
+
+
+------------------------------------------------------------------------
+-- SECTION 6: NAVIGATE-TO-AREA
+------------------------------------------------------------------------
+-- Uses the real DSL_Generic_Mapper.xml fork's map.speedwalk(roomID) --
+-- confirmed real, already in production (its own "room find"/"rf" alias
+-- drives it the same way from an arbitrary current room via getPath()).
+
+function L.startArea(areaKey)
+  local area = L.areas[areaKey]
+  if not area then ce("No such area: " .. tostring(areaKey) .. ". Try: mydsl leveling areas"); return end
+
+  L.session.areaKey = areaKey
+  L.session.stepIndex = 1
+  L.session.mobsInRoom = {}
+  L.session.pendingKillMobKey = nil
+
+  if area.startRoomId and _G.map then
+    ce("Navigating to " .. area.name .. " (cached start room)...")
+    L.session.state = "navigating"
+    L._triggers.speedwalkDone = tempRegexTrigger(".*", function() end) -- placeholder unused; real hook below
+    killTrigger(L._triggers.speedwalkDone); L._triggers.speedwalkDone = nil
+    L._handlers.speedwalkDone = registerAnonymousEventHandler("sysSpeedwalkFinished", function()
+      pcall(killAnonymousEventHandler, L._handlers.speedwalkDone)
+      L._handlers.speedwalkDone = nil
+      L.onArrivedAtStart(areaKey)
+    end)
+    _G.map.speedwalk(area.startRoomId)
+  else
+    ce(area.name .. ": no cached start room yet. Walk there manually, then run "
+      .. "'mydsl leveling start " .. areaKey .. "' again to confirm arrival.")
+    if area.description ~= "" then ce("Directions: " .. area.description) end
+    L.session.state = "navigating"
+  end
+end
+
+function L.onArrivedAtStart(areaKey)
+  local area = L.areas[areaKey]
+  if not area then return end
+  local roomId = mapperRoomId()
+  if roomId and not area.startRoomId then
+    area.startRoomId = roomId
+    L.saveAreas()
+  end
+  L.session.state = "paused"
+  ce(area.name .. ": in position. 'mydsl leveling resume' when ready (buffs/food/etc. first if you want).")
+end
+
+-- Second "start <area>" call while navigating manually -- confirms
+-- arrival via the mapper's current room id (same defensive fallback
+-- chain as LocationView's own mapperRoomId()).
+function L.confirmArrivalIfNavigating(areaKey)
+  if L.session.state ~= "navigating" or L.session.areaKey ~= areaKey then return false end
+  local roomId = mapperRoomId()
+  if not roomId then
+    ce("Current room not yet resolvable -- try again once the mapper recognizes this room.")
+    return false
+  end
+  L.onArrivedAtStart(areaKey)
+  return true
+end
+
+
+------------------------------------------------------------------------
+-- SECTION 7: INTERNAL-AREA STEPPING
+------------------------------------------------------------------------
+-- Raw direction-list replay is authoritative (matches proven community
+-- data); map.speedwalk() is an opportunistic same-session upgrade for
+-- hops already independently corroborated by the mapper, never the other
+-- way around.
+
+local function sendStep(token)
+  for part in tostring(token):gmatch("[^;]+") do
+    send(trim(part))
+  end
+end
+
+function L.processStep()
+  local area = L.areas[L.session.areaKey]
+  if not area then L.stop(); return end
+
+  if L.session.stepIndex > #area.dirs then
+    ce(area.name .. ": pass complete. " .. L.session.stats.killed .. " killed, "
+      .. L.session.stats.xp .. " xp this run.")
+    L.stop()
+    return
+  end
+
+  local idx = L.session.stepIndex
+  local cachedRoomId = area.roomPath[idx]
+  local curRoomId = mapperRoomId()
+
+  L.session.awaitingRoom = true
+  L.session.stepIndex = idx + 1
+
+  if cachedRoomId and curRoomId and _G.map and _G.getPath then
+    local ok = pcall(_G.getPath, curRoomId, cachedRoomId)
+    if ok and _G.map.speedwalk then
+      _G.map.speedwalk(cachedRoomId)
+      return
+    end
+  end
+
+  sendStep(area.dirs[idx])
+  -- Opportunistically cache this hop once the mapper confirms a new room.
+  L._pendingCache = { stepIndex = idx, fromRoomId = curRoomId }
+end
+
+-- Called from the scan-event listener once a room's content has been
+-- captured after a step -- opportunistically records the room id this
+-- step landed in, for next pass's map.speedwalk() upgrade.
+local function cacheStepArrival()
+  if not L._pendingCache then return end
+  local area = L.areas[L.session.areaKey]
+  local roomId = mapperRoomId()
+  if area and roomId then
+    area.roomPath[L._pendingCache.stepIndex] = roomId
+  end
+  L._pendingCache = nil
+end
+
+
+------------------------------------------------------------------------
+-- SECTION 8: MOB RECOGNITION (reuses MyDSL_DataLayer.lua's scan capture
+-- -- no duplicate trigger chain)
+------------------------------------------------------------------------
+-- MyDSL.on("scan", ...) fires on MyDSL.emit("scan"), called from
+-- MyDSL.endLook() -- anchored on the same "[Exits: " line (confirmed:
+-- fires on every room reprint, including after movement, not just a
+-- manual "look") that AlexK's own original capture trigger used.
+--
+-- Shared-risk note (per Steven, 2026-07-19): this depends entirely on
+-- MyDSL_DataLayer.lua's isUnparsedPresenceLine()/parseLookHereLine(),
+-- hardened three separate times (2026-07-08/09) for charmed/summoned-
+-- follower idle-line phrasing that kept evading enumeration, finally
+-- generalized to "an article-led line is a skippable presence line"
+-- rather than matching specific verbs. A leveling run generates far more
+-- room-look volume than normal play, so it's the most likely place a
+-- still-unseen edge case would surface. If a new gap shows up during
+-- live testing, fix it at the shared DataLayer level (benefits every
+-- module reading scan.rightHere), not with a local workaround here.
+
+MyDSL.on("scan", function(scanState)
+  if not (L.session.state == "active" and L.session.awaitingRoom) then return end
+  L.session.awaitingRoom = false
+  cacheStepArrival()
+
+  local area = L.areas[L.session.areaKey]
+  if not area then return end
+
+  L.session.mobsInRoom = {}
+  for _, entry in pairs(scanState.rightHere or {}) do
+    if entry.is_mob then
+      for mobKey, mobDef in pairs(area.mobs) do
+        if mobDef.enabled and mobDef.raw == entry.raw then
+          table.insert(L.session.mobsInRoom, mobKey)
+        end
+      end
+    end
+  end
+  L.tryKill()
+end)
+
+
+------------------------------------------------------------------------
+-- SECTION 9: COMBAT LOOP
+------------------------------------------------------------------------
+
+function L.tryKill()
+  if L.session.state ~= "active" then return end
+  if #L.session.mobsInRoom == 0 then
+    L.session.pendingKillMobKey = nil
+    L.processStep()
+    return
+  end
+  local area = L.areas[L.session.areaKey]
+  local mobKey = table.remove(L.session.mobsInRoom, 1)
+  local mobDef = area.mobs[mobKey]
+  L.session.pendingKillMobKey = mobKey
+  L.armFailsafe()
+  send("kill " .. mobDef.kill_kw)
+end
+
+L._triggers.xpGain = tempRegexTrigger("^You receive (\\d+) experience points\\.$", function()
+  if L.session.state ~= "active" then return end
+  L.session.stats.xp = L.session.stats.xp + tonumber(matches[2])
+  L.session.stats.killed = L.session.stats.killed + 1
+  L.session.pendingKillMobKey = nil
+  L.resetFailsafe()
+  L.tryKill()
+end)
+
+
+------------------------------------------------------------------------
+-- SECTION 10: INTERRUPTION HANDLING
+------------------------------------------------------------------------
+-- All corpus-confirmed real DSL text (grepped log/ directly, not
+-- invented) -- see docs/DSL_CommandRef.md.
+
+L._triggers.fleeCombat = tempRegexTrigger("^You flee from combat!$", function()
+  if L.session.state ~= "active" then return end
+  ce("Fled from combat -- stopping run for safety.")
+  L.stop()
+end)
+
+-- Guarded on pendingKillMobKey being set, since "They aren't here." is a
+-- generic catch-all reused by other commands too. Finishes remaining
+-- enabled mobs already found in this room before advancing (improves on
+-- AlexK's "abandon room and move on" default).
+L._triggers.killStolen = tempRegexTrigger(
+  "^(Kill stealing is not permitted\\.|They aren't here\\.)$",
+  function()
+    if L.session.state ~= "active" or not L.session.pendingKillMobKey then return end
+    L.session.pendingKillMobKey = nil
+    L.tryKill()
+  end)
+
+L._triggers.cannotMove = tempRegexTrigger("^You cannot move while fighting!$", function()
+  if L.session.state ~= "active" then return end
+  tempTimer(2, function()
+    if L.session.state == "active" then L.session.awaitingRoom = false; L.tryKill() end
+  end)
+end)
+
+L._triggers.tooHeavy = tempRegexTrigger("^You are carrying too much to go anywhere\\.$", function()
+  if L.session.state ~= "active" then return end
+  send("drop 2000 silver")
+  L.session.stepIndex = L.session.stepIndex - 1
+  tempTimer(2, function()
+    if L.session.state == "active" then L.processStep() end
+  end)
+end)
+
+-- Optional reapply-on-wearoff, configured via "mydsl leveling buff".
+local BUFF_WEAROFF = {
+  fury     = "^The fury within you wears off%.$",
+  haste    = "^You feel yourself slow down%.$",
+  detects  = "^You feel less aware of your surroundings%.$",
+  sanc     = "^The white aura around your body fades%.$",
+}
+for buffKey, pattern in pairs(BUFF_WEAROFF) do
+  L._triggers["buffWearoff_" .. buffKey] = tempRegexTrigger(pattern, function()
+    if L.session.state ~= "active" then return end
+    local cmd = L.session.buffs[buffKey]
+    if cmd and cmd ~= "" then send(cmd) end
+  end)
+end
+
+
+------------------------------------------------------------------------
+-- SECTION 11: HP SAFETY NET
+------------------------------------------------------------------------
+-- Extra layer on top of (not instead of) DSL's own wimpy. Cheap to build
+-- since MyDSL.State.char.hp/.max_hp are already flowing (update("char",
+-- ...) calls MyDSL.emit("char") on every gmcp.char_data event).
+
+MyDSL.on("char", function(charState)
+  if L.session.state ~= "active" then return end
+  if not L.session.hpThreshold or L.session.hpThreshold <= 0 then return end
+  local hp, maxHp = charState.hp, charState.max_hp
+  if not hp or not maxHp or maxHp <= 0 then return end
+  if (hp / maxHp * 100) < L.session.hpThreshold then
+    ce("HP safety net: " .. hp .. "/" .. maxHp .. " below " .. L.session.hpThreshold .. "% -- stopping.")
+    L.stop()
+  end
+end)
+
+
+------------------------------------------------------------------------
+-- SECTION 12: SESSION CONTROL
+------------------------------------------------------------------------
+
+function L.pause()
+  if L.session.state ~= "active" then ce("Not running."); return end
+  L.session.state = "paused"
+  L.clearFailsafe()
+  ce("Paused. 'mydsl leveling resume' to continue.")
+end
+
+function L.resume()
+  if L.session.state == "navigating" then
+    if not L.confirmArrivalIfNavigating(L.session.areaKey) then return end
+  end
+  if L.session.state ~= "paused" then ce("Nothing paused. 'mydsl leveling start <area>' first."); return end
+  local area = L.areas[L.session.areaKey]
+  if not area then ce("No active area."); return end
+  L.session.state = "active"
+  L.session.stats.started = L.session.stats.started or os.time()
+  ce("Resuming " .. area.name .. "...")
+  L.session.awaitingRoom = false
+  L.tryKill()
+end
+
+function L.stop()
+  L.clearFailsafe()
+  L.session.state = "stopped"
+  L.session.awaitingRoom = false
+  L.session.mobsInRoom = {}
+  L.session.pendingKillMobKey = nil
+  ce("Stopped.")
+end
+
+function L.status()
+  local s = L.session
+  ce("State: " .. s.state)
+  if s.areaKey then
+    local area = L.areas[s.areaKey]
+    ce("Area: " .. (area and area.name or s.areaKey) .. "  Step: " .. s.stepIndex
+      .. (area and ("/" .. #area.dirs) or ""))
+  end
+  ce("Killed: " .. s.stats.killed .. "  XP: " .. s.stats.xp)
+  if #s.mobsInRoom > 0 then ce("Mobs remaining in room: " .. #s.mobsInRoom) end
+end
+
+
+------------------------------------------------------------------------
+-- SECTION 13: AREA MANAGEMENT COMMANDS
+------------------------------------------------------------------------
+
+function L.listAreas()
+  local names = {}
+  for key, area in pairs(L.areas or {}) do table.insert(names, key) end
+  table.sort(names)
+  if #names == 0 then ce("No areas yet. 'mydsl leveling import' to load the seed data."); return end
+  for _, key in ipairs(names) do
+    local area = L.areas[key]
+    local total, enabled = 0, 0
+    for _, m in pairs(area.mobs) do total = total + 1; if m.enabled then enabled = enabled + 1 end end
+    ce(string.format("%-16s  %-10s  %d/%d mobs enabled", key, area.levels or "?", enabled, total))
+  end
+end
+
+function L.areaInfo(areaKey)
+  local area = L.areas[areaKey]
+  if not area then ce("No such area: " .. tostring(areaKey)); return end
+  ce(area.name .. "  (" .. (area.levels or "Unknown.") .. ")")
+  if area.description ~= "" then ce("Directions: " .. area.description) end
+  local keys = {}
+  for k in pairs(area.mobs) do table.insert(keys, k) end
+  table.sort(keys)
+  for _, k in ipairs(keys) do
+    local m = area.mobs[k]
+    local danger = ""
+    if MyDSL.CreatureLore and MyDSL.CreatureLore.knownState then
+      local ok, state = pcall(MyDSL.CreatureLore.knownState, k)
+      if ok and state then danger = "  [" .. tostring(state) .. "]" end
+    end
+    ce(string.format("  %-10s %-6s %s%s", k, m.enabled and "on" or "off", m.label, danger))
+  end
+end
+
+function L.newArea(name)
+  local key = normalizeName(name)
+  if key == "" then ce("Usage: mydsl leveling area new <name>"); return end
+  if L.areas[key] then ce("Area already exists: " .. key); return end
+  L.areas[key] = { name = name, dirs = {}, mobs = {}, levels = "Unknown.", description = "",
+    startRoomId = nil, roomPath = {}, source = "user" }
+  L.saveAreas()
+  ce("Created area: " .. key .. ". 'mydsl leveling scan' here to add mobs, "
+    .. "'mydsl leveling area record start' to record the direction list.")
+end
+
+function L.deleteArea(name)
+  local key = normalizeName(name)
+  if not L.areas[key] then ce("No such area: " .. key); return end
+  L.areas[key] = nil
+  L.saveAreas()
+  ce("Deleted area: " .. key)
+end
+
+-- "mydsl leveling scan" -- the "auto-fill mobs" ask. Reads the room
+-- you're standing in right now from MyDSL.State.scan.rightHere and adds
+-- any not-yet-known mobs to the target area (active session's area, or
+-- an explicit second argument).
+function L.scanMobs(areaKeyArg)
+  local areaKey = areaKeyArg and normalizeName(areaKeyArg) or L.session.areaKey
+  local area = areaKey and L.areas[areaKey]
+  if not area then ce("Usage: mydsl leveling scan [area]  (or have an active area)"); return end
+  local scan = MyDSL.State and MyDSL.State.scan
+  if not scan then ce("No scan data yet -- look around first."); return end
+
+  local added = 0
+  for _, entry in pairs(scan.rightHere or {}) do
+    if entry.is_mob then
+      local already = false
+      for _, m in pairs(area.mobs) do
+        if m.raw == entry.raw then already = true; break end
+      end
+      if not already then
+        local abbrev = entry.key:match("(%S+)$") or entry.key
+        area.mobs[abbrev] = {
+          raw = entry.raw, label = deriveLabel(entry.raw), kill_kw = commandArg(abbrev), enabled = true,
+        }
+        added = added + 1
+      end
+    end
+  end
+  L.saveAreas()
+  ce("Added " .. added .. " new mob(s) to " .. area.name .. ".")
+end
+
+function L.setMobEnabled(areaKey, mobArg, enabled)
+  local area = L.areas[normalizeName(areaKey)]
+  if not area then ce("No such area: " .. tostring(areaKey)); return end
+  if mobArg == "all" then
+    for _, m in pairs(area.mobs) do m.enabled = enabled end
+    L.saveAreas()
+    ce((enabled and "Enabled" or "Disabled") .. " all mobs in " .. area.name .. ".")
+    return
+  end
+  local mobDef = area.mobs[mobArg]
+  if not mobDef then ce("No such mob '" .. tostring(mobArg) .. "' in " .. area.name); return end
+  mobDef.enabled = enabled
+  L.saveAreas()
+  ce((enabled and "Enabled " or "Disabled ") .. mobArg .. " in " .. area.name .. ".")
+end
+
+
+------------------------------------------------------------------------
+-- SECTION 14: COMMAND DISPATCHER
+------------------------------------------------------------------------
+-- Single catch-all alias + Lua dispatch, same pattern as
+-- MyDSL_LocationView.lua's locationCommand()/M._cmd().
+
+local function help()
+  ce("mydsl leveling start <area> | resume | pause | stop | status")
+  ce("mydsl leveling areas | area info <area> | area new <name> | area delete <name>")
+  ce("mydsl leveling scan [area]  -- add mobs seen in the current room")
+  ce("mydsl leveling show <area> <mob>|all | hide <area> <mob>|all")
+  ce("mydsl leveling show | hide  -- window visibility")
+  ce("mydsl leveling import  -- load the seed area data")
+  ce("mydsl leveling hp <percent> | timeout <seconds> | buff <fury|haste|detects|sanc> <cmd|off>")
+end
+
+local function command(rest)
+  rest = trim(rest or "")
+  if rest == "" or rest == "help" then help(); return end
+  if rest == "import" then L.importSeedAreas(); return end
+  if rest == "areas" then L.listAreas(); return end
+  if rest == "status" then L.status(); return end
+  if rest == "pause" then L.pause(); return end
+  if rest == "resume" then L.resume(); return end
+  if rest == "stop" then L.stop(); return end
+  if rest == "show" then L.show(); return end
+  if rest == "hide" then L.hide(); return end
+
+  local startArea = rest:match("^start%s+(.+)$")
+  if startArea then
+    local key = normalizeName(startArea)
+    if L.session.state == "navigating" and L.session.areaKey == key then
+      L.confirmArrivalIfNavigating(key)
+    else
+      L.startArea(key)
+    end
+    return
+  end
+
+  local scanArea = rest:match("^scan%s*(.*)$")
+  if scanArea ~= nil and rest:match("^scan") then L.scanMobs(scanArea ~= "" and scanArea or nil); return end
+
+  if rest == "area new" then ce("Usage: mydsl leveling area new <name>"); return end
+  local newName = rest:match("^area new%s+(.+)$"); if newName then L.newArea(newName); return end
+  local delName = rest:match("^area delete%s+(.+)$"); if delName then L.deleteArea(delName); return end
+  local infoName = rest:match("^area info%s+(.+)$"); if infoName then L.areaInfo(normalizeName(infoName)); return end
+
+  local showArea, showMob = rest:match("^show%s+(%S+)%s+(%S+)$")
+  if showArea then L.setMobEnabled(showArea, showMob, true); return end
+  local hideArea, hideMob = rest:match("^hide%s+(%S+)%s+(%S+)$")
+  if hideArea then L.setMobEnabled(hideArea, hideMob, false); return end
+
+  local hp = rest:match("^hp%s+(%d+)$")
+  if hp then L.session.hpThreshold = tonumber(hp); ce("HP safety threshold set to " .. hp .. "%."); return end
+  local timeout = rest:match("^timeout%s+(%d+)$")
+  if timeout then L.session.failsafeSeconds = tonumber(timeout); ce("Failsafe timeout set to " .. timeout .. "s."); return end
+
+  local buffName, buffCmd = rest:match("^buff%s+(%a+)%s+(.+)$")
+  if buffName then
+    if not BUFF_WEAROFF[buffName] then ce("Unknown buff: " .. buffName .. " (fury|haste|detects|sanc)"); return end
+    L.session.buffs[buffName] = (buffCmd == "off") and nil or buffCmd
+    ce("Buff " .. buffName .. " reapply " .. ((buffCmd == "off") and "cleared." or ("set to: " .. buffCmd)))
+    return
+  end
+
+  ce("Unknown command. Try: mydsl leveling help")
+end
+
+function L._cmd(rest) command(rest) end
+
+function L.makeAliases()
+  if L.aliasesMade then return end
+  L._aliases.main = tempAlias([[^mydsl leveling(?:\s+(.*))?$]], [[MyDSL.Leveling._cmd(matches[2])]])
+  L.aliasesMade = true
+end
+
+
+------------------------------------------------------------------------
+-- SECTION 15: BOOT
+------------------------------------------------------------------------
+
+function L.boot()
+  L.loadAreas()
+  L.ensureUI()
+  L.makeAliases()
+  echo("[MyDSL] Leveling loaded (" .. (function()
+    local n = 0; for _ in pairs(L.areas or {}) do n = n + 1 end; return n
+  end)() .. " areas known -- 'mydsl leveling import' to load seed data if 0).\n")
+end
+
+L.boot()
