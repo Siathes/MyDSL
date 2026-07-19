@@ -39,6 +39,20 @@ DEFERRED gets started without an explicit go-ahead.
       confirmed: disable the native `(autowhere)` alias. Full history:
       `CHANGELOG.md`; day-to-day detail: `INSTALL.md` shipped alongside
       the package.
+- [ ] **The actual package-build script has no durable, repo-tracked copy
+      — found 2026-07-19 when a rebuild was needed and it was gone.**
+      `build_mydsl_package.py` (does the real work: splices the 247 native
+      Triggers/45 Keys/2 hand-placed Scripts from a healthy snapshot into
+      the 31 git-tracked `.lua` dofiles) was written into a session-scoped
+      scratchpad directory, not this repo, so it no longer exists anywhere
+      on this machine. Today's rebuild (see `docs/CHANGELOG.md`, ItemLore
+      fix) had to patch the already-built `.mpackage`'s XML directly
+      instead (safe for a single-file change, since the file's own
+      structure was already correct — but not a substitute for the real
+      script, and not something to keep doing by hand every time). Worth
+      writing this for real and committing it (the `.mpackage` build
+      *output* stays gitignored, but the script that produces it shouldn't
+      be ephemeral).
 - [ ] **Windows resetting position when docking a second window on the
       fresh profile — likely root cause found, not fixed.** Confirmed
       NOT a recurrence of the previously-fixed Mudlet 4.21/4.22
