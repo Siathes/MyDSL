@@ -111,6 +111,14 @@ MyDSL.LogConfig = MyDSL.LogConfig or {
 -- and single-call callers behave exactly as before (buffer fills then
 -- immediately empties on the same call).
 MyDSL._logBuffers = MyDSL._logBuffers or {}
+-- Dirs already confirmed to exist this session -- added 2026-07-19 after a
+-- PVP perf audit found this function was shelling out to "mkdir -p" (a full
+-- process fork/exec, easily the most expensive line in this function) on
+-- EVERY flushed log line, forever, for every category -- "combat" isn't in
+-- disabled_categories by default, so every single combat swing during a
+-- fight paid for a shell spawn just to recheck a directory that's already
+-- there. The directory only needs creating once per path per session.
+MyDSL._logDirsEnsured = MyDSL._logDirsEnsured or {}
 
 function MyDSL.logWindow(category, text)
   if not category or not text or text == "" then return end
@@ -127,12 +135,16 @@ function MyDSL.logWindow(category, text)
 
   local char = safeFileName(MyDSL.Char and MyDSL.Char() or "Unknown")
   local dir  = getMudletHomeDir() .. "/MyDSL/logs/" .. category .. "/" .. char
-  -- mkdir -p equivalent: lfs.mkdir only makes one level, so try os.execute
-  -- too for the full path in case MyDSL/logs/ itself doesn't exist yet
-  -- (fresh checkout -- git doesn't track empty dirs). Same dual approach as
-  -- MyDSL_ChatWrapper.lua's ensureDir().
-  if lfs and lfs.mkdir then pcall(lfs.mkdir, dir) end
-  if os and os.execute then pcall(os.execute, "mkdir -p " .. string.format("%q", dir)) end
+  if not MyDSL._logDirsEnsured[dir] then
+    -- mkdir -p equivalent: lfs.mkdir only makes one level, so try os.execute
+    -- too for the full path in case MyDSL/logs/ itself doesn't exist yet
+    -- (fresh checkout -- git doesn't track empty dirs). Same dual approach as
+    -- MyDSL_ChatWrapper.lua's ensureDir(). Only done once per dir per
+    -- session now, not on every flushed line.
+    if lfs and lfs.mkdir then pcall(lfs.mkdir, dir) end
+    if os and os.execute then pcall(os.execute, "mkdir -p " .. string.format("%q", dir)) end
+    MyDSL._logDirsEnsured[dir] = true
+  end
   local path = dir .. "/" .. os.date("%Y-%m-%d") .. ".log"
 
   local f = io.open(path, "a")
@@ -746,6 +758,26 @@ local function saveFilePath()
   return getMudletHomeDir() .. "/MyDSL_state.lua"
 end
 
+-- Disk-write debounce -- added 2026-07-19 after a PVP perf audit found
+-- MyDSL.save() was doing a synchronous table.save() of the WHOLE MyDSL.Data
+-- table (every character ever played on this profile, not just the current
+-- one) on every single affect_data/add_affect/remove_affect event -- i.e.
+-- every buff/debuff landing or expiring mid-fight paid for a full-table disk
+-- serialize. The in-memory snapshot into MyDSL.Data (cheap, just field
+-- copies) still happens on every call so anything reading MyDSL.Data
+-- directly stays current; only the actual disk write is coalesced, so a
+-- burst of affect changes in one fight round becomes one write shortly
+-- after the burst ends instead of one write per change. Trade-off: a crash
+-- or hard kill inside the debounce window can lose the last <1.5s of
+-- state -- flushed immediately on disconnect/exit below to shrink that
+-- window for the case that matters (a normal quit or link loss).
+MyDSL._pendingDiskSave = MyDSL._pendingDiskSave or nil
+
+local function flushSaveToDisk()
+  MyDSL._pendingDiskSave = nil
+  table.save(saveFilePath(), MyDSL.Data)
+end
+
 function MyDSL.save()
   local charName = MyDSL.Char()
   if charName then
@@ -760,8 +792,21 @@ function MyDSL.save()
       MyDSL.Data[charName][sec] = MyDSL.State[sec]
     end
   end
-  table.save(saveFilePath(), MyDSL.Data)
+  if not MyDSL._pendingDiskSave then
+    MyDSL._pendingDiskSave = tempTimer(1.5, flushSaveToDisk)
+  end
 end
+
+-- Force an immediate flush on disconnect/exit so a debounced write in
+-- flight isn't silently dropped by a normal quit or link loss.
+MyDSL._handlers.saveFlushOnDisconnect = registerAnonymousEventHandler(
+  "sysDisconnectionEvent",
+  function() if MyDSL._pendingDiskSave then flushSaveToDisk() end end
+)
+MyDSL._handlers.saveFlushOnExit = registerAnonymousEventHandler(
+  "sysExitEvent",
+  function() if MyDSL._pendingDiskSave then flushSaveToDisk() end end
+)
 
 -- REAL BUG, found live 2026-07-11 (Steven: "are the settings loading at
 -- creating from save files or they saving and never reading/updating?"):

@@ -67,10 +67,32 @@ end
 -- Priority 100: as high as anything else in this codebase sets (nothing
 -- else sets a priority at all, so this should win any tie -- but see the
 -- header note above, this needs live confirmation, not just assumption.
-local id = tempRegexTrigger([[.]], function()
-  writeRaw(line)
-end, 100)
-MyDSL.RawCapture._triggers[#MyDSL.RawCapture._triggers + 1] = id
+--
+-- Only actually registered while enabled -- fixed 2026-07-19 after a PVP
+-- perf audit found this trigger used to be created unconditionally at load
+-- and stay alive for the whole session even with rawlog off, so every
+-- single line of the entire profile (including every combat swing) paid
+-- for a trigger-match + Lua call into writeRaw() just to hit its own
+-- "not enabled, return" check -- cheap per call, but 100% unconditional
+-- overhead on every line, forever, for a diagnostic feature that's off by
+-- default. Registering/killing it alongside the toggle means the cost is
+-- zero while off, matching how every other optional capture in this
+-- codebase behaves.
+local function registerCaptureTrigger()
+  if MyDSL.RawCapture._triggers.capture then return end
+  MyDSL.RawCapture._triggers.capture = tempRegexTrigger([[.]], function()
+    writeRaw(line)
+  end, 100)
+end
+
+local function unregisterCaptureTrigger()
+  if MyDSL.RawCapture._triggers.capture then
+    pcall(killTrigger, MyDSL.RawCapture._triggers.capture)
+    MyDSL.RawCapture._triggers.capture = nil
+  end
+end
+
+if MyDSL.RawCapture.enabled then registerCaptureTrigger() end
 
 -- Own alias table, not the shared MyDSL._aliases -- this file loads before
 -- DataLayer (see header), so that table may not exist yet.
@@ -79,5 +101,10 @@ if MyDSL.RawCapture._aliases.toggle then pcall(killAlias, MyDSL.RawCapture._alia
 MyDSL.RawCapture._aliases.toggle = tempAlias(
   [[^mydsl rawlog (on|off)$]],
   [[MyDSL.RawCapture.enabled = (matches[2] == "on")
+    if MyDSL.RawCapture.enabled then MyDSL._rawCaptureRegister() else MyDSL._rawCaptureUnregister() end
     echo("Raw capture logging " .. matches[2] .. ".\n")]]
 )
+-- Exposed on MyDSL so the alias's script string (a separate Lua chunk,
+-- no closure access to this file's locals) can reach these.
+MyDSL._rawCaptureRegister = registerCaptureTrigger
+MyDSL._rawCaptureUnregister = unregisterCaptureTrigger
