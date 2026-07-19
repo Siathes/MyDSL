@@ -2268,165 +2268,6 @@ function MyDSL.endLook()
 end
 
 
-------------------------------------------------------------------------
--- 9o.1b  ROOM DESCRIPTION + COLOR CAPTURE (for LocationView same-name
---        room disambiguation)
-------------------------------------------------------------------------
--- Added 2026-07-17, per Steven ("i need a way for locationview to
--- distinguish between [same-named rooms] and then pull the proper
--- file"). MyDSL never captured the room's own prose description before
--- this -- only mob/item presence lines (parseLookHereLine/
--- captureGroundItem) got extracted from a room-look. beginLook() itself
--- can't see this text either: it's anchored on "[Exits: ...]" (see its
--- own header comment) and only starts capturing lines AFTER that point,
--- but the description prints BEFORE it, between the room's title line
--- and "[Exits: ...]".
---
--- Same technique generic_mapper's own Map Script already uses internally
--- (confirmed by reading it directly) to solve the identical problem: an
--- always-on rolling buffer of recent raw lines, scanned backward from a
--- known anchor to recover the text that came before it, rather than a
--- forward capture pegged to a fragile "this is the title line" pattern
--- match. GMCP already gives a reliable room name (MyDSL.State.room.name,
--- set by the gmcp.room_data handler above) to anchor the backward scan
--- on, so no new text-pattern guessing is needed for the title line
--- itself.
---
--- Capped at 40 lines -- only ever needs to reach back to the most recent
--- room title, never further; a real room description is always much
--- shorter than that. Read-only (getCurrentLine/getFgColor), never sends
--- anything -- passive observation only, matching every other capture in
--- this file.
-local ROOM_LINE_BUFFER_MAX = 40
-MyDSL._roomLineBuffer = MyDSL._roomLineBuffer or {}
-
-MyDSL._triggers.roomLineBuffer = tempRegexTrigger(".*", function()
-  local ln = getCurrentLine()
-  if ln == nil then return end
-  local color = nil
-  local ok, r, g, b = pcall(function()
-    selectCurrentLine()
-    return getFgColor()
-  end)
-  if ok and r then color = { r, g, b } end
-  local buf = MyDSL._roomLineBuffer
-  buf[#buf + 1] = { text = ln, color = color }
-  if #buf > ROOM_LINE_BUFFER_MAX then table.remove(buf, 1) end
-end)
-
--- normalizeRoomDescription(desc) -- collapses whitespace/line-wrap
--- differences so trivial formatting quirks don't cause two identical
--- room descriptions to look like different variants. Same rationale
--- confirmed working in DSL1's own patched generic_mapper (its
--- clean_description_storage()/normalize_description() functions, read
--- directly for reference) -- ported the technique, not the code, since
--- this operates on MyDSL's own capture, not generic_mapper's.
-function MyDSL.normalizeRoomDescription(desc)
-  desc = tostring(desc or "")
-  desc = desc:gsub("\r\n", "\n"):gsub("\r", "\n")
-  -- Strip any stray "[Exits: ...]" text that leaked into the captured
-  -- range (defensive -- see captureRoomDescription()'s own filter below,
-  -- this is a second layer in case a differently-shaped exits line slips
-  -- through untouched).
-  desc = desc:gsub("%s*%[Exits:%s*[^%]]*%]%s*", " ")
-  desc = desc:gsub("%s+", " ")
-  return trim(desc)
-end
-
--- captureRoomDescription() -- called from the "[Exits: ...]" trigger,
--- same anchor beginLook() itself uses. Scans MyDSL._roomLineBuffer
--- backward for the most recent line matching the room's own GMCP name
--- (the closest match going backward is always the right one -- same
--- reasoning generic_mapper's own backward scan uses), then takes every
--- non-blank line after it (up to but excluding the current "[Exits:...]"
--- line, filtered defensively regardless of buffer/trigger firing order)
--- as the description. Stores onto MyDSL.State.room, alongside the color
--- of the first real description line -- a coarse but real per-room color
--- signature (confirmed via real log corpus: title and body print in
--- consistently different colors from each other, though no confirmed
--- case yet of two same-named rooms differing in body color specifically
--- -- this just makes the data available for whenever one shows up).
---
--- Real, confirmed bug fixed 2026-07-19, per Steven ("location window ...
--- wont display the images anymore and keep showing the multiroom message
--- instead"). Root-caused by decoding the live location_variants.lua data:
--- e.g. "A Beautiful Courtyard" had 4 "variants" whose stored descriptions
--- were actually a hallway, a hall of statues, a ballroom, and a throne
--- room -- four completely unrelated real rooms, not legitimate same-named
--- variants (unlike the confirmed-real "Stone Dragon maze" case). "An
--- alleyway"'s variant 4 was a byte-for-byte duplicate of the real "On the
--- Porch of the Fellowship Saloon" description. Root cause: the backward
--- scan searched the WHOLE rolling buffer for the most recent line matching
--- MyDSL.State.room.name (GMCP-driven, can race ahead of the text stream
--- during fast movement -- same class of race already found and fixed in
--- DSL_Generic_Mapper.xml's speedwalk door-command misattribution the same
--- day) with no lower bound -- if the anchor name was even slightly stale/
--- ahead by the time this fired, or the room's title text is a common/
--- reused one, it could walk straight past the current room's own display
--- block and match an OLDER occurrence of the same generic title several
--- rooms back, silently grabbing that unrelated room's real description.
--- Fixed: the scan now stops at the nearest prior room-block boundary (an
--- "[Exits: ...]" line) instead of scanning past it -- if the anchor name
--- hasn't shown up yet within the CURRENT block, that's treated as "no
--- description captured this time" (same as before this fix, when nothing
--- matched at all) rather than reaching backward into a previous room's
--- text and mis-attributing it. LocationView already tolerates a nil
--- description gracefully (falls back to exits-only variant matching, or
--- variant #1 if neither is available), so this is a strictly safer
--- failure mode than the silent cross-contamination it replaces.
-function MyDSL.captureRoomDescription()
-  local roomName = MyDSL.State.room and MyDSL.State.room.name
-  if not roomName or roomName == "" then return end
-  local buf = MyDSL._roomLineBuffer
-  if not buf or #buf == 0 then return end
-
-  local titleTrim = trim(roomName)
-
-  -- Skip past this call's own "[Exits: ...]" anchor line(s) at the tail
-  -- first -- whether the buffering trigger already recorded the current
-  -- anchor line by the time this runs depends on trigger firing order
-  -- between two same-priority triggers matching the same line, which
-  -- isn't guaranteed either way. Only once past that do we start
-  -- enforcing the "stop at a previous block's boundary" rule below.
-  local i = #buf
-  while i >= 1 and trim(buf[i].text):match("^%[?Exits:") do
-    i = i - 1
-  end
-
-  local titleIdx = nil
-  for j = i, 1, -1 do
-    local t = trim(buf[j].text)
-    if t == titleTrim then
-      titleIdx = j
-      break
-    end
-    if t:match("^%[?Exits:") then
-      -- Hit a previous room-block boundary before finding the title line
-      -- -- it isn't in THIS block. Stop here rather than matching an
-      -- older, unrelated room's title further back.
-      break
-    end
-  end
-  if not titleIdx then return end
-
-  local descLines, descColor = {}, nil
-  for i = titleIdx + 1, #buf do
-    local entry = buf[i]
-    local t = trim(entry.text)
-    if t ~= "" and not t:match("^%[?Exits:") then
-      table.insert(descLines, entry.text)
-      if not descColor and entry.color then descColor = entry.color end
-    end
-  end
-  if #descLines == 0 then return end
-
-  local rawDesc = table.concat(descLines, "\n")
-  update("room", {
-    description    = MyDSL.normalizeRoomDescription(rawDesc),
-    descriptionRaw = rawDesc,
-    descColor      = descColor,
-  })
-end
 
 
 ------------------------------------------------------------------------
@@ -4007,9 +3848,16 @@ MyDSL._triggers.scanDir = tempRegexTrigger(
 MyDSL._triggers.lookExits = tempRegexTrigger(
   "^\\s*\\[Exits: .*\\]\\s*$",
   function()
-    -- Captures the room description (see 9o.1b above) before beginLook()
-    -- resets scan.rightHere -- both key off this exact same anchor line.
-    if MyDSL and MyDSL.captureRoomDescription then MyDSL.captureRoomDescription() end
+    -- Used to also call MyDSL.captureRoomDescription() here (the old
+    -- room-description-for-LocationView capture, 9o.1b) -- removed
+    -- 2026-07-19 along with that whole section: LocationView now reads
+    -- name/description/exits/terrain straight from the mapper's own
+    -- per-room-ID userdata instead (the DSL_Generic_Mapper fork already
+    -- captures a real description there, anchored to the room ID at
+    -- resolution time, not derived from this file's own backward text
+    -- scan) -- see docs/CHANGELOG.md 2026-07-19. Nothing else read
+    -- MyDSL.State.room.description, so the whole capture was retired
+    -- rather than left running unused.
     if MyDSL and MyDSL.beginLook then MyDSL.beginLook() end
   end
 )

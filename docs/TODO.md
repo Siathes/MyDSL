@@ -698,26 +698,37 @@ guessing at patterns with zero corpus evidence.
       philosophy has so far meant zero outbound calls), and whether the
       referenced Achaea Mudlet calendar package is worth checking for a
       reusable pattern before building fresh.
-- [ ] **Mapper/LocationView: distinguish same-named rooms — the real root
-      cause behind BOTH this item's 2026-07-18 open/close mystery AND
-      Steven's 2026-07-19 "location window won't display images, keeps
-      showing the multiroom message" report is now understood and fixed.**
-      The 2026-07-18 fix here (backfilling description from
-      `MyDSL.State.room`) was real but incomplete -- the actual capture in
-      `MyDSL_DataLayer.lua`'s `captureRoomDescription()` could silently
-      attribute a completely unrelated room's description to the current
-      room name during fast movement (a text/GMCP race, same class as the
-      mapper's zero-wait speedwalk bug). This is almost certainly what
-      caused the door open-vs-closed asymmetry too, not a separate
-      mystery. Full root-cause + fix: `docs/CHANGELOG.md` (2026-07-19).
-      **`location_variants.lua` reset to empty 2026-07-19, per Steven
-      ("perform the reset")** — the ~144 pre-existing spuriously-split
-      rooms are gone; every room relearns its variant(s) fresh from the
-      next visit onward using the fixed capture logic. Pre-reset file
-      backed up to scratchpad, not deleted. Legitimately-different
-      multi-variant rooms (Stone Dragon maze, etc.) will need a revisit to
-      re-split — expected, not a bug. Needs live confirmation that images
-      display correctly again.
+- [ ] **LocationView: room-ID-keyed picture assignment — replaces the
+      whole same-named-room text-heuristic system, built 2026-07-19, per
+      Steven ("i think i would like to simplify this ... assign it a room
+      picture (automatically where possible, manual where duplicates
+      arise)"), needs live confirmation.** The 2026-07-18/07-19 fixes to
+      the old `resolveVariant()` text-heuristic system (backfilling
+      description, then fixing the capture race that could attribute an
+      unrelated room's description to the wrong name) were real, but
+      Steven's own follow-up was right that the underlying approach was
+      still fragile — guessing sameness/difference from description/exits
+      text will always have edge cases. Replaced entirely: picture
+      assignment is now keyed by the Mudlet mapper's own room ID (unique
+      per physical room, already how the mapper itself tells two
+      same-named rooms apart), not room name. First room ID to reach a
+      given name auto-claims its existing picture file; any other room ID
+      sharing that name gets no automatic picture (a real, confirmed
+      duplicate, not a guess) and needs `mydsl location set <path>` while
+      standing in it — which now actually persists, unlike the old
+      `M.setImage()`. Also discovered the DSL_Generic_Mapper fork already
+      captures a real per-room description/exits/terrain into its own
+      `map.dat` (`use_description_matching` forced on by default) — so
+      `MyDSL_DataLayer.lua`'s own parallel (and previously buggy)
+      room-description capture was fully retired, not just fixed, since
+      nothing needs it anymore. New `mydsl location info` command surfaces
+      that mapper-native data directly. `location_variants.lua` (the old
+      system's data file) is now dead/unused — the emptied file from the
+      2026-07-19 reset stays on disk but nothing reads it anymore.
+      Verified via 2 new structural tests (9 assertions: auto-claim,
+      conflict detection, cached re-resolution, manual persistence) plus
+      the existing 5-assertion LocationView test suite, all passing.
+      Full detail: `docs/CHANGELOG.md` (2026-07-19).
 - [ ] **LocationView: 2 smaller real bugs fixed 2026-07-19 during the same
       review, needs live confirmation.** `M.renderMode` was hardcoded to
       `"cover"` regardless of which fit mode actually rendered (cosmetic,

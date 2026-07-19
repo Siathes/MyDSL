@@ -8,9 +8,15 @@
     - Canonical module: MyDSL.Location
     - Separate visual module: no mapper, roomdesc, source, route, bridge,
       target, right-here, affects, chat, portrait, or HUD changes.
-    - Uses current MyDSL room state first, then GMCP, then Mudlet mapper
-      room id/name fallback. This avoids nil room names after login when
-      gmcp.room_data is empty but the mapper knows the current room.
+    - Picture assignment is keyed by the Mudlet mapper's own room ID, not
+      room name (rewritten 2026-07-19, replacing an earlier text-
+      heuristic "variant" system entirely -- see docs/CHANGELOG.md).
+      Room ID is authoritative and unique per physical room, so two rooms
+      sharing a name can never be confused for picture-assignment
+      purposes: each room ID either has a picture or it doesn't, no
+      guessing from description/exits text involved. Falls back to a
+      name-only lookup when the mapper hasn't resolved a current room ID
+      yet (e.g. mapping not started).
     - Uses proven PortraitView/old CharPic render path:
         border-image: url("...")
       because setBackgroundImage()/contain is unreliable in Mudlet 4.20.1
@@ -22,10 +28,13 @@
       with old RoomPic-compatible and safer fallback filenames.
     - Optional exact-room mapping file:
         <profile>/MyDSL/roompics/location_profiles.lua
+    - Room-ID -> assigned-picture-path table:
+        <profile>/MyDSL/roompics/location_roompics.lua
 
   Commands:
     mydsl location
     mydsl location status
+    mydsl location info
     mydsl location show
     mydsl location hide
     mydsl location refresh
@@ -39,8 +48,6 @@
     mydsl location map <room name> = <absolute/image/path>
     mydsl location unmap <room name>
     mydsl location maps
-    mydsl location variants
-    mydsl location variants <room name>
     mydsl location fit cover|stretch|contain|fill
     mydsl location missing caption|blank
     mydsl location title <title text>
@@ -201,20 +208,34 @@ function M.profileFile()
   return join(M.dir or M.defaultDir(), "location_profiles.lua")
 end
 
--- roomVariants uses a SEPARATE file via Mudlet's own table.save()/
--- table.load() -- added 2026-07-17, see M.resolveVariant() below.
--- This file's own hand-rolled saveTable()/loadTable() above only
--- serializes two levels deep (a table of scalars); roomVariants needs a
--- real nested structure (room name -> array of variant records, each
--- with its own color sub-table), which saveTable() would silently
--- mangle (it calls serializeScalar() on a table value, producing a
--- useless "table: 0x..." string). table.save()/table.load() are
--- Mudlet's real, fully-recursive serializer, already used everywhere
--- else in this codebase for exactly this shape of data (CreatureLore's
--- DB, ItemLore, affects files) -- reused here rather than extending the
--- shallow custom one.
-function M.variantsFile()
-  return join(M.dir or M.defaultDir(), "location_variants.lua")
+-- roomPictures -- added 2026-07-19, replacing the old roomVariants
+-- text-heuristic system entirely (see the removed M.resolveVariant()'s
+-- own history for why: it guessed sameness/difference from description/
+-- exits text, which a text/GMCP race could poison -- see
+-- docs/CHANGELOG.md 2026-07-19). Keyed by the Mudlet mapper's own room
+-- ID (tostring()'d, since table.save's string keys don't round-trip
+-- numbers), which is authoritative and unique per physical room --
+-- structurally can't confuse two different rooms that merely share a
+-- name, unlike text matching. Uses the same real, fully-recursive
+-- table.save()/table.load() serializer as CreatureLore/ItemLore (this
+-- file's own hand-rolled saveTable()/loadTable() above only serializes
+-- two levels deep of scalars, not needed here since this is just
+-- string->string).
+function M.roomPicturesFile()
+  return join(M.dir or M.defaultDir(), "location_roompics.lua")
+end
+
+function M.loadRoomPictures()
+  M.roomPictures = M.roomPictures or {}
+  if exists(M.roomPicturesFile()) then
+    pcall(function() table.load(M.roomPicturesFile(), M.roomPictures) end)
+  end
+end
+
+function M.saveRoomPictures()
+  M.dir = M.dir or M.defaultDir()
+  ensureDir(M.dir)
+  pcall(table.save, M.roomPicturesFile(), M.roomPictures or {})
 end
 
 function M.loadProfiles()
@@ -229,10 +250,7 @@ function M.loadProfiles()
   M.config.font = tonumber(data.font or M.config.font) or M.config.font
   M.config.frame = (data.frame ~= nil) and data.frame or M.config.frame
 
-  M.roomVariants = M.roomVariants or {}
-  if exists(M.variantsFile()) then
-    pcall(function() table.load(M.variantsFile(), M.roomVariants) end)
-  end
+  M.loadRoomPictures()
 end
 
 function M.saveProfiles()
@@ -248,12 +266,6 @@ function M.saveProfiles()
     frame = M.config.frame,
   }
   return saveTable(M.profileFile(), data)
-end
-
-function M.saveVariants()
-  M.dir = M.dir or M.defaultDir()
-  ensureDir(M.dir)
-  pcall(table.save, M.variantsFile(), M.roomVariants or {})
 end
 
 local function flattenExits(exits)
@@ -277,19 +289,8 @@ local function roomDataFromTable(r, sourceName)
   local area = safeStr(r.area or r.zone)
   local terrain = safeStr(r.terrain or r.sector)
   local exits = safeStr(r.exitsText or r.exitText or r.exits_text) or flattenExits(r.exits)
-  -- description/descColor -- added 2026-07-17, for same-name-room
-  -- disambiguation (see M.resolveVariant() below). Only MyDSL.State.room
-  -- (MyDSL_DataLayer.lua's captureRoomDescription()) ever populates
-  -- these; other sources (gmcp.room_data direct, mapper fallback) simply
-  -- won't have them, which resolveVariant() treats as "no disambiguating
-  -- data this time" rather than a mismatch.
-  local description = safeStr(r.description)
-  local descColor = r.descColor
   if room then
-    return {
-      room = room, area = area, terrain = terrain, exits = exits,
-      description = description, descColor = descColor, source = sourceName,
-    }
+    return { room = room, area = area, terrain = terrain, exits = exits, source = sourceName }
   end
   return nil
 end
@@ -347,6 +348,19 @@ local function mapperAreaName(roomId)
   return safeStr(area)
 end
 
+-- roomDataFromMapper() -- rewritten 2026-07-19 as part of retiring the
+-- text-heuristic variant system (docs/CHANGELOG.md 2026-07-19). Now the
+-- PRIMARY source, not the last-resort fallback: it's the only source
+-- that carries roomId, which real picture assignment (M.pathForRoomId())
+-- needs, and it reads name/description/exits straight from the Mudlet
+-- mapper's own per-room userdata -- the DSL_Generic_Mapper fork already
+-- captures a real description into `getRoomUserData(id, "description")`
+-- for every room (map.configs.use_description_matching is forced on by
+-- default), anchored directly to the resolved room ID at capture time,
+-- not derived from a fragile backward text scan the way this file's own
+-- retired capture was. `dsl.normalized_sector` is the fork's real
+-- confirmed field name for terrain (the old "terrain"/"sector" guesses
+-- here never matched anything real).
 local function roomDataFromMapper()
   local id = mapperRoomId()
   if not id then return nil end
@@ -358,14 +372,22 @@ local function roomDataFromMapper()
   return {
     room = room,
     area = mapperAreaName(id),
-    terrain = safeStr(call(_G.getRoomUserData, id, "terrain") or call(_G.getRoomUserData, id, "sector")),
+    terrain = safeStr(call(_G.getRoomUserData, id, "dsl.normalized_sector")),
     exits = flattenExits(exits),
+    description = safeStr(call(_G.getRoomUserData, id, "description")),
     roomId = id,
     source = "mapper",
   }
 end
 
+-- M.roomData() -- mapper-first now (see roomDataFromMapper()'s own
+-- comment for why); the GMCP/State chain below only runs as a fallback
+-- when the mapper hasn't resolved a current room yet (e.g. just
+-- connected, or mapping never started).
 function M.roomData()
+  local mapperData = roomDataFromMapper()
+  if mapperData then return mapperData end
+
   local sources = {
     { MyDSL and MyDSL.DB and MyDSL.DB.room, "MyDSL.DB.room" },
     { MyDSL and MyDSL.DB and MyDSL.DB.currentRoom, "MyDSL.DB.currentRoom" },
@@ -374,42 +396,11 @@ function M.roomData()
     { gmcp and gmcp.room_data, "gmcp.room_data" },
     { gmcp and gmcp.Room and gmcp.Room.Info, "gmcp.Room.Info" },
   }
-
   for _, pair in ipairs(sources) do
     local data = roomDataFromTable(pair[1], pair[2])
-    if data then
-      -- Backfill description/descColor from MyDSL.State.room -- real bug
-      -- found 2026-07-18 via location_variants.lua: MyDSL.DB.room (this
-      -- loop's first, near-always-present source, rebuilt on every
-      -- DataBridge sync()) never carries a description at all, so it won
-      -- this loop before MyDSL.State.room (the only source
-      -- captureRoomDescription() ever populates) was even checked --
-      -- 0 of 137 saved variant records ever had a description. That left
-      -- resolveVariant() running on exits-only comparison, and exits
-      -- change when a door/gate opens or closes, so a door being open vs.
-      -- closed on revisit looked like a different room and spawned a
-      -- spurious "new variant" notice. Filling these in here (without
-      -- changing which source wins for room/exits/etc.) lets the
-      -- description tier -- checked first in resolveVariant() -- match
-      -- again for a room whose static description never changed.
-      if not data.description then
-        local stateRoom = MyDSL and MyDSL.State and MyDSL.State.room
-        -- safeStr() both sides -- ultrareview found stateRoom.name is set
-        -- raw from GMCP (MyDSL_DataLayer.lua's gmcp.room_data handler),
-        -- with no trim, while data.room already went through safeStr()
-        -- above. If DSL's GMCP room field is ever whitespace-padded, a
-        -- raw-vs-trimmed comparison would silently fail to match the same
-        -- room and this whole backfill would no-op with no visible error.
-        if stateRoom and safeStr(stateRoom.name) == data.room then
-          data.description = safeStr(stateRoom.description) or data.description
-          data.descColor = stateRoom.descColor or data.descColor
-        end
-      end
-      return data
-    end
+    if data then return data end
   end
-
-  return roomDataFromMapper()
+  return nil
 end
 
 function M.currentRoomName()
@@ -490,118 +481,72 @@ function M.pathForRoom(room)
 end
 
 ------------------------------------------------------------------------
--- Same-name room disambiguation -- added 2026-07-17
+-- Room-ID-keyed picture assignment -- replaces the 2026-07-17 text-
+-- heuristic variant system entirely, added 2026-07-19.
 ------------------------------------------------------------------------
--- Per Steven: two rooms can share a name but differ in description/exits
--- (confirmed the generic_mapper package itself already keeps these as
--- properly separate rooms on the map -- this is purely a LocationView
--- picture-resolution problem, nothing here talks to the mapper at all).
+-- Per Steven ("i think i would like to simplify this ... assign it a
+-- room picture (automatically where possible, manual where duplicates
+-- arise)"). The old system guessed whether two visits to a same-named
+-- room were "the same variant" from description/exits text -- fragile by
+-- construction, and a text/GMCP race during fast movement (see
+-- docs/CHANGELOG.md 2026-07-19) could poison it outright. The mapper's
+-- own room ID is authoritative and unique per physical room (it's
+-- LITERALLY how the mapper itself tells two same-named rooms apart) --
+-- keying picture assignment on it sidesteps the whole guessing problem
+-- structurally instead of refining the heuristic further.
 --
--- variantDisplayName(room, index) is the one convention used for BOTH
--- the picture filename and the manual `mydsl location map` override key,
--- so they always agree: index 1 (the first-seen variant of any room
--- name) keeps the plain name -- e.g. "Wall Road" -> "Wall Road.png" --
--- so every one of the existing ~215 real picture files needs zero
--- renaming. Each later-discovered distinct variant gets the next slot:
--- "Wall Road (2)" -> "Wall Road (2).png", and so on.
-function M.variantDisplayName(room, index)
-  room = safeStr(room) or "Unknown room"
-  index = tonumber(index) or 1
-  if index <= 1 then return room end
-  return room .. " (" .. index .. ")"
+-- isFileClaimedByOther(path, roomId) -- true if some OTHER room ID has
+-- already auto-claimed this exact picture file. A linear scan is fine
+-- here: M.roomPictures only holds rooms that actually have a picture
+-- assigned (currently ~215, not all 15,000+ known rooms), and this only
+-- runs once per room arrival, not per line of game text.
+function M.isFileClaimedByOther(path, roomId)
+  if not path then return false end
+  roomId = roomId and tostring(roomId)
+  M.roomPictures = M.roomPictures or {}
+  for otherId, p in pairs(M.roomPictures) do
+    if p == path and otherId ~= roomId then return true end
+  end
+  return false
 end
 
--- Three-value comparison: true (confirmed same), false (confirmed
--- different), nil (not enough data on one or both sides to say either
--- way). Keeping "unknown" distinct from "different" is what lets
--- resolveVariant() below fall back to the original room instead of
--- spawning a spurious new variant when a particular capture just didn't
--- have full data (e.g. a fallback data source with no description).
-local function tristateMatch(a, b)
-  if a == nil or b == nil or a == "" or b == "" then return nil end
-  return a == b
-end
+-- pathForRoomId(roomId, name) -- the real resolution path M.refresh()
+-- uses. M.pathForRoom(name) below (unchanged) stays as a name-only
+-- lookup for commands that aren't about a specific room ID (`mydsl
+-- location name <room>`, `probe`) -- deliberately does NOT auto-claim,
+-- so idly probing a room name can't accidentally steal a picture from
+-- whichever real room ID would otherwise have claimed it.
+--
+-- Priority: (1) this exact room ID's own already-assigned picture,
+-- whether that came from an earlier auto-claim below or a manual
+-- `mydsl location set <path>`; (2) the same file-name-convention lookup
+-- M.pathForRoom() always used (which itself checks M.roomMap's manual
+-- name overrides first, unchanged) -- claimed automatically for this
+-- room ID IF no other room ID already has it, otherwise this room
+-- genuinely needs a manual assignment ("conflict": a real, confirmed
+-- same-named-different-room case, not a guess).
+function M.pathForRoomId(roomId, name)
+  M.roomPictures = M.roomPictures or {}
+  local key = roomId and tostring(roomId) or nil
 
--- resolveVariant(room, data) -- the actual matching ladder: description
--- first, exits as the deeper fallback (per Steven: "go deeper to exit
--- comparison if needed"), color stored per-variant for a future manual
--- tiebreak but not auto-split on today -- real per-line coloring is
--- confirmed to exist in DSL's output (title vs. body print in
--- consistently different colors), but there's no confirmed real case
--- yet of two SAME-NAMED rooms differing only in body color, so this
--- isn't wired into the automatic decision until one actually shows up.
--- No disambiguating data at all (neither description nor exits present
--- on this particular capture) resolves to the original variant #1
--- rather than guessing -- "stale/default beats a fabricated split."
-function M.resolveVariant(room, data)
-  room = safeStr(room)
-  if not room then return nil end
-  data = data or {}
-  M.roomVariants = M.roomVariants or {}
-  local list = M.roomVariants[room]
-
-  if not list or #list == 0 then
-    M.roomVariants[room] = {
-      { description = data.description, exits = data.exits, color = data.descColor, seen = 1 },
-    }
-    M.saveVariants()
-    return { name = room, index = 1, isNew = true }
+  if key and M.roomPictures[key] then
+    return M.roomPictures[key], "assigned"
   end
 
-  for idx, v in ipairs(list) do
-    if tristateMatch(data.description, v.description) == true then
-      v.seen = (v.seen or 0) + 1
-      return { name = M.variantDisplayName(room, idx), index = idx, isNew = false }
-    end
-  end
-  for idx, v in ipairs(list) do
-    if tristateMatch(data.exits, v.exits) == true
-    and tristateMatch(data.description, v.description) ~= false then
-      v.seen = (v.seen or 0) + 1
-      return { name = M.variantDisplayName(room, idx), index = idx, isNew = false }
-    end
-  end
-
-  if data.description == nil and data.exits == nil then
-    return { name = M.variantDisplayName(room, 1), index = 1, isNew = false }
-  end
-
-  local idx = #list + 1
-  table.insert(list, { description = data.description, exits = data.exits, color = data.descColor, seen = 1 })
-  M.saveVariants()
-  return { name = M.variantDisplayName(room, idx), index = idx, isNew = true }
-end
-
-function M.listVariants(room)
-  room = safeStr(room)
-  M.roomVariants = M.roomVariants or {}
-  local names = {}
-  if room then
-    names = { room }
-  else
-    for r in pairs(M.roomVariants) do table.insert(names, r) end
-    table.sort(names)
-  end
-
-  cecho("\n<cyan>[MyDSL.Location variants]<reset>\n")
-  local shown = 0
-  for _, r in ipairs(names) do
-    local list = M.roomVariants[r]
-    if list and (room or #list > 1) then
-      shown = shown + 1
-      cecho("  <green>" .. tostring(r) .. "<reset>\n")
-      for idx, v in ipairs(list) do
-        local file = M.variantDisplayName(r, idx) .. ".png"
-        local descPreview = v.description and (v.description:sub(1, 60) .. (#v.description > 60 and "..." or "")) or "(none captured)"
-        cecho(string.format(
-          "    [%d] file=%-28s seen=%-4s exits=%-20s desc=%s\n",
-          idx, file, tostring(v.seen or 0), tostring(v.exits or "(none)"), descPreview))
+  local candidates = M.candidatePathsForRoom(name)
+  for _, c in ipairs(candidates) do
+    if exists(c.path) then
+      if key and M.isFileClaimedByOther(c.path, key) then
+        return nil, "conflict"
       end
+      if key then
+        M.roomPictures[key] = c.path
+        M.saveRoomPictures()
+      end
+      return c.path, c.source, c.file
     end
   end
-  if shown == 0 then
-    cecho(room and "  no variants recorded for that room yet\n" or "  no rooms have more than one variant yet\n")
-  end
+  return nil, nil, nil
 end
 
 function M.captionForRoom(roomData, path, source)
@@ -872,27 +817,28 @@ function M.refresh(reason)
     return false
   end
 
-  local variant = M.resolveVariant(data.room, data)
-  local displayName = (variant and variant.name) or data.room
-  local path, source, file = M.pathForRoom(displayName)
+  -- Rewritten 2026-07-19: room-ID-keyed picture resolution (see
+  -- M.pathForRoomId()'s own comment) replaces the old resolveVariant()
+  -- text-heuristic entirely. No roomId (mapper hasn't resolved a current
+  -- room yet) degrades gracefully to a name-only lookup, same as before
+  -- the whole variant system existed.
+  local path, source, file = M.pathForRoomId(data.roomId, data.room)
   M.currentFile = file
   M.currentSource = source
   M.lastReason = reason or "refresh"
 
   local missingCaption = nil
-  if variant and variant.isNew and variant.index > 1 and not (path and exists(path)) then
-    -- A genuinely new variant of an already-known room name, and no
-    -- picture exists for it yet -- surfaced directly in the Location
-    -- window's own caption (fixed 2026-07-17, per Steven: "needs to not
-    -- goto main display but the location window" -- this used to be an
-    -- echoC() to the main console, easy to miss/spam-y; kept as compact
-    -- as the title-bar fallback he floated, since the window's caption
-    -- area is small) rather than the main console.
-    missingCaption = string.format("No picture for this variant.\nExpected: \"%s\"",
-      file or (displayName .. ".png"))
+  if not path and data.roomId then
+    if source == "conflict" then
+      missingCaption = "No picture assigned to this room yet.\n"
+        .. "Shares a name with another pictured room -- use: mydsl location set <path>"
+    else
+      missingCaption = "No picture assigned to this room yet.\n"
+        .. "Use: mydsl location set <path>"
+    end
   end
 
-  return M.render(path, M.captionForRoom(data, path, source), source, displayName, missingCaption)
+  return M.render(path, M.captionForRoom(data, path, source), source, data.room, missingCaption)
 end
 
 function M.setByName(room)
@@ -908,6 +854,15 @@ function M.setByName(room)
   return M.render(path, M.captionForRoom(data, path, source), source, room)
 end
 
+-- setImage(path) -- "manual where duplicates arise" (per Steven). Updated
+-- 2026-07-19 to actually persist: it used to only force the display for
+-- the current moment (M.manualPath was never read back by anything, a
+-- dead field even before this change), so the same "no picture assigned"
+-- message would reappear on the very next room refresh. Now assigns this
+-- picture to the CURRENT room's own mapper room ID (if one is resolved),
+-- exactly the real-world flow this command exists for: you're standing
+-- in the ambiguous room, you tell it which picture belongs here, and it
+-- stays assigned every time you come back.
 function M.setImage(path)
   path = safeStr(path)
   if not path then
@@ -916,6 +871,17 @@ function M.setImage(path)
   end
   M.manualPath = path
   M.lastReason = "manual"
+
+  local id = mapperRoomId()
+  if id then
+    M.roomPictures = M.roomPictures or {}
+    M.roomPictures[tostring(id)] = path
+    M.saveRoomPictures()
+    echoC("Assigned picture to this room (id " .. tostring(id) .. "): " .. path)
+  else
+    echoC("No mapper room ID resolved right now -- showing this image, but it won't persist. Assigned pictures need the mapper active.")
+  end
+
   return M.render(path, "Manual location image", "manual", "manual")
 end
 
@@ -1036,28 +1002,57 @@ end
 
 function M.status()
   local data = M.roomData() or {}
+  local id = data.roomId
+  local assigned = id and M.roomPictures and M.roomPictures[tostring(id)]
   cecho(string.format(
-    "\n<cyan>[MyDSL.Location]<reset> version=%s; enabled=%s; shown=%s; room=%s; area=%s; fit=%s; render=%s; missing=%s; exists=%s; source=%s; reason=%s; mapperRoom=%s;\n  dir=%s; legacyDir=%s; file=%s; path=%s;\n",
+    "\n<cyan>[MyDSL.Location]<reset> version=%s; enabled=%s; shown=%s; room=%s; area=%s; fit=%s; render=%s; missing=%s; exists=%s; source=%s; reason=%s; roomId=%s; assigned=%s;\n  dir=%s; legacyDir=%s; file=%s; path=%s;\n",
     tostring(M.version), tostring(M.config.enabled), tostring(M.config.shown), tostring(data.room), tostring(data.area),
     tostring(M.config.fit), tostring(M.renderMode or "cover"), tostring(M.config.missing),
-    tostring(M.currentPath and exists(M.currentPath)), tostring(M.currentSource or data.source), tostring(M.lastReason), tostring(mapperRoomId()),
+    tostring(M.currentPath and exists(M.currentPath)), tostring(M.currentSource or data.source), tostring(M.lastReason), tostring(id), tostring(assigned or "no"),
     tostring(M.dir or M.defaultDir()), tostring(join(profileDir(), "RoomPics")), tostring(M.currentFile), tostring(M.currentPath)
   ))
 end
 
+-- info() -- "mydsl location info", added 2026-07-19 per Steven's ask for
+-- "all room info" to be accessible. Everything here (name/description/
+-- exits/terrain/area) already lives in the Mudlet mapper's own map.dat,
+-- keyed by room ID (the DSL_Generic_Mapper fork populates it on every
+-- room already) -- this just surfaces it directly rather than
+-- duplicating it into a separate database. The Location window's own
+-- caption line deliberately stays compact (name + area/terrain/exits
+-- only, per Steven's original "reduce vertical spacing" ask); this
+-- command is for when the full text is actually wanted.
+function M.info()
+  local data = M.roomData()
+  if not data or not data.room then
+    cecho("\n<cyan>[MyDSL.Location info]<reset> no room data available.\n")
+    return
+  end
+  cecho(string.format(
+    "\n<cyan>[MyDSL.Location info]<reset>\n  room: <green>%s<reset>\n  roomId: %s\n  area: %s\n  terrain: %s\n  exits: %s\n  picture: %s\n",
+    tostring(data.room), tostring(data.roomId), tostring(data.area or "?"), tostring(data.terrain or "?"),
+    tostring(data.exits or "?"), tostring(M.currentPath or "(none assigned)")
+  ))
+  if data.description then
+    cecho("  description:\n    " .. tostring(data.description):gsub("\n", "\n    ") .. "\n")
+  else
+    cecho("  description: (none captured yet)\n")
+  end
+end
+
 function M.help()
-  cecho([[ 
+  cecho([[
 <cyan>[MyDSL.Location commands]<reset>
   mydsl location status|dump
+  mydsl location info
   mydsl location show|hide|refresh|rebuild|reset
   mydsl location dir [absolute/path]
   mydsl location probe [room name]
   mydsl location name <room name>
-  mydsl location set <absolute/image/path>
-  mydsl location map <room name> = <absolute/image/path>
+  mydsl location set <absolute/image/path>   (assigns to the room you're standing in)
+  mydsl location map <room name> = <absolute/image/path>   (assigns by name, doesn't require being there)
   mydsl location unmap <room name>
   mydsl location maps
-  mydsl location variants [room name]
   mydsl location fit cover|stretch|contain|fill
   mydsl location missing caption|blank
   mydsl location title <title text>
@@ -1103,6 +1098,7 @@ local function locationCommand(rest)
   rest = trim(rest or "")
   if rest == "" or rest == "help" then M.help(); return end
   if rest == "status" or rest == "dump" then M.status(); return end
+  if rest == "info" then M.info(); return end
   if rest == "show" then M.show(); M.refresh("show"); return end
   if rest == "hide" then M.hide(); return end
   if rest == "refresh" then M.refresh("manual"); return end
@@ -1117,8 +1113,6 @@ local function locationCommand(rest)
   if mapRoom and mapPath then M.mapRoom(mapRoom, mapPath); return end
   local unmap = rest:match("^unmap%s+(.+)$"); if unmap then M.unmapRoom(unmap); return end
   if rest == "maps" then M.listMaps(); return end
-  if rest == "variants" then M.listVariants(); return end
-  local variantsRoom = rest:match("^variants%s+(.+)$"); if variantsRoom then M.listVariants(variantsRoom); return end
   local fit = rest:match("^fit%s+(%S+)$"); if fit then M.setFit(fit); return end
   local miss = rest:match("^missing%s+(%S+)$"); if miss then M.setMissing(miss); return end
   local title = rest:match("^title%s+(.+)$"); if title then M.setTitle(title); return end
