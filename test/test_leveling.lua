@@ -32,6 +32,26 @@ check("gahboom's excavator mob has the AlexK-tested single-word kill keyword",
   L.areas["gahboom"].mobs["excavator"] and L.areas["gahboom"].mobs["excavator"].kill_kw == "excavator")
 check("crystfield was renamed to cryfield per the later forum correction",
   L.areas["cryfield"] ~= nil and L.areas["crystfield"] == nil)
+-- Regression: real live bug (2026-07-19, Steven: "mydsl leveling import
+-- looks like it died or never triggered", no error, no output at all).
+-- Root cause: the default path used getMudletHomeDir() (whichever
+-- profile is CURRENTLY RUNNING the script -- this addon deliberately
+-- runs cross-profile, dofile()'d from the MyDSL play profile into the
+-- DSL2 git repo), so the seed file was only ever looked for in a
+-- profile folder it was never copied into -- confirmed via `ls` against
+-- the real live MyDSL profile directory -- and the failure only called
+-- debugc(), invisible unless the separate Errors console happens to be
+-- open. Fixed: tries the current profile's own MyDSL/ folder first,
+-- then falls back to the known DSL2 repo copy this addon actually ships
+-- from, and reports "not found" via ce() (visible on the main console).
+check("import falls back to the known DSL2 repo path when no explicit path is given "
+  .. "(simulating a profile whose own MyDSL/ folder doesn't have the seed file)", (function()
+  L.areas = {}
+  L.importSeedAreas(nil)  -- no arg -- must resolve via the fallback chain, not just dataDir()
+  local n = 0; for _ in pairs(L.areas) do n = n + 1 end
+  return n == 39
+end)())
+
 check("re-running import is non-destructive (still 39, not 78)", (function()
   L.importSeedAreas("MyDSL/leveling_areas_seed.lua")
   local n = 0; for _ in pairs(L.areas) do n = n + 1 end

@@ -182,17 +182,43 @@ end
 -- pre-converted, mirroring CreatureLore's own two-stage scrape->live-db
 -- pattern. Never overwrites an area the user already has (so re-running
 -- "mydsl leveling import" after hand-editing mobs is always safe).
+-- REAL BUG, found live 2026-07-19 (Steven: "mydsl leveling import looks
+-- like it died or never triggered" -- no output at all, not an error).
+-- Two compounding causes: (1) the default path used getMudletHomeDir(),
+-- which resolves to whichever profile is CURRENTLY RUNNING the script,
+-- not the DSL2 repo the dofile() actually points at -- this addon is
+-- deliberately cross-profile (its Script entry dofile()s an absolute
+-- path into the DSL2 git repo from inside the MyDSL play profile, so
+-- fixes land without a reinstall), so the seed file was only ever
+-- looked for inside the MyDSL profile's own (nonexistent) MyDSL/
+-- folder, confirmed via `ls` -- never found. (2) the failure path only
+-- called debugc(), which writes to Mudlet's separate Errors/debug
+-- console (not necessarily open) -- so the command silently did
+-- nothing, with zero visible sign anything went wrong. Fixed both:
+-- tries the current profile's own MyDSL/ folder first (so a genuinely
+-- standalone install still works), falls back to the known DSL2 repo
+-- copy this addon is actually deployed from, and reports failure via
+-- ce() (visible on the main console) instead of only debugc().
 function L.importSeedAreas(path)
-  path = path or join(dataDir(), "leveling_areas_seed.lua")
-  local f = io.open(path, "r")
-  if not f then
-    debugc("[MyDSL] Leveling: seed file not found at " .. tostring(path))
+  local candidates = {}
+  if path then table.insert(candidates, path) end
+  table.insert(candidates, join(dataDir(), "leveling_areas_seed.lua"))
+  table.insert(candidates, "/home/owner/.config/mudlet/profiles/DSL2/MyDSL/leveling_areas_seed.lua")
+
+  local resolvedPath = nil
+  for _, p in ipairs(candidates) do
+    local f = io.open(p, "r")
+    if f then f:close(); resolvedPath = p; break end
+  end
+  if not resolvedPath then
+    ce("Seed file not found. Looked in: " .. table.concat(candidates, "  |  "))
     return
   end
-  f:close()
+  path = resolvedPath
+
   local ok, rawAreas = pcall(dofile, path)
   if not ok or type(rawAreas) ~= "table" then
-    debugc("[MyDSL] Leveling: seed file failed to load: " .. tostring(rawAreas))
+    ce("Seed file failed to load (" .. path .. "): " .. tostring(rawAreas))
     return
   end
 

@@ -145,9 +145,27 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       state survives untouched, a key only present in a newer file gets
       added, not skipped; a new assertion in `test/test_leveling.lua`:
       `ensureUI()` creates zero consoles when the registry is
-      unavailable). **Steven should re-enable the script and confirm the
-      main window stays intact this time** before any further live
-      testing of the actual leveling loop itself. Per Steven's ask (auto-navigate
+      unavailable). Re-enabled and confirmed the main window stays
+      intact -- but immediately hit a second real bug: "mydsl leveling
+      import looks like it died or never triggered" (no error, no
+      output). Root cause: `L.importSeedAreas()`'s default path used
+      `getMudletHomeDir()`, which resolves to whichever profile is
+      CURRENTLY RUNNING the script -- this addon deliberately runs
+      cross-profile (its Script entry `dofile()`s an absolute path from
+      the MyDSL play profile into the DSL2 git repo, so fixes land
+      without a reinstall), so the seed file was only ever looked for in
+      the MyDSL profile's own (nonexistent) `MyDSL/` folder, confirmed
+      via `ls` against the real live profile directory. The failure path
+      also only called `debugc()` (Mudlet's separate Errors console, not
+      necessarily open), so it looked like nothing happened at all.
+      Fixed: `importSeedAreas()` now tries the current profile's own
+      `MyDSL/` folder first, then falls back to the known DSL2 repo copy
+      this addon actually ships from, and reports "not found" via a
+      visible main-console message instead of only `debugc()`. Verified
+      via 2 more assertions in `test/test_leveling.lua` (import resolves
+      via the fallback chain with no explicit path given). **Steven
+      needs to re-run `mydsl leveling import` to confirm this actually
+      resolves live** before testing the rest of the loop. Per Steven's ask (auto-navigate
       known hunting areas, auto-engage enabled mobs, easy area/mob
       maintenance for new users) plus a same-day follow-up round
       (mapper-based navigate-to-area, pause-before-start/pause-resume,
