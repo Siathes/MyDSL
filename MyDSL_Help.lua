@@ -319,7 +319,7 @@ MyDSL.Help.modules = {
   -- file's own header comment and docs/TODO.md's DECISIONS RECORDED
   -- section). A future MyDSL_Questing.lua will join this same category.
   { key = "leveling", title = "Leveling", category = "Automation / Assist", window = "MyDSL_Leveling",
-    summary = "Automated hunting-area leveling assist: navigates to a known area, walks its circuit, and fights enabled mobs. Sends real game commands -- opt-in per area/mob.",
+    summary = "Automated hunting-area leveling assist: navigates to a known area, then walks and fights the whole circuit non-stop until back at the start, giving a report. Sends real game commands -- opt-in per area/mob.",
     commands = {
       { cmd = "mydsl leveling import", desc = "Load the seed area data (39 forum-sourced hunting areas).", example = "mydsl leveling import" },
       { cmd = "mydsl leveling areas", desc = "List known areas with level range and enabled mob counts.", example = "mydsl leveling areas" },

@@ -134,37 +134,76 @@ check("xp-gain trigger increments kill/xp stats", L.session.stats.killed == kill
 check("xp-gain trigger clears pendingKillMobKey", L.session.pendingKillMobKey == nil)
 
 ------------------------------------------------------------------------
--- 6. Failsafe dead-man's-switch
+-- 6. No failsafe timer at all -- REMOVED ENTIRELY 2026-07-20, per
+--    Steven ("whatever timer stops combat is not useful... we only
+--    need the pause resume and stop, not a fallback safety timer or
+--    whatever it is"). An earlier version had a CharacterAssist-style
+--    dead-man's-switch here; confirm it's actually gone, not just
+--    disabled, so it can't quietly come back.
 ------------------------------------------------------------------------
-local capturedFailsafeFn = nil
-local realTempTimer = _G.tempTimer
-_G.tempTimer = function(delay, fn) capturedFailsafeFn = fn; return 999 end
-L.session.state = "active"
-L.armFailsafe()
-_G.tempTimer = realTempTimer
-check("armFailsafe schedules a callback", capturedFailsafeFn ~= nil)
-if capturedFailsafeFn then capturedFailsafeFn() end
-check("failsafe firing stops the session", L.session.state == "stopped")
+check("armFailsafe/resetFailsafe/clearFailsafe no longer exist",
+  L.armFailsafe == nil and L.resetFailsafe == nil and L.clearFailsafe == nil)
+check("no failsafe timer state lingers on the session table", L.session.failsafeSeconds == nil)
 
 -- Regression: real live bug (2026-07-20, confirmed via the actual
 -- Olyndros session log) -- a fight against a tough single mob produced
 -- continuous real combat swings for 27+ seconds with zero kill/XP yet,
--- but the failsafe (never reset by anything except a full kill) fired
--- mid-fight anyway and stopped the whole session despite combat being
--- actively ongoing. Fixed by registering a "MyDSL.combat.updated"
--- handler (real event, MyDSL_DataLayer.lua's combatRoundFlush -- fires
--- on every round, confirmed via direct read) that resets the failsafe
--- on ordinary round activity too, not just a kill. The shared mock's
--- registerAnonymousEventHandler() doesn't retain/invoke handler
--- functions (a pre-existing limitation, not new to this fix), so this
--- can only be checked structurally here -- that the handler actually
--- got registered at boot, not that dispatch itself fires correctly.
-check("a combat-round-activity handler is registered to reset the failsafe mid-fight",
-  L._handlers.combatActivity ~= nil)
+-- and (before this section's own fix) the old failsafe fired mid-fight
+-- anyway despite combat being actively ongoing. Now moot -- there's
+-- nothing left to fire.
 
 ------------------------------------------------------------------------
--- 7. HP safety net
+-- 6b. Flee is non-fatal -- REDESIGNED 2026-07-20, per Steven ("just
+--     keep walking and fighting till you get back to the start point").
+--     A flee used to call L.stop() outright; now it clears the current
+--     room's queued mobs and tries to keep going instead of halting the
+--     whole run.
 ------------------------------------------------------------------------
+L.session.state = "active"
+L.session.areaKey = "gahboom"
+L.session.stepIndex = 3
+L.session.mobsInRoom = { "hunter" }
+L.session.pendingKillMobKey = "hunter"
+_G.__sentCommands = {}
+local fleeTrig = _G.__triggers[L._triggers.fleeCombat]
+_G.matches = { "You flee from combat!" }
+fleeTrig.func()
+check("a flee does NOT stop the session", L.session.state == "active")
+check("a flee clears the stale pending kill/room-mob queue", L.session.pendingKillMobKey == nil and #L.session.mobsInRoom == 0)
+check("a flee tries to keep moving (processStep sent the next step)", #_G.__sentCommands > 0)
+
+------------------------------------------------------------------------
+-- 6c. Simplified start flow -- REDESIGNED 2026-07-20, per Steven ("its
+--     to many steps to start"). startArea() used to require a SECOND
+--     "start <area>" call to confirm arrival before resume() would
+--     unlock. Now one call always lands directly in "paused".
+------------------------------------------------------------------------
+L.session.state = "stopped"
+L.session.areaKey = nil
+L.startArea("gahboom")
+check("startArea() lands directly in 'paused' -- no second confirmation call needed",
+  L.session.state == "paused" and L.session.areaKey == "gahboom")
+check("confirmArrivalIfNavigating/onArrivedAtStart were removed, not just unused",
+  L.confirmArrivalIfNavigating == nil and L.onArrivedAtStart == nil)
+
+-- The old "timeout <seconds>" command must be gone from the dispatcher
+-- too (dead code risk: leaving it wired to a field that no longer
+-- exists on session would silently no-op forever).
+L._cmd("timeout 45")
+check("'mydsl leveling timeout' is no longer a recognized command (silently falls through to 'unknown command')",
+  L.session.failsafeSeconds == nil)
+
+------------------------------------------------------------------------
+-- 6d. PNP-style end-of-run report -- per Steven ("give report like in
+--     PNP"), replacing the old one-line "pass complete" message.
+------------------------------------------------------------------------
+L.session.state = "active"
+L.session.areaKey = "philosophy"
+L.session.stepIndex = #L.areas["philosophy"].dirs + 1  -- past the end -- next processStep() completes the loop
+L.session.stats = { killed = 3, xp = 900, started = os.time() - 120 }
+L.processStep()
+check("completing the loop stops the session", L.session.state == "stopped")
+check("L.report() exists as its own callable function", type(L.report) == "function")
 L.session.state = "active"
 L.session.hpThreshold = 30
 MyDSL.State.char = MyDSL.State.char or {}

@@ -17,9 +17,18 @@
 -- Scripts" thread 99388 "Leveling.areas Combined". Reuses this codebase's
 -- own existing infrastructure instead of AlexK's 3-trigger room-capture
 -- chain: MyDSL_DataLayer.lua's scan.rightHere (fed by the SAME "[Exits: "
--- anchor AlexK's own capture used), the real DSL_Generic_Mapper.xml fork's
--- map.speedwalk()/getPath(), and MyDSL_CharacterAssist.lua's dead-man's-
--- switch failsafe-timer pattern.
+-- anchor AlexK's own capture used) and the real DSL_Generic_Mapper.xml
+-- fork's map.speedwalk()/getPath().
+--
+-- Session control is deliberately just start/resume/pause/stop, per
+-- Steven (2026-07-20): "whatever timer stops combat is not useful, just
+-- keep walking and fighting till you get back to the start point and
+-- give report like in PNP, we only need the pause resume and stop, not
+-- a fallback safety timer or whatever it is." An earlier version had a
+-- CharacterAssist-style dead-man's-switch failsafe timer -- removed
+-- entirely, not just disabled, per that ask. The one remaining automatic
+-- stop is the HP%-threshold safety net (SECTION 10) -- not timer-based,
+-- and an explicitly separate, earlier, still-standing decision.
 -- =============================================================================
 
 MyDSL         = MyDSL         or {}
@@ -27,18 +36,17 @@ MyDSL.Leveling = MyDSL.Leveling or {}
 
 local L = MyDSL.Leveling
 
--- Safe-reload: kill old handlers/triggers/aliases/timers on every load,
--- same boilerplate as every other MyDSL Layer 3 module (TargetView,
--- CombatView, CharacterAssist).
+-- Safe-reload: kill old handlers/triggers/aliases on every load, same
+-- boilerplate as every other MyDSL Layer 3 module (TargetView,
+-- CombatView, CharacterAssist). No timer to kill here -- the failsafe
+-- timer this once had was removed entirely 2026-07-20, per Steven.
 for _, id in pairs(L._handlers or {}) do pcall(killAnonymousEventHandler, id) end
 for _, id in pairs(L._triggers or {}) do pcall(killTrigger, id) end
 for _, id in pairs(L._aliases  or {}) do pcall(killAlias, id) end
-if L._failsafeTimer then pcall(killTimer, L._failsafeTimer) end
 
 L._handlers = {}
 L._triggers = {}
 L._aliases  = {}
-L._failsafeTimer = nil
 L._mc = L._mc or {}
 L.aliasesMade = false
 
@@ -101,10 +109,6 @@ local function commandArg(name)
   return s:match("(%S+)$") or s
 end
 
--- Derive a short display label from a captured room-presence line, for
--- status/help display only -- never used for matching (matching against
--- scan.rightHere is always exact-string on the "raw" field). Strips
--- leading parentheticals/articles and trailing verb-phrase filler.
 -- stripLeadingTags(line) -- strips ALL leading parenthetical tags
 -- ("(Charmed) (Golden Aura) (White Aura) A beautiful..."), same loop
 -- MyDSL_DataLayer.lua's parseLookHereLine() already uses. Needed here
@@ -122,6 +126,10 @@ local function stripLeadingTags(line)
   return rest
 end
 
+-- Derive a short display label from a captured room-presence line, for
+-- status/help display only -- never used for matching (matching against
+-- scan.rightHere is always exact-string on the "raw" field). Strips
+-- leading parentheticals/articles and trailing verb-phrase filler.
 local function deriveLabel(raw)
   local rest = stripLeadingTags(raw)
   rest = rest:gsub("^[Aa]n? ", ""):gsub("^[Tt]he ", "")
@@ -267,17 +275,22 @@ end
 -- SECTION 3: SESSION STATE (non-persisted)
 ------------------------------------------------------------------------
 
+-- No failsafe/timeout field, by design, per Steven ("whatever timer
+-- stops combat is not useful... we only need the pause resume and
+-- stop, not a fallback safety timer or whatever it is") -- removed
+-- 2026-07-20 along with the timer mechanism itself. state is only ever
+-- "stopped" | "paused" | "active" ("navigating" retired the same day --
+-- see SECTION 5's own header comment).
 L.session = L.session or {
-  state             = "stopped",  -- stopped | navigating | paused | active
+  state             = "stopped",
   areaKey           = nil,
   stepIndex         = 1,
   awaitingRoom      = false,
   mobsInRoom        = {},
   pendingKillMobKey = nil,
   stats             = { killed = 0, xp = 0, started = nil },
-  hpThreshold        = 30,   -- percent; 0 disables
-  failsafeSeconds    = 30,
-  buffs              = {},   -- {fury=cmd, haste=cmd, detects=cmd, sanc=cmd}
+  hpThreshold       = 30,   -- percent; 0 disables
+  buffs             = {},   -- {fury=cmd, haste=cmd, detects=cmd, sanc=cmd}
 }
 
 
@@ -323,54 +336,25 @@ function L.hide() if MyDSL.Windows then MyDSL.Windows.hide(WIN) end end
 
 
 ------------------------------------------------------------------------
--- SECTION 5: FAILSAFE (dead-man's-switch, same pattern as
--- MyDSL_CharacterAssist.lua's CA._failsafeTimer)
-------------------------------------------------------------------------
-
-function L.armFailsafe()
-  if L._failsafeTimer then killTimer(L._failsafeTimer); L._failsafeTimer = nil end
-  L._failsafeTimer = tempTimer(L.session.failsafeSeconds, function()
-    ce("Failsafe: no activity for " .. L.session.failsafeSeconds .. "s -- stopping.")
-    L.stop()
-  end)
-end
-
-function L.resetFailsafe()
-  if L.session.state == "active" then L.armFailsafe() end
-end
-
-function L.clearFailsafe()
-  if L._failsafeTimer then killTimer(L._failsafeTimer); L._failsafeTimer = nil end
-end
-
--- REAL BUG, found live 2026-07-20 (Steven, via the actual Olyndros
--- session log): the failsafe was only ever reset on a full kill
--- (xpGain trigger, below) -- never on ordinary combat-round activity.
--- Confirmed in the transcript: a fight against a single tough "gnome
--- philosophy instructor" produced continuous real swings every ~3s from
--- 16:06:08 onward, but the failsafe (30s default) fired at 16:06:35 --
--- 27s after the fight started, well before the mob died -- stopping the
--- whole leveling session mid-fight despite combat being clearly, actively
--- ongoing the entire time. This was always the plan's own stated design
--- ("reset on any combat-round activity... not just kill-confirm alone")
--- but never actually got wired up in code. `MyDSL.combat.updated` is a
--- real event (`MyDSL_DataLayer.lua`'s combatRoundFlush handler,
--- confirmed via direct read: `raiseEvent("MyDSL.combat.updated", rd)`
--- fires on every round flush) -- it's NOT on the MyDSL.on()/emit() Lua-
--- callback bus (that's `char`/`scan`/`creaturelore`/etc. only), so this
--- needs registerAnonymousEventHandler like MyDSL_TargetView.lua's own
--- "MyDSL.combat.died" listener does, not MyDSL.on().
-L._handlers.combatActivity = registerAnonymousEventHandler("MyDSL.combat.updated", function()
-  L.resetFailsafe()
-end)
-
-
-------------------------------------------------------------------------
--- SECTION 6: NAVIGATE-TO-AREA
+-- SECTION 5: NAVIGATE-TO-AREA
 ------------------------------------------------------------------------
 -- Uses the real DSL_Generic_Mapper.xml fork's map.speedwalk(roomID) --
 -- confirmed real, already in production (its own "room find"/"rf" alias
 -- drives it the same way from an arbitrary current room via getPath()).
+--
+-- REDESIGNED 2026-07-20, per Steven ("its to many steps to start"): the
+-- original design required a SECOND explicit "start <area>" call to
+-- confirm arrival before "resume" would work -- one command to kick off
+-- navigation, wait, then another to confirm you're actually there. Now
+-- "start <area>" does its best (speedwalk if the room id is already
+-- known, otherwise prints manual directions) and lands directly in
+-- "paused" either way -- no confirmation round-trip. The tradeoff:
+-- "paused" no longer strictly means "confirmed in position," just
+-- "session is set up and waiting on you" -- acceptable since resuming
+-- into the wrong room just produces a few harmless failed-move messages
+-- from the area's own dirs list, not a fabricated command that couldn't
+-- happen. Room-id caching (for next time's speedwalk) is now
+-- opportunistic inside resume() instead of gating the whole flow.
 
 function L.startArea(areaKey)
   local area = L.areas[areaKey]
@@ -381,54 +365,20 @@ function L.startArea(areaKey)
   L.session.mobsInRoom = {}
   L.session.pendingKillMobKey = nil
 
-  if area.startRoomId and _G.map then
+  if area.startRoomId and _G.map and _G.map.speedwalk then
     ce("Navigating to " .. area.name .. " (cached start room)...")
-    L.session.state = "navigating"
-    L._triggers.speedwalkDone = tempRegexTrigger(".*", function() end) -- placeholder unused; real hook below
-    killTrigger(L._triggers.speedwalkDone); L._triggers.speedwalkDone = nil
-    L._handlers.speedwalkDone = registerAnonymousEventHandler("sysSpeedwalkFinished", function()
-      pcall(killAnonymousEventHandler, L._handlers.speedwalkDone)
-      L._handlers.speedwalkDone = nil
-      L.onArrivedAtStart(areaKey)
-    end)
-    _G.map.speedwalk(area.startRoomId)
-  else
-    ce(area.name .. ": no cached start room yet. Walk there manually, then run "
-      .. "'mydsl leveling start " .. areaKey .. "' again to confirm arrival.")
-    if area.description ~= "" then ce("Directions: " .. area.description) end
-    L.session.state = "navigating"
+    pcall(_G.map.speedwalk, area.startRoomId)
+  elseif area.description ~= "" then
+    ce("Directions to " .. area.name .. ": " .. area.description)
   end
-end
 
-function L.onArrivedAtStart(areaKey)
-  local area = L.areas[areaKey]
-  if not area then return end
-  local roomId = mapperRoomId()
-  if roomId and not area.startRoomId then
-    area.startRoomId = roomId
-    L.saveAreas()
-  end
   L.session.state = "paused"
-  ce(area.name .. ": in position. 'mydsl leveling resume' when ready (buffs/food/etc. first if you want).")
-end
-
--- Second "start <area>" call while navigating manually -- confirms
--- arrival via the mapper's current room id (same defensive fallback
--- chain as LocationView's own mapperRoomId()).
-function L.confirmArrivalIfNavigating(areaKey)
-  if L.session.state ~= "navigating" or L.session.areaKey ~= areaKey then return false end
-  local roomId = mapperRoomId()
-  if not roomId then
-    ce("Current room not yet resolvable -- try again once the mapper recognizes this room.")
-    return false
-  end
-  L.onArrivedAtStart(areaKey)
-  return true
+  ce(area.name .. ": ready. 'mydsl leveling resume' when in position (buffs/food first if you want).")
 end
 
 
 ------------------------------------------------------------------------
--- SECTION 7: INTERNAL-AREA STEPPING
+-- SECTION 6: INTERNAL-AREA STEPPING
 ------------------------------------------------------------------------
 -- Raw direction-list replay is authoritative (matches proven community
 -- data); map.speedwalk() is an opportunistic same-session upgrade for
@@ -441,14 +391,38 @@ local function sendStep(token)
   end
 end
 
+-- report() -- a fuller end-of-run summary, per Steven ("give report like
+-- in PNP") replacing the old one-line "pass complete. N killed, M xp."
+-- Shown once, when a full lap of the area's dirs list completes (walking
+-- + fighting the whole way through without stopping in between, exactly
+-- as Steven asked -- "just keep walking and fighting till you get back
+-- to the start point").
+local function formatDuration(seconds)
+  seconds = math.max(0, math.floor(seconds))
+  local m = math.floor(seconds / 60)
+  local s = seconds % 60
+  return m .. "m " .. s .. "s"
+end
+
+function L.report()
+  local s = L.session
+  local area = L.areas[s.areaKey]
+  local elapsed = s.stats.started and (os.time() - s.stats.started) or 0
+  local perHour = (elapsed > 0) and math.floor(s.stats.xp / elapsed * 3600) or 0
+  cecho("\n<cyan>[MyDSL.Leveling] ===== Leveling Report: " .. (area and area.name or s.areaKey) .. " =====<reset>\n"
+    .. "  Duration: " .. formatDuration(elapsed) .. "\n"
+    .. "  Killed:   " .. s.stats.killed .. "\n"
+    .. "  XP:       " .. s.stats.xp .. "  (" .. perHour .. "/hr)\n"
+    .. "<cyan>=========================================<reset>\n")
+end
+
 function L.processStep()
   local area = L.areas[L.session.areaKey]
   if not area then L.stop(); return end
 
   if L.session.stepIndex > #area.dirs then
-    ce(area.name .. ": pass complete. " .. L.session.stats.killed .. " killed, "
-      .. L.session.stats.xp .. " xp this run.")
-    L.stop()
+    L.report()
+    L.stop(true)
     return
   end
 
@@ -487,7 +461,7 @@ end
 
 
 ------------------------------------------------------------------------
--- SECTION 8: MOB RECOGNITION (reuses MyDSL_DataLayer.lua's scan capture
+-- SECTION 7: MOB RECOGNITION (reuses MyDSL_DataLayer.lua's scan capture
 -- -- no duplicate trigger chain)
 ------------------------------------------------------------------------
 -- MyDSL.on("scan", ...) fires on MyDSL.emit("scan"), called from
@@ -544,7 +518,7 @@ end)
 
 
 ------------------------------------------------------------------------
--- SECTION 9: COMBAT LOOP
+-- SECTION 8: COMBAT LOOP
 ------------------------------------------------------------------------
 
 function L.tryKill()
@@ -558,7 +532,6 @@ function L.tryKill()
   local mobKey = table.remove(L.session.mobsInRoom, 1)
   local mobDef = area.mobs[mobKey]
   L.session.pendingKillMobKey = mobKey
-  L.armFailsafe()
   send("kill " .. mobDef.kill_kw)
 end
 
@@ -567,21 +540,33 @@ L._triggers.xpGain = tempRegexTrigger("^You receive (\\d+) experience points\\.$
   L.session.stats.xp = L.session.stats.xp + tonumber(matches[2])
   L.session.stats.killed = L.session.stats.killed + 1
   L.session.pendingKillMobKey = nil
-  L.resetFailsafe()
   L.tryKill()
 end)
 
 
 ------------------------------------------------------------------------
--- SECTION 10: INTERRUPTION HANDLING
+-- SECTION 9: INTERRUPTION HANDLING
 ------------------------------------------------------------------------
 -- All corpus-confirmed real DSL text (grepped log/ directly, not
 -- invented) -- see docs/DSL_CommandRef.md.
 
+-- REDESIGNED 2026-07-20, per Steven ("also fix what you can... check
+-- open combat issues"; "just keep walking and fighting till you get
+-- back to the start point... we only need pause resume and stop, not a
+-- fallback safety timer or whatever it is"): a flee used to stop the
+-- whole run outright. Fleeing usually drops you in a random adjacent
+-- room, which desyncs from the area's own fixed dirs list -- but per
+-- Steven's own explicit "just keep going" preference, that's an
+-- acceptable tradeoff (the worst case is a few harmless failed-move
+-- messages until the path naturally reconverges or the player steps in
+-- with pause/stop) rather than a hard stop on every flee.
 L._triggers.fleeCombat = tempRegexTrigger("^You flee from combat!$", function()
   if L.session.state ~= "active" then return end
-  ce("Fled from combat -- stopping run for safety.")
-  L.stop()
+  ce("Fled from combat -- continuing.")
+  L.session.pendingKillMobKey = nil
+  L.session.mobsInRoom = {}
+  L.session.awaitingRoom = false
+  L.processStep()
 end)
 
 -- Guarded on pendingKillMobKey being set, since "They aren't here." is a
@@ -629,7 +614,7 @@ end
 
 
 ------------------------------------------------------------------------
--- SECTION 11: HP SAFETY NET
+-- SECTION 10: HP SAFETY NET
 ------------------------------------------------------------------------
 -- Extra layer on top of (not instead of) DSL's own wimpy. Cheap to build
 -- since MyDSL.State.char.hp/.max_hp are already flowing (update("char",
@@ -648,23 +633,28 @@ end)
 
 
 ------------------------------------------------------------------------
--- SECTION 12: SESSION CONTROL
+-- SECTION 11: SESSION CONTROL
 ------------------------------------------------------------------------
 
 function L.pause()
   if L.session.state ~= "active" then ce("Not running."); return end
   L.session.state = "paused"
-  L.clearFailsafe()
   ce("Paused. 'mydsl leveling resume' to continue.")
 end
 
 function L.resume()
-  if L.session.state == "navigating" then
-    if not L.confirmArrivalIfNavigating(L.session.areaKey) then return end
-  end
   if L.session.state ~= "paused" then ce("Nothing paused. 'mydsl leveling start <area>' first."); return end
   local area = L.areas[L.session.areaKey]
   if not area then ce("No active area."); return end
+  -- Opportunistic room-id caching (moved here from the old two-step
+  -- navigate/confirm flow, 2026-07-20) -- if the mapper happens to know
+  -- where we are right now and this area has never had a start room
+  -- cached, grab it for next time's speedwalk. Never blocks resuming
+  -- either way.
+  if not area.startRoomId then
+    local roomId = mapperRoomId()
+    if roomId then area.startRoomId = roomId; L.saveAreas() end
+  end
   L.session.state = "active"
   L.session.stats.started = L.session.stats.started or os.time()
   ce("Resuming " .. area.name .. "...")
@@ -672,13 +662,15 @@ function L.resume()
   L.tryKill()
 end
 
-function L.stop()
-  L.clearFailsafe()
+-- quiet=true skips the "Stopped." echo -- used when processStep() has
+-- already shown a full end-of-run report (see SECTION 7) so the two
+-- messages don't stack redundantly.
+function L.stop(quiet)
   L.session.state = "stopped"
   L.session.awaitingRoom = false
   L.session.mobsInRoom = {}
   L.session.pendingKillMobKey = nil
-  ce("Stopped.")
+  if not quiet then ce("Stopped.") end
 end
 
 function L.status()
@@ -695,30 +687,41 @@ end
 
 
 ------------------------------------------------------------------------
--- SECTION 13: AREA MANAGEMENT COMMANDS
+-- SECTION 12: AREA MANAGEMENT COMMANDS
 ------------------------------------------------------------------------
 
+-- REDESIGNED 2026-07-20, per Steven's own MyDSL-profile notes ("mydsl
+-- leveling areas needs a cleaner display, it is very spaced out and
+-- doesnt need the [MyDSL.Leveing] line start"): ce() prepends a blank
+-- line and the "[MyDSL.Leveling]" tag to EVERY call, so calling it once
+-- per row produced one blank-line-separated, re-tagged row per area --
+-- for a ~39-row listing that's extremely spaced out. Now builds the
+-- whole table as one string and echoes it once, with a single header
+-- tag instead of one per row.
 function L.listAreas()
   local names = {}
   for key, area in pairs(L.areas or {}) do table.insert(names, key) end
   table.sort(names)
   if #names == 0 then ce("No areas yet. 'mydsl leveling import' to load the seed data."); return end
+  local rows = {}
   for _, key in ipairs(names) do
     local area = L.areas[key]
     local total, enabled = 0, 0
     for _, m in pairs(area.mobs) do total = total + 1; if m.enabled then enabled = enabled + 1 end end
-    ce(string.format("%-16s  %-10s  %d/%d mobs enabled", key, area.levels or "?", enabled, total))
+    table.insert(rows, string.format("  %-16s  %-10s  %d/%d mobs enabled", key, area.levels or "?", enabled, total))
   end
+  cecho("\n<cyan>[MyDSL.Leveling] Areas (" .. #names .. "):<reset>\n" .. table.concat(rows, "\n") .. "\n")
 end
 
+-- Same one-echo-block redesign as listAreas() above -- was one ce() call
+-- per mob, spacing/re-tagging every single row.
 function L.areaInfo(areaKey)
   local area = L.areas[areaKey]
   if not area then ce("No such area: " .. tostring(areaKey)); return end
-  ce(area.name .. "  (" .. (area.levels or "Unknown.") .. ")")
-  if area.description ~= "" then ce("Directions: " .. area.description) end
   local keys = {}
   for k in pairs(area.mobs) do table.insert(keys, k) end
   table.sort(keys)
+  local rows = {}
   for _, k in ipairs(keys) do
     local m = area.mobs[k]
     local danger = ""
@@ -726,8 +729,11 @@ function L.areaInfo(areaKey)
       local ok, state = pcall(MyDSL.CreatureLore.knownState, k)
       if ok and state then danger = "  [" .. tostring(state) .. "]" end
     end
-    ce(string.format("  %-10s %-6s %s%s", k, m.enabled and "on" or "off", m.label, danger))
+    table.insert(rows, string.format("  %-10s %-6s %s%s", k, m.enabled and "on" or "off", m.label, danger))
   end
+  local header = "\n<cyan>[MyDSL.Leveling] " .. area.name .. "  (" .. (area.levels or "Unknown.") .. ")<reset>\n"
+  if area.description ~= "" then header = header .. "Directions: " .. area.description .. "\n" end
+  cecho(header .. table.concat(rows, "\n") .. "\n")
 end
 
 function L.newArea(name)
@@ -804,7 +810,7 @@ end
 
 
 ------------------------------------------------------------------------
--- SECTION 14: COMMAND DISPATCHER
+-- SECTION 13: COMMAND DISPATCHER
 ------------------------------------------------------------------------
 -- Single catch-all alias + Lua dispatch, same pattern as
 -- MyDSL_LocationView.lua's locationCommand()/M._cmd().
@@ -816,7 +822,7 @@ local function help()
   ce("mydsl leveling show <area> <mob>|all | hide <area> <mob>|all")
   ce("mydsl leveling show | hide  -- window visibility")
   ce("mydsl leveling import  -- load the seed area data")
-  ce("mydsl leveling hp <percent> | timeout <seconds> | buff <fury|haste|detects|sanc> <cmd|off>")
+  ce("mydsl leveling hp <percent> | buff <fury|haste|detects|sanc> <cmd|off>")
 end
 
 local function command(rest)
@@ -832,15 +838,7 @@ local function command(rest)
   if rest == "hide" then L.hide(); return end
 
   local startArea = rest:match("^start%s+(.+)$")
-  if startArea then
-    local key = normalizeName(startArea)
-    if L.session.state == "navigating" and L.session.areaKey == key then
-      L.confirmArrivalIfNavigating(key)
-    else
-      L.startArea(key)
-    end
-    return
-  end
+  if startArea then L.startArea(normalizeName(startArea)); return end
 
   local scanArea = rest:match("^scan%s*(.*)$")
   if scanArea ~= nil and rest:match("^scan") then L.scanMobs(scanArea ~= "" and scanArea or nil); return end
@@ -857,8 +855,6 @@ local function command(rest)
 
   local hp = rest:match("^hp%s+(%d+)$")
   if hp then L.session.hpThreshold = tonumber(hp); ce("HP safety threshold set to " .. hp .. "%."); return end
-  local timeout = rest:match("^timeout%s+(%d+)$")
-  if timeout then L.session.failsafeSeconds = tonumber(timeout); ce("Failsafe timeout set to " .. timeout .. "s."); return end
 
   local buffName, buffCmd = rest:match("^buff%s+(%a+)%s+(.+)$")
   if buffName then
@@ -881,7 +877,7 @@ end
 
 
 ------------------------------------------------------------------------
--- SECTION 15: BOOT
+-- SECTION 14: BOOT
 ------------------------------------------------------------------------
 
 function L.boot()

@@ -4245,9 +4245,35 @@ MyDSL._triggers.loreItemStart = tempRegexTrigger(
 -- this tracker today, so it stays as-is on purpose -- don't "fix" this
 -- again without building/coordinating with that module first.
 local DAMAGE_VERBS = "miss|scratch|graze|hit|injure|wound|maul|decimate|devastate|maim|MUTILATE|DISEMBOWEL|DISMEMBER|MASSACRE|MANGLE|DEMOLISH|DEVASTATE|OBLITERATE|ANNIHILATE|ERADICATE|GHASTLY|HORRID|DREADFUL|HIDEOUS|INDESCRIBABLE|UNSPEAKABLE"
+-- REAL BUG, found live 2026-07-20 (Steven, via the actual Olyndros
+-- session log, flagged as "combat remains in the main window, the
+-- readicates and others should be going to combat with the condenser"):
+-- this trigger's own final group used to require the line to end in one
+-- or more literal "."/"!" characters -- but DSL's real current combat
+-- text always ends with a parenthesized (possibly decimal) damage
+-- number instead, e.g. "Your wrath do UNSPEAKABLE things to Tinker
+-- gnome janitor (340)", "Beautiful white charger's bite wounds Tinker
+-- gnome janitor (14.5)", "Tinker gnome janitor's misses You (0)" --
+-- confirmed via direct regex testing against the real captured corpus:
+-- every single one of these failed to match at all under the old
+-- pattern (only a line with a literal trailing "." or "!", e.g. the
+-- "<<< ERADICATES >>> ...!" charge-skill form, ever matched). Since
+-- nothing matched, parseCombatDamageLine() never ran for ordinary
+-- swings -- no round-data accumulation, no Combat-window condenser
+-- summary, no gagging -- so every real swing just printed raw and
+-- untracked to the main console, exactly matching the reported symptom.
+-- Fixed: the target-name capture is now non-greedy and the final group
+-- accepts EITHER a parenthesized number OR the old literal punctuation,
+-- so both the current live format and any older/other-verb literal-
+-- punctuation form still match. `parseCombatDamageLine()`'s own `punct`
+-- parameter only ever gets used as cosmetic trailing decoration on the
+-- raw per-swing display line -- the actual severity score shown always
+-- comes from a fixed per-verb DAM_INFO[verb].score lookup, not parsed
+-- from this text -- so passing a "(340)"-shaped punct through is safe,
+-- nothing depends on it being exactly "."/"!".
 MyDSL._triggers.combatDamage = tempRegexTrigger(
   "^(You|[\\w\\-\\s,']+?)(?:(?<=You)r|'s)?(?:\\s?((?<=Your )[\\w\\s]+?|(?<='s )[\\w\\s]+?|))(?: do[es]*| [\\>\\<\\=\\*]+|) ("
-    .. DAMAGE_VERBS .. ")[esES]*(?: things to| [\\>\\<\\=\\*]+|) ([\\w\\-\\s,']+)([\\.\\.!]+)$",
+    .. DAMAGE_VERBS .. ")[esES]*(?: things to| [\\>\\<\\=\\*]+|) ([\\w\\-\\s,']+?)\\s*(\\([\\d\\.]+\\)|[\\.\\.!]+)$",
   function()
     if MyDSL and MyDSL.parseCombatDamageLine then
       MyDSL.parseCombatDamageLine(matches[2], matches[3], matches[4], matches[5], matches[6])
