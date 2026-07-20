@@ -146,6 +146,22 @@ check("armFailsafe schedules a callback", capturedFailsafeFn ~= nil)
 if capturedFailsafeFn then capturedFailsafeFn() end
 check("failsafe firing stops the session", L.session.state == "stopped")
 
+-- Regression: real live bug (2026-07-20, confirmed via the actual
+-- Olyndros session log) -- a fight against a tough single mob produced
+-- continuous real combat swings for 27+ seconds with zero kill/XP yet,
+-- but the failsafe (never reset by anything except a full kill) fired
+-- mid-fight anyway and stopped the whole session despite combat being
+-- actively ongoing. Fixed by registering a "MyDSL.combat.updated"
+-- handler (real event, MyDSL_DataLayer.lua's combatRoundFlush -- fires
+-- on every round, confirmed via direct read) that resets the failsafe
+-- on ordinary round activity too, not just a kill. The shared mock's
+-- registerAnonymousEventHandler() doesn't retain/invoke handler
+-- functions (a pre-existing limitation, not new to this fix), so this
+-- can only be checked structurally here -- that the handler actually
+-- got registered at boot, not that dispatch itself fires correctly.
+check("a combat-round-activity handler is registered to reset the failsafe mid-fight",
+  L._handlers.combatActivity ~= nil)
+
 ------------------------------------------------------------------------
 -- 7. HP safety net
 ------------------------------------------------------------------------

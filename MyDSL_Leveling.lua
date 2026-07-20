@@ -343,6 +343,27 @@ function L.clearFailsafe()
   if L._failsafeTimer then killTimer(L._failsafeTimer); L._failsafeTimer = nil end
 end
 
+-- REAL BUG, found live 2026-07-20 (Steven, via the actual Olyndros
+-- session log): the failsafe was only ever reset on a full kill
+-- (xpGain trigger, below) -- never on ordinary combat-round activity.
+-- Confirmed in the transcript: a fight against a single tough "gnome
+-- philosophy instructor" produced continuous real swings every ~3s from
+-- 16:06:08 onward, but the failsafe (30s default) fired at 16:06:35 --
+-- 27s after the fight started, well before the mob died -- stopping the
+-- whole leveling session mid-fight despite combat being clearly, actively
+-- ongoing the entire time. This was always the plan's own stated design
+-- ("reset on any combat-round activity... not just kill-confirm alone")
+-- but never actually got wired up in code. `MyDSL.combat.updated` is a
+-- real event (`MyDSL_DataLayer.lua`'s combatRoundFlush handler,
+-- confirmed via direct read: `raiseEvent("MyDSL.combat.updated", rd)`
+-- fires on every round flush) -- it's NOT on the MyDSL.on()/emit() Lua-
+-- callback bus (that's `char`/`scan`/`creaturelore`/etc. only), so this
+-- needs registerAnonymousEventHandler like MyDSL_TargetView.lua's own
+-- "MyDSL.combat.died" listener does, not MyDSL.on().
+L._handlers.combatActivity = registerAnonymousEventHandler("MyDSL.combat.updated", function()
+  L.resetFailsafe()
+end)
+
 
 ------------------------------------------------------------------------
 -- SECTION 6: NAVIGATE-TO-AREA

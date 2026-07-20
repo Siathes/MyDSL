@@ -120,101 +120,96 @@ is closed until Steven confirms it in-game. Full technical detail for any
 item: `git log --oneline` + `docs/CHANGELOG.md`.
 
 - [ ] **`MyDSL_Leveling.lua` — new leveling-assist addon, built 2026-07-19,
-      one real live bug found and fixed on first install attempt, still
-      needs a clean live-test pass.** Steven wired the new Script entry
-      in and immediately hit a real bug: "that script blanks my main
-      window, i had to disable." Root cause confirmed and fixed in
-      `MyDSL_WindowRegistry.lua`: its registry table used `MyDSL.Windows
-      .registry = MyDSL.Windows.registry or {...}`, which skips the
-      entire literal -- including any newly-added window key -- if the
-      registry already exists in memory, true for any in-session script
-      reload (not just a fresh Mudlet start). So `MyDSL_Leveling`'s
-      registry entry never got added, `Windows.ensure()` returned nil,
-      and `MyDSL_Leveling.lua`'s `ensureUI()` passed that nil straight
-      through as a `Geyser.MiniConsole`'s parent container -- Geyser
-      attaches a parentless console to the main window itself, at the
-      requested 100%x100%, which is exactly what blanked the screen.
-      Fixed on both sides: `MyDSL_WindowRegistry.lua` now merges new keys
-      into an already-existing registry instead of skipping the whole
-      table (helps any future new window added this way, not just this
-      one); `MyDSL_Leveling.lua`'s `ensureUI()` now bails out cleanly with
-      a debug warning if `Windows.ensure()` ever returns nil, instead of
-      falling through to an implicit main-window attach, regardless of
-      why ensure() failed. Verified via 2 new regression tests
-      (`test/test_windowregistry_merge.lua`: a pre-existing entry's live
-      state survives untouched, a key only present in a newer file gets
-      added, not skipped; a new assertion in `test/test_leveling.lua`:
-      `ensureUI()` creates zero consoles when the registry is
-      unavailable). Re-enabled and confirmed the main window stays
-      intact -- but immediately hit a second real bug: "mydsl leveling
-      import looks like it died or never triggered" (no error, no
-      output). Root cause: `L.importSeedAreas()`'s default path used
-      `getMudletHomeDir()`, which resolves to whichever profile is
-      CURRENTLY RUNNING the script -- this addon deliberately runs
-      cross-profile (its Script entry `dofile()`s an absolute path from
-      the MyDSL play profile into the DSL2 git repo, so fixes land
-      without a reinstall), so the seed file was only ever looked for in
-      the MyDSL profile's own (nonexistent) `MyDSL/` folder, confirmed
-      via `ls` against the real live profile directory. The failure path
-      also only called `debugc()` (Mudlet's separate Errors console, not
-      necessarily open), so it looked like nothing happened at all.
-      Fixed: `importSeedAreas()` now tries the current profile's own
-      `MyDSL/` folder first, then falls back to the known DSL2 repo copy
-      this addon actually ships from, and reports "not found" via a
-      visible main-console message instead of only `debugc()`. Verified
-      via 2 more assertions in `test/test_leveling.lua` (import resolves
-      via the fallback chain with no explicit path given). Import
-      confirmed working live -- but a third real bug then surfaced:
-      "it did not engage the enemies" (a full 12-step pass through
-      "philosophy" completed with 0 kills). Confirmed via the actual
-      Olyndros session log: every mob in every room printed with a
-      `"(Golden Aura)"` prefix (e.g. `"(Golden Aura) A gnome student is
-      here."`), but the seed data's own raw mob text has no tag (`"A
-      gnome student is here."`) -- the mob-matching code compared
-      `scan.rightHere[key].raw` (deliberately unstripped, kept for
-      display/audit) against the seed text with plain `==`, so a leading
-      aura/charmed tag broke every single match. Fixed: matching (and
-      `mydsl leveling scan`'s own dedup/store logic) now strips leading
-      parenthetical tags before comparing, reusing the same stripping
-      loop `MyDSL_DataLayer.lua`'s own capture already relies on. Locked
-      in via a new regression test replaying the exact real "philosophy"
-      room text from the transcript. **Steven needs to re-test a full
-      run** to confirm mobs actually get engaged now. Per Steven's ask (auto-navigate
-      known hunting areas, auto-engage enabled mobs, easy area/mob
-      maintenance for new users) plus a same-day follow-up round
+      four real live bugs found and fixed during first install/test,
+      still needs a clean full-run confirmation.** Per Steven's ask
+      (auto-navigate known hunting areas, auto-engage enabled mobs, easy
+      area/mob maintenance for new users) plus a same-day follow-up round
       (mapper-based navigate-to-area, pause-before-start/pause-resume,
       the followers/line-spacing shared-risk dependency) — see the
       approved plan and this file's own header comment for full design.
       Ships as a **separate outside addon** (per the passive-observation
       exception recorded below), NOT part of `MyDSL_Full.mpackage`/
       `build_mydsl_package.py` — needs its own manual `dofile()` wiring
-      in Mudlet's Script Editor before it can run at all. Seed data:
-      `MyDSL/leveling_areas_seed.lua`, 39 real hunting areas from the DSL
-      forums (forum 111 "Mudlet Scripts", thread 99388), with a real
-      syntax bug in the raw forum-quoted table (every entry duplicated as
-      `["name"] = ["name"] = {...}`) mechanically fixed during import, and
-      4 later-thread corrections applied (weeds +3 mobs, cryfield
-      renamed from "crystfield" with its full mob list, hedgemaze's dead
-      mob removed, jixpk's missing rooms fixed) plus 1 new area (muck)
+      in Mudlet's Script Editor. Seed data: `MyDSL/leveling_areas_seed.lua`,
+      39 real hunting areas from the DSL forums (forum 111 "Mudlet
+      Scripts", thread 99388), with a real syntax bug in the raw
+      forum-quoted table (every entry duplicated as `["name"] =
+      ["name"] = {...}`) mechanically fixed during import, and 4
+      later-thread corrections applied (weeds +3 mobs, cryfield renamed
+      from "crystfield" with its full mob list, hedgemaze's dead mob
+      removed, jixpk's missing rooms fixed) plus 1 new area (muck)
       added. Reuses existing infrastructure rather than reinventing it:
       `MyDSL.on("scan", ...)` (no duplicate room-capture trigger chain),
       the real `DSL_Generic_Mapper.xml` fork's `map.speedwalk()`,
       `MyDSL_CharacterAssist.lua`'s failsafe-timer pattern, and
       `MyDSL_TargetView.lua`'s single-word kill-keyword rule (own tiny
       copy, not an export, to keep the addon boundary clean of core-file
-      edits). Verified via a 21-assertion structural test harness
-      (`test/test_leveling.lua`): seed import (all 39 areas, the syntax
-      fix, the cryfield rename), mob show/hide toggling, scan-event-
-      driven mob recognition, kill-stealing "finish this room first"
-      behavior, the XP-gain advance trigger, the failsafe dead-man's-
-      switch, and the HP%-threshold safety net. Also added one
-      `MyDSL.Windows.registry` entry (`MyDSL_Leveling`, visible=false,
-      same on-demand precedent as Bestiary/Help/Item Reference) and one
-      `MyDSL.Help.modules` entry under a new "Automation / Assist"
-      category. **Nothing here is live-tested** — needs Steven to
-      actually wire the dofile, run `mydsl leveling import`, and try a
-      real area (navigate-to-area, pause/resume, a full walk-and-fight
-      pass, HP safety stop, failsafe timeout) before any of this closes.
+      edits). Also added one `MyDSL.Windows.registry` entry
+      (`MyDSL_Leveling`, visible=false, same on-demand precedent as
+      Bestiary/Help/Item Reference) and one `MyDSL.Help.modules` entry
+      under a new "Automation / Assist" category.
+
+      **4 real bugs found live and fixed, in order:**
+      1. *Blanked the main window on load.* `MyDSL_WindowRegistry.lua`'s
+         registry table used `X = X or {...}`, which skips the entire
+         literal — including any newly-added window key — once the
+         registry already exists in memory (true for any in-session
+         script reload, not just a fresh Mudlet start). `Windows.ensure()`
+         returned nil for the unregistered window, and `ensureUI()`
+         passed that nil straight through as a `Geyser.MiniConsole`'s
+         parent — Geyser attaches a parentless console to the main
+         window itself at 100%x100%. Fixed on both sides:
+         `MyDSL_WindowRegistry.lua` now merges new keys into an existing
+         registry instead of skipping it (protects any future new
+         window); `ensureUI()` now bails out cleanly whenever
+         `Windows.ensure()` returns nil, regardless of cause.
+      2. *`mydsl leveling import` silently did nothing.* Its default path
+         used `getMudletHomeDir()`, which resolves to whichever profile
+         is CURRENTLY RUNNING the script — this addon deliberately runs
+         cross-profile (`dofile()`'d from the MyDSL play profile into
+         the DSL2 git repo), so the seed file was only ever looked for
+         in a profile folder it was never copied into, and the failure
+         only logged to `debugc()` (invisible unless the Errors console
+         is open). Fixed: tries the current profile's own `MyDSL/`
+         folder first, falls back to the known DSL2 repo copy, reports
+         "not found" via a visible main-console message.
+      3. *Mobs never engaged.* Confirmed via the real Olyndros session
+         log: DSL was printing every mob with a `"(Golden Aura)"` prefix
+         (e.g. `"(Golden Aura) A gnome student is here."`), but the seed
+         data's raw mob text has no tag — mob matching compared
+         `scan.rightHere[key].raw` (deliberately unstripped) against the
+         seed text with plain `==`, so any leading tag broke every
+         match, every mob, every room, the whole run. Fixed: strip
+         leading parenthetical tags (same loop
+         `MyDSL_DataLayer.lua`'s own capture already uses) before
+         comparing, in both the live matcher and `mydsl leveling scan`'s
+         dedup/store logic.
+      4. *Failsafe fired mid-fight.* Once mobs actually engaged (after
+         fix 3), a fight against a single tough mob produced continuous
+         real combat swings for 27+ seconds with zero kill/XP yet — but
+         the failsafe (only ever reset on a full kill) fired anyway and
+         stopped the whole session despite combat being clearly active.
+         Fixed: a new `registerAnonymousEventHandler("MyDSL.combat
+         .updated", ...)` listener (real per-round event,
+         `MyDSL_DataLayer.lua`'s `combatRoundFlush`) resets the failsafe
+         on any combat activity, not just a kill — always the plan's own
+         stated design, never actually wired up until now.
+
+      All 4 fixes verified via structural tests (`test/test_leveling.lua`,
+      now 27 assertions; `test/test_windowregistry_merge.lua`) replaying
+      real captured transcript text where possible; the shared test mock
+      can't dispatch `registerAnonymousEventHandler` callbacks (a
+      pre-existing limitation), so fix 4 is only checked structurally
+      (handler registered at boot). **Separately found, flagged, NOT
+      fixed (unrelated, pre-existing, out of scope)**: a native "Charge"
+      trigger errors every time "charge" is used (`attempt to index
+      global 'dslpnp' (a nil value)`) — references the old PNP
+      framework's global, not loaded in this profile anymore. Nothing to
+      do with Leveling; one-line native-trigger fix if Steven wants it.
+      **Steven needs to re-test a full run** (ideally against a
+      tougher/longer mob, to also confirm the failsafe no longer fires
+      mid-fight) before any of this closes — pause/resume, HP safety
+      stop, and navigate-to-area from cold are all still unconfirmed.
 - [ ] **DSL Generic Mapper: real "air" terrain gap, plus dropped the
       spammy line-buffer dump from `dslroom raw` — fixed 2026-07-18,
       needs live confirmation.** Per Steven ("is there a terrain color
