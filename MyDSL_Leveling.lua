@@ -105,13 +105,25 @@ end
 -- status/help display only -- never used for matching (matching against
 -- scan.rightHere is always exact-string on the "raw" field). Strips
 -- leading parentheticals/articles and trailing verb-phrase filler.
-local function deriveLabel(raw)
-  local rest = trim(raw or "")
+-- stripLeadingTags(line) -- strips ALL leading parenthetical tags
+-- ("(Charmed) (Golden Aura) (White Aura) A beautiful..."), same loop
+-- MyDSL_DataLayer.lua's parseLookHereLine() already uses. Needed here
+-- because scan.rightHere[key].raw is deliberately the UNSTRIPPED
+-- original line (kept for display/audit) -- see REAL BUG comment below
+-- at the mob-matching site for why comparing against it directly broke
+-- every match.
+local function stripLeadingTags(line)
+  local rest = trim(line or "")
   while true do
     local stripped = rest:match("^%([^()]+%)%s*(.+)$")
     if not stripped then break end
     rest = stripped
   end
+  return rest
+end
+
+local function deriveLabel(raw)
+  local rest = stripLeadingTags(raw)
   rest = rest:gsub("^[Aa]n? ", ""):gsub("^[Tt]he ", "")
   local cut = rest:find(" is here") or rest:find(" stands here") or rest:find(" sits here")
            or rest:find(" hovers") or rest:find(" wanders here") or rest:find(",")
@@ -481,11 +493,26 @@ MyDSL.on("scan", function(scanState)
   local area = L.areas[L.session.areaKey]
   if not area then return end
 
+  -- REAL BUG, found live 2026-07-20 (Steven: "it did not engage the
+  -- enemies", confirmed via the Olyndros session log -- a full 12-step
+  -- pass through "philosophy" completed with 0 kills despite every room
+  -- showing real, enabled mobs, e.g. "(Golden Aura) A gnome student is
+  -- here."). Root cause: `entry.raw` (MyDSL_DataLayer.lua's
+  -- scan.rightHere) is the UNSTRIPPED original captured line, kept as-is
+  -- for display/audit -- but the seed data's own mob.raw text was
+  -- transcribed from a much older forum post with no aura tag, so a
+  -- straight `mobDef.raw == entry.raw` comparison silently never matched
+  -- ANY mob in a zone/moment with an active aura effect (confirmed real
+  -- in the live transcript: literally every entity in the room, mount
+  -- included, carried a "(Golden Aura)" prefix). Fixed by comparing
+  -- against the same leading-tag-stripped text deriveLabel() already
+  -- normalizes to, rather than the raw line verbatim.
   L.session.mobsInRoom = {}
   for _, entry in pairs(scanState.rightHere or {}) do
     if entry.is_mob then
+      local stripped = stripLeadingTags(entry.raw)
       for mobKey, mobDef in pairs(area.mobs) do
-        if mobDef.enabled and mobDef.raw == entry.raw then
+        if mobDef.enabled and mobDef.raw == stripped then
           table.insert(L.session.mobsInRoom, mobKey)
         end
       end
@@ -712,17 +739,23 @@ function L.scanMobs(areaKeyArg)
   local scan = MyDSL.State and MyDSL.State.scan
   if not scan then ce("No scan data yet -- look around first."); return end
 
+  -- Stores/dedupes against the tag-stripped text, same reasoning as the
+  -- scan-event mob-matching fix above -- otherwise a mob scanned while
+  -- an aura/charmed tag happens to be active would get stored with that
+  -- tag baked into its raw text, and silently stop matching the moment
+  -- the tag isn't present (or vice versa).
   local added = 0
   for _, entry in pairs(scan.rightHere or {}) do
     if entry.is_mob then
+      local stripped = stripLeadingTags(entry.raw)
       local already = false
       for _, m in pairs(area.mobs) do
-        if m.raw == entry.raw then already = true; break end
+        if m.raw == stripped then already = true; break end
       end
       if not already then
         local abbrev = entry.key:match("(%S+)$") or entry.key
         area.mobs[abbrev] = {
-          raw = entry.raw, label = deriveLabel(entry.raw), kill_kw = commandArg(abbrev), enabled = true,
+          raw = stripped, label = deriveLabel(stripped), kill_kw = commandArg(abbrev), enabled = true,
         }
         added = added + 1
       end

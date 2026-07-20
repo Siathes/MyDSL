@@ -163,9 +163,23 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       this addon actually ships from, and reports "not found" via a
       visible main-console message instead of only `debugc()`. Verified
       via 2 more assertions in `test/test_leveling.lua` (import resolves
-      via the fallback chain with no explicit path given). **Steven
-      needs to re-run `mydsl leveling import` to confirm this actually
-      resolves live** before testing the rest of the loop. Per Steven's ask (auto-navigate
+      via the fallback chain with no explicit path given). Import
+      confirmed working live -- but a third real bug then surfaced:
+      "it did not engage the enemies" (a full 12-step pass through
+      "philosophy" completed with 0 kills). Confirmed via the actual
+      Olyndros session log: every mob in every room printed with a
+      `"(Golden Aura)"` prefix (e.g. `"(Golden Aura) A gnome student is
+      here."`), but the seed data's own raw mob text has no tag (`"A
+      gnome student is here."`) -- the mob-matching code compared
+      `scan.rightHere[key].raw` (deliberately unstripped, kept for
+      display/audit) against the seed text with plain `==`, so a leading
+      aura/charmed tag broke every single match. Fixed: matching (and
+      `mydsl leveling scan`'s own dedup/store logic) now strips leading
+      parenthetical tags before comparing, reusing the same stripping
+      loop `MyDSL_DataLayer.lua`'s own capture already relies on. Locked
+      in via a new regression test replaying the exact real "philosophy"
+      room text from the transcript. **Steven needs to re-test a full
+      run** to confirm mobs actually get engaged now. Per Steven's ask (auto-navigate
       known hunting areas, auto-engage enabled mobs, easy area/mob
       maintenance for new users) plus a same-day follow-up round
       (mapper-based navigate-to-area, pause-before-start/pause-resume,

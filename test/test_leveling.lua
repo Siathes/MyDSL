@@ -169,7 +169,46 @@ MyDSL.emit("char")
 check("HP safety net does nothing when disabled (threshold 0)", L.session.state == "active")
 
 ------------------------------------------------------------------------
--- 8. Regression: ensureUI() must NEVER create a MiniConsole with a nil
+-- 8. Regression: mob matching must survive a leading aura/charmed tag --
+--    real live bug (2026-07-20, Steven: "it did not engage the enemies"
+--    -- confirmed via the actual Olyndros session log: a full 12-step
+--    pass through "philosophy" completed with 0 kills because DSL was
+--    printing every mob with a "(Golden Aura)" prefix, e.g. "(Golden
+--    Aura) A gnome student is here.", while the seed data's own raw
+--    text has no tag ("A gnome student is here."). The exact real room
+--    text from that transcript, used verbatim below.
+------------------------------------------------------------------------
+L.session.state = "active"
+L.session.areaKey = "philosophy"
+L.session.stepIndex = 1
+L.session.awaitingRoom = true
+L.session.mobsInRoom = {}
+L.session.pendingKillMobKey = nil
+_G.__sentCommands = {}
+
+MyDSL.State.scan.rightHere = {
+  mount_entry   = { raw = "(Charmed) (Golden Aura) (White Aura) A beautiful white charger, fitted with saddle, is here.", is_mob = true, key = "beautiful white charger" },
+  student_entry = { raw = "(Golden Aura) A gnome student is here.", is_mob = true, key = "gnome student" },
+  instruct_entry = { raw = "(Golden Aura) A gnome philosophy instructor is here.", is_mob = true, key = "gnome philosophy instructor" },
+}
+MyDSL.emit("scan")
+
+check("an aura-tagged mob line still engages (real 'philosophy' transcript replay)", (function()
+  for _, cmd in ipairs(_G.__sentCommands) do
+    if cmd == "kill student" or cmd == "kill instruct" then return true end
+  end
+  return false
+end)())
+check("the aura-tagged mount (not a seed-listed mob in this area) is correctly never queued",
+  (function()
+    for _, k in ipairs(L.session.mobsInRoom) do
+      if k ~= "student" and k ~= "instruct" then return false end
+    end
+    return true
+  end)())
+
+------------------------------------------------------------------------
+-- 9. Regression: ensureUI() must NEVER create a MiniConsole with a nil
 --    parent -- real live bug (2026-07-19, Steven: "that script blanks my
 --    main window"). Root cause was MyDSL_WindowRegistry.lua's registry
 --    skipping a newly-added key on an in-session reload, so
