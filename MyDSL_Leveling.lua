@@ -250,7 +250,20 @@ L.session = L.session or {
 
 function L.ensureUI()
   local win = MyDSL.Windows and MyDSL.Windows.ensure(WIN)
-  if win and win.setTitle then pcall(function() win:setTitle("-= Leveling =-") end) end
+  -- REAL BUG, found live 2026-07-19 (Steven: "that script blanks my main
+  -- window") -- root cause was MyDSL_WindowRegistry.lua's own registry
+  -- table skipping newly-added keys on an in-session reload (fixed there,
+  -- see that file's comment), which meant Windows.ensure() returned nil
+  -- here and a Geyser.MiniConsole got created with `nil` as its parent --
+  -- Geyser attaches a parentless console to the main window itself, at
+  -- the requested 100%x100%, blanking it. Never let that happen again
+  -- regardless of WHY ensure() failed: bail out with a debug warning
+  -- instead of falling through to an implicit main-window attach.
+  if not win then
+    debugc("[MyDSL] Leveling: window '" .. WIN .. "' unavailable (not registered yet?) -- skipping UI.")
+    return
+  end
+  if win.setTitle then pcall(function() win:setTitle("-= Leveling =-") end) end
   if not L._mc.log then
     L._mc.log = Geyser.MiniConsole:new({
       name = MC, x = 0, y = 0, width = "100%", height = "100%", scrollBar = true,

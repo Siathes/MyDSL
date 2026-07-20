@@ -181,7 +181,25 @@ end
 -- Without the guard, every reload would set all obj fields to nil,
 -- making the registry think windows haven't been created yet.
 
-MyDSL.Windows.registry = MyDSL.Windows.registry or {
+-- REAL BUG, found live 2026-07-19 (Steven: "that script blanks my main
+-- window, i had to disable" -- right after MyDSL_Leveling.lua added a new
+-- MyDSL_Leveling registry entry below): this table used to be built with
+-- `MyDSL.Windows.registry = MyDSL.Windows.registry or { ...literal... }` --
+-- if the registry ALREADY exists in memory (true for any in-session script
+-- reload, not just a fresh Mudlet start -- confirmed elsewhere in this
+-- codebase, see MyDSL_DataLayer.lua's SECTION 1 comment), the entire
+-- right-hand literal is skipped, so a newly-added window key is silently
+-- never registered until a full Mudlet restart. `MyDSL.Windows.ensure()`
+-- then returns nil for that window name (unknown-window branch), and
+-- MyDSL_Leveling.lua's ensureUI() passed that nil straight through as a
+-- Geyser.MiniConsole's parent container -- Geyser attaches a parentless
+-- console to the main window itself, at the requested 100%x100%, which is
+-- exactly what blanked the screen. Fixed by merging new keys into an
+-- already-existing registry instead of skipping the whole table --
+-- existing entries (with their live .obj/.created state) are left alone,
+-- and any window added after this fix survives an in-session reload with
+-- no restart required.
+local DEFAULT_REGISTRY = {
 
   -- ---- UserWindows (Geyser.UserWindow — can be detached to second monitor) --
 
@@ -230,6 +248,17 @@ MyDSL.Windows.registry = MyDSL.Windows.registry or {
 
   MyDSL_MoonWeather      = { obj=nil, type="Container",  visible=true,  created=false, lockStyle="padding" },
 }
+
+-- Merge, don't skip: preserves any already-live entry (with its real
+-- .obj/.created state from a previous load) untouched, but still adds any
+-- key from DEFAULT_REGISTRY that isn't present yet -- see the real-bug
+-- comment above DEFAULT_REGISTRY for why this matters.
+MyDSL.Windows.registry = MyDSL.Windows.registry or {}
+for name, def in pairs(DEFAULT_REGISTRY) do
+  if MyDSL.Windows.registry[name] == nil then
+    MyDSL.Windows.registry[name] = def
+  end
+end
 
 
 ------------------------------------------------------------------------

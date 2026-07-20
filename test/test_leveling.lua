@@ -148,6 +148,30 @@ MyDSL.State.char.hp = 10
 MyDSL.emit("char")
 check("HP safety net does nothing when disabled (threshold 0)", L.session.state == "active")
 
+------------------------------------------------------------------------
+-- 8. Regression: ensureUI() must NEVER create a MiniConsole with a nil
+--    parent -- real live bug (2026-07-19, Steven: "that script blanks my
+--    main window"). Root cause was MyDSL_WindowRegistry.lua's registry
+--    skipping a newly-added key on an in-session reload, so
+--    Windows.ensure() returned nil here; Geyser attaches a parentless
+--    console to the main window itself. Fixed in both files -- this
+--    locks in MyDSL_Leveling.lua's own half: ensure() failing must bail
+--    out cleanly, not fall through to an implicit main-window attach.
+------------------------------------------------------------------------
+local miniConsoleCalls = 0
+local realMiniConsoleNew = Geyser.MiniConsole.new
+Geyser.MiniConsole.new = function(self, cfg, parent) miniConsoleCalls = miniConsoleCalls + 1; return realMiniConsoleNew(self, cfg, parent) end
+
+local realWindows = MyDSL.Windows
+MyDSL.Windows = nil  -- simulate the registry being unavailable, as in the real bug
+L._mc.log = nil
+L.ensureUI()
+check("ensureUI() never creates a console when the window registry is unavailable",
+  miniConsoleCalls == 0 and L._mc.log == nil)
+
+MyDSL.Windows = realWindows
+Geyser.MiniConsole.new = realMiniConsoleNew
+
 print("")
 if failures == 0 then
   print("ALL PASS")

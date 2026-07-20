@@ -120,7 +120,34 @@ is closed until Steven confirms it in-game. Full technical detail for any
 item: `git log --oneline` + `docs/CHANGELOG.md`.
 
 - [ ] **`MyDSL_Leveling.lua` — new leveling-assist addon, built 2026-07-19,
-      not yet installed or live-tested.** Per Steven's ask (auto-navigate
+      one real live bug found and fixed on first install attempt, still
+      needs a clean live-test pass.** Steven wired the new Script entry
+      in and immediately hit a real bug: "that script blanks my main
+      window, i had to disable." Root cause confirmed and fixed in
+      `MyDSL_WindowRegistry.lua`: its registry table used `MyDSL.Windows
+      .registry = MyDSL.Windows.registry or {...}`, which skips the
+      entire literal -- including any newly-added window key -- if the
+      registry already exists in memory, true for any in-session script
+      reload (not just a fresh Mudlet start). So `MyDSL_Leveling`'s
+      registry entry never got added, `Windows.ensure()` returned nil,
+      and `MyDSL_Leveling.lua`'s `ensureUI()` passed that nil straight
+      through as a `Geyser.MiniConsole`'s parent container -- Geyser
+      attaches a parentless console to the main window itself, at the
+      requested 100%x100%, which is exactly what blanked the screen.
+      Fixed on both sides: `MyDSL_WindowRegistry.lua` now merges new keys
+      into an already-existing registry instead of skipping the whole
+      table (helps any future new window added this way, not just this
+      one); `MyDSL_Leveling.lua`'s `ensureUI()` now bails out cleanly with
+      a debug warning if `Windows.ensure()` ever returns nil, instead of
+      falling through to an implicit main-window attach, regardless of
+      why ensure() failed. Verified via 2 new regression tests
+      (`test/test_windowregistry_merge.lua`: a pre-existing entry's live
+      state survives untouched, a key only present in a newer file gets
+      added, not skipped; a new assertion in `test/test_leveling.lua`:
+      `ensureUI()` creates zero consoles when the registry is
+      unavailable). **Steven should re-enable the script and confirm the
+      main window stays intact this time** before any further live
+      testing of the actual leveling loop itself. Per Steven's ask (auto-navigate
       known hunting areas, auto-engage enabled mobs, easy area/mob
       maintenance for new users) plus a same-day follow-up round
       (mapper-based navigate-to-area, pause-before-start/pause-resume,
