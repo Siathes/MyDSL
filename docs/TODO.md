@@ -186,9 +186,34 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
         spaced out, per Steven's own MyDSL-profile notes). Both now
         build their whole table as one string and echo it once.
 
+      **6th real bug, found live 2026-07-21 on the next fresh profile
+      load**: `Lua syntax error:...MyDSL_Leveling.lua:483: attempt to
+      call field 'on' (a nil value)`. Root cause: this addon's Script
+      entry lives OUTSIDE the `MyDSL_Full` package (dofile()'d from the
+      DSL2 repo, per the addon-boundary design), so its position in the
+      profile's overall Script execution order relative to
+      `MyDSL_DataLayer.lua` (which defines `MyDSL.on`) isn't guaranteed —
+      and it ran first this time. Worse than the one failing line: a Lua
+      runtime error aborts everything AFTER it in the same script
+      execution too, so this also silently skipped alias registration
+      and `L.boot()` itself for that whole load, not just the two
+      `MyDSL.on(...)` calls. Fixed with `onceDataLayerReady(fn)` — calls
+      `fn()` immediately if `MyDSL.on` already exists, otherwise retries
+      via a short `tempTimer` poll — wrapping both `MyDSL.on(...)`
+      registrations (scan-based mob recognition, HP safety net) so a
+      load-order race can never crash/abort this file's init again,
+      regardless of Script Editor ordering or future `MyDSL_Full`
+      reinstalls. Verified via a new dedicated test
+      (`test/test_leveling_load_order.lua`, 8 assertions) that
+      deliberately dofiles Leveling BEFORE DataLayer — the exact failure
+      ordering — confirming the whole file still loads cleanly, aliases
+      still register, `L.boot()` still completes, and the deferred
+      listeners actually catch up once DataLayer arrives.
+
       All fixes verified via structural tests: `test/test_leveling.lua`
-      (33 assertions), `test/test_windowregistry_merge.lua`,
-      `test/test_combat_damage_regex.lua` (new, covers the real
+      (33 assertions), `test/test_leveling_load_order.lua` (new, 8
+      assertions), `test/test_windowregistry_merge.lua`,
+      `test/test_combat_damage_regex.lua` (covers the real
       corpus-confirmed combat-text forms). **Separately found, flagged,
       NOT fixed (unrelated, pre-existing, out of scope, Steven has since
       minimized it himself)**: a native "Charge" trigger errors on

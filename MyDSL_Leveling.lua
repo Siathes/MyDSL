@@ -109,6 +109,30 @@ local function commandArg(name)
   return s:match("(%S+)$") or s
 end
 
+-- REAL BUG, found live 2026-07-21: "Lua syntax error:...MyDSL_Leveling
+-- .lua:483: attempt to call field 'on' (a nil value)" at profile load.
+-- Root cause: this file's Script entry lives OUTSIDE the MyDSL_Full
+-- package (dofile()'d separately, per the addon-boundary design), so
+-- its position in the profile's overall Script execution order relative
+-- to MyDSL_DataLayer.lua (which defines MyDSL.on) isn't guaranteed --
+-- and evidently ran first this time. Worse than just the one failing
+-- call: a Lua runtime error aborts everything AFTER it in the same
+-- linear script execution too, so this also silently skipped alias
+-- registration and L.boot() itself for the rest of that load -- not a
+-- cosmetic one-line problem. onceDataLayerReady(fn) calls fn()
+-- immediately if MyDSL.on already exists, otherwise retries via a short
+-- tempTimer poll until it does -- used to wrap every MyDSL.on(...) call
+-- in this file so a load-order race can never crash/abort the rest of
+-- this script's initialization again, regardless of Script Editor
+-- ordering or future MyDSL_Full reinstalls.
+local function onceDataLayerReady(fn)
+  if MyDSL.on then
+    fn()
+  else
+    tempTimer(0.5, function() onceDataLayerReady(fn) end)
+  end
+end
+
 -- stripLeadingTags(line) -- strips ALL leading parenthetical tags
 -- ("(Charmed) (Golden Aura) (White Aura) A beautiful..."), same loop
 -- MyDSL_DataLayer.lua's parseLookHereLine() already uses. Needed here
@@ -480,40 +504,42 @@ end
 -- live testing, fix it at the shared DataLayer level (benefits every
 -- module reading scan.rightHere), not with a local workaround here.
 
-MyDSL.on("scan", function(scanState)
-  if not (L.session.state == "active" and L.session.awaitingRoom) then return end
-  L.session.awaitingRoom = false
-  cacheStepArrival()
+onceDataLayerReady(function()
+  MyDSL.on("scan", function(scanState)
+    if not (L.session.state == "active" and L.session.awaitingRoom) then return end
+    L.session.awaitingRoom = false
+    cacheStepArrival()
 
-  local area = L.areas[L.session.areaKey]
-  if not area then return end
+    local area = L.areas[L.session.areaKey]
+    if not area then return end
 
-  -- REAL BUG, found live 2026-07-20 (Steven: "it did not engage the
-  -- enemies", confirmed via the Olyndros session log -- a full 12-step
-  -- pass through "philosophy" completed with 0 kills despite every room
-  -- showing real, enabled mobs, e.g. "(Golden Aura) A gnome student is
-  -- here."). Root cause: `entry.raw` (MyDSL_DataLayer.lua's
-  -- scan.rightHere) is the UNSTRIPPED original captured line, kept as-is
-  -- for display/audit -- but the seed data's own mob.raw text was
-  -- transcribed from a much older forum post with no aura tag, so a
-  -- straight `mobDef.raw == entry.raw` comparison silently never matched
-  -- ANY mob in a zone/moment with an active aura effect (confirmed real
-  -- in the live transcript: literally every entity in the room, mount
-  -- included, carried a "(Golden Aura)" prefix). Fixed by comparing
-  -- against the same leading-tag-stripped text deriveLabel() already
-  -- normalizes to, rather than the raw line verbatim.
-  L.session.mobsInRoom = {}
-  for _, entry in pairs(scanState.rightHere or {}) do
-    if entry.is_mob then
-      local stripped = stripLeadingTags(entry.raw)
-      for mobKey, mobDef in pairs(area.mobs) do
-        if mobDef.enabled and mobDef.raw == stripped then
-          table.insert(L.session.mobsInRoom, mobKey)
+    -- REAL BUG, found live 2026-07-20 (Steven: "it did not engage the
+    -- enemies", confirmed via the Olyndros session log -- a full 12-step
+    -- pass through "philosophy" completed with 0 kills despite every room
+    -- showing real, enabled mobs, e.g. "(Golden Aura) A gnome student is
+    -- here."). Root cause: `entry.raw` (MyDSL_DataLayer.lua's
+    -- scan.rightHere) is the UNSTRIPPED original captured line, kept as-is
+    -- for display/audit -- but the seed data's own mob.raw text was
+    -- transcribed from a much older forum post with no aura tag, so a
+    -- straight `mobDef.raw == entry.raw` comparison silently never matched
+    -- ANY mob in a zone/moment with an active aura effect (confirmed real
+    -- in the live transcript: literally every entity in the room, mount
+    -- included, carried a "(Golden Aura)" prefix). Fixed by comparing
+    -- against the same leading-tag-stripped text deriveLabel() already
+    -- normalizes to, rather than the raw line verbatim.
+    L.session.mobsInRoom = {}
+    for _, entry in pairs(scanState.rightHere or {}) do
+      if entry.is_mob then
+        local stripped = stripLeadingTags(entry.raw)
+        for mobKey, mobDef in pairs(area.mobs) do
+          if mobDef.enabled and mobDef.raw == stripped then
+            table.insert(L.session.mobsInRoom, mobKey)
+          end
         end
       end
     end
-  end
-  L.tryKill()
+    L.tryKill()
+  end)
 end)
 
 
@@ -620,15 +646,17 @@ end
 -- since MyDSL.State.char.hp/.max_hp are already flowing (update("char",
 -- ...) calls MyDSL.emit("char") on every gmcp.char_data event).
 
-MyDSL.on("char", function(charState)
-  if L.session.state ~= "active" then return end
-  if not L.session.hpThreshold or L.session.hpThreshold <= 0 then return end
-  local hp, maxHp = charState.hp, charState.max_hp
-  if not hp or not maxHp or maxHp <= 0 then return end
-  if (hp / maxHp * 100) < L.session.hpThreshold then
-    ce("HP safety net: " .. hp .. "/" .. maxHp .. " below " .. L.session.hpThreshold .. "% -- stopping.")
-    L.stop()
-  end
+onceDataLayerReady(function()
+  MyDSL.on("char", function(charState)
+    if L.session.state ~= "active" then return end
+    if not L.session.hpThreshold or L.session.hpThreshold <= 0 then return end
+    local hp, maxHp = charState.hp, charState.max_hp
+    if not hp or not maxHp or maxHp <= 0 then return end
+    if (hp / maxHp * 100) < L.session.hpThreshold then
+      ce("HP safety net: " .. hp .. "/" .. maxHp .. " below " .. L.session.hpThreshold .. "% -- stopping.")
+      L.stop()
+    end
+  end)
 end)
 
 
