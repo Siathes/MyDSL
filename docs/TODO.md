@@ -119,6 +119,52 @@ Fixed in code, verified via syntax checks and/or emulation — none of this
 is closed until Steven confirms it in-game. Full technical detail for any
 item: `git log --oneline` + `docs/CHANGELOG.md`.
 
+- [ ] **`MyDSL_DataLayer.lua` room-capture: 3 more fixture-line gaps + a
+      real NPC-verb gap, found via a full-codebase audit 2026-07-21,
+      needs live confirmation.** Per Steven's "would it improve if we
+      used a newer ai agent?" question, ran a systematic re-check of
+      every bug class with a real fix-history entry in `docs/CHANGELOG.md`
+      instead of waiting for the next live bug report. Found and fixed 4
+      more real, corpus-confirmed instances of the same "beginLook()
+      catch-all falls through, silently ends capture" bug class (6th-9th
+      overall): `"Sturdy barstools line the outside edge of the lengthy
+      bar."`, `"(Glowing) High above the cityscape, a jagged rip mars the
+      sky..."`, and `"Dark marble benches are set facing the statue..."`
+      (added as new `isLookFixtureLine()` substrings), plus a genuinely
+      separate gap in the same investigation: NPCs described as `"stands
+      behind the bar/counter"`/`"sits behind the counter"` (bartenders,
+      shopkeepers) never matched any of `parseLookHereLine()`'s verb
+      patterns at all (only "stands/sits HERE", not "behind X") — added
+      as 2 new recognized patterns, corpus-confirmed recurring (barmaids,
+      a gentleman, a young lady, Grokk). Verified via 2 new test files
+      replaying the exact real corpus lines, including one case that
+      looked like a bug at first but turned out to be correct existing
+      behavior (a mount "walks in" — confirmed via corpus this is a
+      transient arrival announcement like "Someone walks in.", not room
+      content, so correctly does NOT become a captured mob). **Open
+      architectural question, deliberately not decided unilaterally**:
+      this is now the 9th instance of the same bug class fixed via an
+      ever-growing literal-substring/leading-word allowlist. A broader
+      "default to keep capturing unless a recognized terminator" redesign
+      was considered and rejected for now — checked the corpus and found
+      real counterexamples (indented lines that ARE genuine mob-shaped
+      presence lines, e.g. `"A very large bind stone is here."`), so a
+      blanket flip isn't a safe drop-in replacement without more design
+      work. Worth a real discussion with Steven if this keeps recurring.
+      Also removed one confirmed-dead orphaned event
+      (`MyDSL.Live.ExitsColoredUpdated`, zero listeners anywhere).
+      **Process change adopted as part of this same audit** (see
+      DECISIONS RECORDED): `scripts/check_known_patterns.py`, a small
+      grep-based checker encoding every historical bug class as a rule,
+      wired into a `PostToolUse` hook (`.claude/settings.json`, now
+      tracked in git via a `.gitignore` exception) so a fresh instance of
+      a KNOWN mistake gets caught the moment it's written, automatically,
+      no prompting required — plus `--all` for an occasional full-repo
+      sweep to catch what's already latent in untouched files (exactly
+      what this audit did by hand; now repeatable). Needs Steven to
+      confirm the DataLayer capture fixes don't regress anything live
+      (`isLookFixtureLine()`/`parseLookHereLine()` are heavily depended
+      on — RightHere, Scan, Leveling, CreatureLore all read from them).
 - [ ] **`MyDSL_Leveling.lua` — leveling-assist addon, redesigned
       2026-07-20 after live testing surfaced real UX/behavior problems
       on top of the bug-fix round below, still needs a clean full-run
@@ -928,6 +974,30 @@ Timers. Real candidates for future integration, none urgent:
 ---
 
 ## DECISIONS RECORDED
+- **Adopted a project-local known-bad-pattern checker + Claude Code hook
+  — 2026-07-21, per Steven ("we seem to be regressing to errors we
+  fixed... would it improve if we used a newer ai agent?").** Researched
+  first rather than guessing: a newer model wouldn't meaningfully help
+  (the gap is that fixing a bug in one file never propagated a check to
+  every other file with the same latent mistake — not a capability
+  problem), and `luacheck` (the standard Lua linter) turns out to be the
+  wrong tool for this specific failure mode (it parses Lua syntax, not
+  the *contents* of strings, and the triggering bug — `</cyan>` instead
+  of `<reset>` — lives entirely inside a cecho string). What actually
+  fits: `scripts/check_known_patterns.py`, a small script encoding real
+  historical bugs from `docs/CHANGELOG.md` as grep rules, wired into a
+  `PostToolUse` hook (`.claude/settings.json`) that runs automatically
+  against every file `Edit`/`Write` touches — catches a fresh instance of
+  a known mistake the same session, no prompting required. `.gitignore`
+  updated with a narrow exception (`!.claude/settings.json`) so the hook
+  itself survives across sessions/machines instead of living only
+  locally — `.claude/settings.local.json` and everything else under
+  `.claude/` stays ignored as before. Run `python3 scripts/
+  check_known_patterns.py --all` periodically for a full-repo sweep
+  (catches mistakes already latent in untouched files — a hook only ever
+  checks the one file just edited). When a new bug class is fixed and
+  might exist elsewhere too, add a rule instead of a one-off grep so the
+  check becomes permanent. Full detail: `docs/CHANGELOG.md` (2026-07-21).
 - **"Passive observation only, never send automatic game commands" is
   suspended for leveling/questing automation addons — confirmed
   2026-07-19, per Steven ("the no automation is suspended for thes

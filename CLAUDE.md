@@ -183,6 +183,20 @@ themes are user-creatable named presets, shared across all characters.
 - Run the in-game smoke test alias (`mydsl test` if it exists, otherwise
   manually verify in Mudlet) before considering a fix complete
 - Do not mark a TODO item done until Steven has confirmed it in-game
+- **Known-bad-pattern check (added 2026-07-21)**: `scripts/check_known_patterns.py`
+  encodes real historical bugs (cecho `</color>` closing tags instead of
+  `<reset>`, `table.load()` missing its second argument, etc.) as grep
+  rules. A `PostToolUse` hook (`.claude/settings.json`) runs it
+  automatically against every file Edit/Write touches, so a fresh
+  instance of a known mistake gets caught immediately, same session. That
+  hook only ever checks the ONE file just touched, though — it can't
+  retroactively catch the same mistake sitting untouched in a sibling
+  file (this is exactly how `MyDSL_LiveView.lua`'s `</cyan>` bug survived
+  the whole project's life unnoticed). Run a full-repo sweep periodically
+  to close that gap: `python3 scripts/check_known_patterns.py --all`.
+  When a new bug class gets fixed and there's reason to suspect it might
+  exist elsewhere too, add a rule to that script instead of (or in
+  addition to) a one-off manual grep — that check then stays permanent.
 
 ## Key paths
 - Profile root: this directory

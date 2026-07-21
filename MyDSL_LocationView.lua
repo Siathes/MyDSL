@@ -1243,7 +1243,7 @@ function M.boot()
   M.installEvents()
   M.makeAliases()
   M.refresh("boot")
-  if MyDSL and MyDSL.Alpha and MyDSL.Alpha.verbose then cecho("\n<cyan>[MyDSL.Location]</cyan> loaded " .. M.version .. "\n") end
+  if MyDSL and MyDSL.Alpha and MyDSL.Alpha.verbose then cecho("\n<cyan>[MyDSL.Location]<reset> loaded " .. M.version .. "\n") end
 end
 
 -- Compatibility: old scripts/aliases may call RoomPic.*.  Keep this as an alias to the canonical module.

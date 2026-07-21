@@ -71,8 +71,12 @@ MyDSL_Audit_Phase*/
 # Sound assets loose at profile root (Sounds/ dir already covered above)
 *.mp3
 
-# Claude Code session data
-.claude/
+# Claude Code session data. settings.json is the one exception -- it's
+# where the known-bad-pattern-check hook lives (added 2026-07-21, see
+# scripts/check_known_patterns.sh), and that needs to survive across
+# sessions/reinstalls, not just live on this one machine.
+.claude/*
+!.claude/settings.json
 
 # Built package output — rebuilt on demand from the SCRIPT_FILES list in the
 # packaging build script and delivered directly each time; committing the

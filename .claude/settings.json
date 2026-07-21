@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(unzip -l *)",
+      "Bash(xmllint --noout *)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR}/scripts/check_known_patterns.py\"",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}

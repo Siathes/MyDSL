@@ -50,7 +50,7 @@ L.config.debug = L.config.debug == true
 L.ui = L.ui or {}
 
 local function ce(msg)
-  cecho("\n<cyan>[MyDSL.Live]</cyan> " .. tostring(msg) .. "\n")
+  cecho("\n<cyan>[MyDSL.Live]<reset> " .. tostring(msg) .. "\n")
 end
 
 local function trim(s)
@@ -820,7 +820,6 @@ function L.setColoredExitsFromCurrentLine()
     end)
   end
 
-  raiseEvent("MyDSL.Live.ExitsColoredUpdated")
   return true
 end
 

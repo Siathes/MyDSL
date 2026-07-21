@@ -1925,6 +1925,39 @@ local function isLookFixtureLine(line)
       -- via screenshot to have silently dropped 4 real gnomes/excavators
       -- listed right after it in the same room.
       or line:match("floats above the ground%f[%A]") ~= nil
+      -- Three more added 2026-07-21, found via a full-codebase audit
+      -- prompted by the "Several small desks" fix earlier the same day
+      -- (Steven: "we seem to be regressing to errors we fixed... would
+      -- it improve if we used a newer ai agent?" -- answer was no, the
+      -- gap is systematic re-checking, not model capability; this audit
+      -- is that re-check). Same bug class as every fix above and
+      -- "Several " in isUnparsedPresenceLine() -- a scenery/landmark
+      -- sentence with no "here"/"in the room" anchor and no recognized
+      -- leading word, confirmed via direct corpus grep to silently drop
+      -- real mobs listed right after it: "Sturdy barstools line the
+      -- outside edge of the lengthy bar." (drops a barmaid + a mount,
+      -- log/2026-06-30#21-23-23.txt:281), "(Glowing) High above the
+      -- cityscape, a jagged rip mars the sky and crackles with charged
+      -- energy." (drops an Elite Royal Guard + 2 good samaritans, same
+      -- file:189), "Dark marble benches are set facing the statue of the
+      -- Sons of Liberty." (ends capture immediately after [Exits:],
+      -- log/2026-06-30#20-29-23.txt:9666). Unlike the leading-word
+      -- additions, these start with unbounded adjectives ("Sturdy",
+      -- "High", "Dark") that can't be generalized into a new allowlist
+      -- word the way "Several"/"This" could -- matched as narrow literal
+      -- substrings instead, same convention "floats above the ground"
+      -- above already established for exactly this situation. NOTE: this
+      -- growing-allowlist-of-literal-substrings approach is reaching its
+      -- practical limit (6th+ instance of the same bug class) -- flagged
+      -- as an open architectural question in docs/TODO.md rather than
+      -- unilaterally redesigning beginLook()'s catch-all, since a broader
+      -- "default to keep capturing" rule was checked and found to have
+      -- real counterexamples in the corpus too (indented lines that ARE
+      -- real mob-shaped presence lines, e.g. "A very large bind stone is
+      -- here.") -- not a safe drop-in replacement without more design work.
+      or line:match("barstools line the outside edge") ~= nil
+      or line:match("a jagged rip mars the sky") ~= nil
+      or line:match("marble benches are set facing") ~= nil
 end
 
 -- extractGroundItemName(line) / MyDSL.captureGroundItem(line) -- added
@@ -2221,9 +2254,22 @@ function MyDSL.parseLookHereLine(line)
   -- shape isMobName already requires) to avoid misreading ordinary room-
   -- description prose. Only reached after isLookFixtureLine has already
   -- ruled out "lies here"/"is lying here" item/corpse lines (see caller).
+  -- "stands behind"/"sits behind" added 2026-07-21, found via a full-
+  -- codebase audit (same day as the "Several "/3-substring fixture
+  -- fixes above): confirmed real and recurring via corpus grep --
+  -- bartenders/shopkeepers described as "stands behind the bar/counter"
+  -- ("A Dark Elven barmaid stands behind the bar, ready to take your
+  -- order.", "A gentleman stands behind the counter.", "A young lady
+  -- stands behind a desk here...") or "sits behind" ("Grokk sits behind
+  -- the counter working on his latest leather piece.") never matched
+  -- "stands here"/"sits here" (different preposition, no "here" at all
+  -- in most real examples) -- these NPCs were never captured as mobs at
+  -- all, silently, the whole time.
   local name = rest:match("^(.-) is here%f[%A]")
             or rest:match("^(.-) stands here%f[%A]")
             or rest:match("^(.-) sits here%f[%A]")
+            or rest:match("^(.-) stands behind%f[%A]")
+            or rest:match("^(.-) sits behind%f[%A]")
             or rest:match("^(.-) hovers%f[%A]")
             -- "wanders here" added 2026-07-17 -- confirmed live (screenshot
             -- + corpus check, 90 real occurrences across log/*.html) common
