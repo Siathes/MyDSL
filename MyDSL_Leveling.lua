@@ -380,6 +380,20 @@ function L.hide() if MyDSL.Windows then MyDSL.Windows.hide(WIN) end end
 -- happen. Room-id caching (for next time's speedwalk) is now
 -- opportunistic inside resume() instead of gating the whole flow.
 
+-- REAL BUG, found live 2026-07-21 (Steven: "the path even seems
+-- incorrect", confirmed via log: "(mapper): (error): No path to chosen
+-- room found."). map.speedwalk() fails by echoing to the map console
+-- itself, not by raising a Lua error -- so the pcall() below always
+-- returns ok=true even when the speedwalk silently did nothing, and the
+-- old code only ever showed the manual `area.description` directions in
+-- the OTHER branch (no cached room at all), leaving a failed-speedwalk
+-- player with zero fallback guidance -- exactly the scenario that made
+-- the subsequent raw-dirs-list walk look like it was following "an
+-- incorrect path" (it was correct, just starting from the wrong room).
+-- Fixed: always show the manual directions as a fallback reference
+-- alongside a speedwalk attempt, not only when there's no cached room to
+-- try -- harmless one extra line when speedwalk actually succeeds, a
+-- real fallback when it silently doesn't.
 function L.startArea(areaKey)
   local area = L.areas[areaKey]
   if not area then ce("No such area: " .. tostring(areaKey) .. ". Try: mydsl leveling areas"); return end
@@ -392,6 +406,9 @@ function L.startArea(areaKey)
   if area.startRoomId and _G.map and _G.map.speedwalk then
     ce("Navigating to " .. area.name .. " (cached start room)...")
     pcall(_G.map.speedwalk, area.startRoomId)
+    if area.description ~= "" then
+      ce("(if that didn't work) Directions to " .. area.name .. ": " .. area.description)
+    end
   elseif area.description ~= "" then
     ce("Directions to " .. area.name .. ": " .. area.description)
   end

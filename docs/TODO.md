@@ -210,21 +210,67 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       still register, `L.boot()` still completes, and the deferred
       listeners actually catch up once DataLayer arrives.
 
+      **7th real bug, found live 2026-07-21, per Steven ("check logs,
+      there are issues, no combat, the path even seems incoroect? review
+      code, review original leveling script and mydsl_full. why is it
+      not working?")** — a fifth confirmed instance of a recurring bug
+      class in `MyDSL_DataLayer.lua`'s room-look capture
+      (`isUnparsedPresenceLine()`), found via careful re-tracing of two
+      real session logs line by line rather than guessing: `"     Several
+      small desks are here positioned strategically."` (the literal FIRST
+      line of "Philosophy Guild"'s content, right after `[Exits: ...]`)
+      is plural ("are here", not "is here") and starts with neither an
+      article nor "This" — it fell through every check in `beginLook()`'s
+      catch-all straight to `endLook()`, silently ending capture BEFORE
+      any of the room's real mobs (2 janitors, 4 students, 1 instructor)
+      ever got added to `scan.rightHere` — every single time this exact
+      line was present. Confirmed directly against BOTH real Olyndros
+      logs: visits where this line appeared produced zero combat; the one
+      visit where the game happened not to print it produced real combat
+      seconds later. Corpus-checked before fixing (per this project's own
+      "verify against source" standard): 78 real occurrences of standalone
+      `"Several ..."` lines across the full DSL2 + MyDSL log corpus, all 7
+      distinct sentences pure furniture/scenery (booths, chairs, doors,
+      tables, logs, wheelbarrows) — zero real mob-describing
+      counterexamples. Fixed by adding `"Several "` as a recognized
+      skippable-continuation token, mirroring the exact same fix shape as
+      the four prior rounds of this bug class (2026-07-08 x2, 2026-07-09,
+      2026-07-16). This is a shared `MyDSL_DataLayer.lua` fix — benefits
+      every module reading `scan.rightHere`, not just Leveling, per this
+      file's own standing shared-risk note. Verified via a new dedicated
+      test (`test/test_datalayer_several_fixture_line.lua`, 4 assertions)
+      replaying the exact real captured room content verbatim — confirmed
+      it genuinely fails without the fix and passes with it.
+
+      **8th real bug, found in the same review**: `map.speedwalk()` fails
+      by echoing to the map console itself (`"No path to chosen room
+      found."`), not by raising a Lua error — so `startArea()`'s
+      `pcall()` around it always reported success even when the
+      speedwalk silently did nothing, leaving the player with zero
+      fallback directions and the raw dirs-list walk then starting from
+      the wrong room — matching "the path even seems incorrect"
+      directly. Fixed: `startArea()` now always shows the manual
+      `area.description` directions as a fallback alongside a speedwalk
+      attempt, not only when there's no cached room to try at all.
+      Verified via a new assertion in `test/test_leveling.lua`.
+
       All fixes verified via structural tests: `test/test_leveling.lua`
-      (33 assertions), `test/test_leveling_load_order.lua` (new, 8
+      (35 assertions), `test/test_leveling_load_order.lua` (8
+      assertions), `test/test_datalayer_several_fixture_line.lua` (new, 4
       assertions), `test/test_windowregistry_merge.lua`,
-      `test/test_combat_damage_regex.lua` (covers the real
-      corpus-confirmed combat-text forms). **Separately found, flagged,
+      `test/test_combat_damage_regex.lua`. **Separately found, flagged,
       NOT fixed (unrelated, pre-existing, out of scope, Steven has since
       minimized it himself)**: a native "Charge" trigger errors on
       `dslpnp` being nil — references the old PNP framework, not loaded
       in this profile, nothing to do with Leveling.
 
-      **Steven needs to re-test a full run** — the redesigned
-      start→resume→walk-fight-loop→report flow, pause/resume mid-run,
-      HP safety stop, and whether combat now actually shows up in the
-      Combat window instead of the main console — before any of this
-      closes.
+      **This round's fix touches `MyDSL_DataLayer.lua` (bug #7), which is
+      embedded in the `MyDSL_Full` package, not `dofile()`'d live like
+      Leveling — needs another package rebuild + reinstall before Steven
+      can retest.** After that: re-test a full run — the redesigned
+      start→resume→walk-fight-loop→report flow, pause/resume mid-run, HP
+      safety stop, and whether combat now actually shows up in the Combat
+      window instead of the main console — before any of this closes.
 - [ ] **DSL Generic Mapper: real "air" terrain gap, plus dropped the
       spammy line-buffer dump from `dslroom raw` — fixed 2026-07-18,
       needs live confirmation.** Per Steven ("is there a terrain color

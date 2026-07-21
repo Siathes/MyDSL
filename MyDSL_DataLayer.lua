@@ -2088,6 +2088,22 @@ local function isUnparsedPresenceLine(line)
   -- dropped everything listed after it in that same room, including two
   -- real mobs (a war mage, three novice mages) at the very end of the
   -- listing.
+  -- "Several " added 2026-07-21 -- fifth confirmed live instance, found
+  -- via MyDSL_Leveling.lua's own live testing (exactly the shared-risk
+  -- scenario that module's own comments flagged as most likely, since a
+  -- leveling run generates far more room-look volume than normal play).
+  -- Confirmed via 2 separate real session logs (Olyndros, "Philosophy
+  -- Guild"): "     Several small desks are here positioned strategically."
+  -- is the very FIRST line after "[Exits: ...]" in that room, plural
+  -- ("are here", not "is here"), starts with neither an article nor
+  -- "This" -- fell through every check straight to endLook(), silently
+  -- dropping every real mob listed after it (2 janitors, 4 students, 1
+  -- instructor) every single time this room was visited with that line
+  -- present. Directly confirmed via corpus grep across DSL2 + MyDSL logs
+  -- (78 occurrences, 7 distinct sentences, ALL furniture/scenery --
+  -- booths, chairs, doors, tables, logs, wheelbarrows -- zero real
+  -- mob-describing counterexamples) before adding this, matching this
+  -- project's own "verify against source" standard.
   local rest = trim(line)
   while true do
     local stripped = rest:match("^%([^()]+%)%s*(.+)$")
@@ -2095,7 +2111,7 @@ local function isUnparsedPresenceLine(line)
     rest = stripped
   end
   return rest:match("^[Aa]n? ") ~= nil or rest:match("^[Tt]he ") ~= nil
-      or rest:match("^This ") ~= nil
+      or rest:match("^This ") ~= nil or rest:match("^Several ") ~= nil
 end
 
 function MyDSL.beginLook()

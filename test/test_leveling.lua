@@ -194,6 +194,38 @@ check("'mydsl leveling timeout' is no longer a recognized command (silently fall
   L.session.failsafeSeconds == nil)
 
 ------------------------------------------------------------------------
+-- 6e. Regression: real live bug (2026-07-21, Steven: "the path even
+--     seems incorrect") -- map.speedwalk() fails by echoing to the map
+--     console itself, not by raising a Lua error, so a failed cached-
+--     room speedwalk left the player with zero fallback directions.
+--     startArea() must now ALWAYS show the manual description as a
+--     fallback alongside a speedwalk attempt, not only when there's no
+--     cached room to try.
+------------------------------------------------------------------------
+local cechoLog = {}
+local realCecho = _G.cecho
+_G.cecho = function(s) table.insert(cechoLog, s) end
+local realMap = _G.map
+_G.map = { speedwalk = function() end }  -- simulates a real mapper being present
+
+L.areas["gahboom"].startRoomId = 12345  -- simulate a cached start room
+L.session.state = "stopped"
+L.startArea("gahboom")
+
+local sawNavigating, sawFallbackDirections = false, false
+for _, s in ipairs(cechoLog) do
+  if s:find("Navigating to", 1, true) then sawNavigating = true end
+  if s:find("if that didn't work", 1, true) and s:find("Directions to", 1, true) then sawFallbackDirections = true end
+end
+check("startArea() attempts the cached-room speedwalk", sawNavigating)
+check("startArea() ALSO shows manual directions as a fallback, in case the speedwalk silently failed",
+  sawFallbackDirections)
+
+_G.map = realMap
+_G.cecho = realCecho
+L.areas["gahboom"].startRoomId = nil  -- restore for later tests
+
+------------------------------------------------------------------------
 -- 6d. PNP-style end-of-run report -- per Steven ("give report like in
 --     PNP"), replacing the old one-line "pass complete" message.
 ------------------------------------------------------------------------
