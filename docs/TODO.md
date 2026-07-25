@@ -165,158 +165,85 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       confirm the DataLayer capture fixes don't regress anything live
       (`isLookFixtureLine()`/`parseLookHereLine()` are heavily depended
       on — RightHere, Scan, Leveling, CreatureLore all read from them).
-- [ ] **`MyDSL_Leveling.lua` — leveling-assist addon, redesigned
-      2026-07-20 after live testing surfaced real UX/behavior problems
-      on top of the bug-fix round below, still needs a clean full-run
-      confirmation.** Per Steven's original ask (auto-navigate known
-      hunting areas, auto-engage enabled mobs, easy area/mob maintenance)
-      plus a same-day follow-up round (mapper-based navigate-to-area,
-      pause/resume, the followers/line-spacing shared-risk dependency) —
-      see the approved plan and this file's own header comment for full
-      design. Ships as a **separate outside addon** (per the
-      passive-observation exception recorded below), NOT part of
-      `MyDSL_Full.mpackage`/`build_mydsl_package.py` — needs its own
-      manual `dofile()` wiring in Mudlet's Script Editor. Seed data:
-      `MyDSL/leveling_areas_seed.lua`, 39 real hunting areas from the DSL
-      forums (forum 111 "Mudlet Scripts", thread 99388).
+- [ ] **`MyDSL_Leveling.lua` — leveling-assist addon, 10 real bugs found
+      and fixed across live testing, first genuinely complete run
+      confirmed 2026-07-25.** Per Steven's original ask (auto-navigate
+      known hunting areas, auto-engage enabled mobs, easy area/mob
+      maintenance) plus a same-day follow-up round (mapper-based
+      navigate-to-area, pause/resume, the followers/line-spacing
+      shared-risk dependency), redesigned 2026-07-20 after live testing
+      surfaced real UX problems (failsafe timer removed entirely, flee
+      made non-fatal, start flow collapsed to one command, PNP-style
+      end-of-run report added, `mydsl leveling areas`/`area info` display
+      cleaned up) — see the approved plan and this file's own header
+      comment for full design. Ships as a **separate outside addon** (per
+      the passive-observation exception recorded below), NOT part of
+      `MyDSL_Full.mpackage` — needs its own manual `dofile()` wiring.
 
-      **5 real bugs found live and fixed across two testing rounds:**
-      1. Blanked the main window on load (`MyDSL_WindowRegistry.lua`'s
-         registry skipped new keys on an in-session reload) — fixed by
-         merging new keys instead of skipping the whole table.
-      2. `mydsl leveling import` silently did nothing (default path
-         resolved against the wrong profile) — fixed with a fallback
-         chain + a visible "not found" message.
-      3. Mobs never engaged (DSL's real text carries a leading
-         `"(Golden Aura)"`-style tag the seed data's raw text doesn't
-         have) — fixed by stripping leading parenthetical tags before
-         comparing.
-      4. The old failsafe timer fired mid-fight during genuinely active
-         combat (never reset by ordinary round activity, only a kill).
-      5. **The entire `combatDamage` capture trigger
-         (`MyDSL_DataLayer.lua`, not Leveling-specific) never matched
-         DSL's real current combat text at all** — it required a line to
-         end in literal `.`/`!`, but real swings end in a parenthesized
-         damage number (`"...janitor (340)"`). Nothing reached the
-         Combat window's condenser; every swing leaked raw to the main
-         console. Fixed the regex to accept both forms — a real,
-         significant, previously-invisible gap affecting all combat
-         display, not just this addon.
+      **2026-07-25: first real end-to-end success.** A full Olyndros
+      leveling session on `philosophy` completed a full lap and printed
+      the report correctly — 17m11s, 8 killed, 1229 XP (4291/hr) — with
+      two clean pause/resume cycles mid-run. This is the first time the
+      whole start→resume→walk-fight-loop→report flow has actually worked
+      live, after 8 prior rounds of bugs (window-blanking on load,
+      cross-profile seed-import path, aura/charmed-tag mob matching, a
+      failsafe that fired mid-fight then was removed entirely, a
+      load-order race with `MyDSL_DataLayer.lua`, a silent
+      `map.speedwalk()` failure with no fallback directions, 3 more
+      `isLookFixtureLine()` capture gaps, and a separate "stands/sits
+      behind X" NPC-verb gap — see `docs/CHANGELOG.md` 2026-07-19 through
+      07-21 for each).
 
-      **Then, after fix 3 got mobs actually fighting, Steven's direct
-      feedback drove a real design simplification (2026-07-20):
-      "whatever timer stops combat is not useful... just keep walking
-      and fighting till you get back to the start point and give report
-      like in PNP, we only need the pause resume and stop, not a
-      fallback safety timer or whatever it is... its to many steps to
-      start... mydsl leveling areas needs a cleaner display."** Changes:
-      - **Failsafe timer removed entirely** (not just fixed) — session
-        control is now only start/resume/pause/stop plus the separate,
-        non-timer HP%-threshold safety net (an earlier, still-standing
-        decision, left in place).
-      - **Flee is non-fatal** — used to call `L.stop()`; now clears the
-        stale room-mob queue and tries to keep going instead of halting
-        the whole run.
-      - **Start flow simplified to one command** — `start <area>` used
-        to require a second `start <area>` call to confirm arrival
-        before `resume` would unlock. Now it always lands directly in
-        `paused` after its best-effort navigation attempt; room-id
-        caching for next time's speedwalk moved to being opportunistic
-        inside `resume()` instead of gating the flow.
-      - **PNP-style end-of-run report** (`L.report()`) replaces the old
-        one-line "pass complete" message — duration, kills, XP, XP/hr,
-        shown once when a full lap of the area completes.
-      - **`mydsl leveling areas`/`area info` display cleaned up** — both
-        used to call the `ce()` echo helper once per row, which prepends
-        a blank line + the `[MyDSL.Leveling]` tag to every call (very
-        spaced out, per Steven's own MyDSL-profile notes). Both now
-        build their whole table as one string and echo it once.
-
-      **6th real bug, found live 2026-07-21 on the next fresh profile
-      load**: `Lua syntax error:...MyDSL_Leveling.lua:483: attempt to
-      call field 'on' (a nil value)`. Root cause: this addon's Script
-      entry lives OUTSIDE the `MyDSL_Full` package (dofile()'d from the
-      DSL2 repo, per the addon-boundary design), so its position in the
-      profile's overall Script execution order relative to
-      `MyDSL_DataLayer.lua` (which defines `MyDSL.on`) isn't guaranteed —
-      and it ran first this time. Worse than the one failing line: a Lua
-      runtime error aborts everything AFTER it in the same script
-      execution too, so this also silently skipped alias registration
-      and `L.boot()` itself for that whole load, not just the two
-      `MyDSL.on(...)` calls. Fixed with `onceDataLayerReady(fn)` — calls
-      `fn()` immediately if `MyDSL.on` already exists, otherwise retries
-      via a short `tempTimer` poll — wrapping both `MyDSL.on(...)`
-      registrations (scan-based mob recognition, HP safety net) so a
-      load-order race can never crash/abort this file's init again,
-      regardless of Script Editor ordering or future `MyDSL_Full`
-      reinstalls. Verified via a new dedicated test
-      (`test/test_leveling_load_order.lua`, 8 assertions) that
-      deliberately dofiles Leveling BEFORE DataLayer — the exact failure
-      ordering — confirming the whole file still loads cleanly, aliases
-      still register, `L.boot()` still completes, and the deferred
-      listeners actually catch up once DataLayer arrives.
-
-      **7th real bug, found live 2026-07-21, per Steven ("check logs,
-      there are issues, no combat, the path even seems incoroect? review
-      code, review original leveling script and mydsl_full. why is it
-      not working?")** — a fifth confirmed instance of a recurring bug
-      class in `MyDSL_DataLayer.lua`'s room-look capture
-      (`isUnparsedPresenceLine()`), found via careful re-tracing of two
-      real session logs line by line rather than guessing: `"     Several
-      small desks are here positioned strategically."` (the literal FIRST
-      line of "Philosophy Guild"'s content, right after `[Exits: ...]`)
-      is plural ("are here", not "is here") and starts with neither an
-      article nor "This" — it fell through every check in `beginLook()`'s
-      catch-all straight to `endLook()`, silently ending capture BEFORE
-      any of the room's real mobs (2 janitors, 4 students, 1 instructor)
-      ever got added to `scan.rightHere` — every single time this exact
-      line was present. Confirmed directly against BOTH real Olyndros
-      logs: visits where this line appeared produced zero combat; the one
-      visit where the game happened not to print it produced real combat
-      seconds later. Corpus-checked before fixing (per this project's own
-      "verify against source" standard): 78 real occurrences of standalone
-      `"Several ..."` lines across the full DSL2 + MyDSL log corpus, all 7
-      distinct sentences pure furniture/scenery (booths, chairs, doors,
-      tables, logs, wheelbarrows) — zero real mob-describing
-      counterexamples. Fixed by adding `"Several "` as a recognized
-      skippable-continuation token, mirroring the exact same fix shape as
-      the four prior rounds of this bug class (2026-07-08 x2, 2026-07-09,
-      2026-07-16). This is a shared `MyDSL_DataLayer.lua` fix — benefits
-      every module reading `scan.rightHere`, not just Leveling, per this
-      file's own standing shared-risk note. Verified via a new dedicated
-      test (`test/test_datalayer_several_fixture_line.lua`, 4 assertions)
-      replaying the exact real captured room content verbatim — confirmed
-      it genuinely fails without the fix and passes with it.
-
-      **8th real bug, found in the same review**: `map.speedwalk()` fails
-      by echoing to the map console itself (`"No path to chosen room
-      found."`), not by raising a Lua error — so `startArea()`'s
-      `pcall()` around it always reported success even when the
-      speedwalk silently did nothing, leaving the player with zero
-      fallback directions and the raw dirs-list walk then starting from
-      the wrong room — matching "the path even seems incorrect"
-      directly. Fixed: `startArea()` now always shows the manual
-      `area.description` directions as a fallback alongside a speedwalk
-      attempt, not only when there's no cached room to try at all.
-      Verified via a new assertion in `test/test_leveling.lua`.
+      **2 more real bugs found from this same successful run's log +
+      Steven's own MyDSL-profile notes:**
+      9. **Combat still leaking to the main window, unconfirmed fix.**
+         Steven's note: "damage still appearing in main window and not
+         being moved to combat" — confirmed directly in the log: every
+         swing this session printed completely raw game text with real,
+         varying damage numbers, which only happens if the `combatDamage`
+         trigger never matched at all (the 2026-07-20 fix always replaces
+         matched lines with a *fixed* per-verb score, never the real
+         number). Independently re-verified the fixed regex against the
+         exact real corpus line via both Python `re` and real PCRE
+         (`perl`) — both match correctly, so the pattern logic itself is
+         sound. Following this exact file's own established precedent for
+         this class of problem (the "[Exits: " leading-space bug, the
+         indented-landmark-line anchor bug), hardened both the leading
+         and trailing anchors to tolerate invisible stray whitespace,
+         which a plain-text log capture wouldn't show. **This is a
+         best-effort fix, not a confirmed root cause** — if swings are
+         still leaking after reinstalling, the established next step in
+         this file's own history is a live debug trace (see the
+         "[Exits: " self-retrigger fix), since static analysis is now
+         exhausted here.
+      10. **Focus/TargetView never populated during a Leveling
+          fight — fixed.** Steven's note: "target window not populating
+          when im in combat, should become the target im fighting, have
+          all the mob info etc." Confirmed against this exact session's
+          log: zero Focus/TargetView activity the whole run. Root cause:
+          Leveling tracks its own kill target independently
+          (`L.session.pendingKillMobKey`) and never told the shared
+          `MyDSL.Target` API about it. Fixed: `tryKill()` now calls
+          `MyDSL.Target.set(mobDef.label, true, "leveling")` right when
+          it sends a kill command — Focus's own existing auto-clear/
+          advance-on-death logic (keyed off `MyDSL.combat.died`) should
+          then handle the rest for free, no separate wiring needed.
 
       All fixes verified via structural tests: `test/test_leveling.lua`
-      (35 assertions), `test/test_leveling_load_order.lua` (8
-      assertions), `test/test_datalayer_several_fixture_line.lua` (new, 4
-      assertions), `test/test_windowregistry_merge.lua`,
-      `test/test_combat_damage_regex.lua`. **Separately found, flagged,
-      NOT fixed (unrelated, pre-existing, out of scope, Steven has since
-      minimized it himself)**: a native "Charge" trigger errors on
-      `dslpnp` being nil — references the old PNP framework, not loaded
-      in this profile, nothing to do with Leveling.
+      (37 assertions, up from 35), `test/test_leveling_load_order.lua` (8
+      assertions), `test/test_datalayer_audit_fixture_lines.lua` (5),
+      `test/test_datalayer_several_fixture_line.lua` (4),
+      `test/test_windowregistry_merge.lua`, `test/test_combat_damage_regex.lua`
+      (7). All 10 suites + a full known-bad-pattern sweep re-run clean.
+      **Separately found, flagged, NOT fixed (unrelated, pre-existing, out
+      of scope, Steven has since minimized it himself)**: a native
+      "Charge" trigger errors on `dslpnp` being nil.
 
-      **This round's fix touches `MyDSL_DataLayer.lua` (bug #7), which is
-      embedded in the `MyDSL_Full` package, not `dofile()`'d live like
-      Leveling — needs another package rebuild + reinstall before Steven
-      can retest.** After that: re-test a full run — the redesigned
-      start→resume→walk-fight-loop→report flow, pause/resume mid-run, HP
-      safety stop, and whether combat now actually shows up in the Combat
-      window instead of the main console — before any of this closes.
+      **This round's combat-regex hardening touches `MyDSL_DataLayer.lua`
+      again — needs another package rebuild + reinstall before retesting.**
+      After that: confirm combat actually routes to the Combat window
+      this time (the one real remaining unknown), and confirm Focus now
+      shows the current target during a Leveling fight.
 - [ ] **DSL Generic Mapper: real "air" terrain gap, plus dropped the
       spammy line-buffer dump from `dslroom raw` — fixed 2026-07-18,
       needs live confirmation.** Per Steven ("is there a terrain color

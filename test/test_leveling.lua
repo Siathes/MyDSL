@@ -107,6 +107,34 @@ check("the non-mob fixture line was never queued", (function()
 end)())
 
 ------------------------------------------------------------------------
+-- 3b. Regression: real live bug (2026-07-25, Steven's own MyDSL-profile
+--     notes: "target window not populating when im in combat, should
+--     become the target im fighting"). Confirmed via the real Olyndros
+--     session log -- zero Focus/TargetView activity the whole run.
+--     tryKill() must call the shared MyDSL.Target.set() API so Focus
+--     reflects what Leveling is actually fighting.
+------------------------------------------------------------------------
+-- Saved/restored around this block so it doesn't disturb section 3's
+-- own remaining-mob-queue state, which section 4 (kill-stealing) below
+-- still depends on.
+local savedMobsInRoom, savedPendingKey = L.session.mobsInRoom, L.session.pendingKillMobKey
+
+local targetSetCalls = {}
+MyDSL.Target = { set = function(name, is_mob, source) table.insert(targetSetCalls, { name = name, is_mob = is_mob, source = source }) end }
+L.session.mobsInRoom = { "excavator" }
+L.tryKill()
+check("tryKill() tells Focus/TargetView what it's fighting via MyDSL.Target.set()",
+  #targetSetCalls == 1 and targetSetCalls[1].name == "gnome stone excavator"
+  and targetSetCalls[1].is_mob == true and targetSetCalls[1].source == "leveling")
+
+MyDSL.Target = nil  -- absence must not crash tryKill() (guarded call)
+L.session.mobsInRoom = { "excavator" }
+local ok = pcall(L.tryKill)
+check("tryKill() still works fine when MyDSL.Target doesn't exist at all", ok)
+
+L.session.mobsInRoom, L.session.pendingKillMobKey = savedMobsInRoom, savedPendingKey
+
+------------------------------------------------------------------------
 -- 4. Kill-stealing: finish remaining enabled mobs in the room before
 --    advancing (improvement over AlexK's "abandon room" default)
 ------------------------------------------------------------------------

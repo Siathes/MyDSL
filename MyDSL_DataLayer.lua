@@ -4333,9 +4333,31 @@ local DAMAGE_VERBS = "miss|scratch|graze|hit|injure|wound|maul|decimate|devastat
 -- comes from a fixed per-verb DAM_INFO[verb].score lookup, not parsed
 -- from this text -- so passing a "(340)"-shaped punct through is safe,
 -- nothing depends on it being exactly "."/"!".
+-- REAL BUG, found live 2026-07-25 (Steven, via a real Olyndros leveling
+-- session): even after the 2026-07-20 fix above (matching the "(340)"
+-- damage-number ending), Steven's own note says "damage still appearing
+-- in main window and not being moved to combat" -- and the log confirms
+-- it: every single swing this session printed completely raw, verbatim
+-- game text with real, varying damage numbers (297, 167.5, 173...), which
+-- only happens if this trigger NEVER matched at all (parseCombatDamageLine
+-- always replaces the line with a fixed per-verb DAM_INFO score, never
+-- the raw number -- seeing the raw number means the trigger flat-out
+-- didn't fire). Independently re-verified the fixed regex against the
+-- exact real corpus line via BOTH Python's re AND real PCRE (perl) --
+-- both match correctly and extract the right groups, so the pattern
+-- logic itself is sound. The remaining, well-precedented suspect in this
+-- exact file's own history (the "[Exits: " leading-space bug 2026-07-08,
+-- the indented-landmark-line anchor bug 2026-07-09) is invisible leading/
+-- trailing whitespace in DSL's REAL raw line that a plain-text HTML log
+-- capture doesn't visibly show. Hardened both anchors to tolerate it --
+-- cheap and safe regardless of whether this turns out to be the actual
+-- cause; if swings still don't route after this, the next real step is
+-- a live debug trace (this file's own established last-resort technique,
+-- see the "[Exits: " self-retrigger fix's history) since static analysis
+-- has been exhausted here.
 MyDSL._triggers.combatDamage = tempRegexTrigger(
-  "^(You|[\\w\\-\\s,']+?)(?:(?<=You)r|'s)?(?:\\s?((?<=Your )[\\w\\s]+?|(?<='s )[\\w\\s]+?|))(?: do[es]*| [\\>\\<\\=\\*]+|) ("
-    .. DAMAGE_VERBS .. ")[esES]*(?: things to| [\\>\\<\\=\\*]+|) ([\\w\\-\\s,']+?)\\s*(\\([\\d\\.]+\\)|[\\.\\.!]+)$",
+  "^\\s*(You|[\\w\\-\\s,']+?)(?:(?<=You)r|'s)?(?:\\s?((?<=Your )[\\w\\s]+?|(?<='s )[\\w\\s]+?|))(?: do[es]*| [\\>\\<\\=\\*]+|) ("
+    .. DAMAGE_VERBS .. ")[esES]*(?: things to| [\\>\\<\\=\\*]+|) ([\\w\\-\\s,']+?)\\s*(\\([\\d\\.]+\\)|[\\.\\.!]+)\\s*$",
   function()
     if MyDSL and MyDSL.parseCombatDamageLine then
       MyDSL.parseCombatDamageLine(matches[2], matches[3], matches[4], matches[5], matches[6])

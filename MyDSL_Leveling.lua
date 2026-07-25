@@ -564,6 +564,19 @@ end)
 -- SECTION 8: COMBAT LOOP
 ------------------------------------------------------------------------
 
+-- REAL BUG, found live 2026-07-25, per Steven's own MyDSL-profile notes
+-- ("target window not populating when im in combat, should become the
+-- target im fighting, have all the mob info etc."). Confirmed against
+-- this exact Olyndros leveling session's own log: zero Focus/TargetView
+-- activity of any kind the whole run. Root cause: Leveling tracks its
+-- own kill target entirely independently (L.session.pendingKillMobKey)
+-- and never told the shared MyDSL.Target API about it -- so Focus never
+-- learned what was being fought, even during real, successful combat.
+-- Fixed by calling the same MyDSL.Target.set(name, is_mob, source) API
+-- a manual click/target alias already uses (MyDSL_TargetView.lua) --
+-- Focus's own existing auto-clear-on-death logic (keyed off
+-- MyDSL.combat.died) should then handle clearing/advancing for free as
+-- Leveling kills mobs one after another, no separate wiring needed here.
 function L.tryKill()
   if L.session.state ~= "active" then return end
   if #L.session.mobsInRoom == 0 then
@@ -575,6 +588,9 @@ function L.tryKill()
   local mobKey = table.remove(L.session.mobsInRoom, 1)
   local mobDef = area.mobs[mobKey]
   L.session.pendingKillMobKey = mobKey
+  if MyDSL.Target and MyDSL.Target.set and mobDef.label and mobDef.label ~= "" then
+    pcall(MyDSL.Target.set, mobDef.label, true, "leveling")
+  end
   send("kill " .. mobDef.kill_kw)
 end
 
