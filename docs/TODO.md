@@ -29,16 +29,93 @@ to the per-item live confirmations below.
       logged thats good, but others dont seem needed and seem to be
       useless." Needs a pass over every `logWindow()` call site to confirm
       which categories exist today and cut the rest.
-- [ ] **Full cross-module code audit — in progress, background research
-      launched 2026-08-23, not yet reconciled into this file.** Two scans
-      running: (1) log/file corpus scan for the PAUSED section's
-      unconfirmed patterns plus any newer unswept log files across sibling
-      profiles; (2) static code audit — namespace/command consistency
-      across all `MyDSL_*.lua` modules, dead/orphaned code, cross-module
-      redundancy (Steven's example: does the mapper's own prompt capture
-      duplicate `MyDSL_DataLayer.lua`'s?), helpfile-vs-implementation
-      drift, and TODO.md claims vs. actual current code. Findings to be
-      reconciled here once both return.
+- [x] **Full cross-module code audit — completed 2026-08-23, findings
+      reconciled, low-risk items fixed directly.** Two background passes:
+      a log/file corpus scan (findings folded into the PAUSED section and
+      `docs/DSL_CommandRef.md` above) and a static code audit across all
+      `MyDSL_*.lua` modules. Fixed directly (all tests + the known-pattern
+      sweep re-run clean afterward):
+      - **`dslpnp` nil-global error, confirmed on a SECOND native trigger
+        ("BACKSTABS"), not just "Charge" as previously flagged.** Found
+        live in MyDSL's own error log (2026-08-21/22, unswept until this
+        audit) — 4 error-log lines per proc, harmless to gameplay (the
+        backstab still lands correctly) but real, reproducible spam.
+        Root cause confirmed identical to the earlier "Charge" finding:
+        leftover native triggers guard themselves with `if
+        dslpnp.battle.Active then`, a global from the old PNP framework
+        this profile no longer loads. Fixed with a 2-line stub in
+        `MyDSL_DataLayer.lua` (`dslpnp = dslpnp or {}; dslpnp.battle =
+        dslpnp.battle or { Active = false }`) — confirmed via the newest
+        native XML in both DSL2 and the live MyDSL profile that
+        `dslpnp.battle.Active` is the ONLY field any real trigger reads,
+        so the stub fully covers it without resurrecting any other part
+        of the old API. Doesn't touch the fragile native trigger XML
+        itself, consistent with this project's established caution there.
+      - **4 confirmed-dead functions removed**: `MyDSL_RouteHelper.lua`'s
+        `Route.combat/scan/group/righthere` shorthands (zero call sites
+        anywhere, including native XML — those windows are populated by
+        their own View modules' MiniConsoles directly, not by raw-text
+        routing, so this isn't a missing-routing bug, just superseded
+        scaffolding). `Route.players` looked similar but is genuinely used
+        3× in `MyDSL_DataLayer.lua` — kept.
+      - **`MyDSL_ThemeEngine.lua`**: removed 3 dead functions
+        (`titleCSS()`, `bodyTextCSS()`, `colorToEcho()` — zero call sites;
+        every real consumer builds CSS itself via `get()`+`colorToCSS()`
+        instead) and corrected the file's own header comment, which still
+        named the dead functions as the intended Layer-3 contract.
+        `setOverride()`/`clearOverride()` looked similarly dead but were
+        NOT removed — `Theme.get()` still reads the `overrides` table
+        they'd populate, so this is an incomplete-but-live mechanism (no
+        alias currently calls them), not pure dead code; needs a decision
+        (finish it or remove the whole mechanism), not a blind delete.
+      - **`MyDSL_Help.lua` doc gaps closed**: added 3 real, working
+        `mydsl leveling` commands that had zero documentation (bare
+        `show`/`hide` toggling the window, `area info <name>`, `buff
+        <name> <cast-cmd|off>`), and the 12-alias `charpic *` legacy
+        vocabulary (`MyDSL_PortraitView.lua`) which had none at all.
+      Found, NOT fixed (needs a decision, not a blind guess — same class
+      as the `MyDSL.Windows.setTitle` no-op already tracked below):
+      - **`MyDSL_Leveling.lua`'s own status window is permanently blank.**
+        `L.log()` (writes to a dedicated MiniConsole created and styled
+        for exactly this) is defined but never called anywhere — all real
+        leveling output goes through a separate `ce()`/cecho helper to the
+        main console instead. Unclear whether this window was meant to
+        show a live run log and just never got wired up (a real gap) or
+        is vestigial early scaffolding nobody expects to use — needs
+        Steven's call before touching it either way.
+      - **Lifecycle naming drift, cosmetic only**: 8 modules use
+        `.init()`, 6 use `.boot()` for the same file-load-time role
+        (`MyDSL_PortraitView.lua:1000` even bridges both:
+        `CharPic.boot = function() return P.init() end`, showing this was
+        noticed once and never resolved project-wide). No central
+        dispatcher requires uniformity, so this is real but harmless drift
+        — low priority, fix opportunistically if a module's being touched
+        anyway, not worth a dedicated pass.
+      - **Mapper vs. DataLayer: confirmed two fully independent GMCP
+        parsers of the same `char_data`/`room_data` fields**, direct
+        answer to Steven's "does mapper prompt collection help any other
+        window" question: no, neither reuses the other's parsed output.
+        Confirmed deliberate (the mapper fork is documented to survive
+        standalone even without DataLayer loaded, with real staleness-
+        guard reasoning behind the duplication), not an oversight — a
+        real correctness-drift risk if DSL's GMCP shape ever changes (one
+        side could get updated, the other silently not), but a known,
+        already-reasoned tradeoff, not a new gap.
+      - **`MyDSL/log/` (the live profile) had 5 large, substantial session
+        logs from the past week (2026-08-16 through 2026-08-22, up to
+        10MB each) never swept for this project's purposes** — the
+        ~1-month gap in this repo's own commit history (last real code
+        commit 2026-07-25) meant real play sessions went unreviewed.
+        Checked: no `cecho()` bug markers from Steven in any of them, and
+        the only recurring `[LUA]` errors are the `dslpnp` one (fixed
+        above) plus two cosmetic native-mapper-alias errors (a disabled
+        self-updater's version-check script erroring harmlessly on every
+        login; `centerview: bad argument... roomID nil` when a mapper area
+        alias is run with no room context) — neither is a MyDSL_*.lua bug,
+        left alone as native-XML-only issues, same caution as `dslpnp`.
+      - TODO.md-vs-code spot check (4 items): no drift found — every
+        checked "fixed, needs live confirmation" item's code matches its
+        TODO.md description exactly.
 - [ ] **GitHub hosting — Steven asked whether/how to connect this repo to
       his GitHub account and publish it, partly to make smoke-testing and
       "latest version" retrieval easier.** Not actioned — creating/pushing
@@ -706,24 +783,44 @@ confirmed correct (code review + a real live fight, 2026-07-11) — see
 
 ## PAUSED — needs more captured log data before further progress
 Per Steven: "lets pause the capture logs phase... we will return to them
-when we have more data to scan." Every available log source on this
-machine (DSL2's own corpus, 3 PNP sibling profiles, DSL1,
-Qinrathaz-Vaelis, `log/Archive.zip`, 24 AGL tournament transcripts) has
-been searched with zero real occurrences of the needed text — not
-guessing at patterns with zero corpus evidence.
-- [ ] Quoted weapon names (`"Nadrik's Honor"`) in damage lines — plausible
-      latent capture-group bug, zero confirmed real examples of a quoted
-      weapon name specifically.
-- [ ] `procUnholy`/`procManaSelf` — zero occurrences anywhere; 2 near-misses
-      found and ruled out (not force-fit).
-- [ ] `combatSense1/2` (sense-based evasion) — real ability (bard-only per
-      helpfiles), exact echo wording unconfirmed anywhere. Needs a bard
-      specifically playing/logging.
-- [ ] `A.ids.triggers.song` (AffectsView "Song:" format) — prior
-      "confirmed" matches turned out to be pre-DSL2 log data.
-- [ ] Mage-cast `poison` spell's onset text — one unconfirmed candidate
-      line spotted (`"...looks very ill."`), not enough occurrences to
-      confirm vs. coincidence.
+when we have more data to scan." **2026-08-23: re-checked all 5 items
+against a wider search** (every sibling profile, both `log/Archive.zip`
+files, and a previously-unswept `~/Downloads/logs.zip`, 121 files) — 3 of
+5 now have real evidence, 2 remain genuinely unconfirmed anywhere on this
+machine.
+- [x] **Quoted weapon names (`"Nadrik's Honor"`) — confirmed real AND
+      confirmed already working, no bug.** Real line: `Tsacherus is
+      knocked to the ground by "Nadrik's Honor".` (multiple independent
+      sources). Directly tested `MyDSL_DataLayer.lua:4487`'s existing
+      Stunning-proc regex (`^([\w\-\s,'"]+) is knocked to the ground by
+      ([\w\-\s,'"]+)\.$`) against the real line — the character class
+      already includes `'"`, so it captures `"Nadrik's Honor"` correctly
+      as-is. No fix needed; closing this out rather than leaving it open
+      on old uncertainty.
+- [ ] `procUnholy`/`procManaSelf` — still zero occurrences anywhere on this
+      machine after the wider 2026-08-23 search. Unchanged.
+- [ ] `combatSense1/2` (sense-based evasion) — still zero occurrences
+      anywhere. Needs a bard specifically playing/logging. Unchanged.
+- [x] **`A.ids.triggers.song` (AffectsView "Song:" format) — confirmed
+      real 2026-08-23**, this time independently in DSL2's own corpus, not
+      just older pre-DSL2 data (`Song : song of war       : modifies
+      damage roll by 2 for 12 cycles, (6 hours)`), matching the current
+      trigger's regex exactly. **Real capture gap found alongside it**: a
+      modifier-less variant (`Song : song of war` / `Spell: toughness`,
+      no "modifies...by...for...cycles" clause) matches neither
+      `A.ids.triggers.song` nor `A.ids.triggers.spell` — both regexes
+      require that clause. Recorded in `docs/DSL_CommandRef.md`; ready to
+      build (loosen both regexes to make the modifier clause optional)
+      whenever picked up.
+- [ ] **Mage-cast `poison` spell's onset text — re-characterized, still not
+      confirmed as spell-specific.** `"...looks very ill."` now has 3
+      independent real occurrences (up from 1), all immediately following
+      a poison/venom-gas attack landing (a dragon-figurine item power, a
+      warthog's venomous spit) — reasonably strong evidence this is DSL's
+      generic poison-onset reaction text, but still zero occurrence of it
+      following an actual `cast poison` line specifically. Could build
+      against the generic pattern now if source-agnostic capture is
+      acceptable; the mage-spell-specific claim stays unconfirmed.
 
 ---
 

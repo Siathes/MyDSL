@@ -35,6 +35,21 @@ MyDSL = MyDSL or {}
 MyDSL._triggers = MyDSL._triggers or {}
 MyDSL._aliases = MyDSL._aliases or {}
 
+-- Stub the old PNP framework's `dslpnp` global -- added 2026-08-23. A
+-- handful of leftover native triggers (confirmed so far: "Charge",
+-- "BACKSTABS") still guard themselves with `if dslpnp.battle.Active then`,
+-- a pattern from the pre-DSL2 PNP client this profile no longer loads.
+-- Real, reproducible, currently spamming the error log every time one of
+-- those triggers fires (confirmed live 2026-08-21/22 in MyDSL's own
+-- error log) -- but not a MyDSL_*.lua bug, since our own code already
+-- checks `_G.dslpnp and ...` defensively everywhere it touches this. This
+-- stub only defines the one field every known usage actually reads, so
+-- `dslpnp.battle.Active` reads `false` (correctly: no PNP battle system
+-- is really active here) instead of erroring -- it does not attempt to
+-- resurrect any other part of the old `dslpnp` API surface.
+dslpnp = dslpnp or {}
+dslpnp.battle = dslpnp.battle or { Active = false }
+
 
 ------------------------------------------------------------------------
 -- SECTION 2: PRIVATE UTILITIES

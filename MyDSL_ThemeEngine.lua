@@ -8,9 +8,12 @@
 -- `theme` alias (list/set/show), matching the precedent already set by
 -- MyDSL_WindowRegistry.lua owning "mydsl layout save/reset": a Layer-2 file
 -- can own the small set of commands that operate purely on its own data.
--- Layer 3 (the UI layer) calls MyDSL.Theme.get()/panelCSS()/titleCSS() to
--- read values from here, and listens for "MyDSL.theme.changed" to restyle
--- live windows when the active theme switches.
+-- Layer 3 (the UI layer) calls MyDSL.Theme.get()/panelCSS()/styleConsole()
+-- to read values from here, and listens for "MyDSL.theme.changed" to
+-- restyle live windows when the active theme switches. (Corrected
+-- 2026-08-23: this used to also name titleCSS()/bodyTextCSS() as the
+-- contract, but every real consumer builds title/body CSS itself via
+-- get()+colorToCSS() instead -- those two functions were dead, removed.)
 -- =============================================================================
 
 
@@ -350,14 +353,6 @@ function MyDSL.Theme.colorToCSS(rgba)
   return string.format("rgba(%d,%d,%d,%.2f)", r, g, b, a / 255)
 end
 
-function MyDSL.Theme.colorToEcho(rgba)
-  if not rgba then return "<255,255,255>" end
-  local r = rgba.r or 255
-  local g = rgba.g or 255
-  local b = rgba.b or 255
-  return string.format("<%d,%d,%d>", r, g, b)
-end
-
 
 ------------------------------------------------------------------------
 -- SECTION 9: READY-MADE STYLESHEET STRINGS
@@ -381,31 +376,6 @@ function MyDSL.Theme.panelCSS(windowName)
   return string.format(
     "background-color: %s; border: %dpx solid %s; border-radius: %dpx;",
     MyDSL.Theme.colorToCSS(bg), size, MyDSL.Theme.colorToCSS(border), radius
-  )
-end
-
--- titleCSS(windowName)
--- Color + background tint + font for a title-bar Label.
-function MyDSL.Theme.titleCSS(windowName)
-  local color   = MyDSL.Theme.get(windowName, "titleColor")
-  local bg      = MyDSL.Theme.get(windowName, "titleBgColor")
-  local font    = MyDSL.Theme.get(windowName, "titleFont") or "Courier New"
-  local size    = MyDSL.Theme.get(windowName, "titleFontSize") or 9
-  return string.format(
-    "color: %s; background-color: %s; font-family: '%s'; font-size: %dpt; font-weight: bold;",
-    MyDSL.Theme.colorToCSS(color), MyDSL.Theme.colorToCSS(bg), font, size
-  )
-end
-
--- bodyTextCSS(windowName)
--- Default foreground + font for plain body text (not a semantic color).
-function MyDSL.Theme.bodyTextCSS(windowName)
-  local color = MyDSL.Theme.get(windowName, "textColor")
-  local font  = MyDSL.Theme.get(windowName, "font") or "Courier New"
-  local size  = MyDSL.Theme.get(windowName, "fontSize") or 9
-  return string.format(
-    "color: %s; font-family: '%s'; font-size: %dpt;",
-    MyDSL.Theme.colorToCSS(color), font, size
   )
 end
 

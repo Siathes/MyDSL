@@ -456,10 +456,55 @@ during Phase B but never checked off here.** Corrected:
 - [x] Combat (damage/evasion/condition/death/procs) — see "COMBAT" section
       this file, added 2026-07-05 (was worked on all session but never
       consolidated here until now)
-- [ ] `inventory` / `inv` — item list format — still genuinely not captured
-- [ ] `equipment` / `eq` — equipped items format — still genuinely not captured, no parser exists
-- [ ] `affects` — spell list (text fallback format) — GMCP path works; text-fallback format still uncaptured
-- [ ] Day/night transition messages — exact text for History routing — still uncaptured
+- [x] `inventory` / `inv` — item list format — **confirmed real 2026-08-23**
+      via a cross-profile log scan (sibling PNP profile corpus, DSL server
+      text so applies here too). Real format:
+      ```
+      You are carrying:
+           (Fireproof) (Glowing) a spirit hoard
+           (Fireproof) a mage potion pouch
+      ```
+      Header `"You are carrying:"`, each item indented 5 spaces, any flags
+      as parenthetical prefixes before the item name. No parser exists yet
+      — this only confirms the pattern is real and capturable, not that
+      it's built. See `docs/TODO.md`'s fuzzy-name-matching item, which
+      already has a stub `MyDSL.beginInventory()`/`parseInventoryLine()`
+      pipeline built for a different purpose (ground-item resolution) —
+      check whether that can be extended before writing a second parser.
+- [x] `equipment` / `eq` — equipped items format — **confirmed real
+      2026-08-23**, same source. Real format:
+      ```
+      You are using:
+      <used as light>     (Glowing) an illuminating crystal shard - [2] Bless, 1 Dam
+      <worn on finger>    an Ofcol signet ring
+      <worn around neck>  (Glowing) the Amulet of Kwainin
+      <worn on torso>     a silk cloth shirt -[20C] 8/8/8/5 -[20C] 8/8/8/5
+      <wielded>           something.
+      <sheathed>          (nothing)
+      ```
+      Header `"You are using:"`, each line `<slot name>` (left-padded to
+      align) then the item description, or `(nothing)` for an empty slot.
+      No parser exists yet — same status as `inventory` above.
+- [x] `affects` — spell list (text fallback format) — **confirmed real
+      2026-08-23**. GMCP path already works; text fallback is:
+      ```
+      You are affected by the following spells:
+      Song : song of war
+      Spell: toughness
+      ```
+      matching `A.ids.triggers.start`'s existing regex. **Real capture
+      gap found alongside this**: the modifier-less form above (no
+      "modifies ... by ... for ... cycles" clause) matches neither
+      `A.ids.triggers.song` nor `A.ids.triggers.spell` in
+      `MyDSL_AffectsView.lua` — both current regexes require that clause.
+      Tracked in `docs/TODO.md`.
+- [x] Day/night transition messages — **confirmed real 2026-08-23**:
+      `"The sun rises in the east."` appears to be the universal
+      transition broadcast (repeated across many independent log files,
+      room-independent). Room-specific flavor text conditioned on the
+      same day/night clock also exists (e.g. a desert room's own sunset
+      description) but is not the generic message — treat those as
+      separate, room-flavor-only text. No History routing built yet.
 - [ ] `terrain` command's real output while swimming/in the ocean/underwater —
       confirmed real terrain-command output shapes so far (full corpus grep,
       2026-07-19): "The terrain is that of fields/the forest/the heated
@@ -470,7 +515,12 @@ during Phase B but never checked off here.** Corrected:
       and its native "DSL Terrain Capture" trigger). Zero occurrences of
       anything swim/ocean/underwater-shaped in the available corpus (578
       log files + PNP files + `DSL_Helpfiles/terrain.txt`, which only
-      documents usage syntax, not output). `normalizeSector()`'s `exact`
+      documents usage syntax, not output). **Re-checked 2026-08-23 against
+      every other source on this machine** (all sibling profile logs, both
+      `log/Archive.zip` files, and a previously-unswept `~/Downloads/
+      logs.zip`, 121 files) — still zero occurrences anywhere. This gap is
+      genuinely unresolved by any available log source; needs a live
+      swim/ocean session. `normalizeSector()`'s `exact`
       table already has `swim`/`ocean`/`underwater` entries, but with no
       `:find()` substring fallback and no matching native trigger pattern
       — same class of gap the "air" fix closed, but deliberately NOT

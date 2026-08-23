@@ -7,7 +7,7 @@
 --
 -- The routeMap (DSL1→DSL2 name compat) was removed per the June 2026 addendum:
 -- all DSL2 triggers are written fresh, so backward-compat aliases add no value.
--- Use shorthand helpers (Route.history, Route.combat, etc.) or direct window
+-- Use shorthand helpers (Route.history, Route.players) or direct window
 -- names ("MyDSL_History") with Route.to().
 -- =============================================================================
 
@@ -220,13 +220,14 @@ end
 
 -- Shorthand helpers — use these in triggers instead of hardcoding window names.
 -- Each one is a thin wrapper around Route.to() with the direct DSL2 window name.
+-- Combat/Scan/Group/RightHere have no shorthand here (removed 2026-08-23,
+-- confirmed dead via a full-repo audit): those windows are populated by
+-- their own View modules' structured renderers (CombatView/ScanView/
+-- GroupView/TargetView, each writing directly to their own MiniConsole),
+-- not by raw-text routing through this file.
 
 function MyDSL.Route.history(line)   MyDSL.Route.to("MyDSL_History",     line) end
-function MyDSL.Route.combat(line)    MyDSL.Route.to("MyDSL_Combat",      line) end
-function MyDSL.Route.scan(line)      MyDSL.Route.to("MyDSL_Scan",        line) end
-function MyDSL.Route.group(line)     MyDSL.Route.to("MyDSL_Group",       line) end
 function MyDSL.Route.players(line)   MyDSL.Route.to("MyDSL_PlayersNear", line) end
-function MyDSL.Route.righthere(line) MyDSL.Route.to("MyDSL_RightHere",   line) end
 
 -- MyDSL.Route.setHistoryFont(size) + "mydsl history font <n>" -- added
 -- 2026-07-06. Every other routed/module window has its own "mydsl <name>
