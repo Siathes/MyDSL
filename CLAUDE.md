@@ -50,6 +50,31 @@ only hold what git history and the code can't already tell you.** That's:
    parse or match — it has the confirmed real output and the fix patterns.
    Add to it (don't create a parallel file) whenever a new pattern is
    confirmed during testing/auditing.
+4. Check the live MyDSL profile's own `notes_utf8.txt`
+   (`~/.config/mudlet/profiles/MyDSL/notes_utf8.txt`) for anything newer
+   than the last session's work — Steven writes bug reports and ideas
+   there while actually playing, separate from whatever he says directly
+   in chat (confirmed real, non-trivial content found there 2026-08-23
+   after a ~1-month gap in this repo's own commit history). Reconcile
+   anything found into `docs/TODO.md`, don't let it sit unread.
+
+### Housekeeping routine (adopted 2026-08-23)
+No durable cron/scheduled-agent mechanism fits this project well — cloud
+routines can't see the local Mudlet profiles/logs this project depends on,
+and session-local cron dies with the session — so "keep things organized
+and current" is a checklist folded into normal session work instead of a
+background job:
+- **Every session, near the start** (covered by item 1 above plus this):
+  run `python3 scripts/check_known_patterns.py --all` once — cheap, catches
+  any known-bad-pattern instance that landed in a file the per-edit hook
+  never saw touched this session.
+- **Whenever picking work back up after a real gap** (days/weeks, not
+  within the same day): check item 4 above (MyDSL's own notes file) and
+  skim `git log --oneline -20` against `docs/CHANGELOG.md`'s tail to
+  confirm the two agree on what actually landed.
+- **After any substantial work session**: prune `docs/TODO.md` per its own
+  stated rule if it's grown append-only again; confirm `docs/CHANGELOG.md`
+  has one line per real change made.
 
 ## Reference material — cross-check against these before reinventing anything
 - `PNP files/` (this directory) — full PNP source, 46 files. When PNP already

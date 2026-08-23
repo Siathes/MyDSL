@@ -14,6 +14,47 @@ DEFERRED gets started without an explicit go-ahead.
 
 ---
 
+## TOP PRIORITY — project-wide audit & optimization phase (opened 2026-08-23)
+Per Steven, both in chat and independently in MyDSL's own `notes_utf8.txt`
+("moving into the optimization phase soon for UI, start looking at code
+that can be removed or made more efficient", "check for lag spikes... we
+need to do an optimization pass on the entire mydsl suite", "do a really
+really thorough deep scan of the current state of the project... cross
+check connections of modules... make sure its all in the same namespace...
+review it like its a new project"). This is an explicit go-ahead — not
+scope creep — for a dedicated audit phase, separate from and in addition
+to the per-item live confirmations below.
+- [ ] **Reduce `MyDSL.logWindow()` scope** — Steven: "stop logging anything
+      except combat/main window/chat and history, if they are already
+      logged thats good, but others dont seem needed and seem to be
+      useless." Needs a pass over every `logWindow()` call site to confirm
+      which categories exist today and cut the rest.
+- [ ] **Full cross-module code audit — in progress, background research
+      launched 2026-08-23, not yet reconciled into this file.** Two scans
+      running: (1) log/file corpus scan for the PAUSED section's
+      unconfirmed patterns plus any newer unswept log files across sibling
+      profiles; (2) static code audit — namespace/command consistency
+      across all `MyDSL_*.lua` modules, dead/orphaned code, cross-module
+      redundancy (Steven's example: does the mapper's own prompt capture
+      duplicate `MyDSL_DataLayer.lua`'s?), helpfile-vs-implementation
+      drift, and TODO.md claims vs. actual current code. Findings to be
+      reconciled here once both return.
+- [ ] **GitHub hosting — Steven asked whether/how to connect this repo to
+      his GitHub account and publish it, partly to make smoke-testing and
+      "latest version" retrieval easier.** Not actioned — creating/pushing
+      to a remote repo and wiring account access needs Steven's explicit
+      go-ahead and choices (public/private, whether this machine's `git`
+      remote gets added) before anything is done, not assumed as part of
+      the audit.
+- [ ] **Live per-window smoke test** — Steven asked for "go to each window
+      and check functions connections, toggle on/off, all window commands,
+      then confirm helpfiles match." The audit above covers the static
+      half (helpfile text vs. registered commands); actually toggling each
+      window and exercising each command needs Steven live in-game — needs
+      a session together once the static audit lands.
+
+---
+
 ## PACKAGING — fresh-install status
 - [ ] **`MyDSL_Full.mpackage` — one combined package, several rounds of
       real fresh-install feedback fixed, still needs a full live
@@ -811,6 +852,48 @@ guessing at patterns with zero corpus evidence.
       message (`ce("usage: setspell <bless|fireproof> <spell|wand|
       skill> [name]")`) for malformed input — just wasn't reachable for
       the zero-arg case before. Syntax-checked.
+- [ ] **New, from MyDSL notes 2026-08-23: LocationView — manually assigning
+      a room picture doesn't display.** Steven: "mydsl location set 'A
+      Sloped Hall.png' ... it looks like it set it, but it is not
+      displaying in locations window, couple examples in the logs." Not
+      yet investigated — the referenced logs are in the live MyDSL profile,
+      not yet cross-checked against `MyDSL_LocationView.lua`.
+- [ ] **New, from MyDSL notes 2026-08-23: ItemLore may be capturing OTHER
+      players' identify announcements and overwriting a shared item's
+      record with their enchanted-variant stats.** Steven: "if someone
+      posts an identified item, the item reference captures that for its
+      info, but its enchanted and not the normal stats, need a way to
+      seperate or just not replace the info unless self identified." A
+      different angle from the 2026-07-19 stale-field fix (`IL.merge()`) —
+      that fix was about a real self-identify not clearing old scraped
+      data; this is about a THIRD PARTY's identify possibly being captured
+      at all. Needs the capture trigger's source-scoping checked.
+- [ ] **Re-check: identify persistence — Steven's 2026-08-23 note still
+      describes the exact symptom the 2026-07-19 fix targeted** ("casting
+      identify on an item doesnt persist, need to save the new info and
+      source information when identified") — unclear whether this note
+      predates that fix or is a fresh recurrence/gap the fix didn't fully
+      close. Needs a fresh live identify + check before assuming either way.
+- [ ] **Re-check: TargetView/Focus not populating in combat — Steven's
+      2026-08-23 note repeats this exact symptom**, which is also
+      `docs/TODO.md`'s still-open Leveling item 10 (fixed 2026-07-25, not
+      yet live-confirmed). Unclear if this note predates that fix. Same
+      live-confirmation gap, not a separate bug until proven otherwise.
+- [ ] **New, from MyDSL notes 2026-08-23: fresh-install window docking
+      reconfirmed as a live pain point** — "need a way to not have all the
+      windows dock on the right side after a new install, maybe start with
+      a default settings file." Same issue already tracked in PACKAGING
+      (shared `windowLayoutGeometry.dat`/`windowLayout.dat` theory, not
+      fixed) — this independent report raises its priority, not a new bug.
+- [ ] **New, from MyDSL notes 2026-08-23: mapper terrain/room coloring
+      re-applies on every room entry instead of once** — Steven: "mapper
+      terrain should be set once, not everytime i walk in the room... or
+      can we color the room box borders instead... how do we color the
+      border, or is that already available." Needs checking against the
+      real 2026-07-18 behavior (`map.dsl.applySectorColor()`) — may be
+      working as designed (recomputing is cheap/idempotent) and this is
+      really a border-color feature request, not a bug; needs clarifying
+      what specifically Steven is observing before treating as either.
 ---
 
 ## OPEN — Design ideas, not yet scoped
@@ -860,6 +943,48 @@ guessing at patterns with zero corpus evidence.
       that auto-fires on look/examine, has nothing to do with creatures;
       `creaturelore <target>` is DSL's one real creature-info command,
       and DSL2 already captures it correctly.)
+- [ ] **New ideas from MyDSL notes, 2026-08-23 — raw, unscoped, none
+      started.** Per this project's own rule, nothing here is built
+      without picking it up explicitly first:
+      - Alterform: warning + sound before it falls off (countdown from the
+        last 5 ticks, warning at 10 ticks left).
+      - Mapper: toggleable button bar for map-editing commands (shift,
+        area add, rename, etc).
+      - Mapper: alternate/angled exit lines (Z-shaped, not just straight)
+        — "discuss this."
+      - Mapper: labels reportedly don't move anymore since a Mudlet
+        version change — needs comparing current behavior against the
+        original/older Generic Mapper behavior. Bigger research item, per
+        Steven's own "big research discussion for this."
+      - Mapper: highlight other players' rooms (from the `where` command)
+        on the map, colored by kingdom/org if possible; multiple
+        possibilities highlighted when room names are ambiguous.
+      - Leveling: an "order all kill" option instead of direct attack, for
+        classes where that's the right opener.
+      - DslColor/Census: track a player's kingdom/clan membership changes
+        over time, not just current state.
+      - DslColor: "last seen" should reflect real in-game physical
+        location, not just presence on the `who` list.
+      - DslColor: emerald dragon color palette; audit that titles/
+        palettes/terms are all consistently colored; check Thax/Thaxanos
+        kingdom coloring specifically against real logs.
+      - AffectsView: recast/spellup that can use a potion or skill, not
+        just the spell itself — "think this is in PNP if we havent
+        implemented it," check PNP source first per this project's reuse
+        rule.
+      - TargetView: auto-populate from a room's `scan` output, not only
+        once combat starts, to cut down on manual clicking.
+      - Player-profile fields: alignment, god, notes, hp, mana, etc. —
+        explicitly "brainstorm this," not scoped.
+      - Roller: pull more comparison stats (racial/class baselines) from
+        Shattered/the local knowledge base; investigate whether a
+        reconnect-without-full-reload is possible to survive the server's
+        roll time limit — "this will require planning."
+      - UI: toggleable window titles / minimal borders, to maximize
+        window space.
+      - Restrings: an in-character-flavored guide/workflow for writing
+        them — references Steven's own Obsidian notes (Piknim, the
+        Gnomish Blunderbuss), outside this repo.
 
 ---
 
