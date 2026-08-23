@@ -75,6 +75,23 @@ background job:
 - **After any substantial work session**: prune `docs/TODO.md` per its own
   stated rule if it's grown append-only again; confirm `docs/CHANGELOG.md`
   has one line per real change made.
+- **Periodically (and always before a package reinstall or anything that
+  could overwrite native state)**: run a full native-content inventory of
+  the live MyDSL profile — enumerate every Script/TriggerGroup/AliasGroup/
+  KeyGroup in its newest `current/*.xml` (see the gotcha above: newest by
+  mtime, never `autosave.xml`) and confirm each one is either
+  git-tracked source, already captured by `build_mydsl_package.py`'s
+  packageName-based splice, or a recognized `.gitignore`d third-party
+  default. **Added 2026-08-23 after finding a real, previously-invisible
+  gap this way**: a top-level `Aliases` group with 29 hand-built personal
+  aliases (`packageName=None` — created directly in Mudlet's Alias
+  editor, never installed as part of any package) had no backup anywhere
+  and would have been silently lost on a from-scratch reinstall. Now
+  preserved in `MyDSL_PersonalAliases.xml` (git-tracked, directly
+  re-importable) — see `docs/TODO.md`'s closed inventory item for the
+  full method. Any native content Steven builds directly in Mudlet's UI
+  without it ever being part of an installed package can escape every
+  other check in this file; this is the one that catches it.
 
 ## Reference material — cross-check against these before reinventing anything
 - `PNP files/` (this directory) — full PNP source, 46 files. When PNP already

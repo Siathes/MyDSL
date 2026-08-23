@@ -1,0 +1,469 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+  MyDSL_PersonalAliases.xml: Steven's own hand-built top-level "Aliases"
+  group, extracted verbatim from the live MyDSL profile on 2026-08-23.
+
+  Found during a full native-content inventory of the live profile (per
+  Steven: "check all the changes i made in game to triggers and scripts
+  as well before losing them"), this is a genuine, real backup gap that
+  predates this file. build_mydsl_package.py only ever captures Scripts,
+  Triggers, and Keys tagged with packageName="MyDSL_Full" (i.e. content
+  that was actually installed as part of a package) or explicitly known
+  native-only exceptions. These 29 aliases: (k)/(oak) target-and-attack
+  shortcuts, (kall)/(lall) all-direction knock/look, (pqr)/(pqi)/(pqt)/
+  (pqc)/(pqf)/(pqh) personal-quest shortcuts, (inv) multi-bag inventory,
+  (RV)/(SW-dh)/(SW-dw) navigation macros, (casual)/(combat) attire swaps,
+  (safetoleave)/(safetoreturn), (start writing)/(stop writing),
+  (MYMOTD), and the (smoke *) roleplay macros, all have packageName=None:
+  hand-created directly in Mudlet's Alias editor, never part of any
+  package, so no rebuild process has ever captured or backed them up.
+  Confirmed via a full round-trip extraction check (re-parsed this file
+  and diffed every alias's regex/command/script against the live source,
+  0 mismatches across all 29).
+
+  This file is a raw exported-XML fragment, not a zipped .mpackage, so
+  restore it via Mudlet's Alias editor: right-click the Aliases tree,
+  choose Import, and pick this file (the same mechanism Mudlet's own
+  Export produced it with, just reversed). Not yet spliced into
+  build_mydsl_package.py's own output; tracked as a real next step in
+  docs/TODO.md, not done blindly in the same pass as discovering the gap.
+-->
+<MudletPackage version="1.001">
+	<TriggerPackage />
+	<AliasPackage>
+		<AliasGroup isActive="yes" isFolder="yes">
+			<name>Aliases</name>
+			<script />
+			<command />
+			<packageName />
+			<regex />
+			<Alias isActive="yes" isFolder="no">
+				<name>(k) kill/murder</name>
+				<script>target = matches[2]
+cecho("&lt;light_slate_blue&gt;My target is now: &lt;red&gt;"..target.."\n")
+--send("murder "..target.."\n")
+send("kill "..target.."\n")</script>
+				<command />
+				<packageName />
+				<regex>^k (.+)$</regex>
+			</Alias>
+			<Alias isActive="yes" isFolder="no">
+				<name>(kall) knock all</name>
+				<script>send ("knock north")
+send ("knock south")
+send ("knock east")
+send ("knock west")
+send ("knock up")
+send ("knock down")
+send ("knock northeast")
+send ("knock northwest")
+send ("knock southwest")
+send ("knock southeast")</script>
+				<command />
+				<packageName />
+				<regex>^kall$</regex>
+			</Alias>
+			<Alias isActive="yes" isFolder="no">
+				<name>(lall) look all</name>
+				<script>send ("look north")
+send ("look south")
+send ("look east")
+send ("look west")
+send ("look up")
+send ("look down")
+send ("look northeast")
+send ("look northwest")
+send ("look southwest")
+send ("look southeast")</script>
+				<command />
+				<packageName />
+				<regex>^lall$</regex>
+			</Alias>
+			<Alias isActive="yes" isFolder="no">
+				<name>(clear) Room Clear</name>
+				<script>send ("emote takes one last look around the area")
+expandAlias("stop mapping")
+expandAlias("kall")
+send ("herb")
+send ("terrain")
+send ("list")
+send ("get all")
+send ("dig")
+send ("look")
+</script>
+				<command />
+				<packageName />
+				<regex>^clear$</regex>
+			</Alias>
+			<Alias isActive="yes" isFolder="no">
+				<name>(whobe) Who Information about charcater</name>
+				<script>-- Alias pattern:
+-- ^whobe\s*(.*)$
+
+local name = (matches[2] or ""):gsub("^%s+", ""):gsub("%s+$", "")
+
+if name == "" then
+  cecho("&lt;yellow&gt;Usage: whobe &lt;person&gt;\n")
+  return
+end
+
+send("whoisic " .. name)
+send("whois " .. name)
+
+-- Run local DslColors alias, not a game command.
+expandAlias("dslcolor show person " .. name, false)
+--expandAlias("dslcolor combat show " .. name, false)</script>
+				<command />
+				<packageName />
+				<regex>^whobe(.*)$</regex>
+			</Alias>
+			<Alias isActive="yes" isFolder="no">
+				<name>(pqr) PQ Request</name>
+				<script />
+				<command>pq request find</command>
+				<packageName />
+				<regex>^pqr$</regex>
+			</Alias>
+			<Alias isActive="yes" isFolder="no">
+				<name>(pqi) PQ Info</name>
+				<script />
+				<command>pq info</command>
+				<packageName />
+				<regex>^pqi$</regex>
+			</Alias>
+			<Alias isActive="yes" isFolder="no">
+				<name>(pqt) PQ Time</name>
+				<script />
+				<command>pq time</command>
+				<packageName />
+				<regex>^pqt$</regex>
+			</Alias>
+			<Alias isActive="yes" isFolder="no">
+				<name>(pqc) PQ Complete</name>
+				<script />
+				<command>pq complete</command>
+				<packageName />
+				<regex>^pqc$</regex>
+			</Alias>
+			<Alias isActive="yes" isFolder="no">
+				<name>(pqr) PQ Request Find</name>
+				<script />
+				<command>pq request find</command>
+				<packageName />
+				<regex>^pqf$</regex>
+			</Alias>
+			<Alias isActive="yes" isFolder="no">
+				<name>(pqr) PQ Request Hunt</name>
+				<script />
+				<command>pq request hunt</command>
+				<packageName />
+				<regex>^pqh$</regex>
+			</Alias>
+			<Alias isActive="yes" isFolder="no">
+				<name>(inv) Inventory of akll bags</name>
+				<script>send("look in woven")
+send("look in backpack")
+send("look in 'scrollcase'")
+send("look in 'bag holding'")
+send("look in 'leather backpack'")
+send("look in 'mage pouch'")
+send("look in 'thief's pouch'")
+send("look in 'warrior's pouch'")
+send("look in 'cleric's pouch'")
+send("look in 'leather satchel'")
+send("look in pockets")
+send("look in bindle")
+send("inventory")</script>
+				<command />
+				<packageName />
+				<regex>^inv$</regex>
+			</Alias>
+			<Alias isActive="yes" isFolder="no">
+				<name>(oak) Order All Kill</name>
+				<script>target = matches[2]
+cecho("&lt;light_slate_blue&gt;My target is now: &lt;red&gt;"..target.."\n")
+--send("murder "..target.."\n")
+send("order all kill "..target.."\n")</script>
+				<command />
+				<packageName />
+				<regex>^oak (.+)$</regex>
+			</Alias>
+			<Alias isActive="yes" isFolder="no">
+				<name>(RV) Recall Vale</name>
+				<script>send("recall vale")
+send("where")
+tempTimer(2, function()
+  send("look")
+end)
+expandAlias("map me")</script>
+				<command />
+				<packageName />
+				<regex>^rv</regex>
+			</Alias>
+			<Alias isActive="yes" isFolder="no">
+				<name>(safetoleave) Safe to Leave</name>
+				<script>send("down")
+send("drop backpack")
+send("alterform")
+send("get all")
+send("where")
+tempTimer(1, function()
+  send("look")
+end)
+send("recall")
+tempTimer(2, function()
+  send("look")
+end)</script>
+				<command />
+				<packageName />
+				<regex>^safetoleave$</regex>
+			</Alias>
+			<Alias isActive="yes" isFolder="no">
+				<name>(safetoreturn) Safe to return</name>
+				<script>send("drop backpack")
+send("alterform")
+send("get all")
+send("where")
+send("recall vale")
+send("where")
+expandAlias("dh")
+
+</script>
+				<command />
+				<packageName />
+				<regex>^safetoreturn$</regex>
+			</Alias>
+			<Alias isActive="yes" isFolder="no">
+				<name>(casual) Casual Attire</name>
+				<script>--Get items from bag
+send("get cup pocket")
+
+--Wear Items
+send("wear cup")
+
+--Put items away
+send("put knowledge pocket")
+
+--Check Gear
+send("equip")</script>
+				<command />
+				<packageName />
+				<regex>^casual$</regex>
+			</Alias>
+			<Alias isActive="yes" isFolder="no">
+				<name>(combat) Combat Attire</name>
+				<script>--Get items from bag
+send("get knowledge pocket")
+
+--Wear Items
+send("wear knowledge")
+
+--Put items away
+send("put cup pocket")
+
+--Check Gear
+send("equip")</script>
+				<command />
+				<packageName />
+				<regex>^combat$</regex>
+			</Alias>
+			<Alias isActive="yes" isFolder="no">
+				<name>(start writing) Start Writing</name>
+				<script>medium = matches[2]
+cecho("&lt;brown&gt;My medium is now: &lt;red&gt;"..medium.."\n")
+--send("autowhere off")
+expandAlias("autowhere")
+send("get "..medium.." pockets\n")
+send("get quill pockets")
+send("get ink pockets")</script>
+				<command />
+				<packageName />
+				<regex>^start writing (.+)$</regex>
+			</Alias>
+			<Alias isActive="yes" isFolder="no">
+				<name>(stop writing) Stop Writing</name>
+				<script>expandAlias("autowhere")
+send("put all.book pockets")
+send("put all.quill pockets")
+send("put all.ink pockets")
+--send("autowhere on")</script>
+				<command />
+				<packageName />
+				<regex>^stop writing$</regex>
+			</Alias>
+			<Alias isActive="yes" isFolder="no">
+				<name>(SW-dh) Dragon Master to the heart</name>
+				<script>send("n")
+send("down")
+send("down")
+send("n")
+send("n")
+send("n")
+send("ne")
+send("down")
+tempTimer(5, function()
+  send("look")
+end)
+expandAlias("map me")</script>
+				<command />
+				<packageName />
+				<regex>^dh$</regex>
+			</Alias>
+			<Alias isActive="yes" isFolder="no">
+				<name>(SW-dw) Dragon Master to the Wing</name>
+				<script>send("n")
+send("down")
+send("down")
+send("n")
+send("n")
+send("n")
+send("ne")
+send("ne")
+send("nw")
+send("nw")
+tempTimer(5, function()
+  send("look")
+end)
+expandAlias("map me")</script>
+				<command />
+				<packageName />
+				<regex>^dw$</regex>
+			</Alias>
+			<Alias isActive="yes" isFolder="no">
+				<name>(MYMOTD) My Message of the day and notes</name>
+				<script>
+local WIDTH = 70
+
+local function borderTop()
+  cecho("&lt;dim_gray&gt;╔" .. string.rep("═", WIDTH) .. "╗&lt;reset&gt;\n")
+end
+
+local function borderMid()
+  cecho("&lt;dim_gray&gt;╠" .. string.rep("═", WIDTH) .. "╣&lt;reset&gt;\n")
+end
+
+local function borderBottom()
+  cecho("&lt;dim_gray&gt;╚" .. string.rep("═", WIDTH) .. "╝&lt;reset&gt;\n")
+end
+
+local function motdLine(color, text)
+  local padding = WIDTH - #text - 2
+
+  if padding &lt; 0 then
+    padding = 0
+  end
+
+  cecho("&lt;dim_gray&gt;║ &lt;" .. color .. "&gt;" .. text .. string.rep(" ", padding) .. " &lt;dim_gray&gt;║&lt;reset&gt;\n")
+end
+
+local function motdTitle(text)
+  local left = math.floor((WIDTH - #text) / 2)
+  local right = WIDTH - #text - left
+
+  cecho("&lt;dim_gray&gt;║" .. string.rep(" ", left) .. "&lt;deep_sky_blue&gt;" .. text .. string.rep(" ", right) .. "&lt;dim_gray&gt;║&lt;reset&gt;\n")
+end
+
+cecho("\n")
+borderTop()
+motdTitle("***MY MESSAGE OF THE DAY***")
+borderMid()
+
+motdLine("sienna", "Start Journal Note")
+motdLine("sienna", "Catch up on notes")
+motdLine("sienna", "Pause and think of a plan")
+motdLine("sienna", "Type out full commands (practice)")
+
+borderMid()
+
+motdLine("green",  "FOCUS")
+motdLine("OrangeRed",  "  - MUDSCHOOL")
+motdLine("purple", "  - questinfo questoptions stat worth")
+motdLine("brown",  "  - make new area maps like New Thalos")
+motdLine("gold",   "  - Continue your work on the Draconus and Cliath")
+motdLine("gold",   "  - Work on swapping out outfits, in preparation for gear")
+
+borderBottom()
+cecho("\n")</script>
+				<command />
+				<packageName />
+				<regex>^MYMOTD$</regex>
+			</Alias>
+			<Alias isActive="yes" isFolder="no">
+				<name>(smoke start) Start smoking</name>
+				<script>send("emote get his {Dsmoking paraphernalia{x with stumbling claws as if learning a new skill\n")
+send("get 'tobacco pouch' pockets")
+send("get 'pipe' pockets")
+send("emote with great care not to spill, grabs some tobacco leaves and packs them into the pipe\n")
+send("fill pipe pouch")
+</script>
+				<command />
+				<packageName />
+				<regex>^smoke start$</regex>
+			</Alias>
+			<Alias isActive="yes" isFolder="no">
+				<name>(smoke sex) Smoke Change Sex</name>
+				<script>send("emote get his {Dsmoking paraphernalia{x with stumbling claws as if learning a new skill\n")
+send("get 'tobacco pouch' pockets")
+send("get 'pipe' pockets")
+send("emote with great care not to spill, grabs some leaves and packs them into the pipe\n")
+send("fill pipe pouch")
+</script>
+				<command />
+				<packageName />
+				<regex>^smoke sex$</regex>
+			</Alias>
+			<Alias isActive="yes" isFolder="no">
+				<name>(smoke light) Smoke Cure Light</name>
+				<script>send("emote get his {Dsmoking paraphernalia{x with stumbling claws as if learning a new skill\n")
+send("get 'tobacco pouch' pockets")
+send("get 'pipe' pockets")
+send("emote with great care not to spill, grabs some leaves and packs them into the pipe\n")
+send("fill pipe pouch")
+</script>
+				<command />
+				<packageName />
+				<regex>^smoke light$</regex>
+			</Alias>
+			<Alias isActive="yes" isFolder="no">
+				<name>(smoke serous) Smoke Cure Serious</name>
+				<script>send("emote get his {Dsmoking paraphernalia{x with stumbling claws as if learning a new skill\n")
+send("get 'tobacco pouch' pockets")
+send("get 'pipe' pockets")
+send("emote with great care not to spill, grabs some leaves and packs them into the pipe\n")
+send("fill pipe pouch")
+</script>
+				<command />
+				<packageName />
+				<regex>^smoke serious$</regex>
+			</Alias>
+			<Alias isActive="yes" isFolder="no">
+				<name>(smoke critical) Smoke Cure Critical</name>
+				<script>send("emote get his {Dsmoking paraphernalia{x with stumbling claws as if learning a new skill\n")
+send("get 'tobacco pouch' pockets")
+send("get 'pipe' pockets")
+send("emote with great care not to spill, grabs some leaves and packs them into the pipe\n")
+send("fill pipe pouch")
+</script>
+				<command />
+				<packageName />
+				<regex>^smoke critical$</regex>
+			</Alias>
+			<Alias isActive="yes" isFolder="no">
+				<name>(smoke stop) Stop smoking</name>
+				<script>send("emote carefull packs all the {Dsmoking implements{x away")
+send("put all.tobacco pockets")
+--send("empty pipe")
+send("put 'pipe' pockets")
+</script>
+				<command />
+				<packageName />
+				<regex>^smoke stop$</regex>
+			</Alias>
+		</AliasGroup>
+	</AliasPackage>
+	<ScriptPackage />
+	<KeyPackage />
+	<HelpPackage>
+		<helpURL />
+	</HelpPackage>
+</MudletPackage>

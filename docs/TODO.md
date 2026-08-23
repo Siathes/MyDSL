@@ -141,6 +141,65 @@ to the per-item live confirmations below.
       half (helpfile text vs. registered commands); actually toggling each
       window and exercising each command needs Steven live in-game — needs
       a session together once the static audit lands.
+- [x] **Full native-content inventory of the live MyDSL profile — done
+      2026-08-23, one real gap found and fixed, everything else confirmed
+      complete.** Per Steven's explicit ask ("make sure it includes the
+      entire current state of the profile... check all the changes i made
+      in game to triggers and scripts as well before losing them").
+      Programmatically enumerated every Script/TriggerGroup/AliasGroup/
+      KeyGroup in the live profile's newest `current/*.xml` (confirmed via
+      each object's real XML container, not a name guess) and cross-
+      checked every single one against known git-tracked source or the
+      package build's known native-only exceptions:
+      - Scripts (44 total), Triggers (296, under 91 TriggerGroups), and
+        Keys (45, under 1 KeyGroup): **fully accounted for, zero gaps.**
+        `DSL_Generic_Mapper`'s installed content is byte-identical to the
+        tracked `DSL_Generic_Mapper.xml` across all 81 objects. Every
+        Trigger/Key under `MyDSL_Full` is tagged `packageName="MyDSL_Full"`
+        and already gets captured wholesale by `build_mydsl_package.py`
+        on every rebuild (that's how the huge native GameplayTriggers
+        taxonomy -- Areas/Actions/Atmosphere/Combat/Spells/Weather, dozens
+        of sub-groups -- survives reinstalls without needing its own
+        git-tracked source file). The remaining top-level Script/Alias
+        groups (`gui-drop`, `mpkg`, `deleteOldProfiles`, `echo`,
+        `run-lua-code`, `enable-accessibility`) are stock Mudlet/
+        third-party infrastructure, already recognized in `.gitignore`.
+      - **Real gap found: a top-level `Aliases` group with 29 real, hand-
+        built personal aliases** ((k)/(oak) target-and-attack, (kall)/
+        (lall) all-direction knock/look, (pqr)/(pqi)/(pqt)/(pqc)/(pqf)/
+        (pqh) personal-quest shortcuts, (inv) multi-bag inventory, (RV)/
+        (SW-dh)/(SW-dw) navigation macros, (casual)/(combat) attire
+        swaps, (safetoleave)/(safetoreturn), (start writing)/(stop
+        writing), (MYMOTD), (smoke *) roleplay macros) -- every one has
+        `packageName=None`, meaning it was created directly in Mudlet's
+        Alias editor and was never part of any package, so
+        `build_mydsl_package.py`'s packageName-based capture could never
+        have picked it up. **No backup of this content existed anywhere
+        before today.** Extracted verbatim into a new git-tracked file,
+        `MyDSL_PersonalAliases.xml` (a standalone, directly re-importable
+        Mudlet package XML) -- verified via a full round-trip check
+        (re-parsed the new file and diffed every alias's regex/command/
+        script against the live source: 0 mismatches across all 29).
+      - **Correction to a stale claim found along the way**: the DSL
+        Generic Mapper fork install item (PACKAGING section below) said
+        "not yet live-tested at all" -- the byte-identical check above
+        proves it actually IS installed and has been for a while; that
+        claim was simply never updated after Steven installed it.
+      - **Not yet done, real next step**: `build_mydsl_package.py` still
+        doesn't know about `MyDSL_PersonalAliases.xml` -- it isn't spliced
+        into `MyDSL_Full.mpackage` automatically, so a from-scratch
+        reinstall still wouldn't restore these 29 aliases without a
+        manual import of the new file. Worth folding in properly (same
+        packageName-splice pattern already used for GameplayTriggers)
+        once there's time to test a rebuild+reinstall cycle against it,
+        rather than rushed alongside discovering the gap.
+      - **General lesson, worth remembering**: any native content created
+        directly in Mudlet's UI without ever being installed as part of a
+        package can silently escape every existing backup mechanism.
+        `CLAUDE.md`'s housekeeping routine now includes a periodic full
+        inventory check (not just the 2-3 previously-known exceptions)
+        so this doesn't quietly happen again with some other hand-built
+        trigger/alias down the line.
 
 ---
 
@@ -473,9 +532,21 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       Packaged separately as `DSL_Generic_Mapper.mpackage` -- this is a
       **replacement** for stock `generic_mapper`, not additive; installing
       it requires uninstalling the stock package first (same class of
-      manual step as disabling the native `(autowhere)` alias). Not yet
-      live-tested at all -- needs Steven to actually install it and play
-      for a while before any of this closes.
+      manual step as disabling the native `(autowhere)` alias).
+      **Correction 2026-08-23: the install itself is confirmed done, not
+      "not yet live-tested."** A full native-content inventory of the live
+      MyDSL profile (prompted by Steven: "check all the changes i made in
+      game to triggers and scripts... before losing them") found the
+      installed top-level `DSL_Generic_Mapper` Trigger/Alias/Script groups
+      byte-identical to this repo's own tracked `DSL_Generic_Mapper.xml`
+      across all 81 objects -- confirmed programmatically (extract both,
+      diff by name+content), not assumed. This TODO note was simply
+      stale; the earlier "needs Steven to actually install it" framing
+      predates an install that already happened and was never reported
+      back. Still genuinely open: whether the fork's *behavior* holds up
+      over real play (the room-weight/coloring/`dslroom raw` items right
+      below this one) -- that's a different question from "is it
+      installed," which is now closed.
 - [ ] **DSL Generic Mapper: room weight from real movement-point cost +
       terrain-based room coloring — built 2026-07-18, needs live
       confirmation.** Per Steven ("hook up all the features we can... the
