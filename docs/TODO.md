@@ -194,28 +194,49 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       behind X" NPC-verb gap — see `docs/CHANGELOG.md` 2026-07-19 through
       07-21 for each).
 
-      **2 more real bugs found from this same successful run's log +
-      Steven's own MyDSL-profile notes:**
-      9. **Combat still leaking to the main window, unconfirmed fix.**
-         Steven's note: "damage still appearing in main window and not
-         being moved to combat" — confirmed directly in the log: every
-         swing this session printed completely raw game text with real,
-         varying damage numbers, which only happens if the `combatDamage`
-         trigger never matched at all (the 2026-07-20 fix always replaces
-         matched lines with a *fixed* per-verb score, never the real
-         number). Independently re-verified the fixed regex against the
-         exact real corpus line via both Python `re` and real PCRE
-         (`perl`) — both match correctly, so the pattern logic itself is
-         sound. Following this exact file's own established precedent for
-         this class of problem (the "[Exits: " leading-space bug, the
-         indented-landmark-line anchor bug), hardened both the leading
-         and trailing anchors to tolerate invisible stray whitespace,
-         which a plain-text log capture wouldn't show. **This is a
-         best-effort fix, not a confirmed root cause** — if swings are
-         still leaking after reinstalling, the established next step in
-         this file's own history is a live debug trace (see the
-         "[Exits: " self-retrigger fix), since static analysis is now
-         exhausted here.
+      **2 more items found from this same successful run's log +
+      Steven's own MyDSL-profile notes — 9 turned out to be a false
+      alarm, not a real bug:**
+      9. **RESOLVED 2026-07-25, no bug — the "(NNN)" lines Steven was
+         seeing on the main screen are our own round-summary recap,
+         working exactly as designed, not leaked/uncaptured raw DSL
+         text.** Steven's original note ("damage still appearing in main
+         window and not being moved to combat eradicate, devastate,
+         unspeakable etc.") triggered a long misdiagnosis: a regex
+         anchor-hardening fix (2026-07-25, since reverted in spirit — the
+         code change is harmless and can stay, it just wasn't the real
+         fix for anything), then two rounds of live diagnostic triggers
+         (`MyDSL_CombatDiag.lua`, temporary/not packaged) to prove
+         whether Mudlet's trigger engine was even seeing this text. It
+         wasn't — because it isn't incoming game text at all. Traced
+         character-for-character to `MyDSL_DataLayer.lua:4584-4588`
+         (`combatRoundFlush`, fires once per round on GMCP `char_data`):
+         `battleFormat(cfg.summary_format or "%a%r %n %v %t (%d)", {... d
+         = p.dam ...})` then `decho(str)` straight to the main console.
+         `%d` is `p.dam`, OUR OWN accumulated total (sum of fixed
+         `DAM_INFO` severity scores across every swing that round) — not
+         a real DSL damage roll — and `%v` is `calcDamVerb(p.dam)`,
+         which picks whichever tier-word's fixed score best fits that
+         accumulated total. This is why the same word (e.g. OBLITERATE)
+         showed different numbers every time (round totals vary) while
+         some single-hit rounds showed an exact `DAM_INFO` score (e.g.
+         MASSACRE `(50.5)`, exactly `DAM_INFO.MASSACRE.score`). The
+         accompanying condition line (`"X has quite a few [50-74%]"`)
+         is the same mechanism, `MyDSL_DataLayer.lua:3260`
+         (`combat.pending_condition.screen`), decho'd right after.
+         `decho()` output is local script output, never incoming game
+         text, so no regex trigger — ours or a deliberately dumb
+         diagnostic one — could ever have caught it; that's also why the
+         diagnostic showed zero hits on these exact lines while catching
+         everything else nearby. Individual swings were being parsed
+         correctly the entire time (confirmed via
+         `MyDSL/logs/combat/<Char>/<date>.log`, which only gets a line
+         once a swing is actually parsed — thousands of correctly-tagged
+         entries spanning the whole session). Steven confirmed
+         2026-07-25 he wants this recap kept exactly as-is — no code
+         change needed. `MyDSL_CombatDiag.lua` (repo root) is a leftover
+         throwaway diagnostic, never part of `MyDSL_Full` — delete the
+         file and its Script Editor entry, it has no further purpose.
       10. **Focus/TargetView never populated during a Leveling
           fight — fixed.** Steven's note: "target window not populating
           when im in combat, should become the target im fighting, have
@@ -239,11 +260,10 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       of scope, Steven has since minimized it himself)**: a native
       "Charge" trigger errors on `dslpnp` being nil.
 
-      **This round's combat-regex hardening touches `MyDSL_DataLayer.lua`
-      again — needs another package rebuild + reinstall before retesting.**
-      After that: confirm combat actually routes to the Combat window
-      this time (the one real remaining unknown), and confirm Focus now
-      shows the current target during a Leveling fight.
+      Combat routing itself needs no further work (see item 9 above —
+      resolved as a false alarm, not a bug). Remaining open item: confirm
+      Focus now shows the current target during a Leveling fight
+      (item 10's fix, not yet live-confirmed).
 - [ ] **DSL Generic Mapper: real "air" terrain gap, plus dropped the
       spammy line-buffer dump from `dslroom raw` — fixed 2026-07-18,
       needs live confirmation.** Per Steven ("is there a terrain color
