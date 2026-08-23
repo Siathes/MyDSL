@@ -275,10 +275,19 @@ function MyDSL.Theme.loadActive()
      and MyDSL.Theme.presets[loaded.active] then
     MyDSL.Theme.active = loaded.active
   end
+  -- Per-window overrides -- added 2026-08-23 alongside the "theme override"
+  -- alias below. Same file as `active` since both are profile-level,
+  -- non-character-bound theme state.
+  if ok and type(loaded.overrides) == "table" then
+    MyDSL.Theme.overrides = loaded.overrides
+  end
 end
 
 function MyDSL.Theme.saveActive()
-  local ok = pcall(table.save, THEME_FILE(), { active = MyDSL.Theme.active })
+  local ok = pcall(table.save, THEME_FILE(), {
+    active = MyDSL.Theme.active,
+    overrides = MyDSL.Theme.overrides,
+  })
   if not ok then
     debugc("[MyDSL] ThemeEngine: failed to save theme settings to " .. THEME_FILE())
   end
@@ -417,18 +426,20 @@ function MyDSL.Theme.setOverride(windowName, key, value)
   end
   MyDSL.Theme.overrides[windowName] = MyDSL.Theme.overrides[windowName] or {}
   MyDSL.Theme.overrides[windowName][key] = value
+  MyDSL.Theme.saveActive()
   raiseEvent("MyDSL.theme.changed", MyDSL.Theme.active)
   return true
 end
 
 function MyDSL.Theme.clearOverride(windowName)
   MyDSL.Theme.overrides[windowName] = nil
+  MyDSL.Theme.saveActive()
   raiseEvent("MyDSL.theme.changed", MyDSL.Theme.active)
 end
 
 
 ------------------------------------------------------------------------
--- SECTION 11: "theme" ALIAS — list / set / show
+-- SECTION 11: "theme" ALIAS — list / set / show / override
 ------------------------------------------------------------------------
 -- theme            -> shows the active theme name
 -- theme list        -> lists all available preset names
@@ -436,6 +447,37 @@ end
 -- Bare "theme" verb confirmed to have zero collision with real DSL
 -- vocabulary (grepped DSL_Helpfiles/, 2026-07-11) -- safe per this
 -- session's command-surface convention (see docs/TODO.md / CHANGELOG.md).
+--
+-- theme override <window> <key> <value>  -> per-window escape hatch, wins
+--   over the active preset for that one window (get()'s precedence,
+--   Section 7). Wired up 2026-08-23 -- MyDSL.Theme.setOverride()/
+--   clearOverride() and get()'s override-reading branch existed since
+--   2026-07-11 but nothing ever called setOverride(), so this was a
+--   fully dead mechanism until now. <value> is parsed by the key's own
+--   type in MyDSL.Theme.defaults: numeric keys (fontSize/titleFontSize/
+--   borderSize/radius) take a plain number; font/titleFont take a font
+--   name; color keys (bgColor/textColor/borderColor/titleColor/
+--   titleBgColor/highlightColor/dimColor/warnColor) take "r,g,b" or
+--   "r,g,b,a".
+-- theme override <window> clear          -> remove all overrides for
+--   that window
+-- theme override <window>                -> show current overrides for
+--   that window
+
+local function parseOverrideValue(key, raw)
+  local defaultVal = MyDSL.Theme.defaults[key]
+  if type(defaultVal) == "number" then
+    local n = tonumber(raw)
+    if not n then return nil, "expected a number for '" .. key .. "'" end
+    return n
+  elseif type(defaultVal) == "table" then
+    local r, g, b, a = raw:match("^%s*(%d+)%s*,%s*(%d+)%s*,%s*(%d+)%s*,?%s*(%d*)%s*$")
+    if not r then return nil, "expected \"r,g,b\" or \"r,g,b,a\" for '" .. key .. "'" end
+    return { r = tonumber(r), g = tonumber(g), b = tonumber(b), a = tonumber(a) or 255 }
+  else
+    return raw
+  end
+end
 
 if not MyDSL.Theme._aliasesInstalled then
   tempAlias("^theme list$", function()
@@ -455,9 +497,46 @@ if not MyDSL.Theme._aliasesInstalled then
     end
   end)
 
+  tempAlias("^theme override (\\S+) clear$", function()
+    local windowName = matches[2]
+    MyDSL.Theme.clearOverride(windowName)
+    cecho("\n<green>[MyDSL] Cleared all theme overrides for '" .. windowName .. "'.\n")
+  end)
+
+  tempAlias("^theme override (\\S+) (\\S+) (.+)$", function()
+    local windowName, key, raw = matches[2], matches[3], matches[4]
+    if MyDSL.Theme.defaults[key] == nil then
+      cecho("\n<firebrick>[MyDSL] Unknown theme key '" .. key .. "'.\n")
+      return
+    end
+    local value, err = parseOverrideValue(key, raw)
+    if not value then
+      cecho("\n<firebrick>[MyDSL] " .. err .. "\n")
+      return
+    end
+    MyDSL.Theme.setOverride(windowName, key, value)
+    cecho("\n<green>[MyDSL] '" .. windowName .. "' " .. key .. " overridden.\n")
+  end)
+
+  tempAlias("^theme override (\\S+)$", function()
+    local windowName = matches[2]
+    local overrideTable = MyDSL.Theme.overrides[windowName]
+    if not overrideTable or not next(overrideTable) then
+      cecho("\n<gold>[MyDSL] No overrides set for '" .. windowName .. "'.\n")
+      return
+    end
+    cecho("\n<gold>[MyDSL] Overrides for '" .. windowName .. "':\n")
+    for key, value in pairs(overrideTable) do
+      local shown = (type(value) == "table")
+        and string.format("%d,%d,%d,%d", value.r or 0, value.g or 0, value.b or 0, value.a or 255)
+        or tostring(value)
+      cecho("<white>  " .. key .. " = " .. shown .. "\n")
+    end
+  end)
+
   tempAlias("^theme$", function()
     cecho("\n<gold>[MyDSL] Active theme: <white>" .. MyDSL.Theme.active
-      .. "<gold> (try 'theme list' or 'theme set <name>')\n")
+      .. "<gold> (try 'theme list', 'theme set <name>', or 'theme override <window> <key> <value>')\n")
   end)
 
   MyDSL.Theme._aliasesInstalled = true

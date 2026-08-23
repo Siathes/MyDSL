@@ -65,9 +65,15 @@ to the per-item live confirmations below.
         named the dead functions as the intended Layer-3 contract.
         `setOverride()`/`clearOverride()` looked similarly dead but were
         NOT removed — `Theme.get()` still reads the `overrides` table
-        they'd populate, so this is an incomplete-but-live mechanism (no
-        alias currently calls them), not pure dead code; needs a decision
-        (finish it or remove the whole mechanism), not a blind delete.
+        they'd populate, so it was an incomplete-but-live mechanism, not
+        pure dead code. **Steven's call: finish it — done 2026-08-23.**
+        Added `theme override <window> <key> <value>` / `theme override
+        <window> clear` / `theme override <window>` (show current) as
+        real aliases, and persisted `overrides` into the same
+        `MyDSL_theme_settings.lua` file `active` already uses (previously
+        only `active` survived a reload). Numeric/string keys take a
+        plain value; color keys take `"r,g,b"` or `"r,g,b,a"`. Needs live
+        confirmation.
       - **`MyDSL_Help.lua` doc gaps closed**: added 3 real, working
         `mydsl leveling` commands that had zero documentation (bare
         `show`/`hide` toggling the window, `area info <name>`, `buff
@@ -75,14 +81,19 @@ to the per-item live confirmations below.
         vocabulary (`MyDSL_PortraitView.lua`) which had none at all.
       Found, NOT fixed (needs a decision, not a blind guess — same class
       as the `MyDSL.Windows.setTitle` no-op already tracked below):
-      - **`MyDSL_Leveling.lua`'s own status window is permanently blank.**
-        `L.log()` (writes to a dedicated MiniConsole created and styled
-        for exactly this) is defined but never called anywhere — all real
-        leveling output goes through a separate `ce()`/cecho helper to the
-        main console instead. Unclear whether this window was meant to
-        show a live run log and just never got wired up (a real gap) or
-        is vestigial early scaffolding nobody expects to use — needs
-        Steven's call before touching it either way.
+      - **`MyDSL_Leveling.lua`'s own status window was permanently
+        blank — Steven's call: wire it up — done 2026-08-23.** `L.log()`
+        (writes to a dedicated MiniConsole created and styled for exactly
+        this) was defined but never called anywhere; all real leveling
+        output went through a separate `ce()`/cecho helper to the main
+        console instead. Fixed: `ce()` now mirrors every line into
+        `L.log()` too (kept the main-console line as well — Steven asked
+        to see it in the window, not to relocate it away from where he
+        already looks for it). Also fixed `L.log()` itself while wiring
+        it up: it called `:decho()`, but every real message uses cecho-
+        style named tags (`<cyan>`, `<reset>`) which `:decho()` doesn't
+        understand — switched to `:cecho()` to match. Needs live
+        confirmation.
       - **Lifecycle naming drift, cosmetic only**: 8 modules use
         `.init()`, 6 use `.boot()` for the same file-load-time role
         (`MyDSL_PortraitView.lua:1000` even bridges both:
@@ -116,13 +127,14 @@ to the per-item live confirmations below.
       - TODO.md-vs-code spot check (4 items): no drift found — every
         checked "fixed, needs live confirmation" item's code matches its
         TODO.md description exactly.
-- [ ] **GitHub hosting — Steven asked whether/how to connect this repo to
-      his GitHub account and publish it, partly to make smoke-testing and
-      "latest version" retrieval easier.** Not actioned — creating/pushing
-      to a remote repo and wiring account access needs Steven's explicit
-      go-ahead and choices (public/private, whether this machine's `git`
-      remote gets added) before anything is done, not assumed as part of
-      the audit.
+- [ ] **GitHub hosting — Steven's call 2026-08-23: yes, public repo.**
+      Checked first: `gh` CLI isn't installed on this machine and no
+      remote is configured; tracked repo content is 15.3MB (log/, media,
+      and credentials are already `.gitignore`d) and a secret-pattern
+      scan of every tracked file found nothing — safe to make public.
+      Waiting on Steven to create the empty repo on github.com himself
+      (simpler than installing/authenticating `gh`) and pass back the URL
+      so the remote can be added and this pushed.
 - [ ] **Live per-window smoke test** — Steven asked for "go to each window
       and check functions connections, toggle on/off, all window commands,
       then confirm helpfiles match." The audit above covers the static
@@ -215,10 +227,15 @@ to the per-item live confirmations below.
 ## LOW PRIORITY — script wiring
 - [ ] ChatWrapper tab active/inactive CSS still hardcoded — no ThemeEngine
       hookup. Real design pass, not a mechanical fix.
-- [ ] `MyDSL_creaturelore.lua` (lowercase, profile root) is stale DSL1
-      carry-over data, not a module — superseded by
-      `MyDSL/creaturelore_db.lua`. Tracked in git, unused. Confirm with
-      Steven before deleting.
+- [x] ~~`MyDSL_creaturelore.lua` (lowercase, profile root) is stale DSL1
+      carry-over data~~ — **already gone, confirmed 2026-08-23.** Steven
+      said delete it; turned out there was nothing left to delete — the
+      lowercase file doesn't exist on disk or in the current git index at
+      all anymore (`git log --all` shows it was tracked once, then
+      disappeared from history at some point without a clean rename
+      record — likely superseded in-place by the properly-cased
+      `MyDSL_CreatureLore.lua`, the real active module). This TODO note
+      was simply stale.
 - [ ] `MyDSL.Windows.setTitle` doesn't exist anywhere in
       `MyDSL_WindowRegistry.lua` — found during the 2026-07-16 full
       codebase review. One call site (`MyDSL_AffectsView.lua:952`,

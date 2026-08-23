@@ -61,7 +61,19 @@ local MC  = "MyDSL_Leveling_MC"
 -- join()/ensureDir()).
 ------------------------------------------------------------------------
 
-local function ce(msg) cecho("\n<cyan>[MyDSL.Leveling]<reset> " .. tostring(msg) .. "\n") end
+local function ce(msg)
+  local line = "<cyan>[MyDSL.Leveling]<reset> " .. tostring(msg)
+  cecho("\n" .. line .. "\n")
+  -- Also mirror into Leveling's own status window -- wired up 2026-08-23,
+  -- per Steven ("wire it up"). L.log()/L._mc.log existed since this file's
+  -- first commit but nothing ever called L.log(), so the window was
+  -- permanently blank; every run's status only ever reached the main
+  -- console. Kept both (not moved, per this project's "move text, don't
+  -- replace it" principle only applies to text the GAME sends -- this is
+  -- our own status output, and Steven's ask was to ALSO show it in the
+  -- dedicated window, not relocate it away from the main console).
+  if L.log then L.log(line) end
+end
 local function trim(s) return s and s:match("^%s*(.-)%s*$") or "" end
 
 local function exists(path)
@@ -352,7 +364,10 @@ function L.ensureUI()
 end
 
 function L.log(text)
-  if L._mc.log then L._mc.log:decho(text .. "\n") end
+  -- :cecho(), not :decho() -- every real caller (ce(), below) uses cecho-
+  -- style named tags (<cyan>, <reset>), which :decho() doesn't understand.
+  -- Fixed 2026-08-23 while wiring this up for real (see ce()).
+  if L._mc.log then L._mc.log:cecho(text .. "\n") end
 end
 
 function L.show() if MyDSL.Windows then MyDSL.Windows.show(WIN) end end
