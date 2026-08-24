@@ -515,6 +515,17 @@ if not MyDSL.Theme._aliasesInstalled then
       return
     end
     MyDSL.Theme.setOverride(windowName, key, value)
+    -- Soft, guarded typo check -- added 2026-08-23 (Claude.ai review
+    -- pass): a typo'd window name used to silently create an override
+    -- nothing would ever read, no error at all. Deliberately NOT a hard
+    -- MyDSL.Windows dependency (this file has none by design, and
+    -- WindowRegistry might not even be loaded yet) -- just a warning
+    -- when it's available and the name isn't recognized; the override
+    -- still gets set either way, since a window registered later could
+    -- still legitimately use it.
+    if MyDSL.Windows and MyDSL.Windows.registry and not MyDSL.Windows.registry[windowName] then
+      cecho("\n<gold>[MyDSL] Warning: '" .. windowName .. "' isn't a known window name -- check for a typo.\n")
+    end
     cecho("\n<green>[MyDSL] '" .. windowName .. "' " .. key .. " overridden.\n")
   end)
 

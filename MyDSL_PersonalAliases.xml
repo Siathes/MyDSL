@@ -146,14 +146,14 @@ expandAlias("dslcolor show person " .. name, false)
 				<regex>^pqc$</regex>
 			</Alias>
 			<Alias isActive="yes" isFolder="no">
-				<name>(pqr) PQ Request Find</name>
+				<name>(pqf) PQ Request Find</name>
 				<script />
 				<command>pq request find</command>
 				<packageName />
 				<regex>^pqf$</regex>
 			</Alias>
 			<Alias isActive="yes" isFolder="no">
-				<name>(pqr) PQ Request Hunt</name>
+				<name>(pqh) PQ Request Hunt</name>
 				<script />
 				<command>pq request hunt</command>
 				<packageName />

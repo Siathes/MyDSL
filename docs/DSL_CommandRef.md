@@ -442,6 +442,17 @@ prompt, not gmcp.tick.time. See `MyDSL_PromptView.lua` directly.
 
 ## STILL NEEDED (TODO for CommandRef)
 
+**Checkbox meaning, clarified 2026-08-23 after a Claude.ai review pass
+correctly flagged 3 items reading as "done" when they weren't**: `[x]`
+here means *the real pattern is confirmed and documented in this file*
+— it does NOT mean a parser/capture/display for it exists in
+`MyDSL_*.lua`. Some `[x]` items below do have real capture built
+already (their own text says so); some don't yet (their own text says
+that too). Always read the item's own prose, not just the checkbox, for
+build status — but a plain `[ ]` means the pattern itself isn't even
+confirmed real yet, which is a meaningfully earlier stage than "pattern
+confirmed, capture not built."
+
 **2026-07-05 audit: most of this checklist was stale — captured elsewhere
 during Phase B but never checked off here.** Corrected:
 - [x] `lunar` / `l moons` — captured, see "MOON SYSTEM" section this file

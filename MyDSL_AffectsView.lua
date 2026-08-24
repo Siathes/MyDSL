@@ -939,19 +939,22 @@ function A.toggle()
 end
 function A.clear() A.clearList(); A.display(); A.save() end
 
-function A.setTitle(title, silent, localOnly)
+-- Removed 2026-08-23 (Claude.ai review pass): this used to also try
+-- MyDSL.Windows.setTitle(), guarded against a "spam" feedback loop
+-- (Affects redraws every TimerSource pulse) -- but that function was
+-- never actually built anywhere in MyDSL_WindowRegistry.lua, and no
+-- other View module calls it either (confirmed via grep: every other
+-- module just calls win:setTitle() directly, same as the line below).
+-- It was always a guarded no-op, not a real registry notification.
+-- Dropped the localOnly param along with it -- it had no other use, and
+-- the only real call site (the "mydsl affects title <x>" alias) never
+-- passed it anyway.
+function A.setTitle(title, silent)
   title = trim(title or "")
   if title == "" then title = "-= Affects =-" end
 
   local changed = A.config.title ~= title
   A.config.title = title
-
-  -- If called from WindowCore/title-standardization, avoid calling back into
-  -- MyDSL.Windows.setTitle. That caused repeated "[MyDSL.Windows] Affects title"
-  -- spam because Affects redraws every TimerSource pulse.
-  if not localOnly and not silent and MyDSL and MyDSL.Windows and MyDSL.Windows.setTitle then
-    pcall(function() MyDSL.Windows.setTitle(A.config.windowId, title) end)
-  end
 
   if A.window and A.window.setTitle then pcall(function() A.window:setTitle(title) end) end
   if changed then A.save() end

@@ -24,6 +24,31 @@ check connections of modules... make sure its all in the same namespace...
 review it like its a new project"). This is an explicit go-ahead — not
 scope creep — for a dedicated audit phase, separate from and in addition
 to the per-item live confirmations below.
+- [ ] **PHILOSOPHY VIOLATION, found live 2026-08-23 via a Claude.ai review
+      pass — needs Steven's decision, not touched.** Native triggers "You
+      are thirsty." and "You are hungry." are `isActive="yes"` in the live
+      MyDSL profile right now and auto-send real game commands with zero
+      player action: "You are thirsty." sends `drink decanter` three
+      times and deletes the line; "You are hungry." sends `c 'create
+      food'`. Confirmed directly against the live `current/*.xml`, not
+      assumed from the old `MyDSL_Audit.md` reference doc (which
+      documents the same behavior but is DSL1-era and marked "reference
+      only" — this is NOT reference-only, it's actually running). This
+      is a direct, active violation of this file's own first rule:
+      "Passive observation only. Never send automatic game commands. Any
+      game command sent by a module must be user-initiated (alias or
+      click)." Not disabled — this predates DSL2 entirely (pre-existing
+      native content, not something any `MyDSL_*.lua` module built) and
+      may be a long-standing, deliberate personal convenience Steven
+      doesn't think of as part of "the project" at all, the same way
+      `(autowhere)` was a native alias before being consciously ported
+      and disabled. Needs Steven's explicit call: keep as-is (deliberate,
+      known, accepted), disable to match the stated philosophy, or port
+      into a proper opt-in MyDSL module (same class of exception already
+      granted to Leveling/Questing). Worth checking whether other native
+      "Actions" triggers (food/thirst family, `MyDSL_Audit.md` documents
+      several more: Magic Mushroom auto-get, eat/drink sequences) share
+      this same live-and-active status once this one's resolved.
 - [ ] **Reduce `MyDSL.logWindow()` scope** — Steven: "stop logging anything
       except combat/main window/chat and history, if they are already
       logged thats good, but others dont seem needed and seem to be
@@ -353,16 +378,55 @@ to the per-item live confirmations below.
       record — likely superseded in-place by the properly-cased
       `MyDSL_CreatureLore.lua`, the real active module). This TODO note
       was simply stale.
-- [ ] `MyDSL.Windows.setTitle` doesn't exist anywhere in
-      `MyDSL_WindowRegistry.lua` — found during the 2026-07-16 full
-      codebase review. One call site (`MyDSL_AffectsView.lua:952`,
-      `A.setTitle()`) is both existence-guarded and `pcall`-wrapped, so
-      it's a silent permanent no-op, not a crash risk — but it means
-      renaming the Affects window's title never actually notifies
-      WindowRegistry, per that code's own comment about avoiding a
-      "spam" feedback loop. Not fixed — unclear whether
-      `Windows.setTitle` was removed deliberately or just never built;
-      needs a decision, not a blind guess at what it should do.
+- [x] ~~`MyDSL.Windows.setTitle` doesn't exist anywhere in
+      `MyDSL_WindowRegistry.lua`~~ — **resolved 2026-08-23, via the
+      Claude.ai review pass.** Confirmed via grep it was never called by
+      any module besides `MyDSL_AffectsView.lua`, and every OTHER View
+      module just calls `win:setTitle()` directly (the same line
+      `AffectsView` already had right below the dead call) — so this
+      wasn't a missing registry feature other code depended on, just one
+      module's own leftover attempt at a notification hook that was
+      never built anywhere. Removed the dead call (and the now-fully-
+      unused `localOnly` parameter it existed for) from
+      `MyDSL_AffectsView.lua`'s `A.setTitle()`; `AffectsView` now matches
+      every other module's pattern exactly. Syntax-checked.
+- [ ] **`MyDSL_DataLayer.lua` has outgrown "one layer," per Claude.ai's
+      review of the architecture question — 4,655 lines, ~5x the next-
+      largest file (`MyDSL_Chat.lua`, 3,287), roughly 20% of the whole
+      codebase by line count.** Room/look/scan parsing, combat parsing,
+      GMCP, prompt/vitals, day/night, weather all funnel through one
+      file. Not broken (nothing in the review found a bug caused by
+      this), but it's the natural next thing to strain as more Layer-4/
+      Leveling/Questing work gets bolted on, and it's already the file
+      where "find the bug" means "find the bug in 4,655 lines." Worth a
+      real split-by-domain pass (room/look, combat, inventory/equipment,
+      prompt/vitals) once the current audit-and-optimize phase settles —
+      explicitly not urgent, not started, needs real design thought
+      before touching a file this central.
+- [ ] **Two personal aliases in the live MyDSL profile are cosmetically
+      mislabeled** (found via `MyDSL_PersonalAliases.xml`, Claude.ai
+      review pass): the alias matching `^pqf$` displays as "(pqr) PQ
+      Request Find" and the one matching `^pqh$` displays as "(pqr) PQ
+      Request Hunt" — both should read `(pqf)`/`(pqh)` to match what they
+      actually trigger on. Functionally harmless (no regex collision),
+      purely a UI-label mixup if Steven ever edits these by name. Fixed
+      in the tracked backup (`MyDSL_PersonalAliases.xml`'s `<name>`
+      fields) for accuracy; the LIVE aliases in Mudlet's own Alias editor
+      are untouched (deliberately — this project doesn't edit native
+      trigger/alias content directly) and still show the old mislabeled
+      names until Steven renames them himself, a 2-second manual fix.
+- [ ] **`mydsl tick` vs `mydsl tickview` — two different command
+      prefixes for a data-source/display pair, per Claude.ai's namespace-
+      consistency check.** `MyDSL_TickSource.lua` owns `mydsl tick
+      status/reset/average/window/debug`; the separate
+      `MyDSL_TickView.lua` owns `mydsl tickview status/save/reload/show/
+      hide/rebuild/font/mode/title`. Legitimately different modules
+      (data vs. display), not a bug, but every other split source/view
+      pair in this codebase shares one command prefix — this is the one
+      exception a player has to just memorize. Not renamed (a command-
+      surface change affects Steven's actual typed muscle memory, not
+      something to change without asking) — flagged for a decision:
+      rename one, or just document the split explicitly in `mydsl help`.
 
 ---
 
@@ -864,7 +928,14 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
 
 ---
 
-## TOP PRIORITY — Combat, needs live-fight testing
+## OPEN — Combat, remaining loose ends
+Renamed from "TOP PRIORITY" 2026-08-23 (Claude.ai review pass correctly
+flagged this repo having two contradictory "TOP PRIORITY" headers, this
+one stranded below PACKAGING/LOW PRIORITY/NEEDS LIVE CONFIRMATION) — the
+real content here is one DEFERRED item, one genuine open loose end, and
+one "fixed, needs live confirmation" item exactly like the section
+above; none of that is actually top priority anymore, so the header was
+just stale from whenever combat testing was the active focus.
 Per-swing main-console display, evasion triggers, both death-line forms,
 weapon-flag proc attribution, and the PNP-faithful display rewrite are all
 confirmed correct (code review + a real live fight, 2026-07-11) — see

@@ -89,7 +89,16 @@ forward instead of a separate scratch file.*
   a straight attack.
 - `murder` auto-swaps to `heal` based on a friend/enemy/neutral flag per
   player — default neutral, can be flagged friend or enemy; enemy-flagged
-  players who attack you should auto-flip to enemy.
+  players who attack you should auto-flip to enemy. **Flagged 2026-08-23
+  (Claude.ai review pass): this is a meaningfully different shape than
+  every other assist in this project.** Spellup reminders, disarm
+  alerts, autowhere — all of those help the player decide faster but
+  never change what the player typed. This one would send a DIFFERENT
+  real command than the one the player actually typed, based on a flag
+  they may not be actively thinking about at that moment. Needs an
+  explicit Steven sign-off before ever being scoped, the same way the
+  Leveling/Questing automation exception got one — not assumed covered
+  by "reasonable UI convenience" just because it's alias-level.
 - Consider shortening the DB keyword used for `murder`/`consider` — some mob
   names are too long for reliable keyword matching (e.g. "a horribly
   disfigured blue jay, right here").
