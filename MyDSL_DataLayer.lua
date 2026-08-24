@@ -2755,13 +2755,69 @@ end
 -- is type food, extra flags none." -- same reasoning as CreatureLore's
 -- "Creature: X  Race: Y" first line.
 
+-- Identify source-scoping -- real bug found 2026-08-24, per Steven
+-- ("if someone posts an identified item, the item reference captures
+-- that for its info, but its enchanted and not the normal stats, need
+-- a way to seperate or just not replace the info unless self
+-- identified"). Confirmed real via 3 distinct corpus mechanisms that
+-- all produce the exact same "Object '<name>' is type ..." line
+-- beginIdentify() below fires on, with nothing to tell them apart:
+--   (1) a real self-cast identify ("c ident <target>", corpus-confirmed) --
+--       the intended, authoritative case.
+--   (2) `insp`/`inspect <item>` -- confirmed via DSL_Helpfiles/"buy list
+--       sell value inspect.txt": a SHOP command showing a shopkeeper's
+--       for-sale item's attributes, not the player's own possession.
+--   (3) `anote read` -- confirmed via corpus (log/2026-07-04#12-43-48.html):
+--       a bulletin-board note whose body text can itself quote an
+--       identify-shaped block (a seller pasted their own identify
+--       output into an auction note) -- this arrives with zero relation
+--       to anything the player just did.
+-- Fix: only trust this as a real self-identify if the player's own most
+-- recent OUTGOING command (captured via sysDataSendRequest, the same
+-- technique DSL_Generic_Mapper.xml already uses for move-cost capture)
+-- was genuinely an identify-cast, within a short freshness window (6s,
+-- matching that same file's DSL_CONTEXT_TIMEOUT precedent for the exact
+-- same class of problem -- a stale command context replayed against an
+-- unrelated later message). "c ident <x>" is directly corpus-confirmed;
+-- "cast identify"/"cast 'identify'" are included as reasonable syntax
+-- variants matching this game's own general cast-command convention,
+-- not independently corpus-confirmed for this specific spell. Anything
+-- NOT armed this way still gets captured (never discarded -- it's real
+-- information about the item) but tagged source="observed" instead of
+-- "identify", so IL.merge() (MyDSL_ItemLore.lua) automatically treats it
+-- as fill-gaps-only, the same safe treatment `lore` already gets --
+-- reusing that existing two-tier trust model instead of inventing a
+-- third one.
+MyDSL._lastOutgoingCommand = MyDSL._lastOutgoingCommand or nil
+
+local function isIdentifyCastCommand(cmd)
+  if not cmd then return false end
+  cmd = cmd:lower():trim()
+  return cmd:match("^c%s+ident%a*%s") ~= nil
+    or cmd:match("^cast%s+'?ident%a*'?%s") ~= nil
+end
+
+MyDSL._handlers.identifyCommandCapture = registerAnonymousEventHandler(
+  "sysDataSendRequest",
+  function(_, cmd)
+    MyDSL._lastOutgoingCommand = { cmd = cmd, time = os.time() }
+  end
+)
+
+local function lastCommandWasIdentifyCast()
+  local last = MyDSL._lastOutgoingCommand
+  if not last or not last.cmd or not last.time then return false end
+  if (os.time() - last.time) > 6 then return false end
+  return isIdentifyCastCommand(last.cmd)
+end
+
 function MyDSL.beginIdentify(line)
   local name, itype, flags = line:match("^Object '(.-)' is type ([%w_]+), extra flags (.+)%.$")
   if not name then return end
   MyDSL.State.identify = {
     name = name, key = itemKey(name), itemType = itype,
     extraFlags = (flags ~= "none" and flags or nil),
-    source = "identify",
+    source = lastCommandWasIdentifyCast() and "identify" or "observed",
   }
   if MyDSL._triggers.identifyBody then
     pcall(killTrigger, MyDSL._triggers.identifyBody)

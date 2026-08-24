@@ -1314,16 +1314,38 @@ machine.
       fix (the 6th, unquoted-filename-untouched, correctly passes either
       way — a regression guard, not a new-behavior check). All 10 test
       suites + a full `check_known_patterns.py --all` sweep re-run clean.
-- [ ] **New, from MyDSL notes 2026-08-23: ItemLore may be capturing OTHER
-      players' identify announcements and overwriting a shared item's
-      record with their enchanted-variant stats.** Steven: "if someone
-      posts an identified item, the item reference captures that for its
-      info, but its enchanted and not the normal stats, need a way to
-      seperate or just not replace the info unless self identified." A
-      different angle from the 2026-07-19 stale-field fix (`IL.merge()`) —
-      that fix was about a real self-identify not clearing old scraped
-      data; this is about a THIRD PARTY's identify possibly being captured
-      at all. Needs the capture trigger's source-scoping checked.
+- [ ] **ItemLore capturing OTHER sources' identify-shaped text — fixed
+      2026-08-24, needs live confirmation.** Steven: "if someone posts an
+      identified item, the item reference captures that for its info,
+      but its enchanted and not the normal stats, need a way to
+      seperate or just not replace the info unless self identified."
+      Confirmed real via 3 distinct corpus-verified mechanisms, all
+      producing the exact same "Object '<name>' is type ..." line
+      `MyDSL.beginIdentify()` fires on with zero way to tell them apart:
+      (1) a real self-cast identify (`c ident <target>`,
+      corpus-confirmed) — the intended, authoritative case; (2)
+      `insp`/`inspect <item>` — confirmed via
+      `DSL_Helpfiles/"buy list sell value inspect.txt"` to be a SHOP
+      command showing a shopkeeper's for-sale item, not the player's own
+      possession; (3) `anote read` — confirmed via corpus
+      (`log/2026-07-04#12-43-48.html`): a bulletin-board note whose body
+      text can itself quote an identify-shaped block a seller pasted
+      into their own auction note, arriving with zero relation to
+      anything the player just did. Fixed: only trust this as a real
+      self-identify if the player's own most recent OUTGOING command
+      (captured via `sysDataSendRequest`, the same technique
+      `DSL_Generic_Mapper.xml` already uses for move-cost capture) was
+      genuinely an identify-cast within a 6-second freshness window
+      (matching that same file's `DSL_CONTEXT_TIMEOUT` precedent for the
+      identical class of problem). Anything not armed this way still
+      gets captured, never discarded, but tagged `source="observed"`
+      instead of `"identify"` — `IL.merge()` already has a two-tier
+      trust model (only literal `source="identify"` clears stale full-
+      stat fields), so `"observed"` automatically gets the same safe
+      fill-gaps-only treatment `lore` already had, reusing the existing
+      mechanism instead of inventing a third tier. Verified via 5 new
+      assertions in `test/test_identify_source_scoping.lua`; confirmed
+      via `git stash` that 4 of them genuinely fail without the fix.
 - [ ] **Re-check: identify persistence — Steven's 2026-08-23 note still
       describes the exact symptom the 2026-07-19 fix targeted** ("casting
       identify on an item doesnt persist, need to save the new info and
