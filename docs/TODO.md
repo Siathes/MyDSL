@@ -165,11 +165,35 @@ to the per-item live confirmations below.
       right first step is instrumentation (real per-line timestamps),
       not another audit-and-guess round dressed up with the same
       confident "fixed" language as everything else.
-- [ ] **Reduce `MyDSL.logWindow()` scope** — Steven: "stop logging anything
-      except combat/main window/chat and history, if they are already
-      logged thats good, but others dont seem needed and seem to be
-      useless." Needs a pass over every `logWindow()` call site to confirm
-      which categories exist today and cut the rest.
+- [x] **Reduce `MyDSL.logWindow()` scope — fixed 2026-08-24, needs live
+      confirmation.** Steven: "stop logging anything except combat/main
+      window/chat and history, if they are already logged thats good,
+      but others dont seem needed and seem to be useless." A per-
+      category toggle already existed (built 2026-07-05/07-07 for
+      exactly this kind of ask), and `combat`/`chat`/`history` were
+      already correctly on-by-default — chat doesn't use this mechanism
+      at all (EMCO has its own real per-tab logging). But a real audit
+      of every actual call site (grepped across every `MyDSL_*.lua`
+      file) found the disabled-categories list had drifted out of sync
+      with the real code: `target`, `scan`, and `bloodbath` were dead
+      entries (no current code calls `logWindow()` with any of those
+      three names — leftovers from the old `MyDSL.Route.scan()`/
+      `combat()`/`group()`/`righthere()` shorthands removed 2026-08-23 as
+      confirmed dead code, back when those routed raw text through this
+      same mechanism before ScanView/GroupView/TargetView grew their own
+      structured rendering), while `focus` — `MyDSL_TargetView.lua`'s
+      real, currently-active category — was missing entirely. So Focus/
+      Target updates had been logging by default this whole time,
+      directly contradicting Steven's stated wish, simply because the
+      category was renamed from `target` to `focus` at some point
+      without this list being updated to match. Fixed: removed the 3
+      dead entries, added the 1 real missing one. Also fixed the
+      matching stale category list in `mydsl help`'s own `log` command
+      description. Verified via 9 new assertions in
+      `test/test_logwindow_categories.lua`, including a real behavioral
+      check (not just reading the config table) that a disabled category
+      writes no file at all while an enabled one really does; confirmed
+      via `git stash` that 5 of them genuinely fail without the fix.
 - [x] **Full cross-module code audit — completed 2026-08-23, findings
       reconciled, low-risk items fixed directly.** Two background passes:
       a log/file corpus scan (findings folded into the PAUSED section and

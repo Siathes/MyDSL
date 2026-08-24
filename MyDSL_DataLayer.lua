@@ -81,19 +81,32 @@ end
 --
 -- Defaults reworked 2026-07-07 per Steven: combat/chat/history are useful
 -- to actually review later, so those stay on. Every other per-window log
--- (group/righthere/target/scan/playersnear/bloodbath) is debug-only --
--- off by default, opt-in when actually debugging that specific window,
--- not something worth the disk churn during normal play. All of them
--- remain individually toggleable regardless of default.
+-- is debug-only -- off by default, opt-in when actually debugging that
+-- specific window, not something worth the disk churn during normal
+-- play. All of them remain individually toggleable regardless of default.
+-- Corrected 2026-08-24, re-confirmed against Steven's still-open TODO.md
+-- ask ("stop logging anything except combat/main window/chat and
+-- history... others dont seem needed"): `target`/`scan`/`bloodbath`
+-- were dead entries -- no current code calls MyDSL.logWindow() with any
+-- of those three names (confirmed via grep across every MyDSL_*.lua
+-- file; they're leftovers from the old MyDSL.Route.scan()/combat()/
+-- group()/righthere() shorthands removed 2026-08-23 as confirmed dead
+-- code, which used to route raw text through this same mechanism before
+-- ScanView/GroupView/TargetView grew their own direct structured
+-- rendering). Meanwhile `focus` (MyDSL_TargetView.lua's real, active
+-- log category) was MISSING from this list entirely -- so Focus/Target
+-- updates were logging by default this whole time, contradicting
+-- Steven's own stated wish, simply because the category got renamed
+-- from `target` to `focus` at some point and this list was never
+-- updated to match. Removed the 3 dead entries, added the 1 real
+-- missing one.
 MyDSL.LogConfig = MyDSL.LogConfig or {
   enabled = true,
   disabled_categories = {
     playersnear = true,
     group       = true,
     righthere   = true,
-    target      = true,
-    scan        = true,
-    bloodbath   = true,
+    focus       = true,
   },
 }
 

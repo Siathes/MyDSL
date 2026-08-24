@@ -302,7 +302,7 @@ MyDSL.Help.modules = {
     commands = {
       { cmd = "mydsl help", desc = "This help system.", example = "mydsl help" },
       { cmd = "mydsl log <on|off>", desc = "Window-logging master switch.", example = "mydsl log on" },
-      { cmd = "mydsl log <category> <on|off>", desc = "Per-category logging. Categories: combat, chat, history (on by default); group, righthere, target, scan, bloodbath, playersnear (debug-only, off by default).", example = "mydsl log combat off" },
+      { cmd = "mydsl log <category> <on|off>", desc = "Per-category logging. Categories: combat, chat, history (on by default); group, righthere, focus, playersnear (debug-only, off by default).", example = "mydsl log combat off" },
       { cmd = "mydsl rawlog <on|off>", desc = "Diagnostic raw-line capture.", example = "mydsl rawlog on" },
       { cmd = "mydsl who <name>", desc = "DslColors' known-person info (passthrough to `dslcolor show`).", example = "mydsl who kien" },
       { cmd = "mydsl test", desc = "Smoke test: module load / window / character-binding status.", example = "mydsl test" },
