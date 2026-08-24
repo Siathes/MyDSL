@@ -180,6 +180,15 @@ end
 StubWidget.get_width = function(...) return 300 end
 StubWidget.get_height = function(...) return 200 end
 
+-- Real-behaving (not a no-op) -- records what dock side each named
+-- window actually requested, so a test can verify real per-window dock
+-- assignment rather than just "it didn't crash".
+_G.__dockPositionCalls = _G.__dockPositionCalls or {}
+StubWidget.setDockPosition = function(self, pos)
+  _G.__dockPositionCalls[self.name] = pos
+  return true
+end
+
 _G.Geyser = _G.Geyser or {
   UserWindow = StubWidget,
   MiniConsole = StubWidget,

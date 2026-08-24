@@ -70,6 +70,73 @@ local function STATE_FILE()
   return getMudletHomeDir() .. "/MyDSL_windowstate_" .. stateSafeFileName(stateCharName()) .. ".lua"
 end
 
+-- DOCK_INIT_FILE / WINDOW_INITIAL_DOCK -- fixes the real "fresh profile:
+-- every window piles up on the right" bug reported by Steven. Root cause
+-- (traced into Mudlet's own C++ source, Host::openWindow()): a dock
+-- widget that has NEVER existed before in this profile's history is
+-- unconditionally created in Qt::RightDockWidgetArea, and Geyser's
+-- UserWindow:new() never passes a dock-side argument through to the
+-- native call when restoreLayout=true (which patchUserWindowConstructor()
+-- always sets) -- so nothing ever tells it otherwise. Once a window is
+-- manually dragged elsewhere, THIS profile's own native dock-state save
+-- remembers it forever (dock widget object names are profile-scoped, so
+-- this is not the cross-profile file collision an earlier investigation
+-- pass wrongly suspected -- corrected in docs/CHANGELOG.md). The fix:
+-- explicitly dock each window to the side LayoutEngine's own defaults
+-- table already documents as its intended region (left/right/bottom
+-- panel comments), but ONLY the very first time this profile ever
+-- creates its windows -- gated by this one-line marker file so a later
+-- restart never fights a since-customized arrangement.
+local function DOCK_INIT_FILE()
+  return getMudletHomeDir() .. "/MyDSL_dock_initialized.lua"
+end
+
+local function isFirstDockInit()
+  local f = io.open(DOCK_INIT_FILE(), "r")
+  if f then f:close(); return false end
+  return true
+end
+
+local function markDockInitialized()
+  local f = io.open(DOCK_INIT_FILE(), "w")
+  if f then
+    f:write("-- marker only: initial per-window dock sides have been applied\n")
+    f:write("-- for this profile. Delete this file to re-apply them once (e.g.\n")
+    f:write("-- after 'mydsl layout reset') without fighting a manual rearrangement.\n")
+    f:close()
+  end
+end
+
+-- Matches MyDSL_LayoutEngine.lua's own "RIGHT PANEL"/"LEFT PANEL"/
+-- "BOTTOM STRIP" section comments exactly. MyDSL_Help/MyDSL_Leveling are
+-- deliberately omitted -- both are on-demand (visible=false), opened
+-- rarely, so they don't contribute to the "20 windows crammed on open"
+-- problem and Geyser's own default ("r") is fine for them.
+local WINDOW_INITIAL_DOCK = {
+  MyDSL_Chat              = "r",
+  MyDSL_Affects           = "r",
+  MyDSL_Tick              = "r",
+  -- MyDSL_Alterform deliberately omitted: LayoutEngine's own "RIGHT PANEL
+  -- (UserWindows)" comment groups it here, but its real DEFAULT_REGISTRY
+  -- entry (this file) has type="Container", not "UserWindow" -- it's
+  -- anchored inside the main console like MyDSL_MoonWeather, not a real
+  -- dock widget, so a dock side doesn't apply. Caught by this fix's own
+  -- test asserting real per-window sides rather than trusting the stale
+  -- comment grouping.
+  MyDSL_Group             = "r",
+  MyDSL_CreatureReference = "r",
+  MyDSL_Portrait          = "l",
+  MyDSL_Location          = "l",
+  MyDSL_ItemReference     = "l",
+  MyDSL_Focus             = "l",
+  MyDSL_RightHere         = "l",
+  MyDSL_PlayersNear       = "l",
+  MyDSL_Combat            = "b",
+  MyDSL_History           = "b",
+  MyDSL_Scan              = "b",
+  MyDSL_Live              = "b",
+}
+
 
 ------------------------------------------------------------------------
 -- SECTION 3: PRIVATE HELPERS
@@ -358,6 +425,17 @@ function MyDSL.Windows.ensure(windowName)
   -- Apply background color, border, and other visual theme values.
   applyTheme(windowName, winObj)
 
+  -- First-ever-this-profile dock side -- see WINDOW_INITIAL_DOCK's own
+  -- comment above for the full root-cause writeup. Cached once per
+  -- session so this isn't a disk read on every single window creation.
+  if MyDSL.Windows._applyInitialDock == nil then
+    MyDSL.Windows._applyInitialDock = isFirstDockInit()
+  end
+  if MyDSL.Windows._applyInitialDock and entry.type == "UserWindow" then
+    local side = WINDOW_INITIAL_DOCK[windowName]
+    if side then pcall(winObj.setDockPosition, winObj, side) end
+  end
+
   -- Record the live object and mark as created.
   entry.obj     = winObj
   entry.created = true
@@ -381,6 +459,13 @@ function MyDSL.Windows.ensureAll()
   debugc("[MyDSL] WindowRegistry: creating all windows...")
   for name, _ in pairs(MyDSL.Windows.registry) do
     MyDSL.Windows.ensure(name)
+  end
+  -- Write the marker only after a real first-run pass actually happened,
+  -- so this profile's windows never get force-docked again on a later
+  -- restart, even if the user has since dragged something elsewhere.
+  if MyDSL.Windows._applyInitialDock then
+    markDockInitialized()
+    MyDSL.Windows._applyInitialDock = false
   end
   debugc("[MyDSL] WindowRegistry: all windows ready.")
 end

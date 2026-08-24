@@ -74,6 +74,12 @@ MyDSL.Layout.defaults = MyDSL.Layout.defaults or {
   -- boot; like every other window here, Steven's real live positions come
   -- from Mudlet's own native dock-state save, not these fractional
   -- defaults (see MyDSL_WindowRegistry.lua's constructor-patch comment).
+  -- Corrected 2026-08-24: this is actually type="Container" in
+  -- MyDSL_WindowRegistry.lua's DEFAULT_REGISTRY (anchored inside the main
+  -- console like MyDSL_MoonWeather below), not a real UserWindow/dock
+  -- widget -- the "RIGHT PANEL (UserWindows)" heading above was wrong for
+  -- this one entry specifically; found while wiring explicit initial dock
+  -- sides per window and confirming which ones are real dock widgets.
   MyDSL_Alterform        = { x=0.62, y=0.79, w=0.03, h=0.21 },
 
   -- MyDSL_Group: next to tick — group members and their vitals.

@@ -480,29 +480,54 @@ to the per-item live confirmations below.
       `MyDSL_CreatureLore.lua`) — cosmetic only (the build script derives
       the real name from the dofile path, not the display name), but worth
       renaming for anyone reading the Script Editor directly.
-- [ ] **Windows resetting position when docking a second window on the
-      fresh profile — likely root cause found, not fixed.** Confirmed
-      NOT a recurrence of the previously-fixed Mudlet 4.21/4.22
-      "suspicious shrinkage" bug (checked the actual running AppImage:
-      still 4.20.1). Confirmed NOT the previously-fixed auto-reflow-on-
-      resize bug either (`MyDSL_LayoutEngine.lua`'s own header comment
-      documents that fix — no `sysWindowResizeEvent` handler exists
-      anywhere in the current codebase, verified via grep). Real
-      difference for a genuinely fresh profile: Mudlet's own native
+- [x] **Fixed 2026-08-24: fresh profile piles every window onto the right,
+      "impossible to see anything."** The earlier investigation's
+      cross-profile-file-collision theory (below, struck through) turned
+      out to be WRONG on closer inspection — traced the exact dispatch
+      path into Mudlet's real C++ source (`Host::openWindow()`,
+      `Host.cpp`) rather than stopping at the Lua layer: dock widget
+      object names are actually profile-scoped
+      (`dockWindow_<ProfileName>_<WindowName>`), so DSL2's and MyDSL's
+      saved states can't collide the way the old theory assumed. The
+      REAL mechanism, confirmed at the exact line: any dock widget that
+      has never existed before in a profile's history is unconditionally
+      created in `Qt::RightDockWidgetArea` — and Geyser's own
+      `UserWindow:new()` never passes a dock-side argument through to the
+      native call when `restoreLayout=true` (which
+      `patchUserWindowConstructor()` always sets), so nothing ever tells
+      it otherwise. Once a window is manually dragged elsewhere, that
+      profile's own native save remembers it forever (which is exactly
+      why DSL2, rearranged over weeks, looks fine) — a genuinely fresh
+      profile has no such history for ANY of its ~20 windows, so they all
+      pile onto the right, tabbed together. Fix: `MyDSL_WindowRegistry.lua`
+      now explicitly docks each window to the side
+      `MyDSL_LayoutEngine.lua`'s own "LEFT PANEL"/"RIGHT PANEL"/"BOTTOM
+      STRIP" comments already document as its intended region, via
+      `winObj:setDockPosition()` — but ONLY the very first time a profile
+      ever creates its windows, gated by a one-line marker file
+      (`MyDSL_dock_initialized.lua`) so a later restart never fights a
+      since-customized arrangement (the exact regression class a prior
+      blind fix in this area caused, per DECISIONS RECORDED below).
+      Caught and fixed a real stale comment along the way:
+      `MyDSL_Alterform` was grouped under LayoutEngine's "RIGHT PANEL
+      (UserWindows)" heading, but its actual registry entry is
+      `type="Container"`, not a real dock widget at all — excluded from
+      the new dock-side mapping, comment corrected in both files. 5 new
+      assertions in `test/test_windowregistry_initial_dock.lua` (real
+      per-window dock-call mocks added to `test/mudlet_mock.lua`),
+      confirmed all genuinely fail without the fix via a targeted revert.
+      Not yet live-confirmed by Steven (needs a genuinely fresh
+      profile/character to verify against).
+      ~~Confirmed NOT a recurrence of the previously-fixed Mudlet 4.21/
+      4.22 "suspicious shrinkage" bug... Mudlet's own native
       window-geometry cache (`windowLayoutGeometry.dat`/`windowLayout.dat`)
-      lives at `~/.config/mudlet/` directly — confirmed via `find` —
-      **shared across every profile on the machine, not per-profile**.
-      Every UserWindow gets `restoreLayout=true` (`patchUserWindowConstructor()`,
-      `MyDSL_WindowRegistry.lua`), which (confirmed by reading Mudlet's
-      own bundled `GeyserUserWindow.lua` via the mounted AppImage) tells
-      Mudlet's native engine to look up cached geometry by window name in
-      that shared file. Since the fresh "MyDSL" profile uses identically-
-      named windows to the original DSL2 profile, its windows are likely
+      lives at `~/.config/mudlet/` directly... shared across every
+      profile on the machine, not per-profile... its windows are likely
       inheriting stale dock-state cached from the original profile's own
-      layout history. Not touched — this exact class of file already
-      caused a real regression once before in this project (TODO.md's
-      own DECISIONS RECORDED: resetting it made the whole panel layout
-      collapse, not fix anything) — needs discussion, not a blind fix.
+      layout history.~~ (superseded above — the shared *file* is real,
+      but its entries are keyed per-profile internally, so this specific
+      collision theory doesn't hold up; kept struck-through rather than
+      deleted per this file's own record-the-mistake precedent.)
 
 ---
 
