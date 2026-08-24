@@ -94,6 +94,14 @@ map.dsl.gmcp.room_data_time = os.time() - 999
 check("STALE (too-old) GMCP payload -> not flagged as a room desync (must not false-positive on lag)",
   map.dsl.roomLooksStale(100) == false)
 
+-- Real corpus-confirmed case (8 occurrences in log/): GMCP reports the
+-- literal string "darkness" when the room is too dark to see its name --
+-- never a real room's actual name. Must not be treated as a mismatch.
+map.dsl.gmcp.room_data = { room = "darkness" }
+map.dsl.gmcp.room_data_time = os.time()
+check("GMCP's 'darkness' placeholder is never treated as a name mismatch",
+  map.dsl.roomLooksStale(100) == false)
+
 ------------------------------------------------------------------------
 -- Part 2: applyRoomMetadata() -- corruption guard + set-once lock
 ------------------------------------------------------------------------
@@ -128,6 +136,20 @@ map.dsl.gmcp = {
 map.dsl.applyRoomMetadata()
 check("stale/desynced currentRoom gets NO sector data written at all",
   getRoomUserData(201, "dsl.normalized_sector") == "")
+
+-- Real functional benefit of not treating "darkness" as a mismatch: a
+-- room visited only in the dark should still get colored from rd.sector
+-- (corpus-confirmed sector keeps reporting correctly even when the name
+-- doesn't).
+_G.__mock_defineRoom(202, "A Dark Cellar")
+map.currentRoom = 202
+map.dsl.gmcp = {
+  room_data = { room = "darkness", sector = "Underground tunnels." },
+  room_data_time = os.time(),
+}
+map.dsl.applyRoomMetadata()
+check("a room visited while dark still gets colored via rd.sector",
+  getRoomUserData(202, "dsl.normalized_sector") == "underground")
 check("stale/desynced currentRoom is not locked either (nothing was set)",
   getRoomUserData(201, "dsl.terrain_locked") ~= "true")
 

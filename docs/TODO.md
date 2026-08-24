@@ -1424,7 +1424,7 @@ machine.
       auto-write, checked by both auto-apply functions before they touch
       anything again; a new `rt`/`room terrain [v<room id>] <name>` alias
       (mirrors `rw`) lets Steven override a locked room by hand. Verified
-      via `test/test_mapper_terrain_lock.lua` (24 assertions, real map-API
+      via `test/test_mapper_terrain_lock.lua` (26 assertions, real map-API
       mocks added to `test/mudlet_mock.lua`; confirmed each assertion
       genuinely fails without its corresponding guard). Border-color (the
       other half of Steven's original ask) is NOT built — checked Mudlet's
@@ -1433,8 +1433,24 @@ machine.
       `development` branch (merged 2026-01-12, no milestone), absent from
       every shipped version through the current 4.22.0 stable and even the
       4.22.0 PTB betas — this profile runs 4.20.1, so there's no real API
-      to call yet. Revisit once Mudlet actually ships it. Not yet
-      live-confirmed by Steven.
+      to call yet. Revisit once Mudlet actually ships it. **Steven
+      confirmed 2026-08-24: "fix seems to be fine, will advise it ever
+      becomes an issue."** Claude Desktop reviewed 7a12a1d and pushed back
+      on `roomLooksStale()`'s core assumption (that GMCP's `rd.room` and
+      the mapper's own text-scraped `getRoomName()` actually agree for the
+      same room) — legitimate concern, not hypothetical (this same file
+      already has one confirmed real GMCP-vs-text disagreement, the
+      sector conflict flag). Checked it directly against the full log/
+      corpus (260 files, 98 real occurrences) since Claude Desktop's own
+      clone doesn't have log/ (gitignored for size): 89/98 matched
+      exactly; the other 9 are fully explained (8 are DSL's own
+      `"darkness"` GMCP placeholder for an unlit room, never a real name;
+      1 is a log file that started mid-visit) — zero real drift. Turned
+      the "darkness" finding into an actual fix: `roomLooksStale()` now
+      treats it as "name unknown" rather than a mismatch, recovering
+      sector/color on rooms only ever visited in the dark (previously
+      silently skipped, safe but a missed case). Reported the full
+      verification to Claude Desktop in `HANDOFF.md`.
 ---
 
 ## OPEN — Design ideas, not yet scoped

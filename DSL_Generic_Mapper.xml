@@ -5983,13 +5983,29 @@ local DSL_GMCP_ROOMDATA_TIMEOUT = 2
 -- guessing from timing. Returns false (trust rid) whenever GMCP is
 -- missing/stale/nameless -- this must never be the reason a room fails to
 -- get colored on a normal move where GMCP just isn't fast enough yet.
+-- Real corpus check, 2026-08-24, in response to Claude Desktop's review of
+-- this function: does rd.room (GMCP) really agree with getRoomName()'s
+-- text-scraped name for the same real room, or could they format
+-- differently and false-positive this into blocking color on every such
+-- room? Checked all 260 log/ files with a GMCP dump: 89 of 98 rd.room
+-- values matched a standalone displayed header line in the same file
+-- exactly; the other 9 are fully explained, not real drift -- 8 are the
+-- literal string "darkness" (DSL's own GMCP placeholder for "too dark to
+-- see the room name," never a real room's actual name -- handled below)
+-- and 1 is a log file that started mid-visit, after the header had
+-- already printed in a previous session's log. Zero evidence of genuine
+-- GMCP-vs-display formatting drift for a real room name.
 function map.dsl.roomLooksStale(rid)
   local rd = map.dsl.gmcp and map.dsl.gmcp.room_data
   local rdFresh = rd and map.dsl.gmcp.room_data_time
     and (os.time() - map.dsl.gmcp.room_data_time) &lt;= DSL_GMCP_ROOMDATA_TIMEOUT
   if not rdFresh or not rd.room then return false end
   local gmcpName = tostring(rd.room):trim()
-  if gmcpName == "" then return false end
+  -- "darkness" isn't a room name to compare -- treating it as an ordinary
+  -- mismatch would still be safe (skip = no corruption) but would also
+  -- needlessly block the sector/color write, since the corpus confirms
+  -- rd.sector keeps reporting correctly even while the room name is dark.
+  if gmcpName == "" or gmcpName:lower() == "darkness" then return false end
   local roomName = tostring(getRoomName(rid) or ""):trim()
   return roomName ~= "" and roomName ~= gmcpName
 end
