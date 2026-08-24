@@ -127,14 +127,36 @@ to the per-item live confirmations below.
       - TODO.md-vs-code spot check (4 items): no drift found — every
         checked "fixed, needs live confirmation" item's code matches its
         TODO.md description exactly.
-- [ ] **GitHub hosting — Steven's call 2026-08-23: yes, public repo.**
-      Checked first: `gh` CLI isn't installed on this machine and no
-      remote is configured; tracked repo content is 15.3MB (log/, media,
-      and credentials are already `.gitignore`d) and a secret-pattern
-      scan of every tracked file found nothing — safe to make public.
-      Waiting on Steven to create the empty repo on github.com himself
-      (simpler than installing/authenticating `gh`) and pass back the URL
-      so the remote can be added and this pushed.
+- [ ] **GitHub hosting — Steven's call 2026-08-23: yes, public repo. BLOCKED
+      2026-08-23, same day, on a real finding — do not push before this is
+      resolved.** The original "safe to make public" check only scanned
+      the CURRENT tracked tree with a fixed set of secret-shaped regexes
+      (password=, api_key, BEGIN...PRIVATE KEY, etc.) — it never looked at
+      git HISTORY, and wouldn't have caught this shape anyway. While
+      extracting `MyDSL_GameplayTriggers.xml` (see the tracking-completeness
+      item above), found that filename was already git-tracked from very
+      early in this project (commits `ef8b6d6` through `5c7944f`, a DSL1-era
+      raw trigger extraction) — and that old version's `<mCommand>` field
+      contains `y;;y;;m;;vzon;;[REDACTED, see CHANGELOG git blame if truly needed];;v`, an automated-answer sequence
+      shaped exactly like a character-creation/login flow, with
+      `[REDACTED]` sitting in the password/PIN slot. Ran a full scan of
+      **every commit in the entire git history** (not just HEAD) for this
+      shape (`word#digits`) and for any other `;;`-delimited answer
+      sequence — confirmed this is genuinely the only instance anywhere.
+      **Why this blocks the push**: this string only ever existed in that
+      one old file, which my own extraction today already overwrote with
+      current live content (the string is gone from the working tree and
+      from HEAD once this session's commit lands) — but deleting it from
+      the current file does NOT remove it from git history. A `git push`
+      of the full history to a public repo would make every old commit,
+      including this one, permanently browsable on GitHub. **Needs Steven
+      to decide, not assumed**: (a) confirm whether `[REDACTED]` is/was a
+      real, still-valid credential or something already changed/harmless,
+      and (b) pick a path — rewrite history to purge it (`git filter-repo`
+      or BFG, changes every commit hash), push a fresh single-commit
+      history instead of the real one (loses commit-by-commit history),
+      or keep the repo private instead of public. Not actioned in any
+      direction without that decision.
 - [ ] **Live per-window smoke test** — Steven asked for "go to each window
       and check functions connections, toggle on/off, all window commands,
       then confirm helpfiles match." The audit above covers the static
@@ -200,6 +222,72 @@ to the per-item live confirmations below.
         inventory check (not just the 2-3 previously-known exceptions)
         so this doesn't quietly happen again with some other hand-built
         trigger/alias down the line.
+      - **Follow-up, same day (2026-08-23), per Steven: "make sure we are
+        tracking all the scripts/code in mydsl."** Two more native
+        objects had real functionality with zero readable git source
+        (not at active risk of loss, since `build_mydsl_package.py`
+        already re-splices both wholesale on every rebuild, but
+        undiffable and unreviewable until now): the `DslColors_Core_v1_0`
+        Script itself (138,754 chars -- the entire DSL color-coding
+        engine) plus its `DslColors v1.0 Triggers` group, and the
+        `MyDSL_GameplayTriggers` group (277 triggers) plus the native
+        `MyDSL_Full` KeyGroup (45 movement/scan/look keys). Extracted
+        verbatim into `DslColors_Core_v1_0.xml` and
+        `MyDSL_GameplayTriggers.xml`, both round-trip verified against
+        the live source (exact match on every object). Between these two
+        files and `MyDSL_PersonalAliases.xml`, every single native
+        Script/Trigger/Alias/Key actually in use now has real,
+        git-tracked source -- confirmed by construction, since this was
+        a full inventory, not a sample. Same "not yet folded into the
+        build script's splice logic" caveat applies to both new files.
+      - **Also fixed the same day, a genuinely different but related
+        ask: "settings we have in the files should become default
+        settings in the scripts... check dslcolor and window layouts
+        themes etc."** Checked every settings-vs-hardcoded-default pair
+        that actually exists:
+        - **Window layout** (`MyDSL.Layout.defaults` in
+          `MyDSL_LayoutEngine.lua`): nothing to sync. The live MyDSL
+          profile has no `MyDSL_layout.lua` at all -- Steven has never
+          run `mydsl layout save` -- so on-screen positions are governed
+          entirely by Mudlet's own native geometry cache (see the
+          PACKAGING section's fresh-install-docking item), not by
+          anything this project's layout system controls. A stale
+          `MyDSL_layout.lua` was found sitting in DSL2's own profile
+          root (not MyDSL's) -- June-dated, referencing window names
+          that don't even exist anymore (`MyDSL_AsciiMap`,
+          `MyDSL_Equipment`, `MyDSL_Banner`...) -- confirmed pre-
+          restructure dev-testing leftover, not real data, and deleted
+          (gitignored, zero git impact).
+        - **Theme** (`MyDSL.Theme.active` in `MyDSL_ThemeEngine.lua`):
+          nothing to sync either. No `MyDSL_theme_settings.lua` exists
+          live -- Steven has never run `theme set`, so the hardcoded
+          default (`refined_convergence`) already is what's actually
+          running.
+        - **DslColors**: nothing separate to sync -- its accumulated
+          title/palette/kingdom-color data lives inside the
+          `DslColors_Core_v1_0` native script's own state, which is
+          already captured fresh from the live (currently-tuned)
+          instance on every rebuild by design, and is now also the exact
+          content preserved in `DslColors_Core_v1_0.xml` above.
+        - **Real fix found and made: per-window font-size fallback
+          defaults were stale in 6 places across 5 files.**
+          `MyDSL_windowfonts.lua` (the live, real, accumulated font
+          settings Steven has actually tuned over time) has
+          `MyDSL_RightHere=8, MyDSL_PlayersNear=8,
+          MyDSL_CreatureReference=8, MyDSL_Scan=7, MyDSL_ItemReference=8,
+          MyDSL_Focus=9` -- but every one of these windows' own
+          `MyDSL.Windows.getFontSize(WIN, N)` fallback (used only for a
+          brand-new window with nothing saved yet) still hardcoded the
+          old pre-tuning value (9 for the first five, 11 for Focus). A
+          genuinely fresh install was shipping the wrong, too-large font
+          for all 6 windows until manually re-tuned by hand, every time.
+          Fixed all 6 (`MyDSL_ScanView.lua` x2 windows x3 call sites each,
+          `MyDSL_CreatureReference.lua` x3 call sites,
+          `MyDSL_ItemReference.lua` x3 call sites,
+          `MyDSL_TargetView.lua`, `MyDSL_RouteHelper.lua`) to match
+          Steven's real live values. Does not change any current live
+          behavior (the saved value always wins when present) -- only
+          changes what a genuinely fresh window/install sees.
 
 ---
 

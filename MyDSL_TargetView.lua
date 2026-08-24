@@ -56,9 +56,13 @@ TV.config.custom_actions = TV.config.custom_actions or {}
 -- not surviving a reload, and no root cause was ever conclusively found
 -- despite extensive testing. Removing the character-name dependency
 -- entirely removes that whole class of timing bug, whether or not it was
--- really the cause. 11 matches the value that was hardcoded before any
--- of this existed.
-TV.config.fontSize = MyDSL.Windows.getFontSize(TARGET_WIN, 11)
+-- really the cause. 11 matched the value that was hardcoded before any
+-- of this existed; updated to 9 on 2026-08-23 to match Steven's real
+-- long-tuned live size (MyDSL_windowfonts.lua's MyDSL_Focus entry),
+-- confirmed via a full settings-vs-defaults audit -- this fallback only
+-- ever applies to a brand-new window with nothing saved yet, but a
+-- genuine fresh install was shipping the wrong size until re-tuned.
+TV.config.fontSize = MyDSL.Windows.getFontSize(TARGET_WIN, 9)
 
 -- TV.defaults -- added 2026-07-11, per Steven's "there should be a clear
 -- button" ask. Deliberately a fresh literal every load (NOT "TV.defaults or

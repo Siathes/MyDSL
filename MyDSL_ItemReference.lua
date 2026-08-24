@@ -24,6 +24,12 @@ IR._mc       = IR._mc or {}
 local IR_WIN = "MyDSL_ItemReference"
 local IR_MC  = "MyDSL_ItemReference_MC"
 
+-- getFontSize(IR_WIN, 8) fallback below: updated 2026-08-23 from 9 to 8
+-- to match Steven's real long-tuned live size (MyDSL_windowfonts.lua),
+-- confirmed via a full settings-vs-defaults audit -- this fallback only
+-- ever applies to a brand-new window with nothing saved yet, but a
+-- genuine fresh install was shipping the wrong size until re-tuned.
+
 
 ------------------------------------------------------------------------
 -- Local helpers
@@ -226,7 +232,7 @@ end
 function IR.status()
   decho(string.format(
     "<136,204,255>[MyDSL] Item Reference: font=%d<r>\n",
-    MyDSL.Windows.getFontSize(IR_WIN, 9)
+    MyDSL.Windows.getFontSize(IR_WIN, 8)
   ))
 end
 
@@ -263,7 +269,7 @@ function IR.ensureUI()
     }, irWin)
   end
 
-  local itemFont = MyDSL.Windows.getFontSize(IR_WIN, 9)
+  local itemFont = MyDSL.Windows.getFontSize(IR_WIN, 8)
   if IR._mc.item then IR._mc.item:setFontSize(itemFont) end
 
   -- Adaptive word wrap -- same fix applied to Bestiary/Focus 2026-07-16
@@ -291,7 +297,7 @@ function IR.init()
     "MyDSL.theme.changed",
     function()
       if MyDSL.Theme and MyDSL.Theme.styleConsole then
-        MyDSL.Theme.styleConsole(IR._mc.item, IR_WIN, MyDSL.Windows.getFontSize(IR_WIN, 9))
+        MyDSL.Theme.styleConsole(IR._mc.item, IR_WIN, MyDSL.Windows.getFontSize(IR_WIN, 8))
       end
     end
   )

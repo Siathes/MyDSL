@@ -178,8 +178,13 @@ function SV.ensureUI()
   -- profile-level store MyDSL_History/MyDSL_Focus already use. Was:
   -- Scan had no explicit size at all (inherited theme default),
   -- RightHere was hardcoded to 9 with no way to change it.
-  local scanFont = MyDSL.Windows.getFontSize(SCAN_WIN, 9)
-  local rhFont   = MyDSL.Windows.getFontSize(RH_WIN, 9)
+  -- Fallback defaults updated 2026-08-23 to match Steven's real
+  -- long-tuned live sizes (MyDSL_windowfonts.lua: Scan=7, RightHere=8),
+  -- confirmed via a full settings-vs-defaults audit -- these only ever
+  -- applied to a brand-new window with nothing saved yet, but a genuine
+  -- fresh install was shipping the wrong size until re-tuned by hand.
+  local scanFont = MyDSL.Windows.getFontSize(SCAN_WIN, 7)
+  local rhFont   = MyDSL.Windows.getFontSize(RH_WIN, 8)
   if SV.ui.scanConsole then SV.ui.scanConsole:setFontSize(scanFont) end
   if SV._mc.rightHere then SV._mc.rightHere:setFontSize(rhFont) end
 
@@ -232,8 +237,8 @@ function SV.init()
     "MyDSL.theme.changed",
     function()
       if MyDSL.Theme and MyDSL.Theme.styleConsole then
-        MyDSL.Theme.styleConsole(SV.ui.scanConsole, SCAN_WIN, MyDSL.Windows.getFontSize(SCAN_WIN, 9))
-        MyDSL.Theme.styleConsole(SV._mc.rightHere, RH_WIN, MyDSL.Windows.getFontSize(RH_WIN, 9))
+        MyDSL.Theme.styleConsole(SV.ui.scanConsole, SCAN_WIN, MyDSL.Windows.getFontSize(SCAN_WIN, 7))
+        MyDSL.Theme.styleConsole(SV._mc.rightHere, RH_WIN, MyDSL.Windows.getFontSize(RH_WIN, 8))
       end
     end
   )
@@ -262,8 +267,8 @@ function SV.status()
   decho(string.format(
     "<136,204,255>[MyDSL] Scan: gag=%s font=%d | RightHere: font=%d<r>\n",
     tostring(SV.config.gagScan),
-    MyDSL.Windows.getFontSize(SCAN_WIN, 9),
-    MyDSL.Windows.getFontSize(RH_WIN, 9)
+    MyDSL.Windows.getFontSize(SCAN_WIN, 7),
+    MyDSL.Windows.getFontSize(RH_WIN, 8)
   ))
 end
 

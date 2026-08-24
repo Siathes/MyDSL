@@ -39,9 +39,14 @@ MyDSL.Route = MyDSL.Route or {}
 -- seeded here because it was the only one with a font command when this
 -- table was first written (2026-07-05/07); PlayersNear's font command
 -- was added later without updating this seed to match.
+-- MyDSL_PlayersNear's fallback updated 2026-08-23 from 9 to 8 to match
+-- Steven's real long-tuned live size (MyDSL_windowfonts.lua), confirmed
+-- via a full settings-vs-defaults audit -- this fallback only ever
+-- applies to a brand-new window with nothing saved yet, but a genuine
+-- fresh install was shipping the wrong size until re-tuned by hand.
 local FONT_SIZE_OVERRIDES = {
   MyDSL_History     = MyDSL.Windows.getFontSize("MyDSL_History", 7),
-  MyDSL_PlayersNear = MyDSL.Windows.getFontSize("MyDSL_PlayersNear", 9),
+  MyDSL_PlayersNear = MyDSL.Windows.getFontSize("MyDSL_PlayersNear", 8),
 }
 
 -- Display titles for windows this file creates via WindowRegistry --

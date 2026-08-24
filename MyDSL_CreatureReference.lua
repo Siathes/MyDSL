@@ -33,6 +33,12 @@ CR._mc       = CR._mc or {}   -- persists to avoid duplicate MiniConsole creatio
 local CR_WIN = "MyDSL_CreatureReference"
 local CR_MC  = "MyDSL_CreatureReference_MC"
 
+-- getFontSize(CR_WIN, 8) fallback below: updated 2026-08-23 from 9 to 8
+-- to match Steven's real long-tuned live size (MyDSL_windowfonts.lua),
+-- confirmed via a full settings-vs-defaults audit -- this fallback only
+-- ever applies to a brand-new window with nothing saved yet, but a
+-- genuine fresh install was shipping the wrong size until re-tuned.
+
 
 ------------------------------------------------------------------------
 -- Local helpers
@@ -241,7 +247,7 @@ end
 function CR.status()
   decho(string.format(
     "<136,204,255>[MyDSL] Bestiary: font=%d<r>\n",
-    MyDSL.Windows.getFontSize(CR_WIN, 9)
+    MyDSL.Windows.getFontSize(CR_WIN, 8)
   ))
 end
 
@@ -285,7 +291,7 @@ function CR.ensureUI()
   -- Bestiary up to the same status/show/hide/rebuild/font standard other
   -- windows have" -- see docs/CHANGELOG.md). Was: no size override at
   -- all, always just the theme's own default.
-  local loreFont = MyDSL.Windows.getFontSize(CR_WIN, 9)
+  local loreFont = MyDSL.Windows.getFontSize(CR_WIN, 8)
   if CR._mc.lore then CR._mc.lore:setFontSize(loreFont) end
 
   -- Adaptive word wrap, per Steven ("bestiary... needs word wrap") --
@@ -323,7 +329,7 @@ function CR.init()
     "MyDSL.theme.changed",
     function()
       if MyDSL.Theme and MyDSL.Theme.styleConsole then
-        MyDSL.Theme.styleConsole(CR._mc.lore, CR_WIN, MyDSL.Windows.getFontSize(CR_WIN, 9))
+        MyDSL.Theme.styleConsole(CR._mc.lore, CR_WIN, MyDSL.Windows.getFontSize(CR_WIN, 8))
       end
     end
   )

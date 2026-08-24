@@ -1,0 +1,3333 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+  DslColors_Core_v1_0.xml: real, current git-tracked source for the
+  native "DslColors_Core_v1_0" Script (138,754 chars: the actual DSL
+  color-coding engine, kingdom colors, relationship highlights, titles,
+  palettes) plus its "DslColors v1.0 Triggers" group, extracted verbatim
+  from the live MyDSL profile on 2026-08-23.
+
+  Found during the same full native-content inventory that turned up
+  MyDSL_PersonalAliases.xml (see that file's own header, and
+  docs/TODO.md): this script had NO git-tracked source anywhere in this
+  repo. build_mydsl_package.py already re-splices it into every rebuild
+  (it is one of the two known EXPECTED_NATIVE_ONLY_SCRIPTS), but only by
+  re-reading whatever happens to be live in the MyDSL profile at build
+  time, never from a real, diffable, reviewable source file. colors.xml
+  (profile root) looked like it might be that source but isn't; it's a
+  confirmed-stale pre-v1.0 snapshot with zero DslColors_Core_v1_0/
+  dslcolor references at all (see CLAUDE.md's DECISIONS RECORDED
+  section).
+
+  Verified via a full round-trip check: re-parsed this file and compared
+  both the Script body and the Trigger group's regex/script content
+  against the live source; exact match on both.
+
+  This does not change build_mydsl_package.py's own behavior (it still
+  pulls fresh from the live profile every rebuild, which is fine and not
+  risky); this file exists purely so the content is tracked, diffable,
+  and reviewable, independent of the live profile always having a good
+  copy. Folding it into the build script as an alternate/preferred
+  source is a real next step, not done in the same pass as discovering
+  the gap (same reasoning as MyDSL_PersonalAliases.xml).
+-->
+<MudletPackage version="1.001">
+	<TriggerPackage>
+		<TriggerGroup isActive="yes" isFolder="yes" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+			<name>DslColors v1.0 Triggers</name>
+			<script />
+			<triggerType>0</triggerType>
+			<conditonLineDelta>0</conditonLineDelta>
+			<mStayOpen>0</mStayOpen>
+			<mCommand />
+			<packageName>DslColors_v1_0</packageName>
+			<mFgColor>#ff0000</mFgColor>
+			<mBgColor>#ffff00</mBgColor>
+			<mSoundFile />
+			<colorTriggerFgColor>#000000</colorTriggerFgColor>
+			<colorTriggerBgColor>#000000</colorTriggerBgColor>
+			<regexCodeList />
+			<regexCodePropertyList />
+			<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+				<name>DslColors v1.0 line processor</name>
+				<script>dslColorOnLine()</script>
+				<triggerType>0</triggerType>
+				<conditonLineDelta>0</conditonLineDelta>
+				<mStayOpen>0</mStayOpen>
+				<mCommand />
+				<packageName>DslColors_v1_0</packageName>
+				<mFgColor>#ff0000</mFgColor>
+				<mBgColor>#ffff00</mBgColor>
+				<mSoundFile />
+				<colorTriggerFgColor>#000000</colorTriggerFgColor>
+				<colorTriggerBgColor>#000000</colorTriggerBgColor>
+				<regexCodeList>
+					<string>^(?!\s*$).+</string>
+				</regexCodeList>
+				<regexCodePropertyList>
+					<integer>1</integer>
+				</regexCodePropertyList>
+			</Trigger>
+		</TriggerGroup>
+	</TriggerPackage>
+	<AliasPackage />
+	<ScriptPackage>
+		<Script isActive="yes" isFolder="no">
+			<name>DslColors_Core_v1_0</name>
+			<packageName />
+			<script>-- ============================================================
+-- DslColors v1.0 RELEASE
+-- Dark and Shattered Lands / Mudlet identity-color helper
+-- ============================================================
+--
+-- WHAT THIS PACKAGE DOES
+--   DslColors watches visible Mudlet console lines and adds color to stable
+--   identity terms without rewriting the game text. It is designed for DSL's
+--   WHO-style output and related lists, where race, class, kingdom, clan, robe,
+--   dragon type, titles, and learned player names can all appear in one line.
+--
+-- CORE GOALS
+--   1. Color DSL race/class/org/title terms consistently.
+--   2. Learn people conservatively from WHO / WHOK / WHOC / WHOCRAFT output.
+--   3. Preserve richer WHO data when shorter kingdom/clan/craft rows appear.
+--   4. Let the user correct parsing through commands instead of hidden patches.
+--   5. Keep custom terms and custom palettes user-driven and persistent.
+--
+-- WHAT THIS PACKAGE DOES NOT DO
+--   - It does not change DSL output text.
+--   - It does not send game commands automatically.
+--   - It does not infer religion/deity allegiance.
+--   - It does not hardcode player names as logic.
+--   - It does not special-case disputed names/titles outside normal commands.
+--
+-- PACKAGE SHAPE
+--   One core script:
+--     DslColors_Core_v1_0
+--   One active trigger:
+--     DslColors v1.0 line processor
+--   One runtime alias:
+--     dslcolor ...
+--
+-- SAVE FILE
+--   DslColors uses one generic save file:
+--     DSL_PeopleColors_data.lua
+--   This file stores learned people, organizations, relations, teams, saved
+--   titles, ignored terms, manual overrides, custom terms, and custom palettes.
+--
+-- IMPORTANT FLOWS
+--   Titles:
+--     Titles are exact leading phrases stripped before name capture.
+--     Example: "Dread Pirate Valosiz Sha'falas" strips "Dread Pirate" only
+--     if that exact phrase is a known title. It does not create "Dread" or
+--     "Pirate" as separate titles.
+--
+--   Custom terms:
+--     Custom terms are visual-only phrase coloring. They do not learn people,
+--     organizations, titles, or relationships.
+--
+--   Custom palettes:
+--     Custom palettes are saved color definitions. They do not color anything
+--     by themselves until assigned through dslcolor term or name override.
+--
+--   Relationships:
+--     Friend/enemy/war/peace are overlays. They should not replace factual
+--     foreground identity colors.
+--
+-- PRIMARY COMMAND
+--   dslcolor help
+--
+-- RELEASE NOTE
+--   v1.0 keeps the stable cleanup base with release naming,
+--   clearer help text, softer help/list colors, and verbose documentation.
+--   The runtime logic, parsers, palette data, aliases, title flow, save/load,
+--   custom terms, and custom palettes are preserved.
+-- ============================================================
+
+DSL_COLORS = DSL_COLORS or {}
+
+DSL_COLORS.palettes = {
+
+  friend = { mode = "cycle", colors = {
+    {255,120,200}, {220,90,255}, {255,170,215}, {190,130,255}, {255,185,150},
+  }},
+
+  dragon_word = { mode = "gradient", from = {0,255,0}, to = {0,150,0} },
+
+  crystal = { mode = "cycle", colors = {
+    {255,255,255}, {170,230,255}, {90,200,255}, {230,250,255}, {70,190,255},
+  }},
+  black_dragon = { mode = "cycle", colors = {
+    {110,110,110}, {55,55,55}, {150,150,150}, {25,25,25},
+  }},
+  blue_dragon = { mode = "cycle", colors = {
+    {0,80,255}, {0,170,255}, {90,210,255}, {0,40,180},
+  }},
+  green_dragon = { mode = "cycle", colors = {
+    {0,170,60}, {60,255,100}, {0,120,40}, {130,255,150},
+  }},
+  red_dragon = { mode = "cycle", colors = {
+    {255,40,20}, {170,0,0}, {255,100,70}, {220,20,20},
+  }},
+  white_dragon = { mode = "gradient", from = {255,255,255}, to = {95,120,150} },
+  brass_dragon = { mode = "cycle", colors = {
+    {210,165,45}, {245,210,85}, {165,125,30}, {225,180,55},
+  }},
+  bronze_dragon = { mode = "cycle", colors = {
+    {150,95,45}, {95,65,35}, {190,125,60}, {120,80,40},
+  }},
+  copper_dragon = { mode = "cycle", colors = {
+    {255,115,35}, {210,70,25}, {255,160,85}, {180,55,20},
+  }},
+  gold_dragon = { mode = "gradient", colors = {
+    {255,215,0}, {255,240,90}, {210,150,0}, {255,185,20},
+  }},
+  silver_dragon = { mode = "cycle", colors = {
+    {245,245,245}, {180,190,200}, {220,225,230}, {135,145,155},
+  }},
+  brown_dragon = { mode = "cycle", colors = {
+    {145,85,35}, {95,55,25}, {185,120,60}, {120,75,35},
+  }},
+  steel_dragon = { mode = "cycle", colors = {
+    {110,130,145}, {165,185,200}, {75,95,115}, {205,220,230},
+  }},
+  topaz_dragon = { mode = "cycle", colors = {
+    {255,205,70}, {0,100,0}, {255,235,120}, {210,115,20},
+  }},
+
+  angel = { mode = "cycle", colors = {
+    {255,255,255}, {255,235,130}, {210,235,255}, {255,250,210}, {180,220,255},
+  }},
+  demon = { mode = "cycle", colors = {
+    {150,0,0}, {45,45,45}, {255,45,20}, {90,0,0}, {180,70,40},
+  }},
+  balanx = { mode = "cycle", colors = {
+    {80,170,255}, {40,220,220}, {120,120,255}, {170,230,255}, {35,110,200},
+  }},
+  frost_giant = { mode = "cycle", colors = {
+    {220,245,255}, {130,210,255}, {180,220,235}, {255,255,255}, {90,170,230},
+  }},
+  fire_giant = { mode = "cycle", colors = {
+    {255,90,20}, {180,30,0}, {255,170,40}, {80,45,35}, {230,70,10},
+  }},
+  cloud_giant = { mode = "cycle", colors = {
+    {230,240,255}, {150,175,205}, {190,215,240}, {115,135,165}, {245,245,245},
+  }},
+
+  -- Clans and status markers
+  knighthood = { mode = "gradient", from = {40,90,255}, to = {20,65,210} },
+  justice = { mode = "gradient", from = {0,210,255}, to = {0,150,220} },
+  shalonesti_clan = { mode = "gradient", from = {0,165,65}, to = {220,35,35} },--{0,150,40}, to = {0,95,30}
+  chaos = { mode = "gradient", from = {210, 180, 230}, to = {130, 125, 140} }, --{255,30,30}, to = {170,0,0} },
+  shadow = { mode = "gradient", from = {120,120,120}, to = {47,47,47} },
+  bloodlust = { mode = "gradient", from = {255,20,80}, to = {80,0,35} },
+  wargar = { mode = "gradient", from = {0,190,190}, to = {0,110,150} },
+  slayers = { mode = "gradient", from = {245,205,35}, to = {95,220,0} },
+  conclave = { mode = "mirror", edge = {75,65,90}, inner = {220,40,50}, center = {255,255,245} },
+  white_robes = { mode = "gradient", from = {255,255,255}, to = {255,245,190} },
+  red_robes = { mode = "gradient", from = {230,20,20}, to = {255,160,70} },
+  black_robes = { mode = "gradient", from = {95,95,110}, to = {150,130,190} },
+  loner = { mode = "gradient", from = {66,66,66}, to = {185,255,220} },--{255,255,255}, to = {185,255,220}
+  renegade = { mode = "gradient", from = {255,40,130}, to = {150,0,70} },
+
+  -- Kingdoms
+  abaddon = { mode = "gradient", from = {220,0,0}, to = {85,85,90} },
+  althainia = { mode = "gradient", from = {35,85,230}, to = {235,240,255} },
+  new_thalos = { mode = "gradient", from = {255,215,65}, to = {80,45,145} },
+  shalonesti_kingdom = { mode = "gradient", from = {0,145,45}, to = {225,200,70} },
+  thaxanos = { mode = "gradient", from = {100,115,125}, to = {220,120,45} },
+  gray_church = { mode = "gradient", from = {95,130,130}, to = {220,230,225} },
+  arkane = { mode = "gradient", from = {30,70,235}, to = {240,210,70} },
+  verminasia = { mode = "triple", a = {200,0,0}, b = {125,35,160}, c = {45,45,50} },
+  marauders = { mode = "gradient", from = {220,25,20}, to = {245,205,35} },
+  nordmaar = { mode = "gradient", from = {35,90,230}, to = {240,250,255} },
+  ganth = { mode = "gradient", from = {140,55,20}, to = {230,120,30} },
+  darkonin = { mode = "gradient", from = {75,75,80}, to = {210,25,25} },
+
+  -- Titles
+  royalty = { mode = "gradient", from = {155,70,255}, to = {255,215,65} },
+  military = { mode = "gradient", from = {190,25,40}, to = {230,180,70} },
+  scholarly = { mode = "gradient", from = {40,210,200}, to = {220,230,235} },
+  political = { mode = "gradient", from = {40,200,120}, to = {235,205,120} },
+  religious = { mode = "triple", a = {255,255,255}, b = {220,35,35}, c = {65,65,65} },
+
+
+  -- Imported default palette from merged save data.
+  ["Eclipse"] = {
+    from = {
+      [1] = 74,
+      [2] = 74,
+      [3] = 144,
+    },
+    mode = "gradient",
+    to = {
+      [1] = 59,
+      [2] = 59,
+      [3] = 59,
+    },
+  },
+
+  -- Imported default palette from merged save data.
+  ["POI"] = {
+    from = {
+      [1] = 170,
+      [2] = 113,
+      [3] = 13,
+    },
+    mode = "gradient",
+    to = {
+      [1] = 90,
+      [2] = 50,
+      [3] = 20,
+    },
+  },
+
+  -- Imported default palette from merged save data.
+  ["Serpantol"] = {
+    from = {
+      [1] = 0,
+      [2] = 85,
+      [3] = 0,
+    },
+    mode = "gradient",
+    to = {
+      [1] = 162,
+      [2] = 162,
+      [3] = 0,
+    },
+  },
+}
+
+-- Ensure normalized selected palettes exist.
+DSL_COLORS.palettes["race_human"] = { mode = "gradient", from = {220,205,170}, to = {220,205,170} }
+DSL_COLORS.palettes["race_goblin"] = { mode = "gradient", from = {145,220,45}, to = {145,220,45} }
+DSL_COLORS.palettes["race_deep_gnome"] = { mode = "gradient", from = {120,235,220}, to = {120,235,220} }
+DSL_COLORS.palettes["race_tinker_gnome"] = { mode = "gradient", from = {80,220,255}, to = {80,220,255} }
+DSL_COLORS.palettes["race_half_elf"] = { mode = "gradient", from = {170,220,190}, to = {170,220,190} }
+DSL_COLORS.palettes["race_shalonesti_elf"] = { mode = "gradient", from = {80,220,110}, to = {80,220,110} }
+DSL_COLORS.palettes["race_dark_elf"] = { mode = "gradient", from = {170,90,220}, to = {170,90,220} }
+DSL_COLORS.palettes["race_wild_elf"] = { mode = "gradient", from = {40,185,80}, to = {40,185,80} }
+DSL_COLORS.palettes["race_sea_elf"] = { mode = "gradient", from = {80,210,220}, to = {80,210,220} }
+DSL_COLORS.palettes["race_hill_dwarf"] = { mode = "gradient", from = {190,145,80}, to = {190,145,80} }
+DSL_COLORS.palettes["race_mountain_dwarf"] = { mode = "gradient", from = {170,170,160}, to = {170,170,160} }
+DSL_COLORS.palettes["race_dark_dwarf"] = { mode = "gradient", from = {120,105,130}, to = {120,105,130} }
+DSL_COLORS.palettes["race_gully_dwarf"] = { mode = "gradient", from = {150,130,95}, to = {150,130,95} }
+DSL_COLORS.palettes["race_ogre"] = { mode = "gradient", from = {185,120,70}, to = {185,120,70} }
+DSL_COLORS.palettes["race_giant_ogre"] = { mode = "gradient", from = {205,120,45}, to = {205,120,45} }
+DSL_COLORS.palettes["race_half_ogre"] = { mode = "gradient", from = {185,145,100}, to = {185,145,100} }
+DSL_COLORS.palettes["race_minotaur"] = { mode = "gradient", from = {210,95,45}, to = {210,95,45} }
+DSL_COLORS.palettes["race_yinn"] = { mode = "gradient", from = {120,235,220}, to = {120,235,220} }
+DSL_COLORS.palettes["race_felar"] = { mode = "gradient", from = {255,190,90}, to = {255,190,90} }
+DSL_COLORS.palettes["race_wemic"] = { mode = "gradient", from = {210,165,80}, to = {210,165,80} }
+DSL_COLORS.palettes["race_bugbear"] = { mode = "gradient", from = {150,85,45}, to = {150,85,45} }
+DSL_COLORS.palettes["race_hobgoblin"] = { mode = "gradient", from = {120,170,65}, to = {120,170,65} }
+DSL_COLORS.palettes["race_mul"] = { mode = "gradient", from = {190,150,110}, to = {190,150,110} }
+DSL_COLORS.palettes["race_centaur"] = { mode = "gradient", from = {190,130,70}, to = {190,130,70} }
+DSL_COLORS.palettes["race_ariel"] = { mode = "gradient", from = {200,230,255}, to = {200,230,255} }
+DSL_COLORS.palettes["race_pixie"] = { mode = "gradient", from = {245,140,245}, to = {245,140,245} }
+DSL_COLORS.palettes["race_bakali"] = { mode = "gradient", from = {80,190,70}, to = {80,190,70} }
+DSL_COLORS.palettes["race_troll"] = { mode = "gradient", from = {80,155,65}, to = {80,155,65} }
+DSL_COLORS.palettes["race_orc"] = { mode = "gradient", from = {115,190,65}, to = {115,190,65} }
+DSL_COLORS.palettes["race_arboren"] = { mode = "gradient", from = {95,210,95}, to = {95,210,95} }
+DSL_COLORS.palettes["race_lagodae"] = { mode = "gradient", from = {140,210,185}, to = {140,210,185} }
+DSL_COLORS.palettes["race_lepori"] = { mode = "gradient", from = {225,225,205}, to = {225,225,205} }
+DSL_COLORS.palettes["race_aurak"] = { mode = "gradient", from = {210,165,45}, to = {255,215,80} }
+DSL_COLORS.palettes["race_baaz"] = { mode = "gradient", from = {145,90,55}, to = {210,150,70} }
+DSL_COLORS.palettes["race_bozak"] = { mode = "gradient", from = {80,190,120}, to = {90,80,170} }
+DSL_COLORS.palettes["class_mage"] = { mode = "gradient", from = {120,100,255}, to = {120,100,255} }
+DSL_COLORS.palettes["class_cleric"] = { mode = "gradient", from = {245,230,140}, to = {245,230,140} }
+DSL_COLORS.palettes["class_thief"] = { mode = "gradient", from = {120,150,130}, to = {120,150,130} }
+DSL_COLORS.palettes["class_warrior"] = { mode = "gradient", from = {230,95,45}, to = {230,95,45} }
+DSL_COLORS.palettes["class_dragon"] = { mode = "gradient", from = {0,255,0}, to = {0,150,0} }
+DSL_COLORS.palettes["class_bladesinger"] = { mode = "gradient", from = {90,230,180}, to = {210,230,240} }
+DSL_COLORS.palettes["class_battlerager"] = { mode = "gradient", from = {0,190,190}, to = {255,75,35} }
+DSL_COLORS.palettes["class_necromancer"] = { mode = "gradient", from = {105,95,120}, to = {210,205,185} }
+DSL_COLORS.palettes["class_transmuter"] = { mode = "gradient", from = {70,220,200}, to = {190,230,210} }
+DSL_COLORS.palettes["class_invoker"] = { mode = "gradient", from = {140,80,255}, to = {255,120,45} }
+DSL_COLORS.palettes["class_paladin"] = { mode = "gradient", from = {255,235,100}, to = {255,255,255} }
+DSL_COLORS.palettes["class_monk"] = { mode = "gradient", from = {210,200,160}, to = {170,120,70} }
+DSL_COLORS.palettes["class_assassin"] = { mode = "gradient", from = {110,40,45}, to = {100,105,105} }
+DSL_COLORS.palettes["class_crusader"] = { mode = "gradient", from = {255,220,80}, to = {255,255,230} }
+DSL_COLORS.palettes["class_druid"] = { mode = "gradient", from = {70,190,80}, to = {150,110,60} }
+DSL_COLORS.palettes["class_ranger"] = { mode = "gradient", from = {70,180,80}, to = {150,105,55} }
+DSL_COLORS.palettes["class_barbarian"] = { mode = "gradient", from = {185,20,15}, to = {230,95,20} }
+DSL_COLORS.palettes["class_shaman"] = { mode = "gradient", from = {160,100,220}, to = {160,190,210} }
+DSL_COLORS.palettes["class_warlock"] = { mode = "gradient", from = {150,60,220}, to = {70,45,100} }
+DSL_COLORS.palettes["class_witch"] = { mode = "gradient", from = {150,60,220}, to = {70,45,100} }
+DSL_COLORS.palettes["class_bard"] = { mode = "gradient", from = {255,150,210}, to = {255,150,210} }
+DSL_COLORS.palettes["class_illusionist"] = { mode = "gradient", from = {180,145,255}, to = {230,210,255} }
+DSL_COLORS.palettes["class_angel_class"] = { mode = "gradient", from = {255,255,255}, to = {255,235,130} }
+DSL_COLORS.palettes["class_draconian_class"] = { mode = "gradient", from = {0,255,0}, to = {0,150,0} }
+DSL_COLORS.palettes["class_citizen_class"] = { mode = "gradient", from = {130,135,135}, to = {220,205,170} }
+DSL_COLORS.palettes["class_swashbuckler"] = { mode = "gradient", from = {60,180,230}, to = {210,230,240} }
+DSL_COLORS.palettes["class_demon_class"] = { mode = "gradient", from = {150,0,0}, to = {45,45,45} }
+DSL_COLORS.palettes["class_balanx_class"] = { mode = "gradient", from = {80,170,255}, to = {40,220,220} }
+DSL_COLORS.palettes["class_anti_paladin"] = { mode = "gradient", from = {150,30,50}, to = {60,60,65} }
+DSL_COLORS.palettes["class_jongleur"] = { mode = "gradient", from = {255,130,210}, to = {255,210,90} }
+DSL_COLORS.palettes["class_enchantor"] = { mode = "gradient", from = {70,220,255}, to = {120,100,255} }
+DSL_COLORS.palettes["class_charlatan"] = { mode = "gradient", from = {210,100,255}, to = {245,160,220} }
+DSL_COLORS.palettes["class_priest"] = { mode = "gradient", from = {255,255,230}, to = {235,210,120} }
+DSL_COLORS.palettes["class_giant_class"] = { mode = "gradient", from = {220,245,255}, to = {150,175,205} }
+DSL_COLORS.palettes["class_shadowknight"] = { mode = "gradient", from = {95,60,130}, to = {30,30,35} }
+DSL_COLORS.palettes["class_bandit"] = { mode = "gradient", from = {145,95,45}, to = {200,155,75} }
+DSL_COLORS.palettes["class_runesmith"] = { mode = "gradient", from = {150,150,155}, to = {100,190,255} }
+DSL_COLORS.palettes["class_eldritch"] = { mode = "gradient", from = {120,80,255}, to = {70,210,180} }
+DSL_COLORS.palettes["class_battlemage"] = { mode = "gradient", from = {150,70,255}, to = {90,150,220} }
+DSL_COLORS.palettes["class_nightshade"] = { mode = "gradient", from = {130,70,170}, to = {70,120,70} }
+DSL_COLORS.palettes["class_skald"] = { mode = "gradient", from = {220,150,70}, to = {165,170,180} }
+DSL_COLORS.palettes["class_armsman"] = { mode = "gradient", from = {150,150,155}, to = {220,175,80} }
+DSL_COLORS.palettes["class_dragonslayer"] = { mode = "gradient", from = {245,205,35}, to = {95,220,0} }
+DSL_COLORS.palettes["class_pirate"] = { mode = "gradient", from = {40,170,170}, to = {120,130,135} }
+DSL_COLORS.palettes["class_defiler"] = { mode = "gradient", from = {120,180,35}, to = {70,35,100} }
+DSL_COLORS.palettes["class_mentalist"] = { mode = "gradient", from = {70,110,255}, to = {170,210,255} }
+DSL_COLORS.palettes["class_confessor"] = { mode = "gradient", from = {230,230,255}, to = {255,245,190} }
+DSL_COLORS.palettes["class_shadowmage"] = { mode = "gradient", from = {95,95,110}, to = {150,130,190} }
+DSL_COLORS.palettes["class_samurai"] = { mode = "gradient", from = {190,35,55}, to = {220,220,225} }
+DSL_COLORS.palettes["class_wujen"] = { mode = "gradient", from = {40,210,190}, to = {80,150,255} }
+DSL_COLORS.palettes["class_brewmaster"] = { mode = "gradient", from = {160,95,40}, to = {235,190,95} }
+DSL_COLORS.palettes["class_shukenja"] = { mode = "gradient", from = {210,235,255}, to = {120,220,230} }
+DSL_COLORS.palettes["class_ninja"] = { mode = "gradient", from = {95,100,115}, to = {150,160,175} }
+DSL_COLORS.palettes["class_ovate"] = { mode = "gradient", from = {120,210,145}, to = {245,170,210} }
+DSL_COLORS.palettes["chaos"] = { mode = "gradient", from = {210, 180, 230}, to = {130, 125, 140} }
+DSL_COLORS.palettes["shadow"] = { mode = "gradient", from = {120,120,120}, to = {47,47,47} }
+DSL_COLORS.palettes["wargar"] = { mode = "gradient", from = {0,190,190}, to = {0,110,150} }
+DSL_COLORS.palettes["shalonesti_clan"] = { mode = "gradient", from = {0,165,65}, to = {220,35,35} }
+DSL_COLORS.palettes["white_robes"] = { mode = "gradient", from = {255,255,255}, to = {255,245,190} }
+DSL_COLORS.palettes["red_robes"] = { mode = "gradient", from = {230,20,20}, to = {255,160,70} }
+DSL_COLORS.palettes["black_robes"] = { mode = "gradient", from = {95,95,110}, to = {150,130,190} }
+DSL_COLORS.palettes["loner"] = { mode = "gradient", from = {66,66,66}, to = {185,255,220} }
+DSL_COLORS.palettes["new_thalos"] = { mode = "gradient", from = {255,215,65}, to = {80,45,145} }
+DSL_COLORS.palettes["althainia"] = { mode = "gradient", from = {35,85,230}, to = {235,240,255} }
+DSL_COLORS.palettes["arkane"] = { mode = "gradient", from = {30,70,235}, to = {240,210,70} }
+DSL_COLORS.palettes["verminasia"] = { mode = "triple", a = {200,0,0}, b = {125,35,160}, c = {45,45,50} }
+DSL_COLORS.palettes["abaddon"] = { mode = "gradient", from = {220,0,0}, to = {85,85,90} }
+DSL_COLORS.palettes["nordmaar"] = { mode = "gradient", from = {35,90,230}, to = {240,250,255} }
+DSL_COLORS.palettes["ganth"] = { mode = "gradient", from = {140,55,20}, to = {230,120,30} }
+DSL_COLORS.palettes["thaxanos"] = { mode = "gradient", from = {100,115,125}, to = {220,120,45} }
+DSL_COLORS.palettes["retired"] = { mode = "gradient", from = {135,135,145}, to = {215,215,215} }
+DSL_COLORS.palettes["wanted"] = { mode = "gradient", from = {255,0,0}, to = {255,0,0} }
+DSL_COLORS.palettes["hostile"] = { mode = "triple", a = {255,255,255}, b = {225,65,65}, c = {65,65,65} }
+DSL_COLORS.palettes["title_royalty"] = { mode = "gradient", from = {155,70,255}, to = {255,215,65} }
+DSL_COLORS.palettes["title_military"] = { mode = "gradient", from = {190,25,40}, to = {230,180,70} }
+DSL_COLORS.palettes["title_scholarly"] = { mode = "gradient", from = {40,210,200}, to = {220,230,235} }
+DSL_COLORS.palettes["title_religious"] = { mode = "triple", a = {255,255,255}, b = {220,35,35}, c = {65,65,65} }
+DSL_COLORS.palettes["title_craft_titles"] = { mode = "gradient", from = {255,210,95}, to = {180,130,70} }
+DSL_COLORS.palettes["title_unknown_titles"] = { mode = "gradient", from = {170,170,170}, to = {230,230,230} }
+-- Restored from earlier color scripts during release audit.
+-- These are aliases/palettes that existed before the clean rewrite but were not
+-- reachable through the consolidated scanner. Existing approved colors are not changed.
+DSL_COLORS.palettes["title_political"] = DSL_COLORS.palettes["political"]
+DSL_COLORS.palettes["race_kender"] = { mode = "gradient", from = {255,170,230}, to = {255,170,230} }
+DSL_COLORS.palettes["race_elf"] = { mode = "gradient", from = {120,220,150}, to = {120,220,150} }
+DSL_COLORS.palettes["race_dwarf"] = { mode = "gradient", from = {170,160,145}, to = {170,160,145} }
+DSL_COLORS.palettes["race_gnome"] = { mode = "gradient", from = {95,215,230}, to = {95,215,230} }
+DSL_COLORS.palettes["craft_rank_legendary_grand_master"] = { mode = "triple", a = {255,245,170}, b = {255,255,255}, c = {255,210,70} }
+DSL_COLORS.palettes["craft_rank_grand_master"] = { mode = "gradient", from = {255,230,120}, to = {255,245,210} }
+DSL_COLORS.palettes["craft_rank_master"] = { mode = "gradient", from = {220,205,160}, to = {255,235,170} }
+DSL_COLORS.palettes["craft_rank_journeyman"] = { mode = "gradient", from = {120,190,255}, to = {200,235,255} }
+DSL_COLORS.palettes["craft_rank_junior"] = { mode = "gradient", from = {150,210,150}, to = {220,245,190} }
+DSL_COLORS.palettes["craft_rank_helper"] = { mode = "gradient", from = {170,170,170}, to = {220,220,220} }
+DSL_COLORS.palettes["craft_weaponsmith"] = { mode = "gradient", from = {150,150,155}, to = {255,95,35} }
+DSL_COLORS.palettes["craft_armorcraft"] = { mode = "gradient", from = {120,130,140}, to = {220,175,80} }
+DSL_COLORS.palettes["craft_spellcrafter"] = { mode = "gradient", from = {70,220,255}, to = {180,90,255} }
+DSL_COLORS.palettes["craft_lumberjack"] = { mode = "gradient", from = {115,75,35}, to = {75,190,75} }
+DSL_COLORS.palettes["craft_smelter"] = { mode = "gradient", from = {95,95,100}, to = {255,120,35} }
+DSL_COLORS.palettes["craft_tanner"] = { mode = "gradient", from = {130,75,35}, to = {210,155,95} }
+DSL_COLORS.palettes["craft_tailor"] = { mode = "gradient", from = {225,205,170}, to = {140,180,230} }
+DSL_COLORS.palettes["craft_hunter"] = { mode = "gradient", from = {85,150,70}, to = {190,120,60} }
+DSL_COLORS.palettes["craft_miller"] = { mode = "gradient", from = {155,105,55}, to = {220,190,120} }
+DSL_COLORS.palettes["craft_miner"] = { mode = "gradient", from = {115,115,120}, to = {90,170,230} }
+DSL_COLORS.palettes["craft_command"] = { mode = "gradient", from = {210,210,210}, to = {120,220,255} }
+DSL_COLORS.palettes["craft_item_weapon"] = { mode = "gradient", from = {190,190,195}, to = {255,130,55} }
+DSL_COLORS.palettes["craft_item_blunt"] = { mode = "gradient", from = {160,145,120}, to = {230,185,95} }
+DSL_COLORS.palettes["craft_item_armor"] = { mode = "gradient", from = {130,145,155}, to = {220,220,225} }
+DSL_COLORS.palettes["craft_item_tailor"] = { mode = "gradient", from = {235,220,185}, to = {160,190,240} }
+DSL_COLORS.palettes["craft_item_leather"] = { mode = "gradient", from = {130,75,35}, to = {215,155,90} }
+DSL_COLORS.palettes["craft_item_gem"] = { mode = "gradient", from = {120,235,220}, to = {220,100,255} }
+DSL_COLORS.palettes["craft_item_trinket"] = { mode = "gradient", from = {255,210,95}, to = {210,150,70} }
+
+DSL_RACE_KEY_TO_PALETTE = {
+  ["human"] = "race_human",
+  ["goblin"] = "race_goblin",
+  ["deep_gnome"] = "race_deep_gnome",
+  ["tinker_gnome"] = "race_tinker_gnome",
+  ["half_elf"] = "race_half_elf",
+  ["shalonesti_elf"] = "race_shalonesti_elf",
+  ["dark_elf"] = "race_dark_elf",
+  ["wild_elf"] = "race_wild_elf",
+  ["sea_elf"] = "race_sea_elf",
+  ["hill_dwarf"] = "race_hill_dwarf",
+  ["mountain_dwarf"] = "race_mountain_dwarf",
+  ["dark_dwarf"] = "race_dark_dwarf",
+  ["gully_dwarf"] = "race_gully_dwarf",
+  ["ogre"] = "race_ogre",
+  ["giant_ogre"] = "race_giant_ogre",
+  ["half_ogre"] = "race_half_ogre",
+  ["minotaur"] = "race_minotaur",
+  ["yinn"] = "race_yinn",
+  ["felar"] = "race_felar",
+  ["wemic"] = "race_wemic",
+  ["bugbear"] = "race_bugbear",
+  ["hobgoblin"] = "race_hobgoblin",
+  ["mul"] = "race_mul",
+  ["centaur"] = "race_centaur",
+  ["ariel"] = "race_ariel",
+  ["pixie"] = "race_pixie",
+  ["bakali"] = "race_bakali",
+  ["troll"] = "race_troll",
+  ["orc"] = "race_orc",
+  ["arboren"] = "race_arboren",
+  ["lagodae"] = "race_lagodae",
+  ["lepori"] = "race_lepori",
+  ["kender"] = "race_kender",
+  ["elf"] = "race_elf",
+  ["dwarf"] = "race_dwarf",
+  ["gnome"] = "race_gnome",
+  ["angel_race"] = "angel",
+  ["demon_race"] = "demon",
+  ["balanx_race"] = "balanx",
+  ["aurak"] = "race_aurak",
+  ["baaz"] = "race_baaz",
+  ["bozak"] = "race_bozak",
+  ["cloud_giant"] = "cloud_giant",
+  ["frost_giant"] = "frost_giant",
+  ["fire_giant"] = "fire_giant",
+  ["black_dragon"] = "black_dragon",
+  ["blue_dragon"] = "blue_dragon",
+  ["green_dragon"] = "green_dragon",
+  ["red_dragon"] = "red_dragon",
+  ["white_dragon"] = "white_dragon",
+  ["brass_dragon"] = "brass_dragon",
+  ["bronze_dragon"] = "bronze_dragon",
+  ["copper_dragon"] = "copper_dragon",
+  ["gold_dragon"] = "gold_dragon",
+  ["silver_dragon"] = "silver_dragon",
+  ["brown_dragon"] = "brown_dragon",
+  ["steel_dragon"] = "steel_dragon",
+  ["crystal_dragon"] = "crystal",
+  ["topaz_dragon"] = "topaz_dragon",
+}
+
+DSL_RACE_ALIASES = {
+  ["Human"] = "human",
+  ["human"] = "human",
+  ["Goblin"] = "goblin",
+  ["goblin"] = "goblin",
+  ["Deep gnome"] = "deep_gnome",
+  ["deep gnome"] = "deep_gnome",
+  ["DGnome"] = "deep_gnome",
+  ["dgnome"] = "deep_gnome",
+  ["Deep Gnome"] = "deep_gnome",
+  ["deep gnome"] = "deep_gnome",
+  ["Tinker gnome"] = "tinker_gnome",
+  ["tinker gnome"] = "tinker_gnome",
+  ["TGnome"] = "tinker_gnome",
+  ["tgnome"] = "tinker_gnome",
+  ["Tinker Gnome"] = "tinker_gnome",
+  ["tinker gnome"] = "tinker_gnome",
+  ["Half elf"] = "half_elf",
+  ["half elf"] = "half_elf",
+  ["H-Elf"] = "half_elf",
+  ["h-elf"] = "half_elf",
+  ["Half Elf"] = "half_elf",
+  ["half elf"] = "half_elf",
+  ["Shalonesti elf"] = "shalonesti_elf",
+  ["shalonesti elf"] = "shalonesti_elf",
+  ["S-Elf"] = "shalonesti_elf",
+  ["s-elf"] = "shalonesti_elf",
+  ["Shalonesti Elf"] = "shalonesti_elf",
+  ["shalonesti elf"] = "shalonesti_elf",
+  ["Dark elf"] = "dark_elf",
+  ["dark elf"] = "dark_elf",
+  ["D-Elf"] = "dark_elf",
+  ["d-elf"] = "dark_elf",
+  ["Dark Elf"] = "dark_elf",
+  ["dark elf"] = "dark_elf",
+  ["Wild elf"] = "wild_elf",
+  ["wild elf"] = "wild_elf",
+  ["W-Elf"] = "wild_elf",
+  ["w-elf"] = "wild_elf",
+  ["Wild Elf"] = "wild_elf",
+  ["wild elf"] = "wild_elf",
+  ["Sea elf"] = "sea_elf",
+  ["sea elf"] = "sea_elf",
+  ["Sea-E"] = "sea_elf",
+  ["sea-e"] = "sea_elf",
+  ["Sea Elf"] = "sea_elf",
+  ["sea elf"] = "sea_elf",
+  ["Hill dwarf"] = "hill_dwarf",
+  ["hill dwarf"] = "hill_dwarf",
+  ["H-Dwf"] = "hill_dwarf",
+  ["h-dwf"] = "hill_dwarf",
+  ["Hill Dwarf"] = "hill_dwarf",
+  ["hill dwarf"] = "hill_dwarf",
+  ["Mountain dwarf"] = "mountain_dwarf",
+  ["mountain dwarf"] = "mountain_dwarf",
+  ["M-Dwf"] = "mountain_dwarf",
+  ["m-dwf"] = "mountain_dwarf",
+  ["Mountain Dwarf"] = "mountain_dwarf",
+  ["mountain dwarf"] = "mountain_dwarf",
+  ["Dark dwarf"] = "dark_dwarf",
+  ["dark dwarf"] = "dark_dwarf",
+  ["D-Dwf"] = "dark_dwarf",
+  ["d-dwf"] = "dark_dwarf",
+  ["Dark Dwarf"] = "dark_dwarf",
+  ["dark dwarf"] = "dark_dwarf",
+  ["Gully dwarf"] = "gully_dwarf",
+  ["gully dwarf"] = "gully_dwarf",
+  ["Gully"] = "gully_dwarf",
+  ["gully"] = "gully_dwarf",
+  ["Gully Dwarf"] = "gully_dwarf",
+  ["gully dwarf"] = "gully_dwarf",
+  ["Ogre"] = "ogre",
+  ["ogre"] = "ogre",
+  ["Giant ogre"] = "giant_ogre",
+  ["giant ogre"] = "giant_ogre",
+  ["G-Ogre"] = "giant_ogre",
+  ["g-ogre"] = "giant_ogre",
+  ["Giant Ogre"] = "giant_ogre",
+  ["giant ogre"] = "giant_ogre",
+  ["Half ogre"] = "half_ogre",
+  ["half ogre"] = "half_ogre",
+  ["H-Ogre"] = "half_ogre",
+  ["h-ogre"] = "half_ogre",
+  ["Half Ogre"] = "half_ogre",
+  ["half ogre"] = "half_ogre",
+  ["Minotaur"] = "minotaur",
+  ["minotaur"] = "minotaur",
+  ["Minotr"] = "minotaur",
+  ["minotr"] = "minotaur",
+  ["Yinn"] = "yinn",
+  ["yinn"] = "yinn",
+  ["Felar"] = "felar",
+  ["felar"] = "felar",
+  ["Wemic"] = "wemic",
+  ["wemic"] = "wemic",
+  ["Bugbear"] = "bugbear",
+  ["bugbear"] = "bugbear",
+  ["B-Bear"] = "bugbear",
+  ["b-bear"] = "bugbear",
+  ["Hobgoblin"] = "hobgoblin",
+  ["hobgoblin"] = "hobgoblin",
+  ["HobGob"] = "hobgoblin",
+  ["hobgob"] = "hobgoblin",
+  ["Mul"] = "mul",
+  ["mul"] = "mul",
+  ["Centaur"] = "centaur",
+  ["centaur"] = "centaur",
+  ["Cent"] = "centaur",
+  ["cent"] = "centaur",
+  ["Ariel"] = "ariel",
+  ["ariel"] = "ariel",
+  ["Pixie"] = "pixie",
+  ["pixie"] = "pixie",
+  ["Bakali"] = "bakali",
+  ["bakali"] = "bakali",
+  ["Troll"] = "troll",
+  ["troll"] = "troll",
+  ["Orc"] = "orc",
+  ["orc"] = "orc",
+  ["Arboren"] = "arboren",
+  ["arboren"] = "arboren",
+  ["Arbor"] = "arboren",
+  ["arbor"] = "arboren",
+  ["Lagodae"] = "lagodae",
+  ["lagodae"] = "lagodae",
+  ["Lagoda"] = "lagodae",
+  ["lagoda"] = "lagodae",
+  ["Lepori"] = "lepori",
+  ["lepori"] = "lepori",
+  ["Angel"] = "angel_race",
+  ["angel"] = "angel_race",
+  ["Demon"] = "demon_race",
+  ["demon"] = "demon_race",
+  ["Balanx"] = "balanx_race",
+  ["balanx"] = "balanx_race",
+  ["Aurak draconian"] = "aurak",
+  ["aurak draconian"] = "aurak",
+  ["Aurak"] = "aurak",
+  ["aurak"] = "aurak",
+  ["Baaz draconian"] = "baaz",
+  ["baaz draconian"] = "baaz",
+  ["Baaz"] = "baaz",
+  ["baaz"] = "baaz",
+  ["Bozak draconian"] = "bozak",
+  ["bozak draconian"] = "bozak",
+  ["Bozak"] = "bozak",
+  ["bozak"] = "bozak",
+  ["Cloud giant"] = "cloud_giant",
+  ["cloud giant"] = "cloud_giant",
+  ["Cloud"] = "cloud_giant",
+  ["cloud"] = "cloud_giant",
+  ["Frost giant"] = "frost_giant",
+  ["frost giant"] = "frost_giant",
+  ["Frost"] = "frost_giant",
+  ["frost"] = "frost_giant",
+  ["Fire giant"] = "fire_giant",
+  ["fire giant"] = "fire_giant",
+  ["Fire"] = "fire_giant",
+  ["fire"] = "fire_giant",
+  ["Black dragon"] = "black_dragon",
+  ["black dragon"] = "black_dragon",
+  ["Black"] = "black_dragon",
+  ["black"] = "black_dragon",
+  ["Blue dragon"] = "blue_dragon",
+  ["blue dragon"] = "blue_dragon",
+  ["Blue"] = "blue_dragon",
+  ["blue"] = "blue_dragon",
+  ["Green dragon"] = "green_dragon",
+  ["green dragon"] = "green_dragon",
+  ["Green"] = "green_dragon",
+  ["green"] = "green_dragon",
+  ["Red dragon"] = "red_dragon",
+  ["red dragon"] = "red_dragon",
+  ["Red"] = "red_dragon",
+  ["red"] = "red_dragon",
+  ["White dragon"] = "white_dragon",
+  ["white dragon"] = "white_dragon",
+  ["White"] = "white_dragon",
+  ["white"] = "white_dragon",
+  ["Brass dragon"] = "brass_dragon",
+  ["brass dragon"] = "brass_dragon",
+  ["Brass"] = "brass_dragon",
+  ["brass"] = "brass_dragon",
+  ["Bronze dragon"] = "bronze_dragon",
+  ["bronze dragon"] = "bronze_dragon",
+  ["Bronze"] = "bronze_dragon",
+  ["bronze"] = "bronze_dragon",
+  ["Copper dragon"] = "copper_dragon",
+  ["copper dragon"] = "copper_dragon",
+  ["Copper"] = "copper_dragon",
+  ["copper"] = "copper_dragon",
+  ["Gold dragon"] = "gold_dragon",
+  ["gold dragon"] = "gold_dragon",
+  ["Gold"] = "gold_dragon",
+  ["gold"] = "gold_dragon",
+  ["Silver dragon"] = "silver_dragon",
+  ["silver dragon"] = "silver_dragon",
+  ["Silver"] = "silver_dragon",
+  ["silver"] = "silver_dragon",
+  ["Brown dragon"] = "brown_dragon",
+  ["brown dragon"] = "brown_dragon",
+  ["Brown"] = "brown_dragon",
+  ["brown"] = "brown_dragon",
+  ["Steel dragon"] = "steel_dragon",
+  ["steel dragon"] = "steel_dragon",
+  ["Steel"] = "steel_dragon",
+  ["steel"] = "steel_dragon",
+  ["Crystal dragon"] = "crystal_dragon",
+  ["crystal dragon"] = "crystal_dragon",
+  ["Crystl"] = "crystal_dragon",
+  ["crystl"] = "crystal_dragon",
+  ["Topaz dragon"] = "topaz_dragon",
+  ["topaz dragon"] = "topaz_dragon",
+  ["Topaz"] = "topaz_dragon",
+  ["topaz"] = "topaz_dragon",
+}
+
+DSL_CLASS_KEY_TO_PALETTE = {
+  ["mage"] = "class_mage",
+  ["cleric"] = "class_cleric",
+  ["thief"] = "class_thief",
+  ["warrior"] = "class_warrior",
+  ["dragon"] = "class_dragon",
+  ["bladesinger"] = "class_bladesinger",
+  ["battlerager"] = "class_battlerager",
+  ["necromancer"] = "class_necromancer",
+  ["transmuter"] = "class_transmuter",
+  ["invoker"] = "class_invoker",
+  ["paladin"] = "class_paladin",
+  ["monk"] = "class_monk",
+  ["assassin"] = "class_assassin",
+  ["crusader"] = "class_crusader",
+  ["druid"] = "class_druid",
+  ["ranger"] = "class_ranger",
+  ["barbarian"] = "class_barbarian",
+  ["shaman"] = "class_shaman",
+  ["warlock"] = "class_warlock",
+  ["witch"] = "class_witch",
+  ["bard"] = "class_bard",
+  ["illusionist"] = "class_illusionist",
+  ["angel_class"] = "class_angel_class",
+  ["draconian_class"] = "class_draconian_class",
+  ["citizen_class"] = "class_citizen_class",
+  ["swashbuckler"] = "class_swashbuckler",
+  ["demon_class"] = "class_demon_class",
+  ["balanx_class"] = "class_balanx_class",
+  ["anti_paladin"] = "class_anti_paladin",
+  ["jongleur"] = "class_jongleur",
+  ["enchantor"] = "class_enchantor",
+  ["charlatan"] = "class_charlatan",
+  ["priest"] = "class_priest",
+  ["giant_class"] = "class_giant_class",
+  ["shadowknight"] = "class_shadowknight",
+  ["bandit"] = "class_bandit",
+  ["runesmith"] = "class_runesmith",
+  ["eldritch"] = "class_eldritch",
+  ["battlemage"] = "class_battlemage",
+  ["nightshade"] = "class_nightshade",
+  ["skald"] = "class_skald",
+  ["armsman"] = "class_armsman",
+  ["dragonslayer"] = "class_dragonslayer",
+  ["pirate"] = "class_pirate",
+  ["defiler"] = "class_defiler",
+  ["mentalist"] = "class_mentalist",
+  ["confessor"] = "class_confessor",
+  ["shadowmage"] = "class_shadowmage",
+  ["samurai"] = "class_samurai",
+  ["wujen"] = "class_wujen",
+  ["brewmaster"] = "class_brewmaster",
+  ["shukenja"] = "class_shukenja",
+  ["ninja"] = "class_ninja",
+  ["ovate"] = "class_ovate",
+}
+
+-- Release audit restoration: older full-race triggers included generic and plural
+-- words that were dropped during normalization. Case-insensitive matching below
+-- handles capitalization, but these aliases restore the actual terms and colors.
+DSL_RACE_ALIASES["Kender"] = "kender"
+DSL_RACE_ALIASES["kender"] = "kender"
+DSL_RACE_ALIASES["Elf"] = "elf"
+DSL_RACE_ALIASES["elf"] = "elf"
+DSL_RACE_ALIASES["Dwarf"] = "dwarf"
+DSL_RACE_ALIASES["dwarf"] = "dwarf"
+DSL_RACE_ALIASES["Gnome"] = "gnome"
+DSL_RACE_ALIASES["gnome"] = "gnome"
+DSL_RACE_ALIASES["Gully Dwarves"] = "gully_dwarf"
+DSL_RACE_ALIASES["gully dwarves"] = "gully_dwarf"
+DSL_RACE_ALIASES["Trolls"] = "troll"
+DSL_RACE_ALIASES["trolls"] = "troll"
+DSL_RACE_ALIASES["Ariels"] = "ariel"
+DSL_RACE_ALIASES["ariels"] = "ariel"
+DSL_RACE_ALIASES["Pixies"] = "pixie"
+DSL_RACE_ALIASES["pixies"] = "pixie"
+DSL_RACE_ALIASES["Centaurs"] = "centaur"
+DSL_RACE_ALIASES["centaurs"] = "centaur"
+DSL_RACE_ALIASES["Orcs"] = "orc"
+DSL_RACE_ALIASES["orcs"] = "orc"
+
+DSL_CLASS_ALIASES = {
+  ["Mage"] = "mage",
+  ["mage"] = "mage",
+  ["Mages"] = "mage",
+  ["mages"] = "mage",
+  ["Mag"] = "mage",
+  ["mag"] = "mage",
+  ["Cleric"] = "cleric",
+  ["cleric"] = "cleric",
+  ["Clerics"] = "cleric",
+  ["clerics"] = "cleric",
+  ["Cle"] = "cleric",
+  ["cle"] = "cleric",
+  ["Thief"] = "thief",
+  ["thief"] = "thief",
+  ["Thieves"] = "thief",
+  ["thieves"] = "thief",
+  ["Thi"] = "thief",
+  ["thi"] = "thief",
+  ["Warrior"] = "warrior",
+  ["warrior"] = "warrior",
+  ["Warriors"] = "warrior",
+  ["warriors"] = "warrior",
+  ["War"] = "warrior",
+  ["war"] = "warrior",
+  ["Dragon"] = "dragon",
+  ["dragon"] = "dragon",
+  ["Dragons"] = "dragon",
+  ["dragons"] = "dragon",
+  ["Dra"] = "dragon",
+  ["dra"] = "dragon",
+  ["Bladesinger"] = "bladesinger",
+  ["bladesinger"] = "bladesinger",
+  ["Bladesingers"] = "bladesinger",
+  ["bladesingers"] = "bladesinger",
+  ["Bla"] = "bladesinger",
+  ["bla"] = "bladesinger",
+  ["Battlerager"] = "battlerager",
+  ["battlerager"] = "battlerager",
+  ["Battleragers"] = "battlerager",
+  ["battleragers"] = "battlerager",
+  ["Bat"] = "battlerager",
+  ["bat"] = "battlerager",
+  ["Btr"] = "battlerager",
+  ["btr"] = "battlerager",
+  ["Necromancer"] = "necromancer",
+  ["necromancer"] = "necromancer",
+  ["Necromancers"] = "necromancer",
+  ["necromancers"] = "necromancer",
+  ["Nec"] = "necromancer",
+  ["nec"] = "necromancer",
+  ["Transmuter"] = "transmuter",
+  ["transmuter"] = "transmuter",
+  ["Transmuters"] = "transmuter",
+  ["transmuters"] = "transmuter",
+  ["Tra"] = "transmuter",
+  ["tra"] = "transmuter",
+  ["Trn"] = "transmuter",
+  ["trn"] = "transmuter",
+  ["Invoker"] = "invoker",
+  ["invoker"] = "invoker",
+  ["Invokers"] = "invoker",
+  ["invokers"] = "invoker",
+  ["Inv"] = "invoker",
+  ["inv"] = "invoker",
+  ["Paladin"] = "paladin",
+  ["paladin"] = "paladin",
+  ["Paladins"] = "paladin",
+  ["paladins"] = "paladin",
+  ["Pal"] = "paladin",
+  ["pal"] = "paladin",
+  ["Monk"] = "monk",
+  ["monk"] = "monk",
+  ["Monks"] = "monk",
+  ["monks"] = "monk",
+  ["Mon"] = "monk",
+  ["mon"] = "monk",
+  ["Mnk"] = "monk",
+  ["mnk"] = "monk",
+  ["Assassin"] = "assassin",
+  ["assassin"] = "assassin",
+  ["Assassins"] = "assassin",
+  ["assassins"] = "assassin",
+  ["Asn"] = "assassin",
+  ["asn"] = "assassin",
+  ["Crusader"] = "crusader",
+  ["crusader"] = "crusader",
+  ["Crusaders"] = "crusader",
+  ["crusaders"] = "crusader",
+  ["Cru"] = "crusader",
+  ["cru"] = "crusader",
+  ["Druid"] = "druid",
+  ["druid"] = "druid",
+  ["Druids"] = "druid",
+  ["druids"] = "druid",
+  ["Dru"] = "druid",
+  ["dru"] = "druid",
+  ["Ranger"] = "ranger",
+  ["ranger"] = "ranger",
+  ["Rangers"] = "ranger",
+  ["rangers"] = "ranger",
+  ["Ran"] = "ranger",
+  ["ran"] = "ranger",
+  ["Barbarian"] = "barbarian",
+  ["barbarian"] = "barbarian",
+  ["Barbarians"] = "barbarian",
+  ["barbarians"] = "barbarian",
+  ["Bar"] = "barbarian",
+  ["bar"] = "barbarian",
+  ["Shaman"] = "shaman",
+  ["shaman"] = "shaman",
+  ["Shamans"] = "shaman",
+  ["shamans"] = "shaman",
+  ["Sha"] = "shaman",
+  ["sha"] = "shaman",
+  ["Warlock"] = "warlock",
+  ["warlock"] = "warlock",
+  ["Warlocks"] = "warlock",
+  ["warlocks"] = "warlock",
+  ["Wlk"] = "warlock",
+  ["wlk"] = "warlock",
+  ["Witch"] = "witch",
+  ["witch"] = "witch",
+  ["Witches"] = "witch",
+  ["witches"] = "witch",
+  ["Wit"] = "witch",
+  ["wit"] = "witch",
+  ["Bard"] = "bard",
+  ["bard"] = "bard",
+  ["Bards"] = "bard",
+  ["bards"] = "bard",
+  ["Brd"] = "bard",
+  ["brd"] = "bard",
+  ["Illusionist"] = "illusionist",
+  ["illusionist"] = "illusionist",
+  ["Illusionists"] = "illusionist",
+  ["illusionists"] = "illusionist",
+  ["Ill"] = "illusionist",
+  ["ill"] = "illusionist",
+  ["Angel"] = "angel_class",
+  ["angel"] = "angel_class",
+  ["Angels"] = "angel_class",
+  ["angels"] = "angel_class",
+  ["Ang"] = "angel_class",
+  ["ang"] = "angel_class",
+  ["Archangel"] = "angel_class",
+  ["archangel"] = "angel_class",
+  ["Lesser Angel"] = "angel_class",
+  ["lesser angel"] = "angel_class",
+  ["Draconian"] = "draconian_class",
+  ["draconian"] = "draconian_class",
+  ["Draconians"] = "draconian_class",
+  ["draconians"] = "draconian_class",
+  ["Drc"] = "draconian_class",
+  ["drc"] = "draconian_class",
+  ["Citizen"] = "citizen_class",
+  ["citizen"] = "citizen_class",
+  ["Citizens"] = "citizen_class",
+  ["citizens"] = "citizen_class",
+  ["Ctz"] = "citizen_class",
+  ["ctz"] = "citizen_class",
+  ["Swashbuckler"] = "swashbuckler",
+  ["swashbuckler"] = "swashbuckler",
+  ["Swashbucklers"] = "swashbuckler",
+  ["swashbucklers"] = "swashbuckler",
+  ["Swb"] = "swashbuckler",
+  ["swb"] = "swashbuckler",
+  ["Swa"] = "swashbuckler",
+  ["swa"] = "swashbuckler",
+  ["Demon"] = "demon_class",
+  ["demon"] = "demon_class",
+  ["Demons"] = "demon_class",
+  ["demons"] = "demon_class",
+  ["Dem"] = "demon_class",
+  ["dem"] = "demon_class",
+  ["Demon Lord"] = "demon_class",
+  ["demon lord"] = "demon_class",
+  ["Lesser Demon"] = "demon_class",
+  ["lesser demon"] = "demon_class",
+  ["Balanx"] = "balanx_class",
+  ["balanx"] = "balanx_class",
+  ["Bal"] = "balanx_class",
+  ["bal"] = "balanx_class",
+  ["Head Balanx"] = "balanx_class",
+  ["head balanx"] = "balanx_class",
+  ["Lesser Balanx"] = "balanx_class",
+  ["lesser balanx"] = "balanx_class",
+  ["Anti-paladin"] = "anti_paladin",
+  ["anti-paladin"] = "anti_paladin",
+  ["Anti-paladins"] = "anti_paladin",
+  ["anti-paladins"] = "anti_paladin",
+  ["Anti-Paladin"] = "anti_paladin",
+  ["anti-paladin"] = "anti_paladin",
+  ["Anti-Paladins"] = "anti_paladin",
+  ["anti-paladins"] = "anti_paladin",
+  ["Apl"] = "anti_paladin",
+  ["apl"] = "anti_paladin",
+  ["APal"] = "anti_paladin",
+  ["apal"] = "anti_paladin",
+  ["Jongleur"] = "jongleur",
+  ["jongleur"] = "jongleur",
+  ["Jongleurs"] = "jongleur",
+  ["jongleurs"] = "jongleur",
+  ["Jng"] = "jongleur",
+  ["jng"] = "jongleur",
+  ["Enchantor"] = "enchantor",
+  ["enchantor"] = "enchantor",
+  ["Enchantors"] = "enchantor",
+  ["enchantors"] = "enchantor",
+  ["Enc"] = "enchantor",
+  ["enc"] = "enchantor",
+  ["Charlatan"] = "charlatan",
+  ["charlatan"] = "charlatan",
+  ["Charlatans"] = "charlatan",
+  ["charlatans"] = "charlatan",
+  ["Cha"] = "charlatan",
+  ["cha"] = "charlatan",
+  ["Priest"] = "priest",
+  ["priest"] = "priest",
+  ["Priests"] = "priest",
+  ["priests"] = "priest",
+  ["Pri"] = "priest",
+  ["pri"] = "priest",
+  ["Giant"] = "giant_class",
+  ["giant"] = "giant_class",
+  ["Giants"] = "giant_class",
+  ["giants"] = "giant_class",
+  ["Gia"] = "giant_class",
+  ["gia"] = "giant_class",
+  ["Shadowknight"] = "shadowknight",
+  ["shadowknight"] = "shadowknight",
+  ["Shadowknights"] = "shadowknight",
+  ["shadowknights"] = "shadowknight",
+  ["Skn"] = "shadowknight",
+  ["skn"] = "shadowknight",
+  ["ShK"] = "shadowknight",
+  ["shk"] = "shadowknight",
+  ["Bandit"] = "bandit",
+  ["bandit"] = "bandit",
+  ["Bandits"] = "bandit",
+  ["bandits"] = "bandit",
+  ["Bnd"] = "bandit",
+  ["bnd"] = "bandit",
+  ["Runesmith"] = "runesmith",
+  ["runesmith"] = "runesmith",
+  ["Runesmiths"] = "runesmith",
+  ["runesmiths"] = "runesmith",
+  ["Run"] = "runesmith",
+  ["run"] = "runesmith",
+  ["Rns"] = "runesmith",
+  ["rns"] = "runesmith",
+  ["Eldritch"] = "eldritch",
+  ["eldritch"] = "eldritch",
+  ["Eldritches"] = "eldritch",
+  ["eldritches"] = "eldritch",
+  ["Eld"] = "eldritch",
+  ["eld"] = "eldritch",
+  ["Battlemage"] = "battlemage",
+  ["battlemage"] = "battlemage",
+  ["Battlemages"] = "battlemage",
+  ["battlemages"] = "battlemage",
+  ["Bmg"] = "battlemage",
+  ["bmg"] = "battlemage",
+  ["Nightshade"] = "nightshade",
+  ["nightshade"] = "nightshade",
+  ["Nightshades"] = "nightshade",
+  ["nightshades"] = "nightshade",
+  ["Nsh"] = "nightshade",
+  ["nsh"] = "nightshade",
+  ["Skald"] = "skald",
+  ["skald"] = "skald",
+  ["Skalds"] = "skald",
+  ["skalds"] = "skald",
+  ["Skd"] = "skald",
+  ["skd"] = "skald",
+  ["Armsman"] = "armsman",
+  ["armsman"] = "armsman",
+  ["Armsmen"] = "armsman",
+  ["armsmen"] = "armsman",
+  ["Arm"] = "armsman",
+  ["arm"] = "armsman",
+  ["Dragonslayer"] = "dragonslayer",
+  ["dragonslayer"] = "dragonslayer",
+  ["Dragonslayers"] = "dragonslayer",
+  ["dragonslayers"] = "dragonslayer",
+  ["Dragon Slayer"] = "dragonslayer",
+  ["dragon slayer"] = "dragonslayer",
+  ["Dragon Slayers"] = "dragonslayer",
+  ["dragon slayers"] = "dragonslayer",
+  ["Slr"] = "dragonslayer",
+  ["slr"] = "dragonslayer",
+  ["Pirate"] = "pirate",
+  ["pirate"] = "pirate",
+  ["Pirates"] = "pirate",
+  ["pirates"] = "pirate",
+  ["Pir"] = "pirate",
+  ["pir"] = "pirate",
+  ["Defiler"] = "defiler",
+  ["defiler"] = "defiler",
+  ["Defilers"] = "defiler",
+  ["defilers"] = "defiler",
+  ["Def"] = "defiler",
+  ["def"] = "defiler",
+  ["Mentalist"] = "mentalist",
+  ["mentalist"] = "mentalist",
+  ["Mentalists"] = "mentalist",
+  ["mentalists"] = "mentalist",
+  ["Mtl"] = "mentalist",
+  ["mtl"] = "mentalist",
+  ["Confessor"] = "confessor",
+  ["confessor"] = "confessor",
+  ["Confessors"] = "confessor",
+  ["confessors"] = "confessor",
+  ["Cfr"] = "confessor",
+  ["cfr"] = "confessor",
+  ["Con"] = "confessor",
+  ["con"] = "confessor",
+  ["Shadowmage"] = "shadowmage",
+  ["shadowmage"] = "shadowmage",
+  ["Shadowmages"] = "shadowmage",
+  ["shadowmages"] = "shadowmage",
+  ["Smg"] = "shadowmage",
+  ["smg"] = "shadowmage",
+  ["ShM"] = "shadowmage",
+  ["shm"] = "shadowmage",
+  ["Samurai"] = "samurai",
+  ["samurai"] = "samurai",
+  ["Sam"] = "samurai",
+  ["sam"] = "samurai",
+  ["Wujen"] = "wujen",
+  ["wujen"] = "wujen",
+  ["WuJen"] = "wujen",
+  ["wujen"] = "wujen",
+  ["WuJ"] = "wujen",
+  ["wuj"] = "wujen",
+  ["Brewmaster"] = "brewmaster",
+  ["brewmaster"] = "brewmaster",
+  ["Brewmasters"] = "brewmaster",
+  ["brewmasters"] = "brewmaster",
+  ["Brw"] = "brewmaster",
+  ["brw"] = "brewmaster",
+  ["Shukenja"] = "shukenja",
+  ["shukenja"] = "shukenja",
+  ["Shu"] = "shukenja",
+  ["shu"] = "shukenja",
+  ["Ninja"] = "ninja",
+  ["ninja"] = "ninja",
+  ["Ninjas"] = "ninja",
+  ["ninjas"] = "ninja",
+  ["Nin"] = "ninja",
+  ["nin"] = "ninja",
+  ["Ovate"] = "ovate",
+  ["ovate"] = "ovate",
+  ["Ovates"] = "ovate",
+  ["ovates"] = "ovate",
+  ["Ovt"] = "ovate",
+  ["ovt"] = "ovate",
+  ["Ova"] = "ovate",
+  ["ova"] = "ovate",
+}
+
+DSL_ORG_KEY_TO_PALETTE = {
+  ["knighthood"] = "knighthood",
+  ["justice"] = "justice",
+  ["bloodlust"] = "bloodlust",
+  ["slayers"] = "slayers",
+  ["conclave"] = "conclave",
+  ["renegade"] = "renegade",
+  ["shalonesti_kingdom"] = "shalonesti_kingdom",
+  ["gray_church"] = "gray_church",
+  ["marauders"] = "marauders",
+  ["darkonin"] = "darkonin",
+  ["chaos"] = "chaos",
+  ["shadow"] = "shadow",
+  ["wargar"] = "wargar",
+  ["shalonesti_clan"] = "shalonesti_clan",
+  ["white_robes"] = "white_robes",
+  ["red_robes"] = "red_robes",
+  ["black_robes"] = "black_robes",
+  ["loner"] = "loner",
+  ["new_thalos"] = "new_thalos",
+  ["althainia"] = "althainia",
+  ["arkane"] = "arkane",
+  ["verminasia"] = "verminasia",
+  ["abaddon"] = "abaddon",
+  ["nordmaar"] = "nordmaar",
+  ["ganth"] = "ganth",
+  ["thaxanos"] = "thaxanos",
+  ["retired"] = "retired",
+  ["wanted"] = "wanted",
+  ["hostile"] = "hostile",
+}
+
+DSL_ORG_ALIASES = {
+  ["[ Chaos ]"] = "chaos",
+  ["Chaos"] = "chaos",
+  ["chaos"] = "chaos",
+  ["Chaos"] = "chaos",
+  ["Chaos"] = "chaos",
+  ["chaos"] = "chaos",
+  ["[ Shadow ]"] = "shadow",
+  ["Shadow"] = "shadow",
+  ["shadow"] = "shadow",
+  ["Shadow"] = "shadow",
+  ["Shadow"] = "shadow",
+  ["shadow"] = "shadow",
+  ["[ Wargar ]"] = "wargar",
+  ["Wargar"] = "wargar",
+  ["wargar"] = "wargar",
+  ["Wargar"] = "wargar",
+  ["Wargar"] = "wargar",
+  ["wargar"] = "wargar",
+  ["[ Shalonesti ]"] = "shalonesti_clan",
+  ["Shalonesti"] = "shalonesti_clan",
+  ["shalonesti"] = "shalonesti_clan",
+  ["Shalonesti clan names"] = "shalonesti_clan",
+  ["Shalonesti clan names"] = "shalonesti_clan",
+  ["shalonesti clan names"] = "shalonesti_clan",
+  ["[ White Robes ]"] = "white_robes",
+  ["White Robes"] = "white_robes",
+  ["white robes"] = "white_robes",
+  ["White Robes"] = "white_robes",
+  ["White Robes"] = "white_robes",
+  ["white robes"] = "white_robes",
+  ["[ Red Robes ]"] = "red_robes",
+  ["Red Robes"] = "red_robes",
+  ["red robes"] = "red_robes",
+  ["Red Robes"] = "red_robes",
+  ["Red Robes"] = "red_robes",
+  ["red robes"] = "red_robes",
+  ["[ Black Robes ]"] = "black_robes",
+  ["Black Robes"] = "black_robes",
+  ["black robes"] = "black_robes",
+  ["Black Robes"] = "black_robes",
+  ["Black Robes"] = "black_robes",
+  ["black robes"] = "black_robes",
+  ["[ Loner ]"] = "loner",
+  ["Loner"] = "loner",
+  ["loner"] = "loner",
+  ["Loner"] = "loner",
+  ["Loner"] = "loner",
+  ["loner"] = "loner",
+  ["(NT)"] = "new_thalos",
+  ["NT"] = "new_thalos",
+  ["nt"] = "new_thalos",
+  ["New Thalos"] = "new_thalos",
+  ["New Thalos"] = "new_thalos",
+  ["new thalos"] = "new_thalos",
+  ["(AL)"] = "althainia",
+  ["AL"] = "althainia",
+  ["al"] = "althainia",
+  ["Althainia"] = "althainia",
+  ["Althainia"] = "althainia",
+  ["althainia"] = "althainia",
+  ["(AR)"] = "arkane",
+  ["AR"] = "arkane",
+  ["ar"] = "arkane",
+  ["Arkane"] = "arkane",
+  ["Arkane"] = "arkane",
+  ["arkane"] = "arkane",
+  ["(VR)"] = "verminasia",
+  ["VR"] = "verminasia",
+  ["vr"] = "verminasia",
+  ["Verminasia"] = "verminasia",
+  ["Verminasia"] = "verminasia",
+  ["verminasia"] = "verminasia",
+  ["(Abaddon)"] = "abaddon",
+  ["Abaddon"] = "abaddon",
+  ["abaddon"] = "abaddon",
+  ["Abaddon"] = "abaddon",
+  ["Abaddon"] = "abaddon",
+  ["abaddon"] = "abaddon",
+  ["(Nordmaar)"] = "nordmaar",
+  ["Nordmaar"] = "nordmaar",
+  ["nordmaar"] = "nordmaar",
+  ["Nordmaar"] = "nordmaar",
+  ["Nordmaar"] = "nordmaar",
+  ["nordmaar"] = "nordmaar",
+  ["(Ganth)"] = "ganth",
+  ["Ganth"] = "ganth",
+  ["ganth"] = "ganth",
+  ["Ganth"] = "ganth",
+  ["Ganth"] = "ganth",
+  ["ganth"] = "ganth",
+  ["Thaxanos"] = "thaxanos",
+  ["Thaxanos"] = "thaxanos",
+  ["thaxanos"] = "thaxanos",
+  ["(Retired)"] = "retired",
+  ["Retired"] = "retired",
+  ["retired"] = "retired",
+  ["Retired"] = "retired",
+  ["Retired"] = "retired",
+  ["retired"] = "retired",
+  ["(WANTED)"] = "wanted",
+  ["WANTED"] = "wanted",
+  ["wanted"] = "wanted",
+  ["WANTED"] = "wanted",
+  ["WANTED"] = "wanted",
+  ["wanted"] = "wanted",
+  ["(Hostile)"] = "hostile",
+  ["Hostile"] = "hostile",
+  ["hostile"] = "hostile",
+  ["Hostile"] = "hostile",
+  ["Hostile"] = "hostile",
+  ["hostile"] = "hostile",
+  ["New Thalos"] = "new_thalos",
+  ["new thalos"] = "new_thalos",
+  ["NT"] = "new_thalos",
+  ["nt"] = "new_thalos",
+  ["Althainia"] = "althainia",
+  ["althainia"] = "althainia",
+  ["AL"] = "althainia",
+  ["al"] = "althainia",
+  ["Arkane"] = "arkane",
+  ["arkane"] = "arkane",
+  ["AR"] = "arkane",
+  ["ar"] = "arkane",
+  ["Verminasia"] = "verminasia",
+  ["verminasia"] = "verminasia",
+  ["VR"] = "verminasia",
+  ["vr"] = "verminasia",
+  ["Shalonesti"] = "shalonesti_clan",
+  ["shalonesti"] = "shalonesti_clan",
+  ["SH"] = "shalonesti_clan",
+  ["sh"] = "shalonesti_clan",
+  ["Ganth"] = "ganth",
+  ["ganth"] = "ganth",
+  ["Abaddon"] = "abaddon",
+  ["abaddon"] = "abaddon",
+  ["Nordmaar"] = "nordmaar",
+  ["nordmaar"] = "nordmaar",
+  ["Retired"] = "retired",
+  ["retired"] = "retired",
+  -- Confirmed clan aliases
+  ["[ Knighthood ]"] = "knighthood", ["Knighthood"] = "knighthood", ["knighthood"] = "knighthood",
+  ["[ Justice ]"] = "justice", ["Justice"] = "justice", ["justice"] = "justice",
+  ["[ Bloodlust ]"] = "bloodlust", ["Bloodlust"] = "bloodlust", ["bloodlust"] = "bloodlust",
+  ["[ Slayers ]"] = "slayers", ["Slayers"] = "slayers", ["slayers"] = "slayers",
+  ["[ Conclave ]"] = "conclave", ["Conclave"] = "conclave", ["conclave"] = "conclave",
+  ["[ Renegade ]"] = "renegade", ["Renegade"] = "renegade", ["renegade"] = "renegade",
+
+  -- Confirmed kingdom aliases
+  ["Darkonin"] = "darkonin", ["darkonin"] = "darkonin", ["(Darkonin)"] = "darkonin",
+  ["Marauders"] = "marauders", ["marauders"] = "marauders", ["(Marauders)"] = "marauders",
+  ["Gray Church"] = "gray_church", ["gray church"] = "gray_church", ["(Gray Church)"] = "gray_church", ["GC"] = "gray_church", ["gc"] = "gray_church",
+  ["Shalonesti Kingdom"] = "shalonesti_kingdom", ["shalonesti kingdom"] = "shalonesti_kingdom",
+
+}
+
+DSL_TITLE_KEY_TO_PALETTE = {
+  ["royalty"] = "title_royalty",
+  ["military"] = "title_military",
+  ["scholarly"] = "title_scholarly",
+  ["political"] = "title_political",
+  ["politics"] = "title_political",
+  ["religious"] = "title_religious",
+  ["craft_titles"] = "title_craft_titles",
+  ["unknown_titles"] = "title_unknown_titles",
+}
+
+DSL_TITLE_ALIASES = {}
+
+-- Release approved exact default title seed list.
+-- Keep this small. These are leading title words/phrases confirmed in supplied WHO logs.
+-- User-added titles belong in DSL_COLOR_DB.titles through: dslcolor title &lt;category&gt; &lt;exact title&gt;
+-- Pirate reputation titles are exact title phrases; Pirate also remains a class alias.
+local DSL_DEFAULT_TITLE_SEEDS = {
+  {"Abbott", "religious"},
+  {"Aboleth", "military"},
+  {"Acolyte", "military"},
+  {"Advisor", "political"},
+  {"Archmagus", "scholarly"},
+  {"Archon", "political"},
+  {"Archwizard", "scholarly"},
+  {"Armiger", "military"},
+  {"Aspirant", "military"},
+  {"Baroness", "royalty"},
+  {"Bishop", "religious"},
+  {"Brother", "religious"},
+  {"Cabin Person", "military"},
+  {"Captain", "military"},
+  {"Citizen", "political"},
+  {"Civilian", "political"},
+  {"Clansmen", "political"},
+  {"Commander", "military"},
+  {"Conscript", "military"},
+  {"Count", "royalty"},
+  {"Dame", "royalty"},
+  {"Dark_Knight:Legion", "military"},
+  {"Deacon", "religious"},
+  {"Dread Pirate", "military"},
+  {"Duskbinder", "scholarly"},
+  {"Elder", "political"},
+  {"Emperor", "royalty"},
+  {"Executioner", "military"},
+  {"Explorer", "scholarly"},
+  {"Finder", "scholarly"},
+  {"General", "military"},
+  {"Gentleman", "scholarly"},
+  {"Gladius", "military"},
+  {"High", "royalty"},
+  {"Huntress", "military"},
+  {"Initiate", "military"},
+  {"Inquisior", "military"},
+  {"Inquisitor", "military"},
+  {"King", "royalty"},
+  {"Knight", "military"},
+  {"Lady", "royalty"},
+  {"Lord", "royalty"},
+  {"Magi", "scholarly"},
+  {"Magus", "scholarly"},
+  {"Mogul", "political"},
+  {"Monsignor", "political"},
+  {"Monsignor Patron", "political"},
+  {"Nameless", "political"},
+  {"Nascent", "scholarly"},
+  {"Notorious Pirate", "military"},
+  {"Novitiate", "scholarly"},
+  {"Oreborn", "political"},
+  {"Patron", "religious"},
+  {"Pirate", "military"},
+  {"Prince", "royalty"},
+  {"Princess", "royalty"},
+  {"Private", "military"},
+  {"Protector", "military"},
+  {"Queen", "royalty"},
+  {"Queensguard", "military"},
+  {"recruit", "military"},
+  {"Regent", "royalty"},
+  {"Renown Pirate", "military"},
+  {"Sailor", "military"},
+  {"Samaritan", "political"},
+  {"Sandsworn", "military"},
+  {"Scout", "military"},
+  {"Senator", "political"},
+  {"Sentry", "military"},
+  {"Sergeant", "military"},
+  {"Sheikh", "political"},
+  {"Sir", "military"},
+  {"Soldier", "military"},
+  {"Spellbinder", "scholarly"},
+  {"Sultan", "royalty"},
+  {"Sultana", "royalty"},
+  {"Supreme", "military"},
+  {"Supreme General", "military"},
+  {"Swordsman", "military"},
+  {"Temple", "religious"},
+  {"Thane", "royalty"},
+  {"unproven", "military"},
+  {"Vengeant", "military"},
+  {"Vizier", "scholarly"},
+  {"Watcher", "royalty"},
+  {"Windseer", "military"},
+  {"Wizard", "military"},
+  {"Zealot", "military"},
+}
+local DSL_DEFAULT_TITLE_SIGNATURE = "release5:Abbott|Aboleth|Acolyte|Advisor|Archmagus|Archon|Archwizard|Armiger|Aspirant|Baroness|Bishop|Brother|Cabin Person|Captain|Citizen|Civilian|Clansmen|Commander|Conscript|Count|Dame|Dark_Knight:Legion|Deacon|Dread Pirate|Duskbinder|Elder|Emperor|Executioner|Explorer|Finder|General|Gentleman|Gladius|High|Huntress|Initiate|Inquisior|Inquisitor|King|Knight|Lady|Lord|Magi|Magus|Mogul|Monsignor|Monsignor Patron|Nameless|Nascent|Notorious Pirate|Novitiate|Oreborn|Patron|Pirate|Prince|Princess|Private|Protector|Queen|Queensguard|recruit|Regent|Renown Pirate|Sailor|Samaritan|Sandsworn|Scout|Senator|Sentry|Sergeant|Sheikh|Sir|Soldier|Spellbinder|Sultan|Sultana|Supreme|Supreme General|Swordsman|Temple|Thane|unproven|Vengeant|Vizier|Watcher|Windseer|Wizard|Zealot"
+for _, row in ipairs(DSL_DEFAULT_TITLE_SEEDS) do
+  local title, category = row[1], row[2]
+  DSL_TITLE_ALIASES[title] = category
+  DSL_TITLE_ALIASES[string.lower(title)] = category
+end
+
+DSL_CRAFT_TERMS = {
+  ["Legendary Grand Master"] = "craft_rank_legendary_grand_master",
+  ["Grand Master"] = "craft_rank_grand_master",
+  ["Master"] = "craft_rank_master",
+  ["Journeyman"] = "craft_rank_journeyman",
+  ["Junior"] = "craft_rank_junior",
+  ["Helper"] = "craft_rank_helper",
+  ["Weaponsmith"] = "craft_weaponsmith",
+  ["Armorcrafter"] = "craft_armorcraft",
+  ["Spellcrafter"] = "craft_spellcrafter",
+  ["Lumberjack"] = "craft_lumberjack",
+  ["Smelter"] = "craft_smelter",
+  ["Tanner"] = "craft_tanner",
+  ["Tailor"] = "craft_tailor",
+  ["Hunter"] = "craft_hunter",
+  ["Miller"] = "craft_miller",
+  ["Miner"] = "craft_miner",
+  ["Sharp"] = "craft_weaponsmith",
+  ["Blunt"] = "craft_weaponsmith",
+  ["sharpweapon"] = "craft_weaponsmith",
+  ["bluntweapon"] = "craft_weaponsmith",
+  ["armorcraft"] = "craft_armorcraft",
+  ["spellcrafter"] = "craft_spellcrafter",
+  ["tailor"] = "craft_tailor",
+  ["craftlist"] = "craft_command",
+  ["crafting"] = "craft_command",
+  ["craft"] = "craft_command",
+  ["smelt"] = "craft_smelter",
+  ["mine"] = "craft_miner",
+  ["mining"] = "craft_miner",
+  ["mill"] = "craft_miller",
+  ["miller"] = "craft_miller",
+  ["tan"] = "craft_tanner",
+  ["tanner"] = "craft_tanner",
+  ["skin"] = "craft_hunter",
+  ["hunter"] = "craft_hunter",
+  ["harvestwood"] = "craft_lumberjack",
+  ["lumberjack"] = "craft_lumberjack",
+  ["axe"] = "craft_item_weapon",
+  ["sword"] = "craft_item_weapon",
+  ["dagger"] = "craft_item_weapon",
+  ["spear"] = "craft_item_weapon",
+  ["polearm"] = "craft_item_weapon",
+  ["mace"] = "craft_item_blunt",
+  ["flail"] = "craft_item_blunt",
+  ["whip"] = "craft_item_blunt",
+  ["staff"] = "craft_item_blunt",
+  ["exotic"] = "craft_item_blunt",
+  ["cloth"] = "craft_item_tailor",
+  ["leather"] = "craft_item_leather",
+  ["studded"] = "craft_item_armor",
+  ["chain"] = "craft_item_armor",
+  ["plate"] = "craft_item_armor",
+  ["obsidian"] = "craft_item_gem",
+  ["moonstone"] = "craft_item_gem",
+  ["opal"] = "craft_item_gem",
+  ["amethyst"] = "craft_item_gem",
+  ["emerald"] = "craft_item_gem",
+  ["sapphire"] = "craft_item_gem",
+  ["ruby"] = "craft_item_gem",
+  ["diamond"] = "craft_item_gem",
+  ["trinket"] = "craft_item_trinket",
+}
+
+
+
+-- ============================================================
+-- DslColors release core
+-- Clean rebuild: one script, three triggers, runtime alias.
+-- No old per-term trigger clutter. No calls before definitions.
+-- ============================================================
+
+
+-- Imported non-person defaults from merged save data.
+DSL_RACE_ALIASES["Lesser"] = "lesser"
+DSL_COLORS.palettes["race_lesser"] = { mode = "gradient", from = {185,185,185}, to = {185,185,185} }
+DSL_ORG_ALIASES["[ dragon ]"] = "dragon"
+DSL_ORG_ALIASES["dragon"] = "dragon"
+
+-- Status/noise tags: ignored for coloring and learning unless user later asks.
+DSL_STATUS_ONLY_TAGS = {
+  ["WANTED"] = true, ["wanted"] = true,
+  ["AFK"] = true, ["afk"] = true,
+  ["LD"] = true, ["ld"] = true,
+  ["Hostile"] = true, ["hostile"] = true,
+  ["Recruiter"] = true, ["recruiter"] = true,
+  ["Leader"] = true, ["leader"] = true,
+  ["Retired"] = true, ["retired"] = true,
+}
+
+-- Explicitly disable status/noise aliases if they existed in older palette maps.
+if DSL_ORG_ALIASES then
+  for k, _ in pairs(DSL_STATUS_ONLY_TAGS) do DSL_ORG_ALIASES[k] = nil end
+end
+
+DSL_COLOR_DATA_PATH = DSL_COLOR_DATA_PATH or (getMudletHomeDir() .. "/DSL_PeopleColors_data.lua")
+
+DSL_COLOR_DB = DSL_COLOR_DB or {
+  version = 9,
+  people = {},
+  orgs = {},
+  relations = { people = {}, orgs = {} },
+  teams = {},
+  titles = {},
+  tags = {},
+  terms = {},
+  custom_palettes = {},
+  overrides = {},
+  ignored = {},
+  aliases = {},
+  settings = {
+    echo_updates = true,
+    enemy_background = {45, 0, 0},
+    enemy_bold = true,
+    friend_background = {0, 35, 25},
+    friend_bold = false,
+  },
+}
+
+function dslTrim(s)
+  s = tostring(s or "")
+  return (s:gsub("^%s+", ""):gsub("%s+$", ""))
+end
+
+function dslKey(s)
+  s = dslTrim(s)
+  s = s:gsub("^%[", ""):gsub("%]$", ""):gsub("^%(", ""):gsub("%)$", "")
+  s = s:gsub("%s+", "_")
+  return string.lower(s)
+end
+
+function dslIsIgnoredTerm(term)
+  term = dslTrim(term or "")
+  if term == "" then return false end
+  local ignored = (DSL_COLOR_DB and DSL_COLOR_DB.ignored) or {}
+  return ignored[term] == true or ignored[string.lower(term)] == true or ignored[dslKey(term)] == true
+end
+
+
+function dslStripBrackets(s)
+  s = dslTrim(s)
+  s = s:gsub("^%[", ""):gsub("%]$", "")
+  s = s:gsub("^%(", ""):gsub("%)$", "")
+  return dslTrim(s)
+end
+
+function dslNowRecord()
+  local r = { real = os.time(), stamp = os.date("%Y-%m-%d %H:%M:%S") }
+  if gmcp then
+    if gmcp.tick and gmcp.tick.time then r.game_time = gmcp.tick.time end
+    if (not r.game_time) and gmcp.login_data and gmcp.login_data.time then r.game_time = gmcp.login_data.time end
+    if gmcp.room_data and gmcp.room_data.room then r.room = gmcp.room_data.room end
+    if gmcp.login_data and gmcp.login_data.name then r.character = gmcp.login_data.name end
+  end
+  return r
+end
+
+function dslColorSerializeValue(v, depth, seen)
+  depth = depth or 0
+  seen = seen or {}
+  local tv = type(v)
+  if tv == "nil" then return "nil" end
+  if tv == "number" or tv == "boolean" then return tostring(v) end
+  if tv == "string" then return string.format("%q", v) end
+  if tv ~= "table" then return "nil" end
+  if seen[v] then return "nil" end
+  seen[v] = true
+  local indent = string.rep("  ", depth)
+  local nextIndent = string.rep("  ", depth + 1)
+  local parts = {"{"}
+  local keys = {}
+  for k,_ in pairs(v) do table.insert(keys, k) end
+  table.sort(keys, function(a,b) return tostring(a) &lt; tostring(b) end)
+  for _, k in ipairs(keys) do
+    local val = v[k]
+    local keyText
+    if type(k) == "string" and k:match("^[A-Za-z_][A-Za-z0-9_]*$") then keyText = k else keyText = "[" .. dslColorSerializeValue(k, depth + 1, seen) .. "]" end
+    table.insert(parts, "\n" .. nextIndent .. keyText .. " = " .. dslColorSerializeValue(val, depth + 1, seen) .. ",")
+  end
+  table.insert(parts, "\n" .. indent .. "}")
+  seen[v] = nil
+  return table.concat(parts)
+end
+
+function dslColorSave()
+  local ok, err = pcall(function()
+    local f, ferr = io.open(DSL_COLOR_DATA_PATH, "w")
+    if not f then error(ferr or "could not open data file for writing") end
+    f:write("return ")
+    f:write(dslColorSerializeValue(DSL_COLOR_DB))
+    f:write("\n")
+    f:close()
+  end)
+  DSL_COLOR_LAST_SAVE = { ok = ok, error = err, path = DSL_COLOR_DATA_PATH, stamp = os.date("%Y-%m-%d %H:%M:%S") }
+  return ok, err
+end
+
+function dslColorLoad()
+  local loaded = false
+  local loadedPath = nil
+  local path = DSL_COLOR_DATA_PATH
+  local f = io.open(path, "r")
+  if f then
+    f:close()
+    local chunk, lerr = loadfile(path)
+    if chunk then
+      local ok, data = pcall(chunk)
+      if ok and type(data) == "table" then DSL_COLOR_DB = data; loaded = true; loadedPath = path end
+    elseif table.load then
+      local ok, data = pcall(table.load, path)
+      if ok and type(data) == "table" then DSL_COLOR_DB = data; loaded = true; loadedPath = path end
+    end
+  end
+  DSL_COLOR_DB.version = 14
+  DSL_COLOR_DB.people = DSL_COLOR_DB.people or {}
+  DSL_COLOR_DB.orgs = DSL_COLOR_DB.orgs or {}
+  DSL_COLOR_DB.relations = DSL_COLOR_DB.relations or {}
+  DSL_COLOR_DB.relations.people = DSL_COLOR_DB.relations.people or {}
+  DSL_COLOR_DB.relations.orgs = DSL_COLOR_DB.relations.orgs or {}
+  DSL_COLOR_DB.teams = DSL_COLOR_DB.teams or {}
+  DSL_COLOR_DB.titles = DSL_COLOR_DB.titles or {}
+  DSL_COLOR_DB.title_blocklist = DSL_COLOR_DB.title_blocklist or {}
+  DSL_COLOR_DB.tags = DSL_COLOR_DB.tags or {}
+  DSL_COLOR_DB.terms = DSL_COLOR_DB.terms or {}
+  DSL_COLOR_DB.custom_palettes = DSL_COLOR_DB.custom_palettes or {}
+  DSL_COLOR_DB.overrides = DSL_COLOR_DB.overrides or {}
+  DSL_COLOR_DB.ignored = DSL_COLOR_DB.ignored or {}
+  DSL_COLOR_DB.aliases = DSL_COLOR_DB.aliases or {}
+  DSL_COLOR_DB.settings = DSL_COLOR_DB.settings or {}
+  if DSL_COLOR_DB.settings.echo_updates == nil then DSL_COLOR_DB.settings.echo_updates = true end
+  DSL_COLOR_DB.settings.enemy_background = DSL_COLOR_DB.settings.enemy_background or {45, 0, 0}
+  if DSL_COLOR_DB.settings.enemy_bold == nil then DSL_COLOR_DB.settings.enemy_bold = true end
+  DSL_COLOR_DB.settings.friend_background = DSL_COLOR_DB.settings.friend_background or {0, 35, 25}
+  if DSL_COLOR_DB.settings.friend_bold == nil then DSL_COLOR_DB.settings.friend_bold = false end
+
+  -- When the approved default-title seed list changes, clear stale blocks for
+  -- current default titles once. After this stamp is current, dslcolor forget
+  -- title &lt;default title&gt; still blocks that default normally.
+  if DSL_COLOR_DB.default_title_signature ~= DSL_DEFAULT_TITLE_SIGNATURE then
+    DSL_COLOR_DB.title_blocklist = DSL_COLOR_DB.title_blocklist or {}
+    for title, _ in pairs(DSL_TITLE_ALIASES or {}) do
+      DSL_COLOR_DB.title_blocklist[title] = nil
+      DSL_COLOR_DB.title_blocklist[string.lower(title)] = nil
+    end
+    DSL_COLOR_DB.default_title_signature = DSL_DEFAULT_TITLE_SIGNATURE
+  end
+
+  -- Pirate reputation normalization: older merged save data may contain
+  -- partial reputation fragments as saved titles. Keep the exact reputation
+  -- phrases instead: Cabin Person, Pirate, Renown Pirate, Dread Pirate,
+  -- Notorious Pirate, Captain. This does not touch people, orgs, palettes,
+  -- custom terms, race/class aliases, or combat/census data.
+  if DSL_COLOR_DB.pirate_title_signature ~= "release3" then
+    DSL_COLOR_DB.titles = DSL_COLOR_DB.titles or {}
+    DSL_COLOR_DB.title_blocklist = DSL_COLOR_DB.title_blocklist or {}
+    local stalePirateTitleFragments = { "Cabin", "cabin", "Person", "person", "Pirate Captain", "pirate captain" }
+    for _, title in ipairs(stalePirateTitleFragments) do
+      DSL_COLOR_DB.titles[title] = nil
+      DSL_COLOR_DB.title_blocklist[title] = nil
+    end
+    DSL_COLOR_DB.pirate_title_signature = "release3"
+  end
+
+  -- Release cleanup: title_blocklist only applies to current default title aliases.
+  -- This removes stale blocks left by older experiments without naming any specific title.
+  -- Saved user titles are not touched; use dslcolor forget title &lt;exact title&gt; for those.
+  for title, _ in pairs(DSL_COLOR_DB.title_blocklist or {}) do
+    if not (DSL_TITLE_ALIASES and DSL_TITLE_ALIASES[title]) then
+      DSL_COLOR_DB.title_blocklist[title] = nil
+    end
+  end
+
+  DSL_COLOR_LAST_LOAD = { ok = loaded, path = loadedPath or DSL_COLOR_DATA_PATH, active_path = DSL_COLOR_DATA_PATH, stamp = os.date("%Y-%m-%d %H:%M:%S") }
+end
+
+function dslBlendRgb(a, b, t)
+  a = a or {255,255,255}
+  b = b or a
+  t = t or 0
+  return {
+    math.floor(a[1] + (b[1] - a[1]) * t),
+    math.floor(a[2] + (b[2] - a[2]) * t),
+    math.floor(a[3] + (b[3] - a[3]) * t),
+  }
+end
+
+function dslPaletteColor(palette, idx, len)
+  if not palette then return {255, 255, 255} end
+  local mode = palette.mode
+  if mode == "cycle" or (palette.colors and #palette.colors &gt; 0) then
+    local colors = palette.colors or {}
+    if #colors == 0 then return {255,255,255} end
+    return colors[((idx - 1) % #colors) + 1]
+  elseif mode == "gradient" or (palette.from and palette.to) then
+    local ratio = 0
+    if len and len &gt; 1 then ratio = (idx - 1) / (len - 1) end
+    return dslBlendRgb(palette.from, palette.to, ratio)
+  elseif mode == "triple" then
+    local ratio = 0
+    if len and len &gt; 1 then ratio = (idx - 1) / (len - 1) end
+    if ratio &lt;= 0.5 then return dslBlendRgb(palette.a, palette.b, ratio / 0.5) end
+    return dslBlendRgb(palette.b, palette.c, (ratio - 0.5) / 0.5)
+  elseif mode == "mirror" then
+    local midpoint = (len + 1) / 2
+    local maxDist = midpoint - 1
+    local dist = math.abs(idx - midpoint)
+    local ratio = 0
+    if maxDist &gt; 0 then ratio = dist / maxDist end
+    if ratio &lt;= 0.5 then return dslBlendRgb(palette.center, palette.inner, ratio / 0.5) end
+    return dslBlendRgb(palette.inner, palette.edge, (ratio - 0.5) / 0.5)
+  end
+  return palette[1] and palette or {255, 255, 255}
+end
+
+DSL_COLOR_LINE_RANGES = DSL_COLOR_LINE_RANGES or {}
+
+function dslResetLineRanges() DSL_COLOR_LINE_RANGES = {} end
+
+function dslRangeIsFree(s, e)
+  for _, r in ipairs(DSL_COLOR_LINE_RANGES or {}) do
+    if not (e &lt; r[1] or s &gt; r[2]) then return false end
+  end
+  return true
+end
+
+function dslMarkRange(s, e)
+  table.insert(DSL_COLOR_LINE_RANGES, {s, e})
+end
+
+function dslBoundedFind(line, term, startAt)
+  if not line or not term or term == "" then return nil end
+  local plainStart = startAt or 1
+  local hay = string.lower(line)
+  local needle = string.lower(term)
+  while true do
+    local s, e = hay:find(needle, plainStart, true)
+    if not s then return nil end
+    local before = s == 1 and "" or line:sub(s-1, s-1)
+    local after = e &gt;= #line and "" or line:sub(e+1, e+1)
+    if not before:match("[%w_%-']") and not after:match("[%w_%-']") then return s, e end
+    plainStart = e + 1
+  end
+end
+
+function dslColorTextAt(s, e, paletteName)
+  local palette = dslGetPalette(paletteName)
+  if not palette or not s or not e then return false end
+  local len = e - s + 1
+  for i=s,e do
+    local c = dslPaletteColor(palette, i-s+1, len)
+    selectSection(i-1, 1)
+    setFgColor(c[1], c[2], c[3])
+  end
+  resetFormat(); deselect()
+  return true
+end
+
+function dslColorTermWithPalette(term, paletteName, allowOverlap)
+  local line = getCurrentLine()
+  local from, changed = 1, false
+  while true do
+    local s,e = dslBoundedFind(line, term, from)
+    if not s then break end
+    if allowOverlap or dslRangeIsFree(s, e) then
+      changed = dslColorTextAt(s,e,paletteName) or changed
+      if not allowOverlap then dslMarkRange(s, e) end
+    end
+    from = e + 1
+  end
+  return changed
+end
+
+function dslColorTermWithPaletteFrom(term, paletteName, startAt, allowOverlap)
+  local line = getCurrentLine()
+  local from, changed = startAt or 1, false
+  while true do
+    local s,e = dslBoundedFind(line, term, from)
+    if not s then break end
+    if allowOverlap or dslRangeIsFree(s, e) then
+      changed = dslColorTextAt(s,e,paletteName) or changed
+      if not allowOverlap then dslMarkRange(s, e) end
+    end
+    from = e + 1
+  end
+  return changed
+end
+
+function dslColorMatch(term, paletteName)
+  return dslColorTermWithPalette(term, paletteName)
+end
+
+function dslSortedTermKeys(tbl)
+  local arr = {}
+  for k,_ in pairs(tbl or {}) do if type(k) == "string" and k ~= "" then table.insert(arr, k) end end
+  table.sort(arr, function(a,b) return #a &gt; #b end)
+  return arr
+end
+
+function dslPaletteNameForRace(term)
+  local key = (DSL_RACE_ALIASES or {})[term] or (DSL_RACE_ALIASES or {})[string.lower(term or "")]
+  return key and (DSL_RACE_KEY_TO_PALETTE or {})[key] or nil
+end
+
+function dslIsDragonRaceKey(key)
+  if not key then return false end
+  key = tostring(key)
+  return key:find("_dragon") ~= nil
+end
+
+function dslRacePaletteForKey(key)
+  if not key then return nil end
+  return (DSL_RACE_KEY_TO_PALETTE or {})[key]
+end
+
+function dslPersonIdentityPalette(p)
+  if not p then return nil end
+
+  -- Normal org identity names use the approved org palette.
+  -- Dragon names are special: "( Dragon )" is an identity tag, but the visible
+  -- name should use the specific dragon race palette, e.g. brown/gold/crystal/topaz.
+  local org = p.clan or p.kingdom or p.robe
+  if org and (DSL_ORG_KEY_TO_PALETTE or {})[org] then return DSL_ORG_KEY_TO_PALETTE[org] end
+
+  if p.dragon then
+    local dragonRace = p.dragon_type or p.race
+    local dragonPalette = dslRacePaletteForKey(dragonRace)
+    if dragonPalette then return dragonPalette end
+    return (DSL_ORG_KEY_TO_PALETTE or {})[p.dragon]
+  end
+
+  return nil
+end
+
+function dslPaletteNameForClass(term)
+  local key = (DSL_CLASS_ALIASES or {})[term] or (DSL_CLASS_ALIASES or {})[string.lower(term or "")]
+  return key and (DSL_CLASS_KEY_TO_PALETTE or {})[key] or nil
+end
+
+function dslOrgKeyForTerm(term)
+  term = dslStripBrackets(term)
+  return (DSL_ORG_ALIASES or {})[term] or (DSL_ORG_ALIASES or {})[string.lower(term)]
+end
+
+function dslPaletteNameForOrg(term)
+  local key = dslOrgKeyForTerm(term)
+  return key and (DSL_ORG_KEY_TO_PALETTE or {})[key] or nil
+end
+
+function dslIsTitleBlocked(term)
+  if not term or term == "" then return false end
+  local block = (DSL_COLOR_DB and DSL_COLOR_DB.title_blocklist) or {}
+  local lower = string.lower(term)
+  return block[term] == true or block[lower] == true
+end
+
+function dslBlockTitle(term)
+  term = dslTrim(term or "")
+  if term == "" then return false end
+  DSL_COLOR_DB.title_blocklist = DSL_COLOR_DB.title_blocklist or {}
+  DSL_COLOR_DB.title_blocklist[term] = true
+  DSL_COLOR_DB.title_blocklist[string.lower(term)] = true
+  return true
+end
+
+function dslUnblockTitle(term)
+  term = dslTrim(term or "")
+  if term == "" then return false end
+  DSL_COLOR_DB.title_blocklist = DSL_COLOR_DB.title_blocklist or {}
+  DSL_COLOR_DB.title_blocklist[term] = nil
+  DSL_COLOR_DB.title_blocklist[string.lower(term)] = nil
+  return true
+end
+
+function dslTitleCategoryOrPalette(term)
+  if not term or term == "" then return nil end
+  if dslIsTitleBlocked(term) then return nil end
+  local lower = string.lower(term)
+  return (DSL_COLOR_DB.titles or {})[term]
+      or (DSL_COLOR_DB.titles or {})[lower]
+      or (DSL_TITLE_ALIASES or {})[term]
+      or (DSL_TITLE_ALIASES or {})[lower]
+end
+
+function dslPaletteNameForTitle(term)
+  local key = dslTitleCategoryOrPalette(term)
+  if not key then return nil end
+  return (DSL_TITLE_KEY_TO_PALETTE or {})[key] or key
+end
+
+function dslTitleExistsRaw(term)
+  term = dslTrim(term or "")
+  if term == "" then return false end
+  local lower = string.lower(term)
+  return ((DSL_COLOR_DB and DSL_COLOR_DB.titles or {})[term] ~= nil)
+      or ((DSL_COLOR_DB and DSL_COLOR_DB.titles or {})[lower] ~= nil)
+      or ((DSL_TITLE_ALIASES or {})[term] ~= nil)
+      or ((DSL_TITLE_ALIASES or {})[lower] ~= nil)
+      or ((DSL_COLOR_DB and DSL_COLOR_DB.title_blocklist or {})[term] == true)
+      or ((DSL_COLOR_DB and DSL_COLOR_DB.title_blocklist or {})[lower] == true)
+end
+
+
+function dslGetPalette(paletteName)
+  if not paletteName or paletteName == "" then return nil end
+  if DSL_COLORS and DSL_COLORS.palettes and DSL_COLORS.palettes[paletteName] then return DSL_COLORS.palettes[paletteName] end
+  if DSL_COLOR_DB and DSL_COLOR_DB.custom_palettes and DSL_COLOR_DB.custom_palettes[paletteName] then return DSL_COLOR_DB.custom_palettes[paletteName] end
+  return nil
+end
+
+function dslPaletteExists(paletteName)
+  return dslGetPalette(paletteName) ~= nil
+end
+
+function dslCustomPaletteNameIsValid(name)
+  name = dslTrim(name or "")
+  if name == "" then return false end
+  if not name:match("^[A-Za-z][A-Za-z0-9_]*$") then return false end
+  return true
+end
+
+function dslClampRgb(n)
+  n = tonumber(n)
+  if not n then return nil end
+  n = math.floor(n)
+  if n &lt; 0 then n = 0 end
+  if n &gt; 255 then n = 255 end
+  return n
+end
+
+function dslPaletteSummary(pal)
+  if type(pal) ~= "table" then return "invalid" end
+  if pal.mode == "gradient" then
+    local a, b = pal.from or {}, pal.to or {}
+    return string.format("gradient %s,%s,%s -&gt; %s,%s,%s", tostring(a[1]), tostring(a[2]), tostring(a[3]), tostring(b[1]), tostring(b[2]), tostring(b[3]))
+  end
+  if pal.mode == "cycle" then
+    local parts = {}
+    for _, c in ipairs(pal.colors or {}) do table.insert(parts, string.format("%s,%s,%s", tostring(c[1]), tostring(c[2]), tostring(c[3]))) end
+    return "cycle " .. table.concat(parts, " | ")
+  end
+  if pal.mode == "triple" then return "triple" end
+  if pal.mode == "mirror" then return "mirror" end
+  return tostring(pal.mode or "custom")
+end
+
+function dslSaveCustomPalette(name, pal)
+  name = dslTrim(name or "")
+  if not dslCustomPaletteNameIsValid(name) then cecho("\n&lt;red&gt;[DslColors] bad palette name. Use letters, numbers, and underscores; start with a letter.\n"); return end
+  if DSL_COLORS and DSL_COLORS.palettes and DSL_COLORS.palettes[name] then cecho("\n&lt;red&gt;[DslColors] built-in palette names cannot be overwritten: "..name.."\n"); return end
+  if type(pal) ~= "table" then cecho("\n&lt;red&gt;[DslColors] invalid palette data.\n"); return end
+  DSL_COLOR_DB.custom_palettes = DSL_COLOR_DB.custom_palettes or {}
+  DSL_COLOR_DB.custom_palettes[name] = pal
+  dslColorSave()
+  cecho("\n&lt;green&gt;[DslColors] custom palette saved: "..name.." = "..dslPaletteSummary(pal).."\n")
+end
+
+function dslPaletteCommand(cmd)
+  local sub = dslTrim(cmd:match("^palette%s+(.+)$") or "")
+  if sub == "" then cecho("\n&lt;red&gt;[DslColors] Use: dslcolor palette help\n"); return true end
+  if sub == "help" then
+    cecho("\n&lt;cyan&gt;Custom palettes\n")
+    cecho("&lt;grey&gt;Purpose: create reusable named palettes for dslcolor term and name overrides.\n")
+    cecho("&lt;grey&gt;Commands:\n")
+    cecho("&lt;grey&gt;  dslcolor palette gradient &lt;name&gt; r1 g1 b1 r2 g2 b2\n")
+    cecho("&lt;grey&gt;  dslcolor palette cycle &lt;name&gt; r g b | r g b | r g b\n")
+    cecho("&lt;grey&gt;  dslcolor palette copy &lt;new_name&gt; &lt;existing_palette&gt;\n")
+    cecho("&lt;grey&gt;  dslcolor palette show &lt;name&gt;\n")
+    cecho("&lt;grey&gt;  dslcolor palette remove &lt;name&gt;\n")
+    cecho("&lt;grey&gt;  dslcolor list custom_palettes\n")
+    cecho("&lt;grey&gt;Example:\n")
+    cecho("&lt;grey&gt;  dslcolor palette gradient cliath 180 240 255 255 255 255\n")
+    cecho("&lt;grey&gt;  dslcolor term Cliath cliath\n")
+    return true
+  end
+  local name, r1,g1,b1,r2,g2,b2 = sub:match("^gradient%s+(%S+)%s+(%d+)%s+(%d+)%s+(%d+)%s+(%d+)%s+(%d+)%s+(%d+)$")
+  if name then
+    dslSaveCustomPalette(name, { mode="gradient", from={dslClampRgb(r1),dslClampRgb(g1),dslClampRgb(b1)}, to={dslClampRgb(r2),dslClampRgb(g2),dslClampRgb(b2)} })
+    return true
+  end
+  local copyName, existing = sub:match("^copy%s+(%S+)%s+(%S+)$")
+  if copyName and existing then
+    local src = dslGetPalette(existing)
+    if not src then cecho("\n&lt;red&gt;[DslColors] unknown source palette: "..tostring(existing).."\n"); return true end
+    local function clone(v)
+      if type(v) ~= "table" then return v end
+      local t = {}; for k,val in pairs(v) do t[k] = clone(val) end; return t
+    end
+    dslSaveCustomPalette(copyName, clone(src))
+    return true
+  end
+  name = sub:match("^remove%s+(%S+)$") or sub:match("^delete%s+(%S+)$")
+  if name then
+    DSL_COLOR_DB.custom_palettes = DSL_COLOR_DB.custom_palettes or {}
+    local existed = DSL_COLOR_DB.custom_palettes[name] ~= nil
+    DSL_COLOR_DB.custom_palettes[name] = nil
+    dslColorSave()
+    if existed then cecho("\n&lt;yellow&gt;[DslColors] custom palette removed: "..name.."\n") else cecho("\n&lt;yellow&gt;[DslColors] no custom palette found: "..name.."\n") end
+    return true
+  end
+  name = sub:match("^show%s+(%S+)$")
+  if name then
+    local src = "built-in"
+    local pal = (DSL_COLORS and DSL_COLORS.palettes and DSL_COLORS.palettes[name])
+    if not pal then pal = (DSL_COLOR_DB.custom_palettes or {})[name]; src = "custom" end
+    if not pal then cecho("\n&lt;red&gt;[DslColors] unknown palette: "..name.."\n"); return true end
+    cecho("\n&lt;cyan&gt;[DslColors] palette "..name.." ("..src.."): "..dslPaletteSummary(pal).."\n")
+    return true
+  end
+  local cycleName, body = sub:match("^cycle%s+(%S+)%s+(.+)$")
+  if cycleName and body then
+    local colors = {}
+    for part in body:gmatch("[^|]+") do
+      local r,g,b = part:match("%s*(%d+)%s+(%d+)%s+(%d+)%s*")
+      if not r then cecho("\n&lt;red&gt;[DslColors] bad cycle color. Use: r g b | r g b | r g b\n"); return true end
+      table.insert(colors, {dslClampRgb(r), dslClampRgb(g), dslClampRgb(b)})
+    end
+    if #colors == 0 then cecho("\n&lt;red&gt;[DslColors] cycle palette needs at least one color.\n"); return true end
+    dslSaveCustomPalette(cycleName, { mode="cycle", colors=colors })
+    return true
+  end
+  cecho("\n&lt;red&gt;[DslColors] unknown palette command. Use: dslcolor palette help\n")
+  return true
+end
+
+function dslResolvePaletteName(text)
+  local t = dslTrim(text or "")
+  if t == "" then return nil end
+  if dslPaletteExists(t) then return t end
+  local lower = string.lower(t)
+  if dslPaletteExists(lower) then return lower end
+
+  local friendly = {
+    politics = "title_political", political = "title_political",
+    royalty = "title_royalty", royal = "title_royalty",
+    military = "title_military", religious = "title_religious",
+    scholarly = "title_scholarly", craft = "title_craft_titles", crafts = "title_craft_titles",
+    unknown = "title_unknown_titles"
+  }
+  if friendly[lower] and dslPaletteExists(friendly[lower]) then return friendly[lower] end
+
+  local orgKey = dslOrgKeyForTerm(t)
+  if orgKey and (DSL_ORG_KEY_TO_PALETTE or {})[orgKey] then return DSL_ORG_KEY_TO_PALETTE[orgKey] end
+
+  local raceKey = (DSL_RACE_ALIASES or {})[t] or (DSL_RACE_ALIASES or {})[lower]
+  if raceKey and (DSL_RACE_KEY_TO_PALETTE or {})[raceKey] then return DSL_RACE_KEY_TO_PALETTE[raceKey] end
+
+  local classKey = (DSL_CLASS_ALIASES or {})[t] or (DSL_CLASS_ALIASES or {})[lower]
+  if classKey and (DSL_CLASS_KEY_TO_PALETTE or {})[classKey] then return DSL_CLASS_KEY_TO_PALETTE[classKey] end
+
+  local titlePal = dslPaletteNameForTitle(t)
+  if titlePal and dslPaletteExists(titlePal) then return titlePal end
+
+  return nil
+end
+
+function dslSortedPaletteNames()
+  local seen = {}
+  local arr = {}
+  for k,_ in pairs((DSL_COLORS and DSL_COLORS.palettes) or {}) do if not seen[k] then seen[k]=true; table.insert(arr, k) end end
+  for k,_ in pairs((DSL_COLOR_DB and DSL_COLOR_DB.custom_palettes) or {}) do if not seen[k] then seen[k]=true; table.insert(arr, k) end end
+  table.sort(arr)
+  return arr
+end
+
+function dslRenderCustomTerms()
+  local changed = false
+  local terms = DSL_COLOR_DB and DSL_COLOR_DB.terms or {}
+  local sorted = dslSortedTermKeys(terms)
+  for _, term in ipairs(sorted) do
+    if not dslIsIgnoredTerm(term) then
+      local pal = dslResolvePaletteName(terms[term])
+      if pal then changed = dslColorTermWithPalette(term, pal) or changed end
+    end
+  end
+  return changed
+end
+
+function dslSaveCustomTerm(term, paletteText)
+  term = dslTrim(term or "")
+  local pal = dslResolvePaletteName(paletteText or "")
+  if term == "" then cecho("\n&lt;red&gt;[DslColors] missing term text. Example: dslcolor term \"Verminasian Potions\" verminasia\n"); return end
+  if not pal then cecho("\n&lt;red&gt;[DslColors] unknown palette: " .. tostring(paletteText) .. "\n&lt;grey&gt;Use: dslcolor list palettes\n"); return end
+  DSL_COLOR_DB.terms = DSL_COLOR_DB.terms or {}
+  DSL_COLOR_DB.terms[term] = pal
+  dslColorSave()
+  cecho("\n&lt;green&gt;[DslColors] custom term saved: " .. term .. " -&gt; " .. pal .. "\n")
+end
+
+function dslForgetCustomTerm(term)
+  term = dslTrim(term or "")
+  if term == "" then cecho("\n&lt;red&gt;[DslColors] missing term to forget.\n"); return end
+  DSL_COLOR_DB.terms = DSL_COLOR_DB.terms or {}
+  local existed = DSL_COLOR_DB.terms[term] ~= nil
+  DSL_COLOR_DB.terms[term] = nil
+  dslColorSave()
+  if existed then cecho("\n&lt;yellow&gt;[DslColors] custom term forgotten: " .. term .. "\n") else cecho("\n&lt;yellow&gt;[DslColors] no custom term found for: " .. term .. "\n") end
+end
+
+function dslParseTermCommand(cmd)
+  local term, pal = cmd:match('^term%s+"([^"]+)"%s+([%w_]+)$')
+  if term and dslResolvePaletteName(pal) then return term, pal end
+
+  local palFirst, quotedTerm = cmd:match('^term%s+([%w_]+)%s+"([^"]+)"$')
+  if palFirst and quotedTerm and dslResolvePaletteName(palFirst) then return quotedTerm, palFirst end
+
+  local body = cmd:match("^term%s+(.+)$")
+  if not body then return nil, nil end
+
+  local phrase, last = body:match("^(.+)%s+(%S+)$")
+  if phrase and last and dslResolvePaletteName(last) then return phrase, last end
+
+  local first, rest = body:match("^(%S+)%s+(.+)$")
+  if first and rest and dslResolvePaletteName(first) then return rest, first end
+
+  return nil, nil
+end
+
+function dslAllTitleTermsTable()
+  local t = {}
+  for k,_ in pairs(DSL_TITLE_ALIASES or {}) do t[k] = true end
+  for k,_ in pairs((DSL_COLOR_DB and DSL_COLOR_DB.titles) or {}) do t[k] = true end
+  return t
+end
+
+function dslColorAnyTermTable(tbl, resolver)
+  local changed = false
+  for _, term in ipairs(dslSortedTermKeys(tbl or {})) do
+    if not dslIsIgnoredTerm(term) then
+      local pal = resolver(term)
+      if pal then changed = dslColorTermWithPalette(term, pal) or changed end
+    end
+  end
+  return changed
+end
+
+function dslColorAllRaceTermsOnLine() return dslColorAnyTermTable(DSL_RACE_ALIASES, dslPaletteNameForRace) end
+function dslColorAllClassTermsOnLine() return dslColorAnyTermTable(DSL_CLASS_ALIASES, dslPaletteNameForClass) end
+function dslColorAllTitleTermsOnLine(startAt)
+  local changed = false
+  for _, term in ipairs(dslSortedTermKeys(dslAllTitleTermsTable())) do
+    if not dslIsIgnoredTerm(term) then
+      local pal = dslPaletteNameForTitle(term)
+      if pal then changed = dslColorTermWithPaletteFrom(term, pal, startAt or 1) or changed end
+    end
+  end
+  return changed
+end
+function dslColorAllCraftTermsOnLine() return dslColorAnyTermTable(DSL_CRAFT_TERMS, function(t) return (DSL_CRAFT_TERMS or {})[t] end) end
+
+function dslOrgTypeForKey(key)
+  if not key then return nil end
+  local kingdoms = { new_thalos=true, althainia=true, arkane=true, verminasia=true, abaddon=true, nordmaar=true, ganth=true, thaxanos=true, darkonin=true, marauders=true }
+  if kingdoms[key] then return "kingdom" end
+  if key == "white_robes" or key == "black_robes" or key == "red_robes" then return "robe" end
+  if tostring(key):find("dragon") then return "dragon" end
+  return "clan"
+end
+
+function dslOrgLabelForKey(key)
+  local labels = { new_thalos="New Thalos", althainia="Althainia", arkane="Arkane", verminasia="Verminasia", abaddon="Abaddon", nordmaar="Nordmaar", ganth="Ganth", thaxanos="Thaxanos", darkonin="Darkonin", marauders="Marauders", wargar="Wargar", chaos="Chaos", shadow="Shadow", shalonesti_clan="Shalonesti", black_robes="Black Robes", white_robes="White Robes", red_robes="Red Robes", loner="Loner" }
+  return labels[key] or tostring(key)
+end
+
+function dslEnsurePerson(name)
+  local key = dslKey(name)
+  if key == "" then return nil end
+  local created = false
+  if not DSL_COLOR_DB.people[key] then
+    DSL_COLOR_DB.people[key] = { name=name, combat={ killed_by_me=0, killed_me=0, downed_by_me=0, downed_me=0, notes={} } }
+    created = true
+  end
+  local p = DSL_COLOR_DB.people[key]
+  p.name = p.name or name
+  p.combat = p.combat or { killed_by_me=0, killed_me=0, downed_by_me=0, downed_me=0, notes={} }
+  p.combat.notes = p.combat.notes or {}
+  return key, p, created
+end
+
+function dslEnsureOrg(key)
+  if not key then return nil end
+  DSL_COLOR_DB.orgs[key] = DSL_COLOR_DB.orgs[key] or { key=key, label=dslOrgLabelForKey(key), type=dslOrgTypeForKey(key), palette=(DSL_ORG_KEY_TO_PALETTE or {})[key], members={} }
+  local o = DSL_COLOR_DB.orgs[key]
+  o.members = o.members or {}
+  o.label = o.label or dslOrgLabelForKey(key)
+  o.type = o.type or dslOrgTypeForKey(key)
+  o.palette = o.palette or (DSL_ORG_KEY_TO_PALETTE or {})[key]
+  return o
+end
+
+function dslTouchPerson(p, source)
+  local now = dslNowRecord()
+  if not p.first_seen_real then p.first_seen_real = now.real; p.first_seen_stamp = now.stamp end
+  p.last_seen_real = now.real; p.last_seen_stamp = now.stamp; p.last_seen_game_time = now.game_time; p.last_seen_room = now.room; p.last_seen_character = now.character
+  p.last_source = source
+  p.sightings = (p.sightings or 0) + 1
+end
+
+
+function dslPersonOrgKey(p)
+  if not p then return nil end
+  return p.clan or p.kingdom or p.robe or p.dragon
+end
+
+function dslFactsOrgKey(facts)
+  facts = facts or {}
+  return facts.clan or facts.kingdom or facts.robe or facts.dragon
+end
+
+function dslNameSegmentContains(segment, name)
+  local wanted = dslKey(name)
+  if wanted == "" then return false end
+  for word in tostring(segment or ""):gmatch("[A-Z][%a'%-]*") do
+    if dslKey(word) == wanted then return true end
+  end
+  return false
+end
+
+function dslPersonCompatibleWithFacts(p, facts)
+  facts = facts or {}
+  if not p then return false end
+  if facts.class and p.class and facts.class ~= p.class then return false end
+  if facts.race and p.race and facts.race ~= p.race then return false end
+  local fOrg = dslFactsOrgKey(facts)
+  local pOrg = dslPersonOrgKey(p)
+  if fOrg and pOrg and fOrg ~= pOrg then return false end
+  -- If the incoming line has an org, require the candidate to have that same org.
+  -- This keeps surname/secondary-name matching conservative.
+  if fOrg and not pOrg then return false end
+  return true
+end
+
+function dslMergePersonRecords(fromKey, toKey)
+  if not fromKey or not toKey or fromKey == toKey then return false end
+  local from = DSL_COLOR_DB.people and DSL_COLOR_DB.people[fromKey]
+  local to = DSL_COLOR_DB.people and DSL_COLOR_DB.people[toKey]
+  if not from or not to then return false end
+
+  for _, field in ipairs({"race","class","kingdom","clan","robe","dragon","dragon_type","title_prefix","team","name_segment","craft","craft_rank","first_seen_real","first_seen_stamp","last_seen_real","last_seen_stamp","last_seen_game_time","last_seen_room","last_seen_character","last_source"}) do
+    if to[field] == nil and from[field] ~= nil then to[field] = from[field] end
+  end
+
+  to.sightings = (to.sightings or 0) + (from.sightings or 0)
+
+  if from.crafts then
+    to.crafts = to.crafts or {}
+    for craft, rankInfo in pairs(from.crafts) do
+      if to.crafts[craft] == nil then to.crafts[craft] = rankInfo end
+    end
+  end
+
+  if from.combat then
+    to.combat = to.combat or { killed_by_me=0, killed_me=0, downed_by_me=0, downed_me=0, notes={} }
+    for _, field in ipairs({"killed_by_me","killed_me","downed_by_me","downed_me"}) do
+      to.combat[field] = (to.combat[field] or 0) + (from.combat[field] or 0)
+    end
+    to.combat.notes = to.combat.notes or {}
+    for _, note in ipairs(from.combat.notes or {}) do table.insert(to.combat.notes, note) end
+  end
+
+  DSL_COLOR_DB.aliases = DSL_COLOR_DB.aliases or {}
+  DSL_COLOR_DB.aliases[fromKey] = toKey
+
+  if DSL_COLOR_DB.relations and DSL_COLOR_DB.relations.people then
+    if DSL_COLOR_DB.relations.people[toKey] == nil then DSL_COLOR_DB.relations.people[toKey] = DSL_COLOR_DB.relations.people[fromKey] end
+    DSL_COLOR_DB.relations.people[fromKey] = nil
+  end
+
+  for _, members in pairs(DSL_COLOR_DB.teams or {}) do
+    if members[fromKey] then members[toKey] = true; members[fromKey] = nil end
+  end
+
+  for _, org in pairs(DSL_COLOR_DB.orgs or {}) do
+    if org.members and org.members[fromKey] then org.members[toKey] = true; org.members[fromKey] = nil end
+  end
+
+  DSL_COLOR_DB.people[fromKey] = nil
+  return true
+end
+
+function dslResolveCanonicalPersonKey(name, facts)
+  local key = dslKey(name)
+  if key == "" then return key end
+
+  DSL_COLOR_DB.aliases = DSL_COLOR_DB.aliases or {}
+  local aliased = DSL_COLOR_DB.aliases[key]
+  if aliased and DSL_COLOR_DB.people and DSL_COLOR_DB.people[aliased] then return aliased end
+
+  local candidates = {}
+  for pkey, p in pairs(DSL_COLOR_DB.people or {}) do
+    if pkey ~= key and p.name_segment and dslNameSegmentContains(p.name_segment, name) and dslPersonCompatibleWithFacts(p, facts) then
+      table.insert(candidates, pkey)
+    end
+  end
+
+  if #candidates == 1 then
+    DSL_COLOR_DB.aliases[key] = candidates[1]
+    return candidates[1]
+  end
+
+  return key
+end
+
+function dslLearnPerson(name, facts, source)
+  facts = facts or {}
+  if dslIsIgnoredTerm(name) then return false end
+  local originalKey = dslKey(name)
+  local resolvedKey = dslResolveCanonicalPersonKey(name, facts)
+  if resolvedKey and resolvedKey ~= originalKey then
+    dslMergePersonRecords(originalKey, resolvedKey)
+    local resolved = DSL_COLOR_DB.people[resolvedKey]
+    if resolved and resolved.name then name = resolved.name end
+  end
+
+  local key,p,created = dslEnsurePerson(name); if not p then return false end
+  dslTouchPerson(p, source or "structured")
+
+  local changed=created
+
+  -- Crafting can list the same person multiple times, once per craft/profession.
+  -- Store crafts as a table so "Miller" does not overwrite "Lumberjack" and then
+  -- flip back on the next WHOCRAFT refresh. Echo only when a new craft is learned
+  -- or an existing craft's rank/info text actually changes.
+  if facts.craft or facts.craft_rank then
+    p.crafts = p.crafts or {}
+    local craft = facts.craft or "Unknown"
+    local rankInfo = facts.craft_rank or craft
+    if craft and craft ~= "" then
+      if p.crafts[craft] ~= rankInfo then
+        p.crafts[craft] = rankInfo
+        changed = true
+      end
+
+      -- Compatibility/display fields: set once only, do not toggle between crafts.
+      p.craft = p.craft or craft
+      p.craft_rank = p.craft_rank or rankInfo
+    end
+
+    facts.craft = nil
+    facts.craft_rank = nil
+  end
+
+  -- Preserve the richest title prefix. Short WHOK/WHOC rows may show only one
+  -- title/rank, while full WHO rows can show multiple leading titles. Avoid
+  -- oscillating between the short and full forms.
+  local incomingTitlePrefix = facts.title_prefix
+  facts.title_prefix = nil
+  if incomingTitlePrefix and incomingTitlePrefix ~= "" then
+    local oldPrefix = tostring(p.title_prefix or "")
+    if oldPrefix == "" or #incomingTitlePrefix &gt; #oldPrefix then
+      p.title_prefix = incomingTitlePrefix
+      changed = true
+    end
+  end
+
+  for k,v in pairs(facts or {}) do
+    if v and p[k] ~= v then
+      p[k]=v
+      changed=true
+    end
+  end
+
+  local orgKey = p.clan or p.kingdom or p.robe or p.dragon
+  if orgKey then
+    local o=dslEnsureOrg(orgKey)
+    o.members[key]=true
+    o.last_seen_real=os.time()
+    o.last_seen_stamp=os.date("%Y-%m-%d %H:%M:%S")
+  end
+
+  -- Persist every structured sighting. Even when facts are unchanged, last_seen
+  -- and sightings changed and must survive a profile reload.
+  dslColorSave()
+
+  if changed and DSL_COLOR_DB.settings.echo_updates then
+    cecho("\n&lt;cyan&gt;[DslColors] updated "..name.." facts\n")
+  end
+
+  return changed
+end
+
+function dslIsKnownTitleTerm(term)
+  return dslTitleCategoryOrPalette(term) ~= nil
+end
+
+function dslLongestLeadingTitle(text)
+  text = dslTrim(text or "")
+  local lowerText = string.lower(text)
+  local best = nil
+  local function consider(title)
+    if type(title) ~= "string" or title == "" then return end
+    if dslIsTitleBlocked(title) then return end
+    local esc = string.lower(title):gsub("([^%w%s'])", "%%%1"):gsub("%s+", "%%s+")
+    if lowerText:match("^" .. esc .. "%f[%W]") then
+      if (not best) or #title &gt; #best then best = title end
+    end
+  end
+  for title,_ in pairs(DSL_TITLE_ALIASES or {}) do consider(title) end
+  for title,_ in pairs((DSL_COLOR_DB and DSL_COLOR_DB.titles) or {}) do consider(title) end
+  return best
+end
+
+function dslStripLeadingStatusAndTitles(text)
+  text = dslTrim(text or "")
+  local removed = {}
+
+  local guard = 0
+  while guard &lt; 10 do
+    guard = guard + 1
+    local before = text
+    local tag = text:match("^%s*%(([^%)]+)%)") or text:match("^%s*%[([^%]]+)%]")
+    if tag then
+      local clean = dslStripBrackets(tag)
+      if DSL_STATUS_ONLY_TAGS[clean] or dslIsKnownTitleTerm(clean) then
+        table.insert(removed, clean)
+        text = text:gsub("^%s*%b()", "", 1):gsub("^%s*%b[]", "", 1)
+        text = dslTrim(text)
+      end
+    end
+    if before == text then break end
+  end
+
+  guard = 0
+  while guard &lt; 10 do
+    guard = guard + 1
+    local title = dslLongestLeadingTitle(text)
+    if not title then break end
+    -- Remove the leading matched title from the original string. Matching is
+    -- case-insensitive and whitespace-tolerant, so compute the matched end
+    -- position against the lowercased source instead of using a literal gsub.
+    local esc = string.lower(title):gsub("([^%w%s'])", "%%%1"):gsub("%s+", "%%s+")
+    local _, titleEnd = string.lower(text):find("^" .. esc)
+    local displayedTitle = title
+    if titleEnd then displayedTitle = dslTrim(text:sub(1, titleEnd)) end
+    table.insert(removed, displayedTitle)
+    if titleEnd then text = dslTrim(text:sub(titleEnd + 1)) else text = dslTrim(text:sub(#title + 1)) end
+  end
+
+  return text, removed
+end
+
+
+function dslLeadingNameSegment(text)
+  local s = dslTrim(text or "")
+  local words = {}
+  local pos = 1
+
+  while pos &lt;= #s do
+    local spaceStart, spaceEnd = s:find("^%s+", pos)
+    if spaceStart then pos = spaceEnd + 1 end
+
+    local a, b, word = s:find("^([A-Z][%a'%-]*)", pos)
+    if not word then break end
+
+    table.insert(words, word)
+    pos = b + 1
+
+    local nextChar = s:sub(pos, pos)
+    if nextChar ~= " " then break end
+  end
+
+  return table.concat(words, " ")
+end
+
+function dslExtractName(text)
+  local clean = dslStripLeadingStatusAndTitles(text or "")
+  local segment = dslLeadingNameSegment(clean)
+  return segment:match("^([A-Z][%a'%-]+)")
+end
+
+function dslProcessStructuredText(line, source)
+  line = line or getCurrentLine()
+
+  local level, race, class, rest = line:match("^%s*#?%d*%.?%s*%[%s*(%d+)%s+([%w%-]+)%s+([%a]+)%s*%]%s*(.*)$")
+  local hasRace = true
+
+  if not rest then
+    level, class, rest = line:match("^%s*#?%d*%.?%s*%[%s*(%d+)%s+([%a]+)%s*%]%s*(.*)$")
+    hasRace = false
+  end
+
+  if not rest then return false end
+
+  -- Master Account character-list rows start with "#1.". They should color like
+  -- structured rows, but must not learn/update people or aliases from your own alt list.
+  local masterListRow = line:match("^%s*#%d+%.") ~= nil
+
+  local facts = {}
+  if hasRace and race then facts.race = (DSL_RACE_ALIASES or {})[race] or (DSL_RACE_ALIASES or {})[string.lower(race or "")] or race end
+  if class then facts.class = (DSL_CLASS_ALIASES or {})[class] or (DSL_CLASS_ALIASES or {})[string.lower(class or "")] or class end
+
+  -- Dragon rows look like: [51 Brown Dra] ( Dragon ) Ryzzynth
+  -- The "Dragon" tag is the broad identity/org for relation purposes, but the
+  -- name color should be the specific dragon race palette from the race column.
+  if facts.class == "dragon" or dslIsDragonRaceKey(facts.race) then
+    facts.dragon = "dragon"
+    facts.dragon_type = facts.race
+  end
+
+  local scan = rest
+  local guard = 0
+  while guard &lt; 8 do
+    guard = guard + 1
+    local tag = scan:match("^%s*%(([^%)]+)%)") or scan:match("^%s*%[([^%]]+)%]")
+    if not tag then break end
+    local clean = dslStripBrackets(tag)
+    if not DSL_STATUS_ONLY_TAGS[clean] then
+      local orgKey = dslOrgKeyForTerm(clean)
+      if orgKey then
+        local typ = dslOrgTypeForKey(orgKey)
+        if typ == "kingdom" then facts.kingdom = orgKey elseif typ == "robe" then facts.robe = orgKey elseif typ == "dragon" then facts.dragon = "dragon"; facts.dragon_type = facts.dragon_type or facts.race else facts.clan = orgKey end
+      end
+    end
+    scan = scan:gsub("^%s*%b()", "", 1):gsub("^%s*%b[]", "", 1)
+  end
+
+  local nameScan, strippedTitles = dslStripLeadingStatusAndTitles(scan)
+  local nameSegment = dslLeadingNameSegment(nameScan)
+  local name = dslExtractName(scan)
+
+  if name and not masterListRow then
+    -- Only full WHO-style rows with race+class are allowed to refresh the rich
+    -- name segment. WHOK/WHOC class-only rows often contain short names plus
+    -- rank columns, and letting those overwrite the full segment caused
+    -- repeated update echoes when moving between who/whok/whoc.
+    if hasRace and nameSegment and nameSegment ~= "" then facts.name_segment = nameSegment end
+    if strippedTitles and #strippedTitles &gt; 0 then facts.title_prefix = table.concat(strippedTitles, ", ") end
+    local paletteKey = facts.kingdom or facts.clan or facts.robe or facts.dragon
+    if paletteKey then DSL_COLOR_DB.overrides[name] = nil end
+    local effectiveSource = source or (hasRace and "who" or "who-short")
+    if source == "who" and not hasRace then effectiveSource = "who-short" end
+    dslLearnPerson(name, facts, effectiveSource)
+  end
+
+  return true
+end
+
+function dslColorProcessStructuredLine() return dslProcessStructuredText(getCurrentLine(), "who") end
+
+DSL_CRAFT_PROFESSIONS = {
+  "Armorcrafter", "Spellcrafter", "Weaponsmith", "Lumberjack", "Smelter",
+  "Tanner", "Tailor", "Hunter", "Miller", "Miner"
+}
+
+function dslExtractCraftInfo(info)
+  info = dslTrim(info or "")
+  local profession = nil
+  for _, term in ipairs(DSL_CRAFT_PROFESSIONS) do
+    if info:find(term, 1, true) then profession = term; break end
+  end
+  if not profession then return nil, nil end
+
+  local rank = dslTrim(info:match("^(.-)%s+" .. profession) or "")
+  if rank == "" then rank = "Unknown" end
+
+  local subtype = info:match(profession .. "%s*%((Sharp)%)") or info:match(profession .. "%s*%((Blunt)%)")
+  local craftKey = profession
+  if subtype then craftKey = profession .. " (" .. subtype .. ")" end
+
+  local rankInfo = rank .. " " .. craftKey
+  return craftKey, rankInfo
+end
+
+function dslOrgFactsFromText(text)
+  local facts = {}
+  for tag in text:gmatch("%b[]") do
+    local clean = dslStripBrackets(tag)
+    if not DSL_STATUS_ONLY_TAGS[clean] then
+      local orgKey = dslOrgKeyForTerm(clean)
+      if orgKey then
+        local typ = dslOrgTypeForKey(orgKey)
+        if typ == "kingdom" then facts.kingdom = orgKey elseif typ == "robe" then facts.robe = orgKey elseif typ == "dragon" then facts.dragon = "dragon" else facts.clan = orgKey end
+      end
+    end
+  end
+  for tag in text:gmatch("%b()") do
+    local clean = dslStripBrackets(tag)
+    if not DSL_STATUS_ONLY_TAGS[clean] and clean ~= "Sharp" and clean ~= "Blunt" then
+      local orgKey = dslOrgKeyForTerm(clean)
+      if orgKey then
+        local typ = dslOrgTypeForKey(orgKey)
+        if typ == "kingdom" then facts.kingdom = orgKey elseif typ == "robe" then facts.robe = orgKey elseif typ == "dragon" then facts.dragon = "dragon" else facts.clan = orgKey end
+      end
+    end
+  end
+  return facts
+end
+
+function dslProcessCraftLine(line)
+  line = line or getCurrentLine()
+  local name, info = line:match("^%s*([A-Z][%a'%-]+)%s+%-%s+(.+)$")
+  if not name or not info then return false end
+
+  local craft, rankInfo = dslExtractCraftInfo(info)
+  if not craft then return false end
+
+  local facts = dslOrgFactsFromText(info)
+  facts.craft = craft
+  facts.craft_rank = rankInfo
+
+  -- If a craft line ends with a known leading title after the org, preserve it as metadata
+  -- but never let it become the learned name because the name is already before the dash.
+  local stripped = info
+  stripped = stripped:gsub("%b[]", " "):gsub("%b()", " ")
+  local _, titles = dslStripLeadingStatusAndTitles(stripped)
+  if titles and #titles &gt; 0 then facts.title_prefix = table.concat(titles, ", ") end
+
+  dslLearnPerson(name, facts, "whocraft")
+  return true
+end
+
+function dslRelationForPerson(pkey, p)
+  local rel = DSL_COLOR_DB.relations.people[pkey]
+  if rel then return rel end
+  local org = p and (p.clan or p.kingdom or p.robe or p.dragon)
+  if org then return DSL_COLOR_DB.relations.orgs[org] end
+  return nil
+end
+
+function dslApplyRelationBackground(name, relation)
+  if not name or not relation or relation == "neutral" then return false end
+  local bg, bold
+  if relation == "enemy" or relation == "war" then bg = DSL_COLOR_DB.settings.enemy_background; bold = DSL_COLOR_DB.settings.enemy_bold
+  elseif relation == "friend" or relation == "peace" then bg = DSL_COLOR_DB.settings.friend_background; bold = DSL_COLOR_DB.settings.friend_bold end
+  if not bg then return false end
+  local line=getCurrentLine(); local from=1; local changed=false
+  while true do
+    local s,e=dslBoundedFind(line, name, from); if not s then break end
+    for i=s,e do selectSection(i-1,1); setBgColor(bg[1],bg[2],bg[3]); if bold then pcall(setBold,true) end end
+    resetFormat(); deselect(); changed=true; from=e+1
+  end
+  return changed
+end
+
+function dslRenderNameOverrides()
+  local changed=false
+  for name,pal in pairs(DSL_COLOR_DB.overrides or {}) do
+    if not dslIsIgnoredTerm(name) then changed=dslColorTermWithPalette(name,pal) or changed end
+  end
+  return changed
+end
+
+function dslRenderKnownNames()
+  local changed=false
+  for key,p in pairs(DSL_COLOR_DB.people or {}) do
+    local name=p.name
+    if name and not dslIsIgnoredTerm(name) then
+      local isTitleName = dslIsKnownTitleTerm(name)
+      if not isTitleName and not (DSL_COLOR_DB.overrides and DSL_COLOR_DB.overrides[name]) then
+        local pal=dslPersonIdentityPalette(p)
+        if pal then changed=dslColorTermWithPalette(name,pal) or changed end
+      end
+      local rel=dslRelationForPerson(key,p)
+      if rel then changed=dslApplyRelationBackground(name,rel) or changed end
+    end
+  end
+  return changed
+end
+
+function dslRenderOrgTags()
+  local line=getCurrentLine(); local changed=false
+  for tag in line:gmatch("%[([^%]]+)%]") do local clean=dslStripBrackets(tag); if not DSL_STATUS_ONLY_TAGS[clean] then local pal=dslPaletteNameForOrg(clean); if pal then changed=dslColorTermWithPalette(clean,pal) or changed end end end
+  for tag in line:gmatch("%(([^%)]+)%)") do local clean=dslStripBrackets(tag); if not DSL_STATUS_ONLY_TAGS[clean] then local pal=dslPaletteNameForOrg(clean); if pal then changed=dslColorTermWithPalette(clean,pal) or changed end end end
+  return changed
+end
+
+function dslColorOnLine()
+  local line = getCurrentLine()
+  if not line or line == "" then return end
+  dslResetLineRanges()
+
+  local structured = dslProcessStructuredText(line, "who")
+  local craftline = dslProcessCraftLine(line)
+
+  -- Rendering priority: custom terms, manual name overrides, known people,
+  -- org tags, titles/craft terms, then race/class vocabulary.
+  dslRenderCustomTerms()
+  dslRenderNameOverrides()
+  dslRenderKnownNames()
+  dslRenderOrgTags()
+
+  -- Title/craft terms are useful on WHO/WHOCRAFT-style people lines, but noisy
+  -- on login menus such as "Master Account". Keep them scoped to structured lines.
+  if structured or craftline then
+    local titleStart = 1
+    if structured then
+      local _, structuredHeaderEnd = line:find("^%s*#?%d*%.?%s*%b[]")
+      if structuredHeaderEnd then titleStart = structuredHeaderEnd + 1 end
+    end
+    dslColorAllTitleTermsOnLine(titleStart)
+    dslColorAllCraftTermsOnLine()
+  end
+
+  dslColorAllRaceTermsOnLine()
+  dslColorAllClassTermsOnLine()
+end
+
+function dslCount(t) local n=0; for _,_ in pairs(t or {}) do n=n+1 end; return n end
+function dslPrintKV(k,v) cecho("&lt;grey&gt;  "..k..": &lt;cyan&gt;"..tostring(v or "-").."\n") end
+
+function dslResolveOrgKey(text)
+  local k=dslOrgKeyForTerm(text); if k then return k end
+  return dslKey(text)
+end
+
+function dslSetPersonRelation(name, rel)
+  local key,p=dslEnsurePerson(name)
+  if rel=="neutral" then DSL_COLOR_DB.relations.people[key]=nil; cecho("\n&lt;yellow&gt;[DslColors] personal relation cleared: "..p.name.."\n")
+  else DSL_COLOR_DB.relations.people[key]=rel; cecho("\n&lt;green&gt;[DslColors] personal relation: "..p.name.." -&gt; "..rel.."\n") end
+  dslColorSave()
+end
+
+function dslSetOrgRelation(orgText, rel)
+  local key=dslResolveOrgKey(orgText); local o=dslEnsureOrg(key)
+  if rel=="neutral" then DSL_COLOR_DB.relations.orgs[key]=nil; cecho("\n&lt;yellow&gt;[DslColors] org relation cleared: "..o.label.."\n")
+  else DSL_COLOR_DB.relations.orgs[key]=rel; cecho("\n&lt;green&gt;[DslColors] org relation: "..o.label.." -&gt; "..rel.."\n") end
+  dslColorSave()
+end
+
+function dslShowPerson(name)
+  local p=DSL_COLOR_DB.people[dslKey(name)]
+  if not p then cecho("\n&lt;yellow&gt;[DslColors] No person record for "..tostring(name).."\n"); return end
+  cecho("\n&lt;cyan&gt;DSL person: "..tostring(p.name).."\n")
+  for _,k in ipairs({"race","class","kingdom","clan","robe","dragon","dragon_type","title_prefix","name_segment","team","first_seen_stamp","last_seen_stamp","last_seen_game_time","last_seen_room","sightings"}) do dslPrintKV(k,p[k]) end
+
+  if p.crafts and next(p.crafts) then
+    cecho("&lt;grey&gt;  crafts:\n")
+    local keys={}
+    for craft,_ in pairs(p.crafts) do table.insert(keys, craft) end
+    table.sort(keys)
+    for _,craft in ipairs(keys) do
+      cecho("&lt;grey&gt;    "..tostring(craft)..": &lt;cyan&gt;"..tostring(p.crafts[craft]).."\n")
+    end
+  else
+    dslPrintKV("craft", p.craft)
+    dslPrintKV("craft_rank", p.craft_rank)
+  end
+
+  if p.combat then dslPrintKV("killed_by_me",p.combat.killed_by_me); dslPrintKV("killed_me",p.combat.killed_me); dslPrintKV("downed_by_me",p.combat.downed_by_me); dslPrintKV("downed_me",p.combat.downed_me) end
+end
+
+function dslShowOrg(text)
+  local key=dslResolveOrgKey(text); local o=DSL_COLOR_DB.orgs[key]
+  if not o then cecho("\n&lt;yellow&gt;[DslColors] No org record for "..tostring(text).."\n"); return end
+  cecho("\n&lt;cyan&gt;DSL org: "..o.label.."\n"); dslPrintKV("key",key); dslPrintKV("type",o.type); dslPrintKV("relation",DSL_COLOR_DB.relations.orgs[key] or "neutral"); dslPrintKV("known_members",dslCount(o.members)); dslPrintKV("last_seen",o.last_seen_stamp)
+end
+
+function dslCensus(field)
+  field=dslTrim(field or "")
+  if field=="" then cecho("\n&lt;cyan&gt;DSL census summary\n"); dslPrintKV("known_people",dslCount(DSL_COLOR_DB.people)); dslPrintKV("known_orgs",dslCount(DSL_COLOR_DB.orgs)); return end
+  if field=="lastseen" then local arr={}; for _,p in pairs(DSL_COLOR_DB.people) do table.insert(arr,p) end; table.sort(arr,function(a,b)return (a.last_seen_real or 0)&gt;(b.last_seen_real or 0)end); cecho("\n&lt;cyan&gt;Recently seen\n"); for i=1,math.min(20,#arr) do local p=arr[i]; cecho("&lt;grey&gt;  "..tostring(p.name).." &lt;cyan&gt;"..tostring(p.last_seen_stamp or "-").."&lt;grey&gt; room="..tostring(p.last_seen_room or "-").."\n") end; return end
+  if field=="combat" then cecho("\n&lt;cyan&gt;Combat census\n"); for _,p in pairs(DSL_COLOR_DB.people) do local c=p.combat or {}; local total=(c.killed_by_me or 0)+(c.killed_me or 0)+(c.downed_by_me or 0)+(c.downed_me or 0); if total&gt;0 then cecho("&lt;grey&gt;  "..p.name..": killed_by_me="..(c.killed_by_me or 0).." killed_me="..(c.killed_me or 0).." downed_by_me="..(c.downed_by_me or 0).." downed_me="..(c.downed_me or 0).."\n") end end; return end
+
+  local counts={}
+  for _,p in pairs(DSL_COLOR_DB.people) do
+    if field=="craft" then
+      if p.crafts and next(p.crafts) then
+        for craft,_ in pairs(p.crafts) do counts[craft]=(counts[craft] or 0)+1 end
+      elseif p.craft then
+        counts[p.craft]=(counts[p.craft] or 0)+1
+      end
+    else
+      local v=p[field]
+      if field=="relation" then v=DSL_COLOR_DB.relations.people[dslKey(p.name or "")] end
+      if v then counts[v]=(counts[v] or 0)+1 end
+    end
+  end
+
+  cecho("\n&lt;cyan&gt;DSL census: "..field.."\n")
+  for k,v in pairs(counts) do cecho("&lt;grey&gt;  "..tostring(k)..": &lt;cyan&gt;"..tostring(v).."\n") end
+end
+
+function dslCombatEvent(name, field, note)
+  local key,p=dslEnsurePerson(name); local c=p.combat; c[field]=(c[field] or 0)+1; local now=dslNowRecord(); c.last_combat_stamp=now.stamp; table.insert(c.notes,{stamp=now.stamp, room=now.room, game_time=now.game_time, type=field, note=note}); dslColorSave(); cecho("\n&lt;green&gt;[DslColors] combat recorded: "..p.name.." "..field.." = "..c[field].."\n")
+end
+
+function dslColorHelp(topic)
+  topic = string.lower(dslTrim(topic or ""))
+
+  local H = "&lt;cyan&gt;"      -- main header: cyan-teal
+  local S = "&lt;yellow&gt;"      -- section title: warm gold
+  local B = "&lt;grey&gt;"     -- body text: soft gray, not bright white
+  local D = "&lt;grey&gt;"     -- dim explanatory text
+  local C = "&lt;green&gt;"     -- commands/examples: soft green
+  local W = "&lt;yellow&gt;"      -- warnings/notes: amber
+  local R = "&lt;red&gt;"     -- errors/cautions: soft red
+
+  local function header(text) cecho("\n" .. H .. "== " .. text .. " ==\n") end
+  local function section(text) cecho(S .. "\n" .. text .. "\n") end
+  local function body(text) cecho(B .. text .. "\n") end
+  local function dim(text) cecho(D .. text .. "\n") end
+  local function cmd(text, desc)
+    if desc and desc ~= "" then cecho(C .. "  " .. text .. D .. "  - " .. desc .. "\n") else cecho(C .. "  " .. text .. "\n") end
+  end
+  local function note(text) cecho(W .. text .. "\n") end
+
+  if topic == "" or topic == "overview" or topic == "main" then
+    header("DslColors v1.0")
+    body("Persistent identity coloring and conservative people tracking for Dark and Shattered Lands.")
+    body("It colors visible text in Mudlet. It does not rewrite game output or send game commands.")
+    body("Save file: " .. tostring(DSL_COLOR_DATA_PATH or "DSL_PeopleColors_data.lua"))
+    section("Core idea")
+    body("Foreground color shows factual identity: race, class, kingdom, clan, robe, dragon type, title, craft, custom term, or learned person palette.")
+    body("Relationship overlays can add background/bold for friend, enemy, peace, or war without replacing the foreground identity color.")
+    section("Help topics")
+    cmd("dslcolor help commands", "all command groups")
+    cmd("dslcolor help quickstart", "safe first steps after install")
+    cmd("dslcolor help parsing", "how WHO / WHOK / WHOC / WHOCRAFT learning works")
+    cmd("dslcolor help titles", "fix title/name capture issues")
+    cmd("dslcolor help terms", "custom exact word/phrase coloring")
+    cmd("dslcolor help palettes", "built-in and custom palette commands")
+    cmd("dslcolor help relationships", "friend/enemy/peace/war overlays")
+    cmd("dslcolor help census", "stored fact summaries")
+    cmd("dslcolor help combat", "manual combat history notes")
+    cmd("dslcolor help teams", "private team labels")
+    cmd("dslcolor help maintenance", "save, reload, ignore, forget, cleanup")
+    cmd("dslcolor help examples", "common workflows")
+    return
+  end
+
+  if topic == "quickstart" or topic == "install" then
+    header("Quickstart")
+    body("After importing or updating the package, reload the Mudlet profile once, then run:")
+    cmd("dslcolor test", "confirms the core script, alias, counts, and save status")
+    cmd("dslcolor savepath", "shows the exact persistent save file")
+    cmd("dslcolor list titles", "shows default and saved leading titles")
+    cmd("who", "lets DslColors learn full WHO rows")
+    cmd("whok", "adds kingdom facts without downgrading richer WHO name data")
+    cmd("whoc", "adds clan/robe/order facts without downgrading richer WHO name data")
+    cmd("who", "a second WHO should usually be quiet unless real facts changed")
+    note("If a rank/title is captured as a name, add it as an exact title, clean it, then WHO again.")
+    return
+  end
+
+  if topic == "commands" then
+    header("Command list")
+    section("Inspect")
+    cmd("dslcolor test", "runtime check: paths, counts, load/save status")
+    cmd("dslcolor savepath", "print the save-file path")
+    cmd("dslcolor show person &lt;name&gt;", "show stored person facts")
+    cmd("dslcolor show &lt;name&gt;", "shorthand for show person")
+    cmd("dslcolor show org &lt;org&gt;", "show stored organization facts")
+    cmd("dslcolor list people|orgs|friends|enemies|war|peace|teams|titles|terms|palettes|custom_palettes", "list stored data")
+    section("Relationships")
+    cmd("dslcolor friend &lt;name&gt;", "personal friendly overlay")
+    cmd("dslcolor enemy &lt;name&gt;", "personal enemy overlay")
+    cmd("dslcolor neutral &lt;name&gt;", "clear personal relation")
+    cmd("dslcolor peace &lt;org&gt;", "organization peace overlay")
+    cmd("dslcolor war &lt;org&gt;", "organization war overlay")
+    cmd("dslcolor neutral org &lt;org&gt;", "clear organization relation")
+    section("Titles")
+    cmd("dslcolor title royalty|military|political|religious|scholarly|craft|unknown &lt;exact title&gt;", "add an exact leading title")
+    cmd("dslcolor forget title &lt;exact title&gt;", "remove a saved title or block a default title")
+    cmd("dslcolor cleanup-title", "remove accidental person records whose name is now an active title")
+    section("Custom terms and palettes")
+    cmd("dslcolor term &lt;phrase&gt; &lt;palette&gt;", "color an exact word/phrase")
+    cmd("dslcolor term &lt;palette&gt; &lt;phrase&gt;", "same command with palette first")
+    cmd("dslcolor forget term &lt;phrase&gt;", "remove a custom term")
+    cmd("dslcolor palette help", "custom palette syntax")
+    section("Census and combat")
+    cmd("dslcolor census race|class|kingdom|clan|robe|dragon|craft|relation|lastseen|combat", "summarize saved facts")
+    cmd("dslcolor killed &lt;name&gt; / killedby &lt;name&gt;", "manual combat history")
+    cmd("dslcolor downed &lt;name&gt; / downedby &lt;name&gt;", "manual down/disable history")
+    cmd("dslcolor combat note &lt;name&gt; &lt;note&gt;", "timestamped combat note")
+    section("Maintenance")
+    cmd("dslcolor echo on|off", "show/hide update echoes")
+    cmd("dslcolor save", "manual save")
+    cmd("dslcolor reload", "reload from disk")
+    cmd("dslcolor ignore &lt;name/term&gt;", "stop learning/coloring a problematic token as a person")
+    cmd("dslcolor unignore &lt;name/term&gt;", "reverse ignore")
+    cmd("dslcolor forget person &lt;name&gt;", "delete a bad person record and related aliases")
+    cmd("dslcolor forget name &lt;name&gt;", "remove a manual name palette override")
+    return
+  end
+
+  if topic == "parsing" or topic == "flow" then
+    header("Parsing flow")
+    body("DslColors learns people only from structured lines it recognizes, mainly WHO-style output.")
+    body("Full WHO rows are the richest source and may update race, class, org, title-prefix, name segment, and last-seen data.")
+    body("WHOK, WHOC, and WHOCRAFT may add compatible facts, but should not replace richer full-WHO name data with shorter fragments.")
+    body("Login banners and menu text are not intended as learning sources.")
+    section("Name extraction")
+    body("1. Detect a structured WHO-like row.")
+    body("2. Strip status markers such as WANTED or AFK.")
+    body("3. Read race/class/org fields when present.")
+    body("4. Strip only active exact leading titles.")
+    body("5. Capture the first remaining real name token as the person key.")
+    note("Phrase titles remain phrases. Adding 'Dread Pirate' does not create 'Dread' or 'Pirate'.")
+    return
+  end
+
+  if topic == "relationships" then
+    header("Relationships")
+    body("Relationship commands add visual overlays. They do not change the factual foreground identity color.")
+    section("People")
+    cmd("dslcolor friend &lt;name&gt;", "mark one person as friendly")
+    cmd("dslcolor enemy &lt;name&gt;", "mark one person as enemy")
+    cmd("dslcolor neutral &lt;name&gt;", "clear personal relation")
+    section("Organizations")
+    cmd("dslcolor peace &lt;org&gt;", "friendly/peace overlay for known members")
+    cmd("dslcolor war &lt;org&gt;", "enemy/war overlay for known members")
+    cmd("dslcolor neutral org &lt;org&gt;", "clear org relation")
+    note("Personal relation wins over organization relation when both apply.")
+    return
+  end
+
+  if topic == "titles" then
+    header("Titles and name capture")
+    body("A title is an exact leading word or phrase that should be skipped before learning a person's name.")
+    body("Default title seeds are intentionally small. Add new titles through commands when logs prove them.")
+    section("Commands")
+    cmd("dslcolor title royalty &lt;title&gt;", "royal/noble title such as King or Sultan")
+    cmd("dslcolor title military &lt;title&gt;", "rank or military title such as Knight or Dread Pirate")
+    cmd("dslcolor title religious &lt;title&gt;", "faith/religious title such as Deacon")
+    cmd("dslcolor title scholarly &lt;title&gt;", "mage/scholar title")
+    cmd("dslcolor title craft &lt;title&gt;", "craft/profession title")
+    cmd("dslcolor title unknown &lt;title&gt;", "uncategorized exact title")
+    cmd("dslcolor forget title &lt;title&gt;", "remove saved title or block default title")
+    cmd("dslcolor cleanup-title", "delete bad person records that are active titles")
+    cmd("dslcolor list titles", "show active titles and whether each is default or saved")
+    section("Safe workflow")
+    body("If 'Sultan Meki' learned as person 'Sultan':")
+    cmd("dslcolor title royalty Sultan", "teach the exact title")
+    cmd("dslcolor cleanup-title", "remove title-as-person records")
+    cmd("who", "relearn the correct person")
+    note("Do not add class words as titles unless the exact game output requires it. Pirate is a class term unless deliberately added as a title phrase.")
+    return
+  end
+
+  if topic == "terms" then
+    header("Custom terms")
+    body("Custom terms persistently color exact words or phrases. They are visual-only and do not affect people learning.")
+    section("Commands")
+    cmd("dslcolor term &lt;phrase&gt; &lt;palette&gt;", "save a custom term")
+    cmd("dslcolor term &lt;palette&gt; &lt;phrase&gt;", "same command, palette first")
+    cmd("dslcolor term \"multi word phrase\" &lt;palette&gt;", "quoted phrase form")
+    cmd("dslcolor forget term &lt;phrase&gt;", "remove a custom term")
+    cmd("dslcolor list terms", "show saved custom terms")
+    cmd("dslcolor list palettes", "show built-in and custom palette keys")
+    section("Examples")
+    cmd("dslcolor term \"Verminasian Potions\" verminasia", "color a shop/phrase")
+    cmd("dslcolor palette gradient cliath 180 240 255 255 255 255", "create a custom palette")
+    cmd("dslcolor term Cliath cliath", "use the custom palette on a term")
+    return
+  end
+
+  if topic == "palettes" or topic == "palette" or topic == "colors" then
+    header("Palettes")
+    body("Palettes are reusable color definitions. Built-in palettes color races, classes, orgs, titles, and relation overlays.")
+    body("Custom palettes are saved by name and can be used by custom terms and manual name overrides.")
+    section("Inspect")
+    cmd("dslcolor list palettes", "show built-in and custom palette names")
+    cmd("dslcolor list custom_palettes", "show only user-created palettes")
+    cmd("dslcolor palette show &lt;name&gt;", "show a custom palette definition")
+    section("Create")
+    cmd("dslcolor palette gradient &lt;name&gt; r1 g1 b1 r2 g2 b2", "two-color gradient")
+    cmd("dslcolor palette cycle &lt;name&gt; r g b | r g b | r g b", "cycle through several colors")
+    cmd("dslcolor palette copy &lt;new_name&gt; &lt;existing_palette&gt;", "clone a built-in or custom palette")
+    cmd("dslcolor palette remove &lt;name&gt;", "remove a custom palette")
+    section("Examples")
+    cmd("dslcolor palette gradient cliath 180 240 255 255 255 255", "soft icy gradient")
+    cmd("dslcolor palette cycle warning 255 170 60 | 255 90 40 | 220 220 90", "three-color cycle")
+    cmd("dslcolor palette copy my_nt new_thalos", "start from an existing palette")
+    note("Custom palette names should not collide with built-in palette names.")
+    return
+  end
+
+  if topic == "census" then
+    header("Census")
+    body("Census commands summarize the current saved database. They do not query the game by themselves.")
+    cmd("dslcolor census race", "count known people by race")
+    cmd("dslcolor census class", "count known people by class")
+    cmd("dslcolor census kingdom", "count known people by kingdom")
+    cmd("dslcolor census clan", "count known people by clan/organization")
+    cmd("dslcolor census robe", "count robe/order style data")
+    cmd("dslcolor census dragon", "count dragon grouping data")
+    cmd("dslcolor census craft", "count craft facts")
+    cmd("dslcolor census relation", "count friend/enemy/peace/war data")
+    cmd("dslcolor census lastseen", "show recent sightings")
+    cmd("dslcolor census combat", "summarize stored combat notes")
+    return
+  end
+
+  if topic == "combat" then
+    header("Combat history")
+    body("Combat tracking is manual unless exact DSL kill/death text is later confirmed and approved.")
+    cmd("dslcolor killed &lt;name&gt;", "you killed them")
+    cmd("dslcolor killedby &lt;name&gt;", "they killed you")
+    cmd("dslcolor downed &lt;name&gt;", "you downed/disabled them")
+    cmd("dslcolor downedby &lt;name&gt;", "they downed/disabled you")
+    cmd("dslcolor combat note &lt;name&gt; &lt;note&gt;", "add a timestamped note")
+    cmd("dslcolor combat show &lt;name&gt;", "show person record with combat data")
+    return
+  end
+
+  if topic == "teams" then
+    header("Teams")
+    body("Teams are private labels for your own organization. They are not canon identity and do not change colors by themselves.")
+    cmd("dslcolor team &lt;name&gt; &lt;label&gt;", "place a person into a private team")
+    cmd("dslcolor team &lt;name&gt; none", "remove a person from their team")
+    cmd("dslcolor list teams", "show private teams")
+    return
+  end
+
+  if topic == "maintenance" then
+    header("Maintenance")
+    cmd("dslcolor echo on|off", "toggle update echoes")
+    cmd("dslcolor save", "save database")
+    cmd("dslcolor savepath", "show save file path")
+    cmd("dslcolor reload", "reload database from disk")
+    cmd("dslcolor ignore &lt;name/term&gt;", "stop learning/coloring a problematic person token")
+    cmd("dslcolor unignore &lt;name/term&gt;", "reverse ignore")
+    cmd("dslcolor forget person &lt;name&gt;", "remove a bad learned person record")
+    cmd("dslcolor forget name &lt;name&gt;", "remove a manual name-palette override")
+    cmd("dslcolor forget title &lt;title&gt;", "remove/block an exact title")
+    cmd("dslcolor forget term &lt;phrase&gt;", "remove a custom term")
+    cmd("dslcolor cleanup-title", "remove title-as-person records")
+    return
+  end
+
+  if topic == "examples" then
+    header("Examples")
+    section("Fix a title captured as a name")
+    cmd("dslcolor title royalty Sultan", "teach the title")
+    cmd("dslcolor cleanup-title", "remove bad title-as-person records")
+    cmd("who", "relearn correct names")
+    section("Add a phrase title")
+    cmd("dslcolor title military \"Dread Pirate\"", "one exact phrase title")
+    note("This does not add Dread alone or Pirate alone.")
+    section("Custom palette and term")
+    cmd("dslcolor palette gradient cliath 180 240 255 255 255 255", "create palette")
+    cmd("dslcolor term Cliath cliath", "color term with it")
+    section("Relations")
+    cmd("dslcolor war Wargar", "mark organization as hostile")
+    cmd("dslcolor peace New Thalos", "mark organization as peaceful")
+    cmd("dslcolor enemy Ryger", "personal override")
+    section("Saved facts")
+    cmd("dslcolor show person Ryger", "inspect person")
+    cmd("dslcolor census lastseen", "review recent sightings")
+    return
+  end
+
+  cecho("\n" .. R .. "[DslColors] Unknown help topic. Use: dslcolor help\n")
+end
+
+function dslList(what)
+  what=dslTrim(what or "")
+  cecho("\n&lt;cyan&gt;DslColors list: "..what.."\n")
+  if what=="people" then for _,p in pairs(DSL_COLOR_DB.people or {}) do cecho("&lt;grey&gt;  "..tostring(p.name).." last="..tostring(p.last_seen_stamp or "-").."\n") end; return end
+  if what=="orgs" then for k,o in pairs(DSL_COLOR_DB.orgs or {}) do cecho("&lt;grey&gt;  "..tostring(o.label or k).." type="..tostring(o.type).." members="..tostring(dslCount(o.members)).."\n") end; return end
+  if what=="friends" or what=="enemies" then local wanted=(what=="friends" and "friend" or "enemy"); for k,v in pairs(DSL_COLOR_DB.relations.people or {}) do if v==wanted then local p=DSL_COLOR_DB.people[k]; cecho("&lt;grey&gt;  "..tostring((p and p.name) or k).."\n") end end; return end
+  if what=="war" or what=="peace" then local wanted=what; for k,v in pairs(DSL_COLOR_DB.relations.orgs or {}) do if v==wanted then local o=DSL_COLOR_DB.orgs[k]; cecho("&lt;grey&gt;  "..tostring((o and o.label) or k).."\n") end end; return end
+  if what=="teams" then for team,members in pairs(DSL_COLOR_DB.teams or {}) do cecho("&lt;grey&gt;  "..tostring(team).." members="..tostring(dslCount(members)).."\n") end; return end
+  if what=="titles" then
+    local rows = {}
+    local function add(title, source)
+      if title and title:match("^[A-Z]") and not dslIsTitleBlocked(title) then
+        rows[title] = rows[title] or {}
+        rows[title][source] = true
+      end
+    end
+    for t,_ in pairs(DSL_TITLE_ALIASES or {}) do add(t, "default") end
+    for t,_ in pairs(DSL_COLOR_DB.titles or {}) do add(t, "saved") end
+    local names = {}
+    for t,_ in pairs(rows) do table.insert(names, t) end
+    table.sort(names)
+    for _,t in ipairs(names) do
+      local src = rows[t].saved and rows[t].default and "default,saved" or (rows[t].saved and "saved" or "default")
+      cecho("&lt;grey&gt;  "..tostring(t).." &lt;cyan&gt;("..src..")\n")
+    end
+    return
+  end
+  if what=="blocked title" or what=="blocked_title" or what=="blocked titles" or what=="title_blocklist" or what=="blocked_titles" then for t,_ in pairs(DSL_COLOR_DB.title_blocklist or {}) do if t:match("^[A-Z]") then cecho("&lt;grey&gt;  "..tostring(t).."\n") end end; return end
+  if what=="terms" then for _,term in ipairs(dslSortedTermKeys(DSL_COLOR_DB.terms or {})) do cecho("&lt;grey&gt;  "..tostring(term).." -&gt; &lt;cyan&gt;"..tostring((DSL_COLOR_DB.terms or {})[term]).."\n") end; return end
+  if what=="custom_palettes" or what=="custom palettes" then local names={}; for k,_ in pairs(DSL_COLOR_DB.custom_palettes or {}) do table.insert(names,k) end; table.sort(names); for _,name in ipairs(names) do cecho("&lt;grey&gt;  "..name.." -&gt; &lt;cyan&gt;"..dslPaletteSummary((DSL_COLOR_DB.custom_palettes or {})[name]).."\n") end; return end
+  if what=="palettes" or what=="palette" then local line=""; for _,pal in ipairs(dslSortedPaletteNames()) do if #line + #pal &gt; 90 then cecho("&lt;grey&gt;  "..line.."\n"); line="" end; if line ~= "" then line=line..", " end; line=line..pal end; if line ~= "" then cecho("&lt;grey&gt;  "..line.."\n") end; return end
+  cecho("&lt;yellow&gt;  Unknown list type. Use people, orgs, friends, enemies, war, peace, teams, titles, terms, palettes, custom_palettes.\n")
+end
+
+function dslCleanupTitlePeople()
+  local removed = {}
+  for key, p in pairs(DSL_COLOR_DB.people or {}) do
+    local name = p and p.name
+    if name and dslIsKnownTitleTerm(name) and not (DSL_COLOR_DB.overrides and DSL_COLOR_DB.overrides[name]) then
+      DSL_COLOR_DB.people[key] = nil
+      DSL_COLOR_DB.relations.people[key] = nil
+      for _, members in pairs(DSL_COLOR_DB.teams or {}) do members[key] = nil end
+      for _, org in pairs(DSL_COLOR_DB.orgs or {}) do if org.members then org.members[key] = nil end end
+      table.insert(removed, name)
+    end
+  end
+  dslColorSave()
+  table.sort(removed)
+  cecho("\n&lt;yellow&gt;[DslColors] title-person cleanup removed " .. tostring(#removed) .. " record(s).\n")
+  if #removed &gt; 0 then cecho("&lt;grey&gt;  " .. table.concat(removed, ", ") .. "\n") end
+end
+
+function dslColorCommand(raw)
+  local cmd=dslTrim(raw or "")
+  if cmd=="" or cmd=="help" then dslColorHelp(""); return end
+  local h=cmd:match("^help%s+(.+)$"); if h then dslColorHelp(h); return end
+
+  local n=cmd:match("^friend%s+([%a'%-]+)$"); if n then dslSetPersonRelation(n,"friend"); return end
+  n=cmd:match("^enemy%s+([%a'%-]+)$"); if n then dslSetPersonRelation(n,"enemy"); return end
+  n=cmd:match("^neutral%s+([%a'%-]+)$"); if n then dslSetPersonRelation(n,"neutral"); return end
+  local o=cmd:match("^war%s+(.+)$"); if o then dslSetOrgRelation(o,"war"); return end
+  o=cmd:match("^peace%s+(.+)$"); if o then dslSetOrgRelation(o,"peace"); return end
+  o=cmd:match("^neutral%s+org%s+(.+)$"); if o then dslSetOrgRelation(o,"neutral"); return end
+
+  n=cmd:match("^show%s+person%s+([%a'%-]+)$") or cmd:match("^show%s+([%a'%-]+)$"); if n then dslShowPerson(n); return end
+  o=cmd:match("^show%s+org%s+(.+)$"); if o then dslShowOrg(o); return end
+  local l=cmd:match("^list%s+(.+)$"); if l then dslList(l); return end
+  local c=cmd:match("^census%s*(.*)$"); if c~=nil then dslCensus(c); return end
+
+  if cmd=="palettes" or cmd=="list palettes" then dslList("palettes"); return end
+  if cmd=="palette" then dslList("palettes"); return end
+  if cmd:match("^palette%s+") then dslPaletteCommand(cmd); return end
+
+  local termText, termPalette = dslParseTermCommand(cmd)
+  if termText and termPalette then dslSaveCustomTerm(termText, termPalette); return end
+  local forgetTerm = cmd:match('^forget%s+term%s+"([^"]+)"$') or cmd:match("^forget%s+term%s+(.+)$")
+  if forgetTerm then dslForgetCustomTerm(forgetTerm); return end
+
+  local overrideName, overridePal = cmd:match("^name%s+([%a'%-]+)%s+([%w_]+)$")
+  if overrideName and overridePal then
+    local pal = dslResolvePaletteName(overridePal)
+    if pal then DSL_COLOR_DB.overrides[overrideName] = pal; dslColorSave(); cecho("\n&lt;green&gt;[DslColors] name override saved: "..overrideName.." -&gt; "..pal.."\n") else cecho("\n&lt;red&gt;[DslColors] unknown palette: "..tostring(overridePal).."\n") end
+    return
+  end
+
+  local ignoreName = cmd:match('^ignore%s+"([^"]+)"$') or cmd:match("^ignore%s+(.+)$")
+  if ignoreName then
+    ignoreName = dslTrim(ignoreName)
+    DSL_COLOR_DB.ignored[ignoreName] = true
+    DSL_COLOR_DB.ignored[string.lower(ignoreName)] = true
+    DSL_COLOR_DB.people[dslKey(ignoreName)] = nil
+    DSL_COLOR_DB.overrides[ignoreName] = nil
+    DSL_COLOR_DB.overrides[string.lower(ignoreName)] = nil
+    if DSL_COLOR_DB.aliases then DSL_COLOR_DB.aliases[dslKey(ignoreName)] = nil end
+    dslColorSave()
+    cecho("\n&lt;yellow&gt;[DslColors] ignored: "..ignoreName.."\n")
+    return
+  end
+
+  local unignoreName = cmd:match('^unignore%s+"([^"]+)"$') or cmd:match("^unignore%s+(.+)$")
+  if unignoreName then
+    unignoreName = dslTrim(unignoreName)
+    DSL_COLOR_DB.ignored[unignoreName] = nil
+    DSL_COLOR_DB.ignored[string.lower(unignoreName)] = nil
+    DSL_COLOR_DB.ignored[dslKey(unignoreName)] = nil
+    dslColorSave()
+    cecho("\n&lt;green&gt;[DslColors] unignored: "..unignoreName.."\n")
+    return
+  end
+
+  local name,team=cmd:match("^team%s+([%a'%-]+)%s+(.+)$")
+  if name and team then local key,p=dslEnsurePerson(name); if string.lower(team)=="none" then if p.team and DSL_COLOR_DB.teams[p.team] then DSL_COLOR_DB.teams[p.team][key]=nil end; p.team=nil else p.team=team; DSL_COLOR_DB.teams[team]=DSL_COLOR_DB.teams[team] or {}; DSL_COLOR_DB.teams[team][key]=true end; dslColorSave(); cecho("\n&lt;green&gt;[DslColors] team updated.\n"); return end
+
+  local forgetOverride = cmd:match("^forget%s+name%s+([%a'%-]+)$")
+  if forgetOverride then
+    local existed = DSL_COLOR_DB.overrides[forgetOverride] ~= nil or DSL_COLOR_DB.overrides[string.lower(forgetOverride)] ~= nil
+    DSL_COLOR_DB.overrides[forgetOverride] = nil
+    DSL_COLOR_DB.overrides[string.lower(forgetOverride)] = nil
+    dslColorSave()
+    if existed then cecho("\n&lt;yellow&gt;[DslColors] name override forgotten: "..forgetOverride.."\n") else cecho("\n&lt;yellow&gt;[DslColors] no name override found for: "..forgetOverride.."\n") end
+    return
+  end
+
+  local forgetPerson=cmd:match("^forget%s+person%s+([%a'%-]+)$")
+  if forgetPerson then
+    local key=dslKey(forgetPerson)
+    local existed = DSL_COLOR_DB.people[key] ~= nil
+    DSL_COLOR_DB.people[key]=nil
+    if DSL_COLOR_DB.aliases then for alias,target in pairs(DSL_COLOR_DB.aliases) do if alias == key or target == key then DSL_COLOR_DB.aliases[alias] = nil end end end
+    DSL_COLOR_DB.relations.people[key]=nil
+    for _,members in pairs(DSL_COLOR_DB.teams or {}) do members[key]=nil end
+    for _,org in pairs(DSL_COLOR_DB.orgs or {}) do if org.members then org.members[key]=nil end end
+    dslColorSave()
+    if existed then cecho("\n&lt;yellow&gt;[DslColors] person forgotten: "..forgetPerson.."\n") else cecho("\n&lt;yellow&gt;[DslColors] no person record found for: "..forgetPerson.."\n") end
+    return
+  end
+
+  local forgetTitle=cmd:match("^forget%s+title%s+(.+)$")
+  if forgetTitle then
+    forgetTitle = dslTrim(forgetTitle)
+    forgetTitle = forgetTitle:match('^"([^"]+)"$') or forgetTitle
+    local firstWord, restWords = forgetTitle:match("^(%w+)%s+(.+)$")
+    local categoryWords = { royalty=true, royal=true, military=true, political=true, politics=true, religious=true, scholarly=true, craft=true, unknown=true }
+    if firstWord and restWords and categoryWords[string.lower(firstWord)] and not dslTitleExistsRaw(forgetTitle) then
+      cecho("\n&lt;red&gt;[DslColors] bad forget-title syntax. Use: dslcolor forget title &lt;exact title&gt;\n")
+      return
+    end
+    local lower = string.lower(forgetTitle)
+    DSL_COLOR_DB.titles[forgetTitle]=nil
+    DSL_COLOR_DB.titles[lower]=nil
+    if (DSL_TITLE_ALIASES or {})[forgetTitle] or (DSL_TITLE_ALIASES or {})[lower] then
+      dslBlockTitle(forgetTitle)
+      dslColorSave()
+      cecho("\n&lt;yellow&gt;[DslColors] default title forgotten/blocked: "..forgetTitle.."\n")
+    else
+      dslUnblockTitle(forgetTitle)
+      dslColorSave()
+      cecho("\n&lt;yellow&gt;[DslColors] saved title forgotten: "..forgetTitle.."\n")
+    end
+    return
+  end
+  if cmd=="cleanup title-people" or cmd=="cleanup-title" or cmd=="cleanup title" then dslCleanupTitlePeople(); return end
+  local cat,title=cmd:match("^title%s+([%w_]+)%s+(.+)$")
+  if cat and title then
+    title = dslTrim(title)
+    title = title:match('^"([^"]+)"$') or title
+    local map={royalty="title_royalty",military="title_military",political="title_political",politics="title_political",religious="title_religious",scholarly="title_scholarly",craft="title_craft_titles",unknown="title_unknown_titles"}
+    local pal=map[string.lower(cat)]
+    if pal then
+      dslUnblockTitle(title)
+      DSL_COLOR_DB.titles[title]=pal
+      DSL_COLOR_DB.titles[string.lower(title)]=pal
+      local badKey=dslKey(title)
+      local removed=false
+      if DSL_COLOR_DB.people[badKey] then DSL_COLOR_DB.people[badKey]=nil; removed=true end
+      if DSL_COLOR_DB.aliases then for alias,target in pairs(DSL_COLOR_DB.aliases) do if alias == badKey or target == badKey then DSL_COLOR_DB.aliases[alias] = nil end end end
+      if DSL_COLOR_DB.relations and DSL_COLOR_DB.relations.people then DSL_COLOR_DB.relations.people[badKey]=nil end
+      for _,members in pairs(DSL_COLOR_DB.teams or {}) do members[badKey]=nil end
+      for _,org in pairs(DSL_COLOR_DB.orgs or {}) do if org.members then org.members[badKey]=nil end end
+      dslColorSave()
+      if removed then cecho("\n&lt;green&gt;[DslColors] title saved and old title-as-person record removed: "..title.." ("..cat..")\n") else cecho("\n&lt;green&gt;[DslColors] title saved: "..title.." ("..cat..")\n") end
+    else
+      cecho("\n&lt;red&gt;[DslColors] bad title category. Use royalty, military, political, religious, scholarly, craft, or unknown.\n")
+    end
+    return
+  end
+
+  n=cmd:match("^killed%s+([%a'%-]+)$"); if n then dslCombatEvent(n,"killed_by_me","manual kill"); return end
+  n=cmd:match("^killedby%s+([%a'%-]+)$"); if n then dslCombatEvent(n,"killed_me","manual killedby"); return end
+  n=cmd:match("^downed%s+([%a'%-]+)$"); if n then dslCombatEvent(n,"downed_by_me","manual downed"); return end
+  n=cmd:match("^downedby%s+([%a'%-]+)$"); if n then dslCombatEvent(n,"downed_me","manual downedby"); return end
+  name,note=cmd:match("^combat%s+note%s+([%a'%-]+)%s+(.+)$"); if name and note then dslCombatEvent(name,"note",note); return end
+  n=cmd:match("^combat%s+show%s+([%a'%-]+)$"); if n then dslShowPerson(n); return end
+
+  local setting=cmd:match("^echo%s+(on)$") or cmd:match("^echo%s+(off)$"); if setting then DSL_COLOR_DB.settings.echo_updates=(setting=="on"); dslColorSave(); cecho("\n&lt;green&gt;[DslColors] echo_updates="..tostring(DSL_COLOR_DB.settings.echo_updates).."\n"); return end
+  if cmd=="test" then cecho("\n&lt;cyan&gt;[DslColors v1.0 RELEASE] runtime test\n"); dslPrintKV("data_path",DSL_COLOR_DATA_PATH); dslPrintKV("known_people",dslCount(DSL_COLOR_DB.people)); dslPrintKV("known_orgs",dslCount(DSL_COLOR_DB.orgs)); dslPrintKV("race_aliases",dslCount(DSL_RACE_ALIASES)); dslPrintKV("class_aliases",dslCount(DSL_CLASS_ALIASES)); dslPrintKV("title_aliases",dslCount(DSL_TITLE_ALIASES)); dslPrintKV("blocked_titles",dslCount(DSL_COLOR_DB.title_blocklist)); dslPrintKV("person_aliases",dslCount(DSL_COLOR_DB.aliases)); dslPrintKV("custom_terms",dslCount(DSL_COLOR_DB.terms)); dslPrintKV("custom_palettes",dslCount(DSL_COLOR_DB.custom_palettes)); if DSL_COLOR_LAST_LOAD then dslPrintKV("loaded_existing_file", tostring(DSL_COLOR_LAST_LOAD.ok)) end; if DSL_COLOR_LAST_SAVE then dslPrintKV("last_save_ok", tostring(DSL_COLOR_LAST_SAVE.ok)) end; cecho("&lt;green&gt;  alias/core is working.\n"); return end
+  if cmd=="savepath" then cecho("\n&lt;cyan&gt;[DslColors] save path: "..DSL_COLOR_DATA_PATH.."\n"); return end
+  if cmd=="save" then local ok,err=dslColorSave(); if ok then cecho("\n&lt;green&gt;[DslColors] saved to "..DSL_COLOR_DATA_PATH.."\n") else cecho("\n&lt;red&gt;[DslColors] save failed: "..tostring(err).."\n") end; return end
+  if cmd=="reload" then dslColorLoad(); cecho("\n&lt;green&gt;[DslColors] reloaded.\n"); return end
+  cecho("\n&lt;red&gt;[DslColors] Unknown command. Use: dslcolor help commands\n")
+end
+
+function dslColorInstallRuntimeAlias()
+  if DSL_COLOR_RUNTIME_ALIAS_ID then pcall(killAlias, DSL_COLOR_RUNTIME_ALIAS_ID) end
+  DSL_COLOR_RUNTIME_ALIAS_ID = tempAlias("^dslcolor(?:\\s+(.*))?$", [[dslColorCommand(matches[2] or "")]])
+end
+
+-- Final init after every function exists.
+dslColorLoad()
+dslColorInstallRuntimeAlias()
+cecho("\n&lt;green&gt;[DslColors v1.0 RELEASE] loaded. Use: dslcolor test\n")
+</script>
+			<eventHandlerList />
+		</Script>
+	</ScriptPackage>
+	<KeyPackage />
+	<HelpPackage>
+		<helpURL />
+	</HelpPackage>
+</MudletPackage>
