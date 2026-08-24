@@ -55,13 +55,17 @@ to the per-item live confirmations below.
         `"open backpack"`, etc.) — confirms both bugs from that fix
         (the `|`-in-a-Lua-pattern dead code, and the object-vs-direction
         misattribution) are genuinely fixed in the current source.
-      - **Still genuinely missing, not rebuilt**: real coverage for the
-        movement-cost room-weighting system (`applyMoveCost()`, the
-        regen-tick-noise guard, the manual-override protection) and the
-        `dslroom raw` blank-field display fix. Worth rebuilding the same
-        way (extract real source from `DSL_Generic_Mapper.xml`, test
-        against it directly) rather than assumed fine because the
-        door-verb one turned out fine.
+      - **Rebuilt for real, 2026-08-24**: `test/test_move_cost_weight.lua`
+        (11 assertions: a real cost becomes weight, a regen-tick/
+        implausible cost is discarded without corrupting the average,
+        repeat visits average correctly, a manually-set weight is never
+        overwritten) and `test/test_dsl_ud_display_fix.lua` (9
+        assertions, replaying Steven's exact real reported blank-field
+        output and confirming `dslroom raw`'s actual `cecho`'d text shows
+        real placeholders, not blanks). Both extract the real current
+        source directly from `DSL_Generic_Mapper.xml`, same technique as
+        the door-verb test; confirmed via targeted source reverts that
+        every assertion genuinely fails without its corresponding fix.
       - **Also built from the same review pass**: a GMCP-agreement
         canary (same new test file) — feeds one synthetic
         `gmcp.room_data` payload through both `MyDSL_DataLayer.lua`'s
@@ -1427,12 +1431,14 @@ machine.
       `docs/TODO.md`'s still-open Leveling item 10 (fixed 2026-07-25, not
       yet live-confirmed). Unclear if this note predates that fix. Same
       live-confirmation gap, not a separate bug until proven otherwise.
-- [ ] **New, from MyDSL notes 2026-08-23: fresh-install window docking
+- [x] **New, from MyDSL notes 2026-08-23: fresh-install window docking
       reconfirmed as a live pain point** — "need a way to not have all the
       windows dock on the right side after a new install, maybe start with
-      a default settings file." Same issue already tracked in PACKAGING
-      (shared `windowLayoutGeometry.dat`/`windowLayout.dat` theory, not
-      fixed) — this independent report raises its priority, not a new bug.
+      a default settings file." Same report as the PACKAGING section's
+      item — **fixed there 2026-08-24** (commit 7323c08): explicit
+      first-run dock sides per window, not the shared-file theory this
+      note originally cited (superseded, see PACKAGING). Not yet
+      live-confirmed.
 - [x] **Fixed 2026-08-24: mapper terrain/room-coloring corruption + "set
       once" lock.** Clarified directly with Steven: the real bug is that
       `map.currentRoom` can get stuck on the wrong (stale) room after
