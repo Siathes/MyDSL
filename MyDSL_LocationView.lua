@@ -129,6 +129,30 @@ local function safeStr(s)
   return s
 end
 
+-- stripQuotes(s) -- real bug fix, 2026-08-23: `mydsl location set` and
+-- `mydsl location map <room> = <path>` both capture their argument
+-- verbatim via a raw regex group (see the `tempAlias`/`locationCommand`
+-- dispatch below) -- nothing anywhere in this file ever stripped
+-- surrounding quotes. Steven's own reported case ("mydsl location set
+-- "A Sloped Hall.png"" -- it looks like it set it, but it is not
+-- displaying") is exactly this: the real file `A Sloped Hall.png`
+-- (confirmed on disk, no quotes) never matched the constructed path
+-- because that path had literal `"..."` baked into the filename from
+-- his typed quotes, so `exists()` in M.render() always failed and
+-- silently fell through to "No room picture" -- while M.setImage()
+-- itself had already "succeeded" and echoed a confirmation, since
+-- writing the (broken) path into M.roomPictures never checks whether
+-- the file exists. Only strips a matched pair (both ends the same
+-- quote character) so a genuinely quote-less filename is never touched.
+local function stripQuotes(s)
+  if not s then return s end
+  local first, last = s:sub(1, 1), s:sub(-1)
+  if (first == '"' or first == "'") and first == last and #s >= 2 then
+    return s:sub(2, -2)
+  end
+  return s
+end
+
 local function echoC(msg)
   cecho("\n<cyan>[MyDSL.Location]<reset> " .. tostring(msg) .. "\n")
 end
@@ -467,6 +491,7 @@ end
 function M.resolveImageInput(input)
   input = safeStr(input)
   if not input then return nil end
+  input = stripQuotes(input)
   if input:sub(1, 1) == "/" then return input end
   return join(M.dir or M.defaultDir(), input)
 end
@@ -1039,7 +1064,7 @@ function M.setDebug(mode)
 end
 
 function M.mapRoom(room, path)
-  room = safeStr(room); path = safeStr(path)
+  room = safeStr(room); path = stripQuotes(safeStr(path))
   if not room or not path then
     echoR("Usage: mydsl location map <room name> = <absolute/image/path>")
     return false

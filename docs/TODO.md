@@ -1141,12 +1141,33 @@ machine.
       message (`ce("usage: setspell <bless|fireproof> <spell|wand|
       skill> [name]")`) for malformed input — just wasn't reachable for
       the zero-arg case before. Syntax-checked.
-- [ ] **New, from MyDSL notes 2026-08-23: LocationView — manually assigning
-      a room picture doesn't display.** Steven: "mydsl location set 'A
-      Sloped Hall.png' ... it looks like it set it, but it is not
-      displaying in locations window, couple examples in the logs." Not
-      yet investigated — the referenced logs are in the live MyDSL profile,
-      not yet cross-checked against `MyDSL_LocationView.lua`.
+- [ ] **LocationView — manually assigning a room picture doesn't display —
+      fixed 2026-08-23, needs live confirmation.** Steven: "mydsl location
+      set 'A Sloped Hall.png' ... it looks like it set it, but it is not
+      displaying in locations window." Root cause confirmed, not guessed:
+      `mydsl location`'s alias captures its argument verbatim (`(?:\s+(.*))?$`)
+      with no shell-style quote stripping anywhere in the dispatch chain
+      down to `M.resolveImageInput()`. Steven's exact typed command
+      quoted the filename (`set "A Sloped Hall.png"`) — confirmed the
+      real file `A Sloped Hall.png` genuinely exists on disk in the live
+      MyDSL profile's `roompics/` dir, but the constructed path had
+      literal `"..."` baked into the filename from the unstripped quotes,
+      so `exists()` in `M.render()` always failed and silently fell
+      through to "No room picture" — while `M.setImage()` itself had
+      already "succeeded" and echoed a confirmation, since writing the
+      (broken) path into `M.roomPictures` never checks the file exists.
+      Fixed with a new `stripQuotes()` helper (strips a matched leading/
+      trailing quote pair only — leaves an unquoted or mismatched-quote
+      filename untouched), applied in `M.resolveImageInput()` (the `set`
+      path) and `M.mapRoom()`'s path argument (same bug class — a
+      manually-typed path in `mydsl location map <room> = <path>`, not
+      separately reported but sharing the identical unstripped-input
+      root cause). Verified via 6 new assertions in
+      `test/test_locationview_roompictures.lua`, confirmed via `git
+      stash` that all 5 quote-related ones genuinely fail without the
+      fix (the 6th, unquoted-filename-untouched, correctly passes either
+      way — a regression guard, not a new-behavior check). All 10 test
+      suites + a full `check_known_patterns.py --all` sweep re-run clean.
 - [ ] **New, from MyDSL notes 2026-08-23: ItemLore may be capturing OTHER
       players' identify announcements and overwriting a shared item's
       record with their enchanted-variant stats.** Steven: "if someone

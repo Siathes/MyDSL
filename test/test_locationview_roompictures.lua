@@ -111,6 +111,36 @@ check("resolveImageInput resolves a bare filename against M.dir",
 check("resolveImageInput passes an absolute path through unchanged",
   M.resolveImageInput("/some/absolute/path.png") == "/some/absolute/path.png")
 
+-- Real bug fixed 2026-08-23, per Steven's exact reported case: `mydsl
+-- location set "A Sloped Hall.png"` -- "it looks like it set it, but it
+-- is not displaying." Root cause confirmed: the alias captures its
+-- argument verbatim (no shell-style quote stripping anywhere in the
+-- dispatch chain), so a quoted filename got literal `"..."` baked into
+-- the constructed path, which never matches the real file on disk.
+check("resolveImageInput strips a matched pair of double quotes",
+  M.resolveImageInput([["Test Room (2).png"]]) == (tmpDir .. "/Test Room (2).png"))
+check("resolveImageInput strips a matched pair of single quotes",
+  M.resolveImageInput("'Test Room (2).png'") == (tmpDir .. "/Test Room (2).png"))
+check("resolveImageInput leaves an unquoted filename untouched",
+  M.resolveImageInput("Test Room (2).png") == (tmpDir .. "/Test Room (2).png"))
+check("resolveImageInput strips quotes around an absolute path too",
+  M.resolveImageInput([["/some/absolute/path.png"]]) == "/some/absolute/path.png")
+check("resolveImageInput does not strip a lone leading quote with no matching close",
+  M.resolveImageInput([["Test Room (2).png]]) == (tmpDir .. [[/"Test Room (2).png]]))
+
+-- setImage() end-to-end with a QUOTED bare filename -- Steven's exact
+-- reported command shape, not just the resolver in isolation.
+_G.getPlayerRoom = function() return 301 end
+M.setImage([["Test Room (2).png"]])
+check("setImage() with a quoted filename resolves to the real file, not a quote-corrupted path",
+  M.roomPictures["301"] == (tmpDir .. "/Test Room (2).png"))
+
+-- mapRoom() -- the other place a manually-typed path flows in
+-- unstripped (`mydsl location map <room> = <path>`), same bug class.
+M.mapRoom("Quoted Map Room", [["Test Room (2).png"]])
+check("mapRoom() strips quotes from its path argument too",
+  M.roomMap["Quoted Map Room"] == "Test Room (2).png")
+
 -- setImage() end-to-end with a bare filename (not a full path) -- the
 -- actual ask: "instead of set path, can we set filename".
 _G.getPlayerRoom = function() return 300 end
