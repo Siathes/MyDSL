@@ -127,45 +127,6 @@ to the per-item live confirmations below.
       - TODO.md-vs-code spot check (4 items): no drift found — every
         checked "fixed, needs live confirmation" item's code matches its
         TODO.md description exactly.
-- [ ] **GitHub hosting — Steven's call 2026-08-23: yes, public repo.
-      Credential-in-history finding (same day) confirmed real and live by
-      Steven, then scrubbed from all history the same session — the
-      original public-hosting decision is unblocked, still needs the
-      actual repo creation + push.** Root cause and discovery: extracting
-      `MyDSL_GameplayTriggers.xml` (tracking-completeness item above)
-      found that filename already git-tracked from very early in the
-      project (commits `ef8b6d6` through `5c7944f`, a DSL1-era raw
-      trigger extraction), whose old `<mCommand>` field held a
-      character-creation/login answer sequence with a real, still-live
-      DSL account credential in the password/PIN slot — confirmed live by
-      Steven directly, not assumed. A full scan of every commit in the
-      entire history confirmed this exact instance was the only one of
-      its shape anywhere. **Fixed properly, not just papered over**:
-      installed `git-filter-repo` (`pip3 install --user`, matches the
-      same version Fedora ships, confirmed before trusting it), took a
-      full `git bundle --all` backup outside the repo first, then ran
-      `--replace-text` (blob/file content) and `--replace-message`
-      (commit messages — a first pass caught this session's own commit
-      message accidentally quoting the string, which `--replace-text`
-      alone doesn't touch) against every commit. Verified with a second
-      full-history scan (0 occurrences, down from the 1 found before the
-      message pass), `git fsck --full` (clean), and the full test suite +
-      known-pattern sweep (all clean) after the rewrite. Deleted the
-      backup bundle once confirmed clean — keeping a backup of the
-      unredacted history around would have defeated the point. Every
-      commit hash changed as an unavoidable side effect of rewriting
-      history this early in the project (expected, harmless — nothing
-      was ever pushed to any remote). **Steven separately needs to change
-      that DSL account's password/PIN in-game** — scrubbing it from git
-      history doesn't do anything about the credential itself already
-      having been real and exposed locally; that's on the game-account
-      side, not something fixable from this repo.
-      **Still open, the actual hosting step**: `gh` CLI isn't installed
-      and no remote is configured; tracked repo content is small (~15MB)
-      with a clean secret scan on the current tree. Waiting on Steven to
-      create the empty public repo on github.com himself and pass back
-      the URL so the remote can be added and this (now-scrubbed) history
-      pushed.
 - [ ] **Live per-window smoke test** — Steven asked for "go to each window
       and check functions connections, toggle on/off, all window commands,
       then confirm helpfiles match." The audit above covers the static
