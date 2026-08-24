@@ -560,18 +560,23 @@ to the per-item live confirmations below.
       are untouched (deliberately — this project doesn't edit native
       trigger/alias content directly) and still show the old mislabeled
       names until Steven renames them himself, a 2-second manual fix.
-- [ ] **`mydsl tick` vs `mydsl tickview` — two different command
+- [x] **`mydsl tick` vs `mydsl tickview` — two different command
       prefixes for a data-source/display pair, per Claude.ai's namespace-
-      consistency check.** `MyDSL_TickSource.lua` owns `mydsl tick
-      status/reset/average/window/debug`; the separate
+      consistency check — documented 2026-08-24, took the safe branch
+      of the decision, not the risky one.** `MyDSL_TickSource.lua` owns
+      `mydsl tick status/reset/average/window/debug`; the separate
       `MyDSL_TickView.lua` owns `mydsl tickview status/save/reload/show/
       hide/rebuild/font/mode/title`. Legitimately different modules
       (data vs. display), not a bug, but every other split source/view
       pair in this codebase shares one command prefix — this is the one
-      exception a player has to just memorize. Not renamed (a command-
-      surface change affects Steven's actual typed muscle memory, not
-      something to change without asking) — flagged for a decision:
-      rename one, or just document the split explicitly in `mydsl help`.
+      exception a player has to just memorize. The item itself offered
+      two options: rename one (a command-surface change affecting
+      Steven's actual typed muscle memory — not something to do without
+      asking) or document the split explicitly in `mydsl help` (safe,
+      additive, no decision needed). Took the second: `mydsl help tick`'s
+      summary now explains the split in one line ("'tickview' = the
+      window, 'tick' = the averaging engine underneath it"). The rename
+      question itself stays open if Steven ever wants it.
 
 ---
 

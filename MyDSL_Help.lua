@@ -86,7 +86,8 @@ MyDSL.Help.modules = {
     },
   },
   { key = "tick", title = "Tick", category = "Vitals & Combat", window = "MyDSL_Tick",
-    summary = "Countdown window for the game's tick timer, animated and smoothed.",
+    summary = "Countdown window for the game's tick timer, animated and smoothed. "
+      .. "('tickview' = the window, 'tick' = the averaging engine underneath it.)",
     commands = {
       { cmd = "toggle ticktimer", desc = "Show/hide the Tick window.", example = "toggle ticktimer" },
       { cmd = "mydsl tickview status / save / reload settings / show / hide / rebuild", desc = "Standard window controls.", example = "mydsl tickview show" },
