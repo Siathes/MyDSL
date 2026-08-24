@@ -117,12 +117,17 @@ exact blind spot a "near-identical" engine can't be trusted to catch.
 
 ## If `luajit` isn't available in your environment
 
-An external review pass (Claude.ai, 2026-08-23) hit this directly — no
-`luajit` in that environment, so it couldn't independently run this test
-suite at all. Worked around it by building LuaJIT from source (both
-`gcc`/`make` were present): clone `https://github.com/LuaJIT/LuaJIT`,
-`make` in the checkout, then use the resulting `src/luajit` binary in
-place of a system `luajit`. Worth doing rather than skipping test
-verification entirely — "I couldn't check" and "it's confirmed clean" are
-different claims, and `docs/CHANGELOG.md` has been asserting the latter
-after every fix.
+An external review pass (Claude Desktop, connected via this repo's
+GitHub connector, 2026-08-23) hit this directly — no `luajit` in that
+environment, so it couldn't independently run this test suite at all.
+Worked around it by building LuaJIT from source (both `gcc`/`make` were
+present): clone `https://github.com/LuaJIT/LuaJIT`, `make` in the
+checkout, then use the resulting `src/luajit` binary in place of a
+system `luajit`. Worth doing rather than skipping test verification
+entirely — "I couldn't check" and "it's confirmed clean" are different
+claims, and `docs/CHANGELOG.md` has been asserting the latter after
+every fix. (Correction: this note originally credited a separate
+Claude.ai pass, which hit the same missing-`luajit` wall independently
+but didn't solve it — the from-source workaround was Claude Desktop's,
+caught and corrected by Claude Desktop itself after independently
+verifying this file.)

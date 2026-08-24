@@ -101,6 +101,39 @@ end
 
 local function dataDir() return join(profileDir(), "MyDSL") end
 
+-- selfDir() -- real bug fix, 2026-08-23 (found via an independent
+-- Claude.ai/Claude Desktop review, both hit the same "known false alarm"
+-- test failure on their own machines and correctly traced it to this).
+-- The seed-file fallback below used to hardcode a literal absolute path
+-- specific to Steven's own machine
+-- ("/home/owner/.config/mudlet/profiles/DSL2/MyDSL/..."). That's real
+-- and necessary in spirit -- this addon is deliberately dofile()'d from
+-- an absolute path into the DSL2 repo from inside the MyDSL play
+-- profile (see importSeedAreas()'s own header comment), so a real,
+-- machine-specific fallback genuinely matters -- but baking one
+-- specific person's home directory into tracked source breaks on any
+-- other machine, including a review pass running this test suite
+-- somewhere else entirely, now that this repo is public. Since Mudlet's
+-- real dofile() always loads this file by its real absolute path,
+-- debug.getinfo can recover that same path from the running chunk
+-- itself (Lua sets the chunk's "source" to "@<path-as-given>") --
+-- portable to literally any machine this file is deployed on, derived
+-- at runtime instead of hardcoded. Falls back to "." (this process's own
+-- cwd) if introspection isn't available or the file was loaded some
+-- other way (e.g. a relative dofile(), as this project's own test suite
+-- uses) -- harmless, since the caller below tries several candidates
+-- and simply skips whichever ones don't resolve to a real file.
+local function selfDir()
+  local info = debug and debug.getinfo and debug.getinfo(1, "S")
+  local source = info and info.source
+  if source and source:sub(1, 1) == "@" then
+    local path = source:sub(2)
+    local dir = path:match("^(.*)[/\\][^/\\]+$")
+    if dir and dir ~= "" then return dir end
+  end
+  return "."
+end
+
 -- Same last-word-reduction TargetView's private commandArg() uses --
 -- confirmed live (MyDSL_TargetView.lua): DSL's own kill/target keyword
 -- matching only succeeds on a single word. Kept as our own tiny copy
@@ -259,7 +292,12 @@ function L.importSeedAreas(path)
   local candidates = {}
   if path then table.insert(candidates, path) end
   table.insert(candidates, join(dataDir(), "leveling_areas_seed.lua"))
-  table.insert(candidates, "/home/owner/.config/mudlet/profiles/DSL2/MyDSL/leveling_areas_seed.lua")
+  table.insert(candidates, join(selfDir(), "MyDSL/leveling_areas_seed.lua"))
+  -- Last-resort plain-relative guess, covers running from the repo root
+  -- with no absolute-path introspection available (selfDir() can't
+  -- recover a real directory from a relative dofile(), which is exactly
+  -- how this project's own test suite loads this file).
+  table.insert(candidates, "MyDSL/leveling_areas_seed.lua")
 
   local resolvedPath = nil
   for _, p in ipairs(candidates) do

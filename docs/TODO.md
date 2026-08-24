@@ -103,6 +103,24 @@ to the per-item live confirmations below.
       time for items with real correctness stakes (combat capture,
       target population, persistence). Not decided here — flagged for
       Steven's call.
+- [x] **`test_leveling.lua`'s "known false alarm," fixed for real,
+      2026-08-24 — both Claude.ai and Claude Desktop independently hit
+      the same test failure on their own machines; it was never actually
+      environment noise.** Root cause: `MyDSL_Leveling.lua`'s seed-file
+      import fallback chain had a literal hardcoded absolute path
+      (`/home/owner/.config/mudlet/profiles/DSL2/MyDSL/...`) — real and
+      necessary in spirit (this addon is deliberately `dofile()`'d from
+      an absolute path cross-profile, so a real machine-specific
+      fallback genuinely matters), but baking one specific person's home
+      directory into tracked source meant the exact test exercising that
+      fallback (`test_leveling.lua`'s "falls back to the known DSL2 repo
+      path" check) could only ever pass on Steven's own machine. Fixed
+      with a `selfDir()` helper that derives this file's own real
+      directory via `debug.getinfo` when it's loaded by absolute path
+      (matching real production deployment), plus a plain-relative last
+      resort for running from the repo root (matching how the test suite
+      itself loads it). Portable to any machine now, not just this one.
+      All 11 test suites + `check_known_patterns.py --all` re-run clean.
 - [ ] **`docs/CHANGELOG.md` bloat — same review pass, real structural
       proposal, needs Steven's call before doing it.** 667 lines / 496KB;
       many entries bundle several unrelated fixes into one line (e.g.
