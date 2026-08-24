@@ -146,9 +146,26 @@ background job:
   for older reference implementations, uploaded logs, or exported files —
   don't assume something doesn't exist without checking there first.
 
-## Philosophy (non-negotiable)
-- Passive observation only. Never send automatic game commands.
-- Any game command sent by a module must be user-initiated (alias or click).
+## Philosophy (non-negotiable except where noted)
+- **The old blanket "never send automatic game commands" rule is
+  retired, per Steven 2026-08-23** ("ignore the automation bad comments
+  now, we have moved past that restriction. drinking and eating are
+  fine also") — full record in `docs/TODO.md`'s DECISIONS RECORDED
+  section. Auto-sending game commands for real convenience (native
+  thirst/hunger auto-drink/eat confirmed fine as the concrete example;
+  Leveling/Questing were the earlier, narrower carve-out) is no longer
+  something to flag or ask permission for case by case. **What this does
+  NOT change**: "automate to assist, not to play" below still applies —
+  the live distinction is between a command that helps upkeep happen
+  (drink when thirsty, eat when hungry, navigate/engage for Leveling)
+  versus something that changes what the player explicitly typed into a
+  different command (the idea-backlog's `murder`-auto-swaps-to-`heal` is
+  the concrete example of the latter, still flagged there for its own
+  explicit sign-off, not covered by this).
+- Any game command sent by a module should still make sense as something
+  the player would have wanted done — this isn't a blank check to build
+  arbitrary automation, just no longer a hard "never" requiring a
+  standing exception to be carved out module by module.
 - Main console is sacred — don't break or hide it.
 - Every display module is optional / toggleable.
 - **Move text, don't replace it.** If the game sends something, redirect it

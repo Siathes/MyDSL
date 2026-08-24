@@ -24,31 +24,6 @@ check connections of modules... make sure its all in the same namespace...
 review it like its a new project"). This is an explicit go-ahead — not
 scope creep — for a dedicated audit phase, separate from and in addition
 to the per-item live confirmations below.
-- [ ] **PHILOSOPHY VIOLATION, found live 2026-08-23 via a Claude.ai review
-      pass — needs Steven's decision, not touched.** Native triggers "You
-      are thirsty." and "You are hungry." are `isActive="yes"` in the live
-      MyDSL profile right now and auto-send real game commands with zero
-      player action: "You are thirsty." sends `drink decanter` three
-      times and deletes the line; "You are hungry." sends `c 'create
-      food'`. Confirmed directly against the live `current/*.xml`, not
-      assumed from the old `MyDSL_Audit.md` reference doc (which
-      documents the same behavior but is DSL1-era and marked "reference
-      only" — this is NOT reference-only, it's actually running). This
-      is a direct, active violation of this file's own first rule:
-      "Passive observation only. Never send automatic game commands. Any
-      game command sent by a module must be user-initiated (alias or
-      click)." Not disabled — this predates DSL2 entirely (pre-existing
-      native content, not something any `MyDSL_*.lua` module built) and
-      may be a long-standing, deliberate personal convenience Steven
-      doesn't think of as part of "the project" at all, the same way
-      `(autowhere)` was a native alias before being consciously ported
-      and disabled. Needs Steven's explicit call: keep as-is (deliberate,
-      known, accepted), disable to match the stated philosophy, or port
-      into a proper opt-in MyDSL module (same class of exception already
-      granted to Leveling/Questing). Worth checking whether other native
-      "Actions" triggers (food/thirst family, `MyDSL_Audit.md` documents
-      several more: Magic Mushroom auto-get, eat/drink sequences) share
-      this same live-and-active status once this one's resolved.
 - [ ] **Reduce `MyDSL.logWindow()` scope** — Steven: "stop logging anything
       except combat/main window/chat and history, if they are already
       logged thats good, but others dont seem needed and seem to be
@@ -1384,23 +1359,42 @@ Timers. Real candidates for future integration, none urgent:
   checks the one file just edited). When a new bug class is fixed and
   might exist elsewhere too, add a rule instead of a one-off grep so the
   check becomes permanent. Full detail: `docs/CHANGELOG.md` (2026-07-21).
-- **"Passive observation only, never send automatic game commands" is
+- **"Passive observation only, never send automatic game commands" — the
+  hard blanket rule is retired, per Steven 2026-08-23 ("ignore the
+  automation bad comments now, we have moved past that restriction.
+  drinking and eating are fine also").** Supersedes the 2026-07-19 entry
+  below, which scoped the exception narrowly to just Leveling/Questing
+  and explicitly said it "doesn't generalize to any other module without
+  a similarly explicit ask" — that ask has now happened, generally, not
+  per-module. Confirmed applying immediately: the native thirst/hunger
+  auto-drink/auto-eat triggers flagged as a live violation earlier this
+  same session (`current/*.xml`'s "You are thirsty."/"You are hungry.",
+  see the CHANGELOG entry from earlier today) are fine as-is, no longer
+  tracked as an open decision. **What's still true, not touched by this
+  change**: the "automate to assist, not to decide for the player"
+  distinction (spellup reminders/disarm alerts help the player decide
+  faster; something like the idea-backlog's `murder`-auto-swaps-to-
+  `heal`, which would send a genuinely different command than what the
+  player typed, is a different shape of thing) wasn't addressed in this
+  exact conversation and isn't assumed cleared by it — still flagged for
+  its own explicit sign-off in `docs/MyDSL_IdeaBacklog.md`, not reopened
+  here without asking. "Move text don't replace it" and "stale data
+  beats spam" are also unaffected; this decision is specifically about
+  sending game commands, not about fabricating displayed text.
+  **Original narrower scoping, kept for the historical record**:
+  "Passive observation only, never send automatic game commands" is
   suspended for leveling/questing automation addons — confirmed
   2026-07-19, per Steven ("the no automation is suspended for thes
   modules, they will be outside addons for the ui, for the specific
-  task of automating these features").** Scope of the exception is
-  narrow and explicit, not a blanket policy change: it applies only to
-  a leveling-assist module (auto-navigate known hunting grounds,
-  auto-engage mobs) and a questing-assist module (auto-run `pquest`
-  flow), both sourced from real community Mudlet scripts found on the
-  DSL forums (forum ID 111, "Mudlet Scripts") via the
-  `~/Documents/DSL/dsl-knowledge-base` project. These ship as **separate
-  outside addons**, not part of the core MyDSL passive-observation UI
-  stack — the rest of DSL2 (Location, Combat, TargetView, etc.) keeps
-  the original passive-only rule unchanged; this exception doesn't
-  generalize to any other module without a similarly explicit ask. See
-  `docs/CHANGELOG.md` (2026-07-19) for the source-validation work and
-  whatever gets built from it.
+  task of automating these features"). Scope of the exception was
+  narrow and explicit at the time, not a blanket policy change: it
+  applied only to a leveling-assist module (auto-navigate known hunting
+  grounds, auto-engage mobs) and a questing-assist module (auto-run
+  `pquest` flow), both sourced from real community Mudlet scripts found
+  on the DSL forums (forum ID 111, "Mudlet Scripts") via the
+  `~/Documents/DSL/dsl-knowledge-base` project, shipped as separate
+  outside addons. See `docs/CHANGELOG.md` (2026-07-19) for the
+  source-validation work and whatever gets built from it.
 - **Mapper: `start mapping` stays a manual gate, not auto-persisted —
   confirmed 2026-07-18, per Steven.** Root cause of "new mapper doesn't
   recognize existing rooms" / "position stuck on the previous room" is
