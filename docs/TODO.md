@@ -1500,6 +1500,10 @@ machine.
       - Restrings: an in-character-flavored guide/workflow for writing
         them — references Steven's own Obsidian notes (Piknim, the
         Gnomish Blunderbuss), outside this repo.
+      - **New, from MyDSL notes 2026-08-24**: mapper should announce
+        entering/exiting a named area map (Steven's own examples:
+        Althainia, Death's Corridor) — a banner/message when the
+        boundary is crossed, not scoped further.
 
 ---
 

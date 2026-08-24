@@ -8,30 +8,12 @@ head back to mud school
 
 make start satchels for dragons and new characters with a parchment explaining where they wee found, area maps!
 
-look at making new maps like thalos's updated one use shattered book editor? (mapper work is deferred -- see docs/TODO.md DEFERRED section)
-
-low level charcaters cant see timers for affects, can we add the affects without a timer and let them update with affects since we dont know when they fll off excpet through echosa
-
-========== PROJECT NOTES ==========
-
-we will need a quest module, for a way to track the quest timer, location, item, and the rest of the quest info.
-
-item reference - lets compact the item reference window a little to fit in the top left corner, see screenshots. (2-column ask addressed partially -- Affects list now pairs 2 per line; a full layout redesign not attempted without live iteration, see docs/TODO.md)
-
-help window pops up every load, suggestions to have it hide until needed?
-
-========== IDEAS ==========
-(mapper room-distinguishing idea and DSL event/reminder module idea moved to docs/TODO.md's Design ideas section -- both need scoping/discussion before building)
-
-
-========== IN-GAME CHECKLIST (2026-07-07) ==========
-Full detail for anything here: docs/TODO.md. Check items off as you play;
-tell me what happened and I'll close them out in TODO.md/CHANGELOG.md.
-
-[ ] Rearm (weapon+shield), standup, spellup/setspell, blind-vision check - still havent done disarm/rearm
-[ ] Roller -- next character creation
-[ ] Gag promt line1 -- real cause found (pattern got appended instead of
-    replaced, producing one broken regex) -- see my reply for the exact
-    replace-not-append fix to paste into the Trigger Editor
-
 i will use cecho to make comment in the log
+
+========== everything else has been reconciled into docs/TODO.md ==========
+(cleaned 2026-08-24 -- the old PROJECT NOTES, IDEAS, and IN-GAME CHECKLIST
+sections are gone: every item in them either already had a pointer to
+where it lives in docs/TODO.md, or was already closed out per
+docs/CHANGELOG.md/DECISIONS RECORDED. Add new notes below this line;
+they'll get reconciled the next time this file is read, the same way
+docs/TODO.md itself gets pruned instead of growing forever.)
