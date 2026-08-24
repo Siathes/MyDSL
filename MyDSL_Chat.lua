@@ -2414,6 +2414,10 @@ if C._handlers.characterIdentified then
   pcall(killAnonymousEventHandler, C._handlers.characterIdentified)
   C._handlers.characterIdentified = nil
 end
+if C._handlers.themeChanged then
+  pcall(killAnonymousEventHandler, C._handlers.themeChanged)
+  C._handlers.themeChanged = nil
+end
 
 C.config = C.config or {}
 C.config.windowId = C.config.windowId or "Chat"
@@ -2636,6 +2640,38 @@ function C.ensureWindow()
   return true
 end
 
+-- buildTabTheme() -- real ThemeEngine hookup for the tab active/inactive
+-- CSS, previously hardcoded to a fixed green/grey pair regardless of the
+-- active MyDSL theme (docs/TODO.md LOW PRIORITY item). Falls back to the
+-- original hardcoded values if ThemeEngine isn't loaded (matches this
+-- project's own "or {}" safe-guard convention for optional Layer-2
+-- dependencies) so this file still works standalone.
+local function buildTabTheme()
+  if not (MyDSL and MyDSL.Theme and MyDSL.Theme.get) then
+    return {
+      activeTabCSS = "background-color: black; border-color: green; border-style: solid; border-width: 2px;",
+      inactiveTabCSS = "background-color: black; border-color: grey; border-style: solid; border-width: 1px;",
+      activeTabFGColor = "green",
+      inactiveTabFGColor = "grey",
+    }
+  end
+  local bg = MyDSL.Theme.get("MyDSL_Chat", "bgColor")
+  local highlight = MyDSL.Theme.get("MyDSL_Chat", "highlightColor")
+  local border = MyDSL.Theme.get("MyDSL_Chat", "borderColor")
+  local dim = MyDSL.Theme.get("MyDSL_Chat", "dimColor")
+  return {
+    activeTabCSS = string.format(
+      "background-color: %s; border-color: %s; border-style: solid; border-width: 2px;",
+      MyDSL.Theme.colorToCSS(bg), MyDSL.Theme.colorToCSS(highlight)),
+    inactiveTabCSS = string.format(
+      "background-color: %s; border-color: %s; border-style: solid; border-width: 1px;",
+      MyDSL.Theme.colorToCSS(bg), MyDSL.Theme.colorToCSS(border)),
+    activeTabFGColor = MyDSL.Theme.colorToBracket(highlight),
+    inactiveTabFGColor = MyDSL.Theme.colorToBracket(dim),
+  }
+end
+C._buildTabTheme = buildTabTheme  -- exposed for testability only, not a public API
+
 function C.hideOldPrebuilt()
   local root = Geyser and Geyser.windowList and Geyser.windowList.EMCOPrebuiltChatContainer
   pcall(function() if root and root.hide then root:hide() end end)
@@ -2690,11 +2726,12 @@ function C.createInWindow()
     wrapAt = C.config.wrapAt,
 
     consoleColor = "black",
-    activeTabCSS = "background-color: black; border-color: green; border-style: solid; border-width: 2px;",
-    inactiveTabCSS = "background-color: black; border-color: grey; border-style: solid; border-width: 1px;",
-    activeTabFGColor = "green",
-    inactiveTabFGColor = "grey",
   }
+  local tabTheme = buildTabTheme()
+  cfg.activeTabCSS = tabTheme.activeTabCSS
+  cfg.inactiveTabCSS = tabTheme.inactiveTabCSS
+  cfg.activeTabFGColor = tabTheme.activeTabFGColor
+  cfg.inactiveTabFGColor = tabTheme.inactiveTabFGColor
 
   local ok, obj = pcall(function()
     if type(emcoClass) == "table" and type(emcoClass.new) == "function" then
@@ -3283,5 +3320,26 @@ C._handlers.characterIdentified = registerAnonymousEventHandler(
     C.applyFont()
     C.applyWrap()
     C.applyTimestamp()
+  end
+)
+
+-- Real ThemeEngine hookup, previously missing (docs/TODO.md LOW PRIORITY
+-- item: "ChatWrapper tab active/inactive CSS still hardcoded"). Recomputes
+-- the tab CSS/colors from the now-active theme and re-applies them to the
+-- already-created EMCO tabs directly -- EMCO:adjustTabBackgrounds()/
+-- adjustTabNames() are its own existing re-render methods (used whenever a
+-- tab switches), reused here rather than tearing down and recreating the
+-- whole chat window just to restyle tabs.
+C._handlers.themeChanged = registerAnonymousEventHandler(
+  "MyDSL.theme.changed",
+  function()
+    if not C.emco then return end
+    local t = buildTabTheme()
+    C.emco.activeTabCSS = t.activeTabCSS
+    C.emco.inactiveTabCSS = t.inactiveTabCSS
+    C.emco.activeTabFGColor = t.activeTabFGColor
+    C.emco.inactiveTabFGColor = t.inactiveTabFGColor
+    pcall(function() C.emco:adjustTabBackgrounds() end)
+    pcall(function() C.emco:adjustTabNames() end)
   end
 )

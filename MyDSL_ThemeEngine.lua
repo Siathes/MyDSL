@@ -362,6 +362,18 @@ function MyDSL.Theme.colorToCSS(rgba)
   return string.format("rgba(%d,%d,%d,%.2f)", r, g, b, a / 255)
 end
 
+-- colorToBracket(rgba) -- Geyser's OWN color format ("<r,g,b>"), used by
+-- Geyser.Color.hex() wherever a plain foreground-color argument is
+-- expected (e.g. Geyser.Label:echo()'s color param, and EMCO's
+-- activeTabFGColor/inactiveTabFGColor). Not interchangeable with
+-- colorToCSS() -- that one is real CSS (alpha-aware, for setStyleSheet()
+-- properties), this one is Geyser's own bracket notation (no alpha,
+-- for a plain fgColor-style argument).
+function MyDSL.Theme.colorToBracket(rgba)
+  if not rgba then return "<255,255,255>" end
+  return string.format("<%d,%d,%d>", rgba.r or 255, rgba.g or 255, rgba.b or 255)
+end
+
 
 ------------------------------------------------------------------------
 -- SECTION 9: READY-MADE STYLESHEET STRINGS

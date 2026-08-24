@@ -125,21 +125,15 @@ to the per-item live confirmations below.
       resort for running from the repo root (matching how the test suite
       itself loads it). Portable to any machine now, not just this one.
       All 11 test suites + `check_known_patterns.py --all` re-run clean.
-- [ ] **`docs/CHANGELOG.md` bloat — same review pass, real structural
-      proposal, needs Steven's call before doing it.** 667 lines / 496KB;
-      many entries bundle several unrelated fixes into one line (e.g.
-      the 2026-07-04 `fix(5 post-review)` entry is literally 5 separate
-      bugs). `TODO.md` was pruned twice (2026-07-07, 2026-07-11)
-      specifically because it kept regrowing into an append-only
-      history, and the fix at the time was "put that in CHANGELOG.md
-      instead, it doesn't decay" — true, but the size problem just moved
-      one file over; nobody's going to grep-and-read 496KB in one
-      sitting either. Proposed fix, not done: dated chunking (e.g.
-      `docs/CHANGELOG-2026-07.md`, `docs/CHANGELOG-2026-08.md`) — keeps
-      the append-only, never-decays property while capping any single
-      file's size. Not implemented unilaterally since it changes a file
-      structure Steven's used to reading as one piece; needs his
-      go-ahead first.
+- [x] **`docs/CHANGELOG.md` bloat — fixed 2026-08-24.** Was 699 lines/
+      516KB. Split into `docs/changelog-archive/CHANGELOG-2026-06-to-
+      early-07.md` and `CHANGELOG-2026-07.md`; `docs/CHANGELOG.md` itself
+      now holds only August 2026 onward (71 lines), plus a short archive
+      note documenting the same procedure for future months (archive the
+      oldest full month once this file crosses roughly a month's worth
+      again). Verified programmatically that the three pieces
+      concatenate back to the original byte-for-byte before writing
+      anything -- nothing was edited, only moved.
 - [ ] **Automation-policy-reversal sequencing — worth Steven re-confirming
       the reasoning, not just the outcome, same review pass.** The
       2026-08-23 timeline: an audit discovers native thirst/hunger
@@ -536,8 +530,26 @@ to the per-item live confirmations below.
 ---
 
 ## LOW PRIORITY — script wiring
-- [ ] ChatWrapper tab active/inactive CSS still hardcoded — no ThemeEngine
-      hookup. Real design pass, not a mechanical fix.
+- [x] **Fixed 2026-08-24: ChatWrapper tab active/inactive CSS wired into
+      ThemeEngine.** Was hardcoded to a fixed green/grey pair (`MyDSL_Chat.lua`'s
+      real `createInWindow()` config, not the unused EMCO class template
+      that shares the same key names) regardless of the active theme. New
+      `buildTabTheme()` reads `bgColor`/`highlightColor`/`borderColor`/
+      `dimColor` via `MyDSL.Theme.get("MyDSL_Chat", ...)`, falls back to
+      the original hardcoded values if ThemeEngine isn't loaded (this
+      file must still work standalone). Added `MyDSL.Theme.colorToBracket()`
+      alongside the existing `colorToCSS()` — EMCO's `activeTabFGColor`/
+      `inactiveTabFGColor` go through Geyser's own `Color.hex()`, which
+      needs Geyser's `"<r,g,b>"` bracket format, not a real CSS `rgba()`
+      string (confirmed against Mudlet's real `GeyserLabel.lua` source
+      before assuming either format would work). New `"MyDSL.theme.changed"`
+      listener re-applies live via EMCO's own `adjustTabBackgrounds()`/
+      `adjustTabNames()` methods (reused, not reimplemented) so switching
+      themes restyles an already-open chat window, not just a future one.
+      11 new assertions in `test/test_chat_theme_hookup.lua`; confirmed
+      via `git stash` that the fix is real (the test's own extraction
+      point doesn't exist without it — a crash, not a normal failure).
+      Needs live confirmation.
 - [x] ~~`MyDSL_creaturelore.lua` (lowercase, profile root) is stale DSL1
       carry-over data~~ — **already gone, confirmed 2026-08-23.** Steven
       said delete it; turned out there was nothing left to delete — the
