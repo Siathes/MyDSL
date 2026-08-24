@@ -79,3 +79,50 @@ that only a genuinely fresh Lua state could reproduce, and the
 character's settings end-to-end. Prefer this over "it loads without a
 syntax error" whenever a fix depends on *execution order* or *runtime
 values*, not just syntax.
+
+## Real limitation: regex verification isn't regex EXECUTION
+
+This mock does not touch Mudlet's actual regex engine at all — `mudlet_mock.lua`
+stubs `tempRegexTrigger`/`tempAlias` to just record a pattern, it never
+compiles or runs one. When a test needs to confirm a regex genuinely
+matches a real captured line, that check has to happen outside the mock,
+and this project's own convention (see `test_combat_damage_regex.lua`'s
+header) is Python's `re` module as a PCRE stand-in — explicitly described
+there as "near-identical... for the constructs used here," not identical.
+That caveat is load-bearing: **this exact project has hit real PCRE-vs-
+Lua-pattern bugs three separate times** (the group-header `%'` bug, the
+`%s`/`\S` alias sweep, the door-verb `|`-in-a-Lua-pattern bug in the
+mapper fork) — precisely the class of mismatch a near-equivalent engine
+can paper over.
+
+**Recommended, not yet standard practice**: for any regex fix where the
+PCRE-specific behavior actually matters (alternation, lookaround, PCRE-only
+escapes — not just "does this literal text match"), cross-check against
+real PCRE with `perl -e`, not just Python `re`. This was done once
+(2026-07-25 CHANGELOG entry, for exactly this reason: "Python's re isn't a
+perfect PCRE clone and Mudlet's own regex engine is genuinely PCRE-based")
+but never written down as the standard — confirmed 2026-08-23 that `perl`
+is present on this machine. Quick pattern:
+```
+perl -e '
+my $line = "the real captured game text";
+if ($line =~ /your_pcre_pattern_here/) { print "MATCH: $1 / $2\n" }
+else { print "NO MATCH\n" }
+'
+```
+Python `re` alone remains fine for a quick sanity check or a pattern with
+no PCRE-specific constructs; reach for `perl` whenever the fix is
+specifically about a PCRE-vs-Lua-pattern distinction, since that's the
+exact blind spot a "near-identical" engine can't be trusted to catch.
+
+## If `luajit` isn't available in your environment
+
+An external review pass (Claude.ai, 2026-08-23) hit this directly — no
+`luajit` in that environment, so it couldn't independently run this test
+suite at all. Worked around it by building LuaJIT from source (both
+`gcc`/`make` were present): clone `https://github.com/LuaJIT/LuaJIT`,
+`make` in the checkout, then use the resulting `src/luajit` binary in
+place of a system `luajit`. Worth doing rather than skipping test
+verification entirely — "I couldn't check" and "it's confirmed clean" are
+different claims, and `docs/CHANGELOG.md` has been asserting the latter
+after every fix.

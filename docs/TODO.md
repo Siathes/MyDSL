@@ -24,6 +24,129 @@ check connections of modules... make sure its all in the same namespace...
 review it like its a new project"). This is an explicit go-ahead — not
 scope creep — for a dedicated audit phase, separate from and in addition
 to the per-item live confirmations below.
+- [ ] **Real verification-integrity gap found via an independent Claude
+      Desktop review, 2026-08-23 — partially closed, partially still
+      open.** Three test files cited BY NAME across multiple
+      `docs/CHANGELOG.md` entries (all 2026-07-18) and `docs/TODO.md` as
+      the structural-test evidence for the DSL Generic Mapper fork's
+      door-verb/movement-context bugs, the real-movement-cost room-
+      weighting system, and the `dslroom raw` display fix —
+      `test_mapper_fork_fixes.lua`, `test_move_cost_weight.lua`,
+      `test_dsl_ud_display_fix.lua` — **do not exist anywhere**: not in
+      git history for those paths (checked `git log --all`), not
+      anywhere on disk (checked the whole machine). Same failure class
+      already documented once before in this project for
+      `build_mydsl_package.py` ("the original was lost with a session
+      scratchpad") — it happened again, at least 3 more times, for test
+      files backing some of the mapper fork's safety-relevant claims,
+      and nobody caught it until this review. This doesn't mean the
+      fixes themselves are wrong (the CHANGELOG's own prose reasoning
+      for each one still reads sound, and the fork's installed content
+      was independently confirmed byte-identical to tracked source
+      earlier this session) — it means the specific "verified via a
+      dedicated structural test harness" claims are unconfirmable, and
+      shouldn't carry the same confidence as a claim that's actually
+      checkable.
+      - **Door-verb parser: re-verified for real, 2026-08-23** — new
+        `test/test_mapper_gmcp_and_doorverb.lua` extracts the actual
+        current `dsl_dir_from_command()` straight out of the git-tracked
+        `DSL_Generic_Mapper.xml` (not a hand-copied paraphrase) and runs
+        it against real command strings (`"open west"`, `"close door"`,
+        `"open backpack"`, etc.) — confirms both bugs from that fix
+        (the `|`-in-a-Lua-pattern dead code, and the object-vs-direction
+        misattribution) are genuinely fixed in the current source.
+      - **Still genuinely missing, not rebuilt**: real coverage for the
+        movement-cost room-weighting system (`applyMoveCost()`, the
+        regen-tick-noise guard, the manual-override protection) and the
+        `dslroom raw` blank-field display fix. Worth rebuilding the same
+        way (extract real source from `DSL_Generic_Mapper.xml`, test
+        against it directly) rather than assumed fine because the
+        door-verb one turned out fine.
+      - **Also built from the same review pass**: a GMCP-agreement
+        canary (same new test file) — feeds one synthetic
+        `gmcp.room_data` payload through both `MyDSL_DataLayer.lua`'s
+        real handler and the mapper's real `onRoomData()`, asserts they
+        extract the same room name and raw sector value, and includes a
+        meta-check confirming the comparison itself would actually catch
+        a real disagreement (not trivially true). Addresses the
+        already-flagged "duplicate GMCP parsing with no safety net" gap
+        with a real, cheap, automated check instead of just re-flagging
+        it on every future audit.
+- [ ] **Regex-verification methodology gap, same review pass — addressed,
+      not fully closed.** This project's structural tests verify a fix's
+      real PCRE behavior against Python's `re` module as a stand-in,
+      explicitly described in `test_combat_damage_regex.lua`'s own
+      header as "near-identical... for the constructs used here," not
+      identical — and this exact project has hit 3 separate real
+      PCRE-vs-Lua-pattern bugs historically (the group-header `%'` bug,
+      the `%s`/`\S` alias sweep, the door-verb `|` bug). `test/README.md`
+      now documents `perl -e` as the recommended real-PCRE cross-check
+      for any fix where PCRE-specific behavior actually matters
+      (confirmed `perl` is present on this machine) — this had been done
+      once before (2026-07-25 CHANGELOG entry) but never written down as
+      standard practice. Not retroactively re-verified against every
+      past "confirmed via Python re" claim — that would be a large
+      undertaking of its own; the fix here is making the right practice
+      discoverable going forward, not auditing the full backlog.
+- [ ] **"Needs live confirmation" backlog size, same review pass —
+      named explicitly, not yet acted on.** 14 distinct items currently
+      carry the literal phrase "needs live confirmation" in this file,
+      several dated back to mid-July — over five weeks old as of the
+      last commit that touched them. New fixes keep landing faster than
+      Steven can play-test them off. Not a code problem — a process one.
+      Two concrete options worth Steven picking between rather than
+      letting the pile grow silently: (a) a dedicated verification
+      session batching these together instead of interleaving them with
+      new fix work; (b) treating genuinely low-risk items (font-
+      persistence-style fixes with no real correctness stakes) as closed
+      on structural-test-plus-syntax-check alone, reserving scarce live
+      time for items with real correctness stakes (combat capture,
+      target population, persistence). Not decided here — flagged for
+      Steven's call.
+- [ ] **`docs/CHANGELOG.md` bloat — same review pass, real structural
+      proposal, needs Steven's call before doing it.** 667 lines / 496KB;
+      many entries bundle several unrelated fixes into one line (e.g.
+      the 2026-07-04 `fix(5 post-review)` entry is literally 5 separate
+      bugs). `TODO.md` was pruned twice (2026-07-07, 2026-07-11)
+      specifically because it kept regrowing into an append-only
+      history, and the fix at the time was "put that in CHANGELOG.md
+      instead, it doesn't decay" — true, but the size problem just moved
+      one file over; nobody's going to grep-and-read 496KB in one
+      sitting either. Proposed fix, not done: dated chunking (e.g.
+      `docs/CHANGELOG-2026-07.md`, `docs/CHANGELOG-2026-08.md`) — keeps
+      the append-only, never-decays property while capping any single
+      file's size. Not implemented unilaterally since it changes a file
+      structure Steven's used to reading as one piece; needs his
+      go-ahead first.
+- [ ] **Automation-policy-reversal sequencing — worth Steven re-confirming
+      the reasoning, not just the outcome, same review pass.** The
+      2026-08-23 timeline: an audit discovers native thirst/hunger
+      triggers were already live-auto-sending commands, in violation of
+      this project's own first rule — and the same-day response was to
+      retire the rule, not fix the violation. That may well be the right
+      call substantively (auto-drink/eat is genuinely low-stakes), but
+      "we got caught breaking our own rule, so we retired the rule" is a
+      different justification than "we thought about it and auto-eat is
+      fine," and worth Steven confirming it's the latter, now that
+      there's no hard backstop. Separately: the remaining "assist, don't
+      decide for the player" line is fuzzier than it reads once the
+      blanket ban is gone — auto-eating IS a small decision ("I'm hungry
+      enough to stop right now") the player didn't make in the moment,
+      even if a low-stakes one. Not re-litigated here — this is a
+      genuine "are you sure" flag, not a claim the original call was
+      wrong.
+- [ ] **PVP performance pass (2026-07-19) reminder, same review pass: it
+      was built on zero measurements, not "confirmed the cause."** Its
+      own CHANGELOG entry already says so ("code-audit-based, no per-line
+      timestamps exist in any log") — the fixes (debounced saves, gated
+      raw-capture, batched buffer trims) are all plausible, but nobody
+      actually confirmed they were the source of any real lag Steven
+      experienced. Not wrong to have shipped them (all low-risk,
+      genuinely-real inefficiencies regardless of whether they were THE
+      cause) — just noting for next time: if lag comes up again, the
+      right first step is instrumentation (real per-line timestamps),
+      not another audit-and-guess round dressed up with the same
+      confident "fixed" language as everything else.
 - [ ] **Reduce `MyDSL.logWindow()` scope** — Steven: "stop logging anything
       except combat/main window/chat and history, if they are already
       logged thats good, but others dont seem needed and seem to be
@@ -365,19 +488,24 @@ to the per-item live confirmations below.
       unused `localOnly` parameter it existed for) from
       `MyDSL_AffectsView.lua`'s `A.setTitle()`; `AffectsView` now matches
       every other module's pattern exactly. Syntax-checked.
-- [ ] **`MyDSL_DataLayer.lua` has outgrown "one layer," per Claude.ai's
-      review of the architecture question — 4,655 lines, ~5x the next-
-      largest file (`MyDSL_Chat.lua`, 3,287), roughly 20% of the whole
-      codebase by line count.** Room/look/scan parsing, combat parsing,
-      GMCP, prompt/vitals, day/night, weather all funnel through one
-      file. Not broken (nothing in the review found a bug caused by
-      this), but it's the natural next thing to strain as more Layer-4/
-      Leveling/Questing work gets bolted on, and it's already the file
-      where "find the bug" means "find the bug in 4,655 lines." Worth a
-      real split-by-domain pass (room/look, combat, inventory/equipment,
-      prompt/vitals) once the current audit-and-optimize phase settles —
-      explicitly not urgent, not started, needs real design thought
-      before touching a file this central.
+- [ ] **`MyDSL_DataLayer.lua` has outgrown "one layer" — flagged by
+      Claude.ai, and a second independent review (Claude Desktop,
+      2026-08-23) pushed back specifically on calling it "not urgent."**
+      4,655 lines, ~5x the next-largest file (`MyDSL_Chat.lua`, 3,287),
+      roughly 20% of the whole codebase by line count. Room/look/scan
+      parsing, combat parsing, GMCP, prompt/vitals, day/night, weather
+      all funnel through one file. Both reviews agree it's not broken
+      today; the second review's actual point was about trajectory, not
+      current state: "not broken yet" is true of most files right before
+      they become the thing nobody wants to touch, and the project's own
+      stated next push (Leveling/Questing expansion) is going to keep
+      feeding this exact file. Reframed here from "not urgent" to
+      **scheduled work** — still not started, still needs real design
+      thought before touching a file this central, but tracked as
+      something to actually plan for rather than indefinitely deferred.
+      A real split-by-domain pass (room/look, combat, inventory/
+      equipment, prompt/vitals) once the current audit-and-optimize
+      phase settles.
 - [ ] **Two personal aliases in the live MyDSL profile are cosmetically
       mislabeled** (found via `MyDSL_PersonalAliases.xml`, Claude.ai
       review pass): the alias matching `^pqf$` displays as "(pqr) PQ
