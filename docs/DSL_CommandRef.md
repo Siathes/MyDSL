@@ -504,11 +504,17 @@ during Phase B but never checked off here.** Corrected:
       Spell: toughness
       ```
       matching `A.ids.triggers.start`'s existing regex. **Real capture
-      gap found alongside this**: the modifier-less form above (no
-      "modifies ... by ... for ... cycles" clause) matches neither
-      `A.ids.triggers.song` nor `A.ids.triggers.spell` in
-      `MyDSL_AffectsView.lua` — both current regexes require that clause.
-      Tracked in `docs/TODO.md`.
+      gap found alongside this, fixed 2026-08-24**: the modifier-less
+      form above (no "modifies ... by ... for ... cycles" clause) used
+      to match neither `A.ids.triggers.song` nor `A.ids.triggers.spell`
+      in `MyDSL_AffectsView.lua`. Added `A.ids.triggers.songBare`/
+      `.spellBare` (a negative-lookahead-excluded variant, cross-checked
+      against both Python `re` and real PCRE via `perl -e` to confirm
+      no double-fire against the full-clause lines) calling a new
+      `A.captureSpellLineBare(name)` — adds the affect with duration=-1
+      (unknown, no fabricated timer) and no modifier data, matching
+      Steven's own separate note about lower-level characters not
+      seeing affect timers at all. See `docs/TODO.md` for full detail.
 - [x] Day/night transition messages — **confirmed real 2026-08-23**:
       `"The sun rises in the east."` appears to be the universal
       transition broadcast (repeated across many independent log files,

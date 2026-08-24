@@ -527,6 +527,29 @@ function A.captureSpellLine(name, modName, modValue, cycles)
   A.add(name, tonumber(cycles) or -1, "text", { lc = modName, m = tonumber(modValue) or modValue })
 end
 
+-- captureSpellLineBare(name) -- real gap found 2026-08-24 (confirmed via
+-- a cross-profile log scan): "Song : song of war" / "Spell: toughness"
+-- with no "modifies ... by ... for ... cycles" clause at all is a real,
+-- corpus-confirmed variant of this same header's output -- matches
+-- neither A.ids.triggers.song nor .spell below, both of which require
+-- that clause. Cross-checked against Steven's own separate note (MyDSL
+-- notes_utf8.txt, PERSONAL/GAME NOTES section: "low level charcaters
+-- cant see timers for affects, can we add the affects without a timer
+-- and let them update with affects since we dont know when they fll
+-- off excpet through echosa") -- this is very likely the SAME real
+-- mechanism: a lower-level character's `affects` text fallback doesn't
+-- print modifier/duration info at all, not a separate spell-shape.
+-- No duration/modifier data exists in this form, so this adds the
+-- affect as present-but-unknown-duration (-1, matching A.add()'s own
+-- "no known expiry" convention) with no modifier extra -- exactly the
+-- "show it, update it via echoes, don't fake a timer" behavior Steven
+-- asked for in that same note.
+function A.captureSpellLineBare(name)
+  if not A.state.capture then return end
+  A.state.captureCount = (A.state.captureCount or 0) + 1
+  A.add(name, -1, "text", nil)
+end
+
 function A.captureNone()
   A.clearList()
   A.state.capture = false
@@ -544,6 +567,13 @@ function A.installCaptureTriggers()
   A.ids.triggers.none = tempRegexTrigger([[^You are not affected by any spells\.$]], [[if MyDSL and MyDSL.Affects then MyDSL.Affects.captureNone() end]])
   A.ids.triggers.spell = tempRegexTrigger([[^Spell:\s+(.+?)\s+:\s+modifies\s+(.+?)\s+by\s+(-?\d+)\s+for\s+(-?\d+)\s+cycles.*$]], [[if MyDSL and MyDSL.Affects then MyDSL.Affects.captureSpellLine(matches[2], matches[3], matches[4], matches[5]) end]])
   A.ids.triggers.song = tempRegexTrigger([[^Song\s*:\s+(.+?)\s+:\s+modifies\s+(.+?)\s+by\s+(-?\d+)\s+for\s+(-?\d+)\s+cycles.*$]], [[if MyDSL and MyDSL.Affects then MyDSL.Affects.captureSpellLine(matches[2], matches[3], matches[4], matches[5]) end]])
+  -- Modifier-less variant -- real gap found 2026-08-24, see
+  -- captureSpellLineBare()'s own comment. Negative lookahead excludes
+  -- any line the .spell/.song triggers above already match (confirmed
+  -- via both Python re AND real PCRE via perl -e that these two forms
+  -- never double-fire on the same line).
+  A.ids.triggers.spellBare = tempRegexTrigger([[^Spell:\s*(?!.*modifies)(.+?)\s*$]], [[if MyDSL and MyDSL.Affects then MyDSL.Affects.captureSpellLineBare(matches[2]) end]])
+  A.ids.triggers.songBare = tempRegexTrigger([[^Song\s*:\s*(?!.*modifies)(.+?)\s*$]], [[if MyDSL and MyDSL.Affects then MyDSL.Affects.captureSpellLineBare(matches[2]) end]])
   A.ids.triggers.blank = tempRegexTrigger([[^\s*$]], [[if MyDSL and MyDSL.Affects and MyDSL.Affects.state and MyDSL.Affects.state.capture then MyDSL.Affects.finishCapture("blank") end]])
 end
 

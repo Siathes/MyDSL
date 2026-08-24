@@ -1143,13 +1143,26 @@ machine.
       real 2026-08-23**, this time independently in DSL2's own corpus, not
       just older pre-DSL2 data (`Song : song of war       : modifies
       damage roll by 2 for 12 cycles, (6 hours)`), matching the current
-      trigger's regex exactly. **Real capture gap found alongside it**: a
-      modifier-less variant (`Song : song of war` / `Spell: toughness`,
-      no "modifies...by...for...cycles" clause) matches neither
-      `A.ids.triggers.song` nor `A.ids.triggers.spell` — both regexes
-      require that clause. Recorded in `docs/DSL_CommandRef.md`; ready to
-      build (loosen both regexes to make the modifier clause optional)
-      whenever picked up.
+      trigger's regex exactly. **Real capture gap found alongside it —
+      built 2026-08-24, needs live confirmation.** A modifier-less
+      variant (`Song : song of war` / `Spell: toughness`, no
+      "modifies...by...for...cycles" clause) matched neither
+      `A.ids.triggers.song` nor `A.ids.triggers.spell`. Added
+      `.songBare`/`.spellBare` (negative-lookahead-excluded so they
+      never double-fire against the full-clause lines — cross-checked
+      against both Python `re` and real PCRE via `perl -e`) calling a
+      new `A.captureSpellLineBare(name)`: adds the affect with
+      duration=-1 (no fabricated timer) and no modifier data. Likely the
+      same real mechanism as Steven's own separate note (MyDSL
+      `notes_utf8.txt`: "low level charcaters cant see timers for
+      affects, can we add the affects without a timer and let them
+      update with affects since we dont know when they fll off excpet
+      through echosa") — not confirmed as the exact same trigger, but
+      the shape matches closely enough to be worth watching for during
+      live confirmation. Verified via 7 new assertions in
+      `test/test_affects_bare_spell_song.lua`; confirmed via `git stash`
+      that the fix is real (crashes on a nil function call without it,
+      not just a normal assertion failure).
 - [ ] **Mage-cast `poison` spell's onset text — re-characterized, still not
       confirmed as spell-specific.** `"...looks very ill."` now has 3
       independent real occurrences (up from 1), all immediately following
