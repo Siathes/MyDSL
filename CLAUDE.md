@@ -57,6 +57,13 @@ only hold what git history and the code can't already tell you.** That's:
    in chat (confirmed real, non-trivial content found there 2026-08-23
    after a ~1-month gap in this repo's own commit history). Reconcile
    anything found into `docs/TODO.md`, don't let it sit unread.
+5. Check `HANDOFF.md` (repo root) — added 2026-08-23 as a rolling
+   mailbox between this session and Claude Desktop (an independent
+   reviewer, connected read-only via GitHub; Steven relays between the
+   two by prompting each with "check repo" plus his own notes). Read the
+   other side's section, act on anything real, and overwrite your own
+   section with what you did — this file is a mailbox, not a log; don't
+   let it grow the way `docs/TODO.md` twice had to be pruned for.
 
 ### Housekeeping routine (adopted 2026-08-23)
 No durable cron/scheduled-agent mechanism fits this project well — cloud
