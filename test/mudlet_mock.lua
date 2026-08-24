@@ -188,6 +188,38 @@ _G.Geyser = _G.Geyser or {
   windowList = {},
 }
 
+-- Map/room API -- real behaving stubs (a backing table per room), not
+-- no-ops, so mapper-fork tests can set up a room's state and read it back
+-- to verify what a real Mudlet client would persist. __rooms[id] = {
+--   name=, exists=true, env=, userdata={} }.
+_G.__rooms = _G.__rooms or {}
+local function __room(id)
+  _G.__rooms[id] = _G.__rooms[id] or { userdata = {} }
+  return _G.__rooms[id]
+end
+function _G.__mock_defineRoom(id, name)
+  local r = __room(id)
+  r.exists = true
+  r.name = name or r.name or ""
+  return r
+end
+function _G.roomexists(id) return (_G.__rooms[id] and _G.__rooms[id].exists) and 1 or 0 end
+function _G.getRoomName(id) return (_G.__rooms[id] and _G.__rooms[id].name) or "" end
+function _G.setRoomName(id, name) __room(id).name = name end
+function _G.getRoomUserData(id, key)
+  local r = _G.__rooms[id]
+  if not r then return "" end
+  local v = r.userdata[key]
+  if v == nil then return "" end
+  return v
+end
+function _G.setRoomUserData(id, key, value) __room(id).userdata[key] = value end
+function _G.getRoomEnv(id) return (_G.__rooms[id] and _G.__rooms[id].env) or 0 end
+function _G.setRoomEnv(id, envID) __room(id).env = envID end
+function _G.setCustomEnvColor(...) return true end
+function _G.getRoomWeight(id) return (_G.__rooms[id] and _G.__rooms[id].weight) or 1 end
+function _G.setRoomWeight(id, w) __room(id).weight = w end
+
 _G.demonnic = _G.demonnic or {}
 
 -- AdjustableContainer package (vendored 3rd-party package, not DSL2's own

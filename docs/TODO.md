@@ -847,15 +847,18 @@ item: `git log --oneline` + `docs/CHANGELOG.md`.
       the way weight is) -- `map.dsl.applySectorColor()` maps the
       already-confirmed-real sector categories to custom environment
       colors via `setCustomEnvColor()`/`setRoomEnv()`, registered once at
-      install. No manual-override guard exists for color specifically --
-      Mudlet's native map-UI right-click recolor calls `setRoomEnv()`
-      directly with no script hook to intercept, so a manual UI recolor
-      could get reverted on that room's next auto-color pass; accepted as
-      a cosmetic-only tradeoff. Verified via a dedicated structural test
-      harness (`test_move_cost_weight.lua`): a real cost becomes the room
-      weight, a regen-tick (negative-cost) reading is correctly ignored,
-      repeat visits average into a stable weight, and a manually-set
-      weight is never overwritten. Not yet live-tested.
+      install. **Updated 2026-08-24**: color now DOES have a manual/lock
+      guard (`dsl.terrain_locked`, set on the first successful auto-write
+      or by the new `rt`/`room terrain` alias) — see the resolved item
+      below for why and what changed; the one caveat that's still real and
+      unfixable from script is Mudlet's native map-UI right-click recolor,
+      which calls `setRoomEnv()` directly with no script hook to
+      intercept, so it can still get reverted by a future *unlocked*
+      room's next auto-color pass. Verified via a dedicated structural
+      test harness (`test_move_cost_weight.lua`): a real cost becomes the
+      room weight, a regen-tick (negative-cost) reading is correctly
+      ignored, repeat visits average into a stable weight, and a
+      manually-set weight is never overwritten. Not yet live-tested.
 - [ ] **DSL Generic Mapper: `dslroom raw` is now a one-stop room-info
       command — built 2026-07-18, needs live confirmation.** Per Steven
       ("can i view room info in this package? like description name
@@ -1405,15 +1408,33 @@ machine.
       a default settings file." Same issue already tracked in PACKAGING
       (shared `windowLayoutGeometry.dat`/`windowLayout.dat` theory, not
       fixed) — this independent report raises its priority, not a new bug.
-- [ ] **New, from MyDSL notes 2026-08-23: mapper terrain/room coloring
-      re-applies on every room entry instead of once** — Steven: "mapper
-      terrain should be set once, not everytime i walk in the room... or
-      can we color the room box borders instead... how do we color the
-      border, or is that already available." Needs checking against the
-      real 2026-07-18 behavior (`map.dsl.applySectorColor()`) — may be
-      working as designed (recomputing is cheap/idempotent) and this is
-      really a border-color feature request, not a bug; needs clarifying
-      what specifically Steven is observing before treating as either.
+- [x] **Fixed 2026-08-24: mapper terrain/room-coloring corruption + "set
+      once" lock.** Clarified directly with Steven: the real bug is that
+      `map.currentRoom` can get stuck on the wrong (stale) room after
+      walking into one Generic Mapper failed to resolve/create, so a GMCP
+      or "terrain" payload describing where the player actually is gets
+      filed onto that stale room instead. Fixed with `map.dsl.
+      roomLooksStale(rid)` — compares a fresh GMCP room name (the same
+      ground truth `beforeExits()` already trusts) against the candidate
+      room's own stored name; `applyRoomMetadata()`/`onTerrainLine()` both
+      skip writing anything when it disagrees. Separately implemented the
+      "set once, then manual only" behavior Steven asked for (mirroring
+      the existing `dsl.weight_source=="manual"` guard for room weight):
+      new `dsl.terrain_locked` room userdata, set on the first successful
+      auto-write, checked by both auto-apply functions before they touch
+      anything again; a new `rt`/`room terrain [v<room id>] <name>` alias
+      (mirrors `rw`) lets Steven override a locked room by hand. Verified
+      via `test/test_mapper_terrain_lock.lua` (24 assertions, real map-API
+      mocks added to `test/mudlet_mock.lua`; confirmed each assertion
+      genuinely fails without its corresponding guard). Border-color (the
+      other half of Steven's original ask) is NOT built — checked Mudlet's
+      real source and found `setRoomBorderColor()`/`getRoomBorderColor()`/
+      `clearRoomBorderColor()` exist only on Mudlet's unreleased
+      `development` branch (merged 2026-01-12, no milestone), absent from
+      every shipped version through the current 4.22.0 stable and even the
+      4.22.0 PTB betas — this profile runs 4.20.1, so there's no real API
+      to call yet. Revisit once Mudlet actually ships it. Not yet
+      live-confirmed by Steven.
 ---
 
 ## OPEN — Design ideas, not yet scoped

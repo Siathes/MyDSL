@@ -972,6 +972,31 @@ end</script>
 				<regex>^rw(?: (\w+))? (\d+)$</regex>
 			</Alias>
 			<Alias isActive="yes" isFolder="no">
+				<name>Set Room Terrain Alias</name>
+				<script>-- rt or room terrain [v&lt;room id&gt;] &lt;terrain name&gt; -- manually set
+-- a room's terrain/color and lock it so map.dsl's own auto-detection
+-- (applyRoomMetadata()/onTerrainLine()) never silently overwrites it
+-- again -- mirrors the "rw" alias's manual weight lock, per Steven
+-- ("this needs to get set once then have to be manually changed").
+
+local room = matches[2] and tonumber(matches[2]) or map.currentRoom
+
+if not room or not map.roomexists(room) then
+  map.echo("Sorry - which room do you want to set the terrain on? I don't know where you are at the moment, if you want to do the current room.")
+  return
+end
+
+local ok, result = map.dsl.setManualTerrain(room, matches[3])
+if ok then
+  map.echo("Set the terrain on #"..room.." ("..getRoomName(room)..") to "..result..", and locked it against auto-detection.")
+else
+  map.echo(result)
+end</script>
+				<command />
+				<packageName />
+				<regex>^(?:rt|room terrain) (?:v(\d+) )?(\w+)$</regex>
+			</Alias>
+			<Alias isActive="yes" isFolder="no">
 				<name>Set Exit Weight Alias</name>
 				<script>-- rwe &lt;optional room ID, otherwise current&gt; &lt;weight&gt; &lt;exit&gt;, where the weight
 -- is a positive number (default for exits is 0). Setting a higher weight will
@@ -5946,6 +5971,29 @@ end
 -- plausibly still be describing the PREVIOUS room.
 local DSL_GMCP_ROOMDATA_TIMEOUT = 2
 
+-- roomLooksStale(rid) -- real bug reported by Steven: walking into a room
+-- Generic Mapper fails to resolve/create leaves map.currentRoom stuck on
+-- the PREVIOUS room, so a GMCP or "terrain" payload describing the room
+-- the player actually just entered gets filed onto that stale room's data
+-- instead (its color/terrain silently changes to match wherever the
+-- player really is, not what that mapped room actually is). rd.room is
+-- the same fresh-checked GMCP room name beforeExits() already trusts as
+-- ground truth to feed map.prompt.room, so comparing it against the
+-- candidate room's own stored name detects the desync directly instead of
+-- guessing from timing. Returns false (trust rid) whenever GMCP is
+-- missing/stale/nameless -- this must never be the reason a room fails to
+-- get colored on a normal move where GMCP just isn't fast enough yet.
+function map.dsl.roomLooksStale(rid)
+  local rd = map.dsl.gmcp and map.dsl.gmcp.room_data
+  local rdFresh = rd and map.dsl.gmcp.room_data_time
+    and (os.time() - map.dsl.gmcp.room_data_time) &lt;= DSL_GMCP_ROOMDATA_TIMEOUT
+  if not rdFresh or not rd.room then return false end
+  local gmcpName = tostring(rd.room):trim()
+  if gmcpName == "" then return false end
+  local roomName = tostring(getRoomName(rid) or ""):trim()
+  return roomName ~= "" and roomName ~= gmcpName
+end
+
 function map.dsl.beforeExits(exits)
   map.prompt = map.prompt or {}
   exits = tostring(exits or ""):trim()
@@ -6061,10 +6109,30 @@ local DSL_SECTOR_ENV_COLORS = {
   [33] = {135,206,235,255},  -- air: sky blue
 }
 
+local DSL_SECTOR_NAMES_SORTED = {}
+for k in pairs(DSL_SECTOR_ENV_IDS) do DSL_SECTOR_NAMES_SORTED[#DSL_SECTOR_NAMES_SORTED + 1] = k end
+table.sort(DSL_SECTOR_NAMES_SORTED)
+
 function map.dsl.registerEnvColors()
   for envID, rgba in pairs(DSL_SECTOR_ENV_COLORS) do
     pcall(setCustomEnvColor, envID, rgba[1], rgba[2], rgba[3], rgba[4])
   end
+end
+
+-- dsl.terrain_locked -- per Steven ("this needs to get set once then have
+-- to be manually changed"): once a room's terrain/color has been set by
+-- EITHER auto-detection (GMCP or the "terrain" command) or the manual
+-- "rt"/"room terrain" alias below, applyRoomMetadata()/onTerrainLine()
+-- must never silently change it again on a later visit -- only the manual
+-- alias can. Mirrors the existing dsl.weight_source == "manual" guard for
+-- room weight (see the "rw" alias / applyMoveCost() above), narrowed to
+-- lock on the FIRST successful set rather than only after an explicit
+-- manual command, since an auto-detected value is just as real and
+-- shouldn't be silently second-guessed by a later, possibly-corrupted pass
+-- (see roomLooksStale() above -- this lock is a second, independent layer
+-- of protection against that same corruption, not just a cosmetic lock).
+function map.dsl.terrainLocked(rid)
+  return getRoomUserData(rid, "dsl.terrain_locked") == "true"
 end
 
 -- applySectorColor(rid, sector) -- color only, from the known DSL
@@ -6073,12 +6141,16 @@ end
 -- correction ("dont make up weights, the room weight should be added as
 -- a player walks through and uses movement points to determine"), weight
 -- must come from real observed movement-point cost, not a guessed
--- sector->number table. There is no manual-override guard for color:
--- Mudlet's own native map-UI right-click recolor calls setRoomEnv()
--- directly with no script hook to intercept it, so a manual UI recolor
--- could get reverted on that room's next auto-color pass. Accepted
--- tradeoff -- color is cosmetic, not pathfinding-affecting, unlike
--- weight (which does have a manual-override guard, see below).
+-- sector->number table. This function itself stays a plain, unguarded
+-- "recolor this room" primitive -- terrainLocked()/roomLooksStale() are
+-- checked by its CALLERS (applyRoomMetadata()/onTerrainLine()) before they
+-- decide to call it at all, so the manual "rt" alias below can still reuse
+-- it to actually apply a color even on an already-locked room. Note this
+-- still can't stop Mudlet's own native map-UI right-click recolor, which
+-- calls setRoomEnv() directly with no script hook to intercept it -- a
+-- manual UI recolor could still get reverted by a *future unlocked* room's
+-- next auto-color pass. Accepted, pre-existing tradeoff, unrelated to the
+-- lock added here.
 function map.dsl.applySectorColor(rid, sector)
   if not rid or not sector or sector == "unknown" then return end
   if not map.roomexists or not map.roomexists(rid) then return end
@@ -6086,6 +6158,27 @@ function map.dsl.applySectorColor(rid, sector)
   if envID and getRoomEnv(rid) ~= envID then
     pcall(setRoomEnv, rid, envID)
   end
+end
+
+-- setManualTerrain(rid, sectorInput) -- backs the "rt"/"room terrain"
+-- alias. Applies a normalized sector by hand and locks the room against
+-- future auto-detection, mirroring the "rw" alias's dsl.weight_source =
+-- "manual" write. Returns ok, message so the alias doesn't duplicate
+-- validation/echoing.
+function map.dsl.setManualTerrain(rid, sectorInput)
+  if not rid or not map.roomexists or not map.roomexists(rid) then
+    return false, "I don't know where that room is."
+  end
+  local sector = map.dsl.normalizeSector(sectorInput)
+  if sector == "unknown" or not DSL_SECTOR_ENV_IDS[sector] then
+    return false, "Unknown terrain \"" .. tostring(sectorInput) ..
+      "\". Known: " .. table.concat(DSL_SECTOR_NAMES_SORTED, ", ")
+  end
+  setRoomUserData(rid, "dsl.normalized_sector", sector)
+  setRoomUserData(rid, "dsl.sector_source", "manual")
+  setRoomUserData(rid, "dsl.terrain_locked", "true")
+  map.dsl.applySectorColor(rid, sector)
+  return true, sector
 end
 
 -- captureMovePoints() / applyMoveCost(rid) -- room weight derived from
@@ -6189,6 +6282,11 @@ function map.dsl.applyRoomMetadata()
   local rdFresh = map.dsl.gmcp.room_data_time
     and (os.time() - map.dsl.gmcp.room_data_time) &lt;= DSL_GMCP_ROOMDATA_TIMEOUT
   if not rdFresh then return end
+  -- Corruption + lock guards -- see roomLooksStale()/terrainLocked() above.
+  -- Both must be checked before touching ANY of the room's terrain/sector/
+  -- color fields below, not just the color write.
+  if map.dsl.roomLooksStale(rid) then return end
+  if map.dsl.terrainLocked(rid) then return end
   local sector = map.dsl.normalizeSector(rd.sector)
   if rd.room then dsl_setIfChanged(rid, "dsl.gmcp_room", tostring(rd.room)) end
   if rd.sector then dsl_setIfChanged(rid, "dsl.gmcp_sector", tostring(rd.sector)) end
@@ -6204,6 +6302,7 @@ function map.dsl.applyRoomMetadata()
     end
   end
   map.dsl.applySectorColor(rid, sector)
+  if sector ~= "unknown" then setRoomUserData(rid, "dsl.terrain_locked", "true") end
 end
 
 -- Called inline, not deferred -- fixed 2026-07-19 (PVP perf audit). This
@@ -6225,7 +6324,13 @@ function map.dsl.onTerrainLine(text)
   if text == "" then return end
   map.dsl.last_terrain_text = text
   local rid = map.currentRoom
-  if rid and map.roomexists and map.roomexists(rid) then
+  -- Corruption + lock guards -- see roomLooksStale()/terrainLocked() above.
+  -- This is the exact function Steven's report implicated most directly:
+  -- typing "terrain" while map.currentRoom is stuck on a stale room used
+  -- to file the real room's terrain onto the wrong one with no protection
+  -- at all.
+  if rid and map.roomexists and map.roomexists(rid)
+    and not map.dsl.roomLooksStale(rid) and not map.dsl.terrainLocked(rid) then
     setRoomUserData(rid, "dsl.terrain_text", text)
     local normalized = map.dsl.normalizeSector(text)
     if normalized ~= "unknown" then
@@ -6241,6 +6346,7 @@ function map.dsl.onTerrainLine(text)
       -- benefit as GMCP-derived sector data. Weight is unaffected here --
       -- it only comes from real observed movement-point cost.
       map.dsl.applySectorColor(rid, getRoomUserData(rid, "dsl.normalized_sector"))
+      setRoomUserData(rid, "dsl.terrain_locked", "true")
     end
   end
 end
