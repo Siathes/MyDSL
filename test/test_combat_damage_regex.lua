@@ -28,6 +28,7 @@ package.path = package.path .. ";./test/?.lua"
 require("mudlet_mock")
 
 dofile("MyDSL_DataLayer.lua")
+dofile("MyDSL_DataLayer_Combat.lua")  -- Combat capture split out here 2026-08-25
 
 local failures = 0
 local function check(name, cond)

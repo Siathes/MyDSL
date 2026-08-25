@@ -629,21 +629,41 @@ to the per-item live confirmations below.
       the remaining slices (Combat next) with real confidence in the
       mechanism now, not just test coverage.
 
+      **Slice 2 done: Combat** → new `MyDSL_DataLayer_Combat.lua`
+      (`parseCombatDamageLine()`/`AvoidLine()`/`ConditionLine()`/
+      `DeathLine()`/`EndLine()`/`ProcLine()`, `getTargetCondition()`, the
+      `combatRoundFlush` handler, plus every local table/helper the
+      round-summary formatting needs — `DAM_INFO`, `CONDITION_PATTERNS`,
+      `battleFormat()`, `calcDamVerb()`, etc. — 889 lines total,
+      confirmed via grep to be just as cleanly self-contained as slice 1
+      despite being ~6x the size). Pure relocation, no logic changed —
+      the full existing test suite (including
+      `test/test_combat_damage_regex.lua`'s 7 damage-parsing assertions)
+      passes unchanged, which is the real regression signal for a move
+      like this; updated that one test file's `dofile()` list to also
+      load the new file. **Real gap found, not closed**: only damage
+      parsing has dedicated test coverage — avoid/condition/death/end/
+      proc and the round-flush handler itself have zero, both before
+      and after this split (confirmed via grep). Not built this pass
+      (would have meaningfully expanded this commit's scope for a
+      pure-move slice with no logic change), but flagged here as real
+      follow-up work, not silently left unnoticed. `MyDSL_DataLayer.lua`
+      now 3,697 lines (down from 4,586 after slice 1, 4,745 originally).
+
       **Remaining slices, not yet started, same order-of-operations each
-      time**: Combat (9q + its ~350-line trigger-registration block in
-      SECTION 10 — the largest, do this one with extra care), Scan/Look/
-      PlayersNear (9o, plus the fuzzy-match helpers `normalizeForMatch()`/
-      `bestFuzzyMatch()` — already confirmed via grep these are ALSO
-      needed by ItemLore's `resolveGroundItem()`, so they need promoting
-      to real `MyDSL.*` functions rather than moving with either domain
-      alone), ItemLore/Equipment/Inventory (9p.1/9r/9q-dup — note the
-      original file's own sub-section numbering has a real duplicate
-      "9q" label, one meant "9s" for inventory — worth a one-line comment
-      fix when this slice happens, not urgent enough on its own), and
-      Score/Flags/Lunar/Time/Weather/Who/Group/Improve (9a-9n, the
-      "prompt/vitals" domain). Sections 1-6/8 (namespace/state/event-bus/
-      GMCP-handlers/persistence) stay as the core `MyDSL_DataLayer.lua`
-      — genuinely shared infrastructure every domain depends on, not a
+      time**: Scan/Look/PlayersNear (9o, plus the fuzzy-match helpers
+      `normalizeForMatch()`/`bestFuzzyMatch()` — already confirmed via
+      grep these are ALSO needed by ItemLore's `resolveGroundItem()`, so
+      they need promoting to real `MyDSL.*` functions rather than moving
+      with either domain alone), ItemLore/Equipment/Inventory (9p.1/9r/
+      9q-dup — note the original file's own sub-section numbering has a
+      real duplicate "9q" label, one meant "9s" for inventory — worth a
+      one-line comment fix when this slice happens, not urgent enough on
+      its own), and Score/Flags/Lunar/Time/Weather/Who/Group/Improve
+      (9a-9n, the "prompt/vitals" domain). Sections 1-6/8 (namespace/
+      state/event-bus/GMCP-handlers/persistence) stay as the core
+      `MyDSL_DataLayer.lua` — genuinely shared infrastructure every
+      domain depends on, not a
       candidate for further splitting.
 - [ ] **Two personal aliases in the live MyDSL profile are cosmetically
       mislabeled** (found via `MyDSL_PersonalAliases.xml`, Claude.ai
