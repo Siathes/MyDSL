@@ -1619,8 +1619,19 @@ machine.
         Shattered/the local knowledge base; investigate whether a
         reconnect-without-full-reload is possible to survive the server's
         roll time limit — "this will require planning."
-      - UI: toggleable window titles / minimal borders, to maximize
-        window space.
+      - [x] **UI: toggleable window titles — built 2026-08-24, needs live
+        confirmation.** New `mydsl layout titles <on|off>`, profile-
+        scoped (`MyDSL_titles_visible.lua`, same precedent as layout
+        itself). Applies immediately via Geyser's real `setTitle("")`/
+        `resetTitle()`, and to any window created afterward too — not
+        just already-open ones. **The "minimal borders" half is NOT
+        buildable**: checked Mudlet's real Lua API first and confirmed
+        there's no way to shrink a UserWindow's title-bar HEIGHT from
+        script (only its text) — that's a native Qt `QDockWidget`
+        property never exposed to Lua, same class of gap as
+        `setRoomBorderColor()` not existing yet either. 7 new assertions
+        in `test/test_windowregistry_titles.lua`, confirmed via `git
+        stash` the fix is real.
       - Restrings: an in-character-flavored guide/workflow for writing
         them — references Steven's own Obsidian notes (Piknim, the
         Gnomish Blunderbuss), outside this repo.

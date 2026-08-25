@@ -190,6 +190,20 @@ StubWidget.setDockPosition = function(self, pos)
   return true
 end
 
+-- Real-behaving title tracking -- records each window's current title
+-- text (nil = never touched, "" = explicitly blanked, anything else =
+-- a real title string), so a test can verify title-visibility toggling
+-- actually reaches each window instead of just "it didn't crash".
+_G.__windowTitles = _G.__windowTitles or {}
+StubWidget.setTitle = function(self, text)
+  _G.__windowTitles[self.name] = text
+  return true
+end
+StubWidget.resetTitle = function(self)
+  _G.__windowTitles[self.name] = "__reset__"
+  return true
+end
+
 _G.Geyser = _G.Geyser or {
   UserWindow = StubWidget,
   MiniConsole = StubWidget,

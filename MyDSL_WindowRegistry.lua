@@ -91,6 +91,21 @@ local function DOCK_INIT_FILE()
   return getMudletHomeDir() .. "/MyDSL_dock_initialized.lua"
 end
 
+-- TITLES_FILE -- backs "mydsl layout titles <on|off>" (docs/TODO.md's
+-- "UI: toggleable window titles / minimal borders, to maximize window
+-- space" design idea). Profile-scoped like layout itself, not per-
+-- character -- this is a chrome preference, same class as the layout
+-- arrangement. Note the real API limit found while scoping this: Mudlet
+-- exposes no way to hide the title BAR's physical space itself (that's
+-- a native Qt QDockWidget property, not surfaced to Lua) -- only the
+-- title TEXT (setTitle()/resetTitle(), already used here). "Minimal
+-- borders" in the original ask isn't buildable at all for the same
+-- reason border THICKNESS has no Lua-exposed setter either; this
+-- delivers the text-hiding half only, not a border change.
+local function TITLES_FILE()
+  return getMudletHomeDir() .. "/MyDSL_titles_visible.lua"
+end
+
 local function isFirstDockInit()
   local f = io.open(DOCK_INIT_FILE(), "r")
   if f then f:close(); return false end
@@ -446,6 +461,14 @@ function MyDSL.Windows.ensure(windowName)
     winObj:hide()
   end
 
+  -- Apply the current title-visibility preference immediately, same
+  -- precedent as the visibility block right above -- a freshly-created
+  -- window should already match whatever the user last chose, not need
+  -- a second "mydsl layout titles" call to catch up.
+  if entry.type == "UserWindow" and MyDSL.Windows.titlesVisible == false then
+    pcall(function() winObj:setTitle("") end)
+  end
+
   debugc("[MyDSL] WindowRegistry: created " .. windowName)
   return winObj
 end
@@ -468,6 +491,54 @@ function MyDSL.Windows.ensureAll()
     MyDSL.Windows._applyInitialDock = false
   end
   debugc("[MyDSL] WindowRegistry: all windows ready.")
+end
+
+
+-- loadTitlesVisible() -- reads the persisted preference, defaulting to
+-- true (titles shown) when nothing has been saved yet, matching every
+-- other "or default" pattern in this file.
+function MyDSL.Windows.loadTitlesVisible()
+  MyDSL.Windows.titlesVisible = true
+  local f = io.open(TITLES_FILE(), "r")
+  if not f then return end
+  f:close()
+  local loaded = {}
+  local ok = pcall(table.load, TITLES_FILE(), loaded)
+  if ok and loaded.visible ~= nil then
+    MyDSL.Windows.titlesVisible = loaded.visible
+  end
+end
+
+function MyDSL.Windows.saveTitlesVisible()
+  pcall(table.save, TITLES_FILE(), { visible = MyDSL.Windows.titlesVisible })
+end
+
+-- setTitlesVisible(visible) -- "mydsl layout titles <on|off>". Applies
+-- immediately to every already-created UserWindow (Adjustable.Container
+-- windows have no title bar at all, so type=="UserWindow" only) via
+-- Geyser's own setTitle("")/resetTitle() -- reused, not reimplemented.
+function MyDSL.Windows.setTitlesVisible(visible)
+  MyDSL.Windows.titlesVisible = visible
+  for _, entry in pairs(MyDSL.Windows.registry) do
+    if entry.type == "UserWindow" and entry.obj then
+      if visible then
+        pcall(function() entry.obj:resetTitle() end)
+      else
+        pcall(function() entry.obj:setTitle("") end)
+      end
+    end
+  end
+  MyDSL.Windows.saveTitlesVisible()
+end
+
+MyDSL.Windows.loadTitlesVisible()
+
+if not MyDSL.Windows._titlesAliasInstalled then
+  tempAlias([[^mydsl layout titles (on|off)$]], function()
+    MyDSL.Windows.setTitlesVisible(matches[2] == "on")
+    cecho("\n<green>[MyDSL] Window titles " .. (matches[2] == "on" and "shown" or "hidden") .. ".\n")
+  end)
+  MyDSL.Windows._titlesAliasInstalled = true
 end
 
 

@@ -310,6 +310,7 @@ MyDSL.Help.modules = {
       { cmd = "toggle <module>", desc = "PNP's universal on/off switch (combat, affects, moons, ...).", example = "toggle affects" },
       { cmd = "mydsl layout save", desc = "Save current window positions/visibility (per profile).", example = "mydsl layout save" },
       { cmd = "mydsl layout reset", desc = "Reset in-memory layout to defaults -- run `mydsl layout save` after to persist.", example = "mydsl layout reset" },
+      { cmd = "mydsl layout titles <on|off>", desc = "Hide/show every window's title text to save space. Mudlet has no Lua API to shrink the title bar's actual height, only its text.", example = "mydsl layout titles off" },
       { cmd = "autowhere <on|off|status>", desc = "Periodic `where` polling every 20s -- skips a tick while sleeping/fighting/blind instead of sending it blindly.", example = "autowhere on" },
     },
   },
