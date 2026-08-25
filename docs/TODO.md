@@ -66,16 +66,24 @@ just the 3 GMCP-paired ones originally singled out).
         ever run standalone, without the rest of `MyDSL_*.lua` loaded —
         this is also the exact duplicate-parsing pattern
         `docs/OPTIMIZATION_AUDIT.md`'s Cross-cutting findings flagged as
-        a real lag contributor (finding #3). **The actual open
-        question, needs Steven's answer before anything here changes**:
-        does he ever run this mapper fork standalone, without the rest
-        of MyDSL loaded? If yes, merging the two GMCP parsers is a real
-        correctness risk, not just an optimization, and the boundary
-        should stay. If no, the whole reason for the boundary is gone
-        and merging is a clean, real win — worth doing, but scope it as
-        its own dedicated pass afterward (7x the line count of what the
-        audit covered for this file), not folded into general pass-2
-        cleanup.
+        a real lag contributor (finding #3). **Answered 2026-08-25 —
+        Steven confirmed the mapper is never run standalone.** The
+        correctness-risk reason for the independent-GMCP-parsing
+        boundary no longer applies — merging the mapper's GMCP handling
+        into `MyDSL_DataLayer.lua`'s (so the mapper reads `MyDSL.State`/
+        listens for `MyDSL.char.updated`/`MyDSL.room.updated` instead of
+        re-parsing `gmcp.char_data`/`room_data` itself) is now a real,
+        clean optimization win, not a risk. **Not started yet — needs
+        its own dedicated pass**, separate from general pass-2 per-file
+        cleanup: this touches native `DSL_Generic_Mapper.xml` content
+        (not a plain `.lua` file), 6,631 total lines (7x the size of
+        what the pass-1 audit actually scoped for this file, since only
+        the 957-line `map.dsl.*` fork was in scope), and a live,
+        currently-working room-mapping/terrain/weight system that's
+        been through multiple real bug-fix rounds already — real risk
+        of regression if rushed. Scope this as its own task once pass-2
+        cleanup queue is otherwise in motion, not squeezed in alongside
+        smaller per-file fixes.
 - [ ] **Real verification-integrity gap found via an independent Claude
       Desktop review, 2026-08-23 — partially closed, partially still
       open.** Three test files cited BY NAME across multiple
