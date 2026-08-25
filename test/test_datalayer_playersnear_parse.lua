@@ -29,6 +29,7 @@ end
 dofile("MyDSL_LayoutEngine.lua")
 dofile("MyDSL_WindowRegistry.lua")
 dofile("MyDSL_DataLayer.lua")
+dofile("MyDSL_DataLayer_ScanLook.lua")
 dofile("MyDSL_RouteHelper.lua")
 
 local failures = 0

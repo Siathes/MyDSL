@@ -17,6 +17,7 @@ package.path = package.path .. ";./test/?.lua"
 require("mudlet_mock")
 
 dofile("MyDSL_DataLayer.lua")
+dofile("MyDSL_DataLayer_ScanLook.lua")
 
 local failures = 0
 local function check(name, cond)

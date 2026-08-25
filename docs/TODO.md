@@ -661,20 +661,49 @@ to the per-item live confirmations below.
       window (combat log only). Zero errors tied to either split file.
       Both risky slices (CreatureLore, Combat) now fully live-confirmed.
 
+      **Slice 3 done: Scan/Look/PlayersNear** → new
+      `MyDSL_DataLayer_ScanLook.lua` (`beginScan()`/`parseScanLine()`/
+      `endScan()`, `beginLook()`/`parseLookHereLine()`/`endLook()`,
+      `captureGroundItem()`/`buildItemStatsSuffix()`/
+      `applyGroundItemHover()`, `beginPlayersNear()`/`endPlayersNear()`,
+      997 lines total). Two real cross-domain dependencies found and
+      resolved, not discovered by trial and error:
+      `normalizeForMatch()`/`bestFuzzyMatch()` (needed by this domain's
+      `resolveMobName()` AND the not-yet-split ItemLore's
+      `resolveGroundItem()`) were promoted to real `MyDSL.*` table
+      functions in the core file's Section 2 BEFORE extraction, verified
+      via a standalone test-suite run right after that promotion alone;
+      and `buildItemStatsSuffix()` turned out to be the reverse case — it
+      moved INTO this new file but is still called from the core file's
+      not-yet-split Equipment/ItemLore "Others equip" hover-hint lines.
+      Harmless either dofile() order (both are load-time definitions,
+      the call only happens later at trigger-fire time), documented in
+      the new file's own header so the next slice doesn't mistake it for
+      dead code. Pure relocation, no logic changed — confirmed by the
+      full existing suite passing unchanged once 4 test files' `dofile()`
+      lists were updated (`test_datalayer_audit_fixture_lines.lua`,
+      `test_datalayer_playersnear_parse.lua`,
+      `test_datalayer_several_fixture_line.lua`,
+      `test_others_equipment_hover.lua` — the last one is what actually
+      caught the `buildItemStatsSuffix` cross-dependency, via a real
+      "attempt to call a nil value" failure before the dofile was added).
+      `MyDSL_DataLayer.lua` now 2,751 lines (down from 3,697 after slice
+      2, 4,745 originally — 42% removed across all three slices so far).
+      All 24 test suites + `check_known_patterns.py --all` re-run clean;
+      `MyDSL_Full.mpackage` rebuilds cleanly at 36 scripts. Not yet
+      live-confirmed — needs Steven to `scan`, `look`, and trigger a
+      "Players near you:" listing in-game; will self-check via MyDSL's
+      own logs afterward per the established pattern from slices 1-2.
+
       **Remaining slices, not yet started, same order-of-operations each
-      time**: Scan/Look/PlayersNear (9o, plus the fuzzy-match helpers
-      `normalizeForMatch()`/`bestFuzzyMatch()` — already confirmed via
-      grep these are ALSO needed by ItemLore's `resolveGroundItem()`, so
-      they need promoting to real `MyDSL.*` functions rather than moving
-      with either domain alone), ItemLore/Equipment/Inventory (9p.1/9r/
-      9q-dup — note the original file's own sub-section numbering has a
-      real duplicate "9q" label, one meant "9s" for inventory — worth a
-      one-line comment fix when this slice happens, not urgent enough on
-      its own), and Score/Flags/Lunar/Time/Weather/Who/Group/Improve
-      (9a-9n, the "prompt/vitals" domain). Sections 1-6/8 (namespace/
-      state/event-bus/GMCP-handlers/persistence) stay as the core
-      `MyDSL_DataLayer.lua` — genuinely shared infrastructure every
-      domain depends on, not a
+      time**: ItemLore/Equipment/Inventory (9p.1/9r/9q-dup — note the
+      original file's own sub-section numbering has a real duplicate
+      "9q" label, one meant "9s" for inventory — worth a one-line comment
+      fix when this slice happens, not urgent enough on its own), and
+      Score/Flags/Lunar/Time/Weather/Who/Group/Improve (9a-9n, the
+      "prompt/vitals" domain). Sections 1-6/8 (namespace/state/event-bus/
+      GMCP-handlers/persistence) stay as the core `MyDSL_DataLayer.lua`
+      — genuinely shared infrastructure every domain depends on, not a
       candidate for further splitting.
 - [ ] **Two personal aliases in the live MyDSL profile are cosmetically
       mislabeled** (found via `MyDSL_PersonalAliases.xml`, Claude.ai
