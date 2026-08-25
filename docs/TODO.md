@@ -571,9 +571,11 @@ to the per-item live confirmations below.
       unused `localOnly` parameter it existed for) from
       `MyDSL_AffectsView.lua`'s `A.setTitle()`; `AffectsView` now matches
       every other module's pattern exactly. Syntax-checked.
-- [ ] **`MyDSL_DataLayer.lua` split-by-domain refactor — IN PROGRESS,
-      started 2026-08-25, first slice done and verified.** Was 4,745
-      lines (~20% of the codebase), flagged by two independent reviews.
+- [ ] **`MyDSL_DataLayer.lua` split-by-domain refactor — CODE COMPLETE,
+      started and finished 2026-08-25, all 5 slices done and structurally
+      verified; live confirmation still pending on slices 3-5.** Was
+      4,745 lines (~20% of the codebase), flagged by two independent
+      reviews.
       Per Steven's explicit go-ahead to do this carefully: executing as a
       series of complete, independently-verified domain extractions
       rather than one giant cut, each one fully tested/committed before
@@ -731,15 +733,45 @@ to the per-item live confirmations below.
       in-game; will self-check via MyDSL's own logs afterward per the
       established pattern from slices 1-3.
 
-      **Remaining slice, not yet started**: Score/Flags/Lunar/Time/
-      Weather/Who/Group/Improve (9a-9n, the "prompt/vitals" domain — the
-      last one, since it's genuinely the most cross-cutting: Pos'n and
-      Wimpy real-time triggers, Dragon Vitality, and the Group/Improve
-      triggers that had to be worked around during slice 4, all live in
-      this same territory). Sections 1-6/8 (namespace/state/event-bus/
-      GMCP-handlers/persistence) stay as the core `MyDSL_DataLayer.lua`
-      — genuinely shared infrastructure every domain depends on, not a
-      candidate for further splitting.
+      **Slice 5 done (final slice): Score/Flags/Lunar/Time/Weather/Who/
+      Group/Improve** → new `MyDSL_DataLayer_PromptVitals.lua` (score
+      block capture, the flags toggle sub-block, lunar phase, game
+      time/prompt-line day-night period, weather including the rare
+      lowercase-"and" wind-clause case, sunrise/sunset, real-time Pos'n
+      and Wimpy text triggers, Dragon Vitality, who list, group block,
+      improve progress lines — 989 lines total, the largest single
+      extraction of the whole refactor). Genuinely the most cross-cutting
+      domain, saved for last on purpose: Pos'n/Wimpy/Dragon Vitality are
+      real-time single-line text triggers layered on top of GMCP, not
+      begin/end blocks like every other domain. Grepped every function/
+      local for cross-domain call sites first, same as every prior
+      slice — found zero real code dependencies outside this domain (a
+      handful of name mentions in `MyDSL_DataBridge.lua`/
+      `MyDSL_LiveView.lua`/`MyDSL_MoonWeather.lua`/`MyDSL_GroupView.lua`
+      comments only; those modules all read from `MyDSL.State`/
+      `MyDSL.DB` via the event bus, never call these functions
+      directly). Since this was the last slice, Section 9 (trigger-
+      capture parsing) and Section 10 (trigger registration) turned out
+      to be one single contiguous block by this point, not interleaved
+      with anything else — simplest extraction of the five. No test
+      file references this domain at all (confirmed via grep — a real,
+      pre-existing test-coverage gap for score/flags/lunar/time/weather/
+      who/group/improve parsing, not introduced by this split, not
+      fixed this pass either — flagging rather than scope-creeping a
+      pure-move commit). Pure relocation, no logic changed.
+      `MyDSL_DataLayer.lua` now 995 lines (down from 4,745 originally —
+      **79% removed across all five slices**), holding only Sections
+      1-8: namespace guard, private utilities, state table, character
+      name, event bus, get/set API, GMCP handlers, persistence —
+      genuinely shared infrastructure every domain module depends on,
+      the natural floor for this refactor. All 24 test suites +
+      `check_known_patterns.py --all` re-run clean; `MyDSL_Full.mpackage`
+      rebuilds cleanly at 38 scripts. **Refactor is now code-complete —
+      the whole plan from the original go-ahead is done.** Not yet
+      live-confirmed — needs Steven to run `score`, toggle a flag,
+      check the lunar/time/weather output, run `who`, group up, and
+      practice a skill in-game; will self-check via MyDSL's own logs
+      afterward per the established pattern.
 - [ ] **Two personal aliases in the live MyDSL profile are cosmetically
       mislabeled** (found via `MyDSL_PersonalAliases.xml`, Claude.ai
       review pass): the alias matching `^pqf$` displays as "(pqr) PQ
