@@ -107,7 +107,8 @@ function _G.moveWindow(...) end
 function _G.setWindowWrap(...) end
 function _G.enableTimer(...) end
 function _G.disableTimer(...) end
-function _G.playSoundFile(...) end
+_G.__playedSounds = _G.__playedSounds or {}
+function _G.playSoundFile(cons) table.insert(_G.__playedSounds, cons); return true end
 function _G.stopSounds(...) end
 
 -- Mudlet global string helpers used by EMCOChat and others.

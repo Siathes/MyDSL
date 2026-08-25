@@ -108,6 +108,7 @@ MyDSL.Help.modules = {
       { cmd = "mydsl alterform status / save / reload settings / show / hide / rebuild", desc = "Standard window controls.", example = "mydsl alterform show" },
       { cmd = "mydsl alterform font <n>", desc = "Set the window's font size.", example = "mydsl alterform font 9" },
       { cmd = "mydsl alterform title <text>", desc = "Set the window's title text.", example = "mydsl alterform title Alterform" },
+      { cmd = "mydsl alterform sound <on|off>", desc = "Toggle the warning sound at 10 cycles left and the danger sound at 5 (same thresholds the window's own color already uses). Sound files are optional -- drop your own into Sounds/ as alterform_warning.mp3/alterform_danger.mp3; silently skipped if missing.", example = "mydsl alterform sound off" },
     },
   },
   { key = "affects", title = "Affects", category = "Vitals & Combat", window = "MyDSL_Affects",

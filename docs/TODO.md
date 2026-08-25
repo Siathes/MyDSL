@@ -1557,8 +1557,16 @@ machine.
       philosophy has so far meant zero outbound calls), and whether the
       referenced Achaea Mudlet calendar package is worth checking for a
       reusable pattern before building fresh.
-- [ ] State-scoped sound toggle — generic pattern for an alias to turn a
-      sound on for a state and reliably turn it off when the state ends.
+- [ ] **State-scoped sound toggle — deliberately NOT built as a standalone
+      abstraction, 2026-08-24.** No concrete state/sound pairing was ever
+      named for this on its own — building generic infrastructure with
+      zero real callers goes against this project's own anti-abstraction
+      discipline. The Design Ideas section's Alterform warning-sound item
+      turned out to be exactly this pattern with a real concrete use case
+      attached, and got built there instead (see "Alterform: warning +
+      sound before it falls off," now closed). Revisit extracting a
+      shared helper if and when a second real state/sound pairing shows
+      up — until then this stays a non-item.
 - [ ] **A whole quest-tracking mechanic (quest start/expire/timer
       messages) has zero coverage anywhere in DSL2** — matches the
       already-tracked "Data-driven notes/quest tracking" DEFERRED item
@@ -1577,8 +1585,22 @@ machine.
 - [ ] **New ideas from MyDSL notes, 2026-08-23 — raw, unscoped, none
       started.** Per this project's own rule, nothing here is built
       without picking it up explicitly first:
-      - Alterform: warning + sound before it falls off (countdown from the
-        last 5 ticks, warning at 10 ticks left).
+      - [x] **Alterform: warning + sound before it falls off — built
+        2026-08-24, needs live confirmation.** `F.palette()` already
+        implemented the exact 10/5-cycle color thresholds (since
+        2026-07-11) — only the sound half was missing. New
+        `F.checkSoundWarning(zoneName)` fires the warn/danger sound once
+        per transition INTO that zone (not on every render), toggle via
+        `mydsl alterform sound <on|off>`. Sound files optional (Sounds/
+        alterform_warning.mp3 / alterform_danger.mp3), same
+        provide-your-own precedent as `MyDSL_MovementSounds.lua` —
+        silently skipped if missing, never errors. 9 new assertions in
+        `test/test_alterform_sound_warning.lua`; confirmed via `git
+        stash` the fix is real. This also serves as the concrete
+        real use case for the separate "state-scoped sound toggle
+        generic pattern" item above — building an abstraction with zero
+        real callers wasn't right; this is the first (and so far only)
+        one, revisit extracting a shared helper if a second one shows up.
       - Mapper: toggleable button bar for map-editing commands (shift,
         area add, rename, etc).
       - Mapper: alternate/angled exit lines (Z-shaped, not just straight)

@@ -34,6 +34,18 @@ F.config = F.config or {}
 F.config.shown = F.config.shown ~= false
 F.config.font = tonumber(F.config.font or 9) or 9
 F.config.debug = F.config.debug == true
+-- Warning/danger sound before Alterform falls off, per Steven's MyDSL
+-- notes ("warning + sound before it falls off (countdown from the last
+-- 5 ticks, warning at 10 ticks left)"). F.palette() already implements
+-- exactly these two thresholds visually (color-only, since 2026-07-11)
+-- -- this just adds the sound half at the same thresholds, firing once
+-- per transition into a zone, not on every render. Files are optional
+-- (per this project's own MyDSL_MovementSounds.lua precedent -- provide
+-- your own under Sounds/, silently skipped if missing rather than
+-- erroring).
+F.config.soundEnabled = F.config.soundEnabled ~= false
+F.config.warnSound = F.config.warnSound or "alterform_warning.mp3"
+F.config.dangerSound = F.config.dangerSound or "alterform_danger.mp3"
 
 F.ui = F.ui or {}
 
@@ -66,6 +78,7 @@ function F.serializeSettings()
   table.insert(out, string.format("  shown = %s,\n", F.config.shown and "true" or "false"))
   table.insert(out, string.format("  font = %d,\n", tonumber(F.config.font) or 9))
   table.insert(out, string.format("  title = %q,\n", tostring(F.title or "-= Alterform =-")))
+  table.insert(out, string.format("  soundEnabled = %s,\n", F.config.soundEnabled and "true" or "false"))
   table.insert(out, "}\n")
   return table.concat(out)
 end
@@ -99,6 +112,7 @@ function F.loadSettings()
   if data.shown ~= nil then F.config.shown = data.shown == true end
   F.config.font = tonumber(data.font or F.config.font) or F.config.font
   if data.title and tostring(data.title) ~= "" then F.title = tostring(data.title) end
+  if data.soundEnabled ~= nil then F.config.soundEnabled = data.soundEnabled == true end
   F.settingsLoaded = true
   F.settingsFilePath = file
   return true
@@ -339,6 +353,28 @@ function F.applyFont()
   F.ui.detail:setStyleSheet(styleText(math.max(7, F.config.font - 1), "#9ba7ad", "normal"))
 end
 
+-- checkSoundWarning(zoneName) -- fires the warn/danger sound exactly
+-- once per transition INTO that zone (not on every render, which would
+-- fire on every affect update while already in the zone -- roughly one
+-- per game tick). "off"/"ready" both clear the tracked zone so the next
+-- real countdown starts fresh.
+function F.checkSoundWarning(zoneName)
+  if not F.config.soundEnabled then return end
+  if zoneName == F._lastSoundZone then return end
+  local file
+  if zoneName == "danger" then file = F.config.dangerSound
+  elseif zoneName == "warn" then file = F.config.warnSound end
+  if file then
+    local path = getMudletHomeDir() .. "/Sounds/" .. file
+    local f = io.open(path, "r")
+    if f then
+      f:close()
+      pcall(playSoundFile, { name = path, key = "alterform_warning" })
+    end
+  end
+  F._lastSoundZone = zoneName
+end
+
 function F.render(reason)
   if not F.ensureUI() then return end
 
@@ -357,6 +393,7 @@ function F.render(reason)
   end
 
   local pal = F.palette(cycles, active)
+  F.checkSoundWarning(pal.name)
   -- 32 = fill's max height (was 46 before the 2026-07-12 layout rework
   -- that shrunk the tube to make room for the countdown row) -- keep in
   -- sync with F.ensureUI()'s F.ui.fill height above.
@@ -451,6 +488,12 @@ function F.setFont(size)
   ce("font=" .. tostring(size))
 end
 
+function F.setSoundEnabled(enabled)
+  F.config.soundEnabled = enabled == true
+  F.saveSettings()
+  ce("Alterform warning sound " .. (F.config.soundEnabled and "enabled." or "disabled."))
+end
+
 function F.setTitle(title, silent)
   title = trim(title)
   if title == "" then title = "-= Alterform =-" end
@@ -512,6 +555,7 @@ function F.installAliases()
   tempAlias([[^mydsl alterform rebuild$]], [[MyDSL.AlterformView.rebuild()]])
   tempAlias([[^mydsl alterform font (\d+)$]], [[MyDSL.AlterformView.setFont(matches[2])]])
   tempAlias([[^mydsl alterform title (.+)$]], [[MyDSL.AlterformView.setTitle(matches[2])]])
+  tempAlias([[^mydsl alterform sound (on|off)$]], [[MyDSL.AlterformView.setSoundEnabled(matches[2] == "on")]])
   F.aliasesInstalled = true
 end
 
