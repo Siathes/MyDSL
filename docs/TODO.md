@@ -571,24 +571,70 @@ to the per-item live confirmations below.
       unused `localOnly` parameter it existed for) from
       `MyDSL_AffectsView.lua`'s `A.setTitle()`; `AffectsView` now matches
       every other module's pattern exactly. Syntax-checked.
-- [ ] **`MyDSL_DataLayer.lua` has outgrown "one layer" — flagged by
-      Claude.ai, and a second independent review (Claude Desktop,
-      2026-08-23) pushed back specifically on calling it "not urgent."**
-      4,655 lines, ~5x the next-largest file (`MyDSL_Chat.lua`, 3,287),
-      roughly 20% of the whole codebase by line count. Room/look/scan
-      parsing, combat parsing, GMCP, prompt/vitals, day/night, weather
-      all funnel through one file. Both reviews agree it's not broken
-      today; the second review's actual point was about trajectory, not
-      current state: "not broken yet" is true of most files right before
-      they become the thing nobody wants to touch, and the project's own
-      stated next push (Leveling/Questing expansion) is going to keep
-      feeding this exact file. Reframed here from "not urgent" to
-      **scheduled work** — still not started, still needs real design
-      thought before touching a file this central, but tracked as
-      something to actually plan for rather than indefinitely deferred.
-      A real split-by-domain pass (room/look, combat, inventory/
-      equipment, prompt/vitals) once the current audit-and-optimize
-      phase settles.
+- [ ] **`MyDSL_DataLayer.lua` split-by-domain refactor — IN PROGRESS,
+      started 2026-08-25, first slice done and verified.** Was 4,745
+      lines (~20% of the codebase), flagged by two independent reviews.
+      Per Steven's explicit go-ahead to do this carefully: executing as a
+      series of complete, independently-verified domain extractions
+      rather than one giant cut, each one fully tested/committed before
+      starting the next.
+
+      **Mechanism proven out (applies to every future slice)**: extract
+      the domain's functions verbatim into a new `MyDSL_DataLayer_
+      <Domain>.lua` file, move its trigger-registration block along with
+      it (self-contained module, same precedent as Layer-3 view files
+      installing their own triggers), give it its own tiny `trim()`
+      etc. copies for anything it needs that was `local` in the core
+      file (matching this project's own established per-file-utility-
+      copy convention, not a new shared-utils mechanism), add a
+      `dofile()` entry in DSL2's own Script Editor (`current/*.xml`,
+      confirmed via inode check that `~/.config/mudlet/profiles/DSL2`
+      and `~/Desktop/Mudlet/mudlet-data/profiles/DSL2` are the same
+      physical files) right after `MyDSL_DataLayer`'s own entry, and
+      confirm `build_mydsl_package.py` auto-picks it up (it does — no
+      script changes needed, it derives its file list from the same XML).
+      Before moving anything: grep every candidate local/function for
+      cross-domain call sites, so a helper needed by TWO domains being
+      split apart gets promoted to a real `MyDSL.*` table function
+      instead of silently duplicated (drift risk) or forcing two
+      domains to stay in one file.
+
+      **Slice 1 done: CreatureLore capture** → new
+      `MyDSL_DataLayer_CreatureLore.lua` (`beginCreatureLore()`/
+      `parseCreatureLoreLine()`/`endCreatureLore()`, ~155 lines, chosen
+      first specifically because it was confirmed via grep to have zero
+      cross-domain dependencies — the safest possible first cut to prove
+      the mechanism on). **Real bug found and fixed along the way**: this
+      domain had zero test coverage before the split (confirmed via
+      grep) — writing its first real test against an actual corpus
+      fixture (`log/2026-07-11#12-15-16.html`) caught a genuine latent
+      bug, not introduced by the extraction: the sex-field guard checked
+      `not r.alignmentText` (had alignment EVER been captured for this
+      creature, from any earlier line) instead of `not a` (did THIS
+      SPECIFIC line also match the alignment pattern) — so any real
+      creature with alignment captured from one line and sex from a
+      separate, later, unambiguous line silently had its sex dropped,
+      every time. Fixed; 20 new assertions in
+      `test/test_datalayer_creaturelore_capture.lua`, confirmed via a
+      targeted revert the fix is real. `MyDSL_DataLayer.lua` now 4,586
+      lines (down from 4,745).
+
+      **Remaining slices, not yet started, same order-of-operations each
+      time**: Combat (9q + its ~350-line trigger-registration block in
+      SECTION 10 — the largest, do this one with extra care), Scan/Look/
+      PlayersNear (9o, plus the fuzzy-match helpers `normalizeForMatch()`/
+      `bestFuzzyMatch()` — already confirmed via grep these are ALSO
+      needed by ItemLore's `resolveGroundItem()`, so they need promoting
+      to real `MyDSL.*` functions rather than moving with either domain
+      alone), ItemLore/Equipment/Inventory (9p.1/9r/9q-dup — note the
+      original file's own sub-section numbering has a real duplicate
+      "9q" label, one meant "9s" for inventory — worth a one-line comment
+      fix when this slice happens, not urgent enough on its own), and
+      Score/Flags/Lunar/Time/Weather/Who/Group/Improve (9a-9n, the
+      "prompt/vitals" domain). Sections 1-6/8 (namespace/state/event-bus/
+      GMCP-handlers/persistence) stay as the core `MyDSL_DataLayer.lua`
+      — genuinely shared infrastructure every domain depends on, not a
+      candidate for further splitting.
 - [ ] **Two personal aliases in the live MyDSL profile are cosmetically
       mislabeled** (found via `MyDSL_PersonalAliases.xml`, Claude.ai
       review pass): the alias matching `^pqf$` displays as "(pqr) PQ
