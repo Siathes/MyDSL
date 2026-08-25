@@ -1730,23 +1730,61 @@ machine.
 ---
 
 ## DEFERRED — explicitly held, no new scope without Steven's go-ahead
-- [ ] **Shatteredarchive.com maps** — Steven's original bestiary-import
-      request also mentioned "there are items on the website and maps as
-      well." The bestiary half is done and confirmed. Explicitly deferred
-      by Steven 2026-07-15. Needs its own scoping pass when picked back
-      up (what format, whether it's per-area images like
-      `MyDSL_LocationView.lua`'s room pictures or something else).
-- [ ] **Cross-profile master function/feature inventory** — walk every
-      `.lua` file across every Mudlet profile on this machine, build one
-      consolidated list. Large, multi-session scope, its own future
-      session.
+- [ ] **Shatteredarchive.com maps — checked the local zip 2026-08-24,
+      real map data isn't in it.** `~/Downloads/Shattered-Archive-
+      release-dev.zip` (the open-source DSL client monorepo, 524 files)
+      was flagged as worth checking before building anything. Checked
+      thoroughly: it has one `areas.json` per continent
+      (`apps/web-server/src/offline/continents/<Name>/areas.json`), but
+      each is just a flat list of area NAMES (155 for Althainia alone) —
+      no room coordinates, no exit graphs, no images, nothing map-shaped
+      at all. Zero `.png`/`.jpg`/`.svg` map assets anywhere in the whole
+      archive either. Whatever "maps" Steven saw on the actual
+      shatteredarchive.com website isn't present in this local source
+      dump — this would need pulling directly from the live site, not
+      from anything already on this machine. Still deferred; the
+      area-name lists themselves might have marginal value as a
+      canonical area-name reference (e.g. autocomplete/validation for
+      `mydsl leveling area new <name>`), but that's a much smaller,
+      separate thing from "maps" and not built without being asked.
+- [x] **Cross-profile master function/feature inventory — done 2026-08-24,
+      turned out much smaller than feared once actually walked.** Every
+      Mudlet profile on this machine (16 total) checked for top-level
+      `.lua` files: `DSL2` (50 files, this project's own git-tracked
+      source, already fully known) and `MyDSL` (17 files, the live
+      profile, ditto). `old`/`dslnew`/`dslpnpupdate` have zero custom
+      `.lua` files at all — native-XML-only, nothing to inventory. The
+      three PNP sibling profiles (`Dark & Shattered Lands - PNP`/`PNP1`/
+      `PNP2`) each carry only 3 tiny (142-1005 byte) DATA files
+      (`idstats_db.lua`, `itemtags_db.lua`, `layout_ui.lua`, byte-
+      identical across all three) — no real function-bearing source
+      beyond what's already git-tracked in this repo's own `PNP files/`.
+      `DSL1`, `Qinrathaz-Vaelis`, and `DSL` are historical PREDECESSORS
+      of this exact project's own lineage, not separate unknown
+      codebases: `DSL1`'s `MyDSL_DataLayer.lua` (34KB) and
+      `MyDSL_creaturelore.lua` (101KB) are much earlier, much smaller
+      ancestors of the current 4,655-line `MyDSL_DataLayer.lua` and
+      `MyDSL_CreatureLore.lua` — `Qinrathaz-Vaelis` carries near-
+      identical copies of the same two files (same lineage, different
+      snapshot point), and `DSL` has a third, differently-sized
+      creaturelore variant (32KB) from the same history. **Real
+      conclusion**: nothing new or unincorporated is hiding in any
+      sibling profile — they're snapshots of the same development
+      history that led to the current DSL2 repo, already superseded by
+      it. Not worth a deep function-by-function diff against
+      already-superseded ancestor code; closing this out rather than
+      leaving it open on a fear of hidden scope that isn't there.
 - [ ] **Layer 4: Reference library** — items done (`MyDSL_ItemLore.lua`/
       `MyDSL_ItemReference.lua`, confirmed live 2026-07-18) and mobs/lore
       done (`MyDSL_CreatureLore.lua`/Bestiary, confirmed earlier). Whatever
       remains under this heading (areas/zones/general lore, if that was
-      ever the intent) not scoped — check
-      `~/Downloads/Shattered-Archive-release-dev.zip` before building
-      from scratch if picked up.
+      ever the intent) not scoped — checked
+      `~/Downloads/Shattered-Archive-release-dev.zip` 2026-08-24 per this
+      entry's own note: it has flat per-continent area-NAME lists only
+      (see the "Shatteredarchive.com maps" item above), nothing
+      area/zone-descriptive beyond names. Not enough there to build an
+      areas/zones reference from without real content to put in it —
+      still unscoped.
 - [ ] **Inventory hover scope expansion (hover on carried-not-worn items)
       + ground-vs-inventory name mapping** — explicitly deferred by
       Steven 2026-07-18 ("not sure we need"), not a live bug. Equipment
