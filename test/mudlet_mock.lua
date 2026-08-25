@@ -230,6 +230,11 @@ function _G.setRoomEnv(id, envID) __room(id).env = envID end
 function _G.setCustomEnvColor(...) return true end
 function _G.getRoomWeight(id) return (_G.__rooms[id] and _G.__rooms[id].weight) or 1 end
 function _G.setRoomWeight(id, w) __room(id).weight = w end
+function _G.getRoomArea(id) return (_G.__rooms[id] and _G.__rooms[id].area) or -1 end
+function _G.setRoomArea(id, areaID) __room(id).area = areaID end
+_G.__areaNames = _G.__areaNames or {}
+function _G.getRoomAreaName(areaID) return _G.__areaNames[areaID] end
+function _G.setAreaName(areaID, name) _G.__areaNames[areaID] = name end
 
 _G.demonnic = _G.demonnic or {}
 

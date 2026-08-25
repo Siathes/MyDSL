@@ -53,7 +53,7 @@ end
 assert(scriptBody, "couldn't find the mapper's Map Script <script> block")
 scriptBody = xmlUnescape(scriptBody)
 
-local startIdx = scriptBody:find("local dsl_long_dirs = {", 1, true)
+local startIdx = scriptBody:find("function map.dsl.echo(msg)", 1, true)
 local endIdx = scriptBody:find("function map.dsl.install", 1, true)
 assert(startIdx and endIdx, "extraction anchors not found -- has DSL_Generic_Mapper.xml's source shape changed?")
 local snippet = scriptBody:sub(startIdx, endIdx - 1)
@@ -199,6 +199,44 @@ check("locked room's sector is unaffected by the rejected call", getRoomUserData
 local ok3, sector3 = map.dsl.setManualTerrain(400, "ice")
 check("a second manual call can still override an already-locked room", ok3 == true and sector3 == "ice")
 check("the override actually took", getRoomUserData(400, "dsl.normalized_sector") == "ice")
+
+------------------------------------------------------------------------
+-- Part 5: announceAreaChange() -- per Steven's MyDSL notes 2026-08-24
+-- ("mapper should announce entering/exiting a named area map").
+------------------------------------------------------------------------
+local echoed = {}
+local realCecho = _G.cecho
+_G.cecho = function(s) echoed[#echoed + 1] = s; return realCecho(s) end
+
+_G.__mock_defineRoom(500, "First Room Ever")
+_G.setRoomArea(500, 10)
+_G.setAreaName(10, "Althainia")
+map.dsl.last_area_id = nil  -- fresh session, no prior area known
+map.dsl.announceAreaChange(500)
+check("no banner on the very first room of a session (nothing to compare against)",
+  #echoed == 0)
+check("last_area_id is still recorded after the first room", map.dsl.last_area_id == 10)
+
+_G.__mock_defineRoom(501, "Still In Althainia")
+_G.setRoomArea(501, 10)
+map.dsl.announceAreaChange(501)
+check("no banner when the area hasn't actually changed", #echoed == 0)
+
+_G.__mock_defineRoom(502, "Death's Corridor Entrance")
+_G.setRoomArea(502, 20)
+_G.setAreaName(20, "Death's Corridor")
+map.dsl.announceAreaChange(502)
+check("a real area change produces exactly one banner", #echoed == 1)
+check("the banner names both the new and the old area",
+  echoed[1]:find("Death's Corridor", 1, true) ~= nil and echoed[1]:find("Althainia", 1, true) ~= nil)
+
+echoed = {}
+_G.__mock_defineRoom(503, "An Unassigned Room")
+_G.setRoomArea(503, -1)
+map.dsl.announceAreaChange(503)
+check("a room with no assigned area (-1) never triggers a banner", #echoed == 0)
+
+_G.cecho = realCecho
 
 print(string.rep("-", 60))
 if failures == 0 then

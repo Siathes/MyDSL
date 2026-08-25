@@ -1624,10 +1624,18 @@ machine.
       - Restrings: an in-character-flavored guide/workflow for writing
         them — references Steven's own Obsidian notes (Piknim, the
         Gnomish Blunderbuss), outside this repo.
-      - **New, from MyDSL notes 2026-08-24**: mapper should announce
-        entering/exiting a named area map (Steven's own examples:
-        Althainia, Death's Corridor) — a banner/message when the
-        boundary is crossed, not scoped further.
+      - [x] **Mapper area-enter/exit banner — built 2026-08-24, needs
+        live confirmation.** New `map.dsl.announceAreaChange(rid)` in
+        `DSL_Generic_Mapper.xml`, hooked into `onGenericNewRoom()`.
+        `map.currentArea` is already tracked by stock Generic Mapper's
+        own `set_room()` on every real room change — this just watches
+        for it changing and echoes "Entering X (leaving Y)." via
+        `getRoomAreaName()`, no new area-tracking mechanism invented.
+        Skips the very first room of a session (nothing to compare
+        against yet) and any unassigned room (`getRoomArea() == -1`).
+        8 new assertions in `test/test_mapper_terrain_lock.lua` (30
+        total); confirmed via a targeted revert that the fix is real.
+        Fork version bumped 0.2.4 → 0.2.5.
 
 ---
 

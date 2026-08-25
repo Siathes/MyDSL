@@ -5665,7 +5665,7 @@ end
 -- passive door-state feeding, and tiny debug/status helpers.
 -- ============================================================================
 map.dsl = map.dsl or {}
-map.dsl.version = "0.2.4"
+map.dsl.version = "0.2.5"
 map.dsl.base = "Generic Mapper 2.1.8"
 map.dsl.gmcp = map.dsl.gmcp or {}
 map.dsl.line_buffer = map.dsl.line_buffer or {}
@@ -6331,8 +6331,32 @@ end
 -- handlers for one raiseEvent call in registration order, not through the
 -- event/timer queue. The deferral bought nothing but one extra Qt
 -- event-loop round-trip of latency on every single move.
+-- announceAreaChange(rid) -- per Steven's MyDSL notes 2026-08-24
+-- ("mapper should announce entering/exiting a named area map...
+-- Althainia, Death's Corridor"). map.currentArea is already tracked by
+-- stock Generic Mapper's own set_room() on every real room change (see
+-- its own "map.set('currentArea', getRoomArea(map.currentRoom))" call) --
+-- this just watches for it changing and echoes a banner, no new area-
+-- tracking mechanism invented. Skips the very first room of a session
+-- (map.dsl.last_area_id starts nil) -- "entering X" from nothing isn't a
+-- real boundary crossing -- and any room with no assigned area (-1,
+-- Generic Mapper's own convention for unassigned rooms).
+function map.dsl.announceAreaChange(rid)
+  if not rid or not map.roomexists or not map.roomexists(rid) then return end
+  local newArea = getRoomArea(rid)
+  if not newArea or newArea == -1 then return end
+  local oldArea = map.dsl.last_area_id
+  if oldArea ~= nil and oldArea ~= newArea then
+    local newName = getRoomAreaName(newArea) or tostring(newArea)
+    local oldName = getRoomAreaName(oldArea) or tostring(oldArea)
+    map.dsl.echo("Entering " .. tostring(newName) .. " (leaving " .. tostring(oldName) .. ").")
+  end
+  map.dsl.last_area_id = newArea
+end
+
 function map.dsl.onGenericNewRoom()
   map.dsl.applyRoomMetadata()
+  map.dsl.announceAreaChange(map.currentRoom)
 end
 
 function map.dsl.onTerrainLine(text)
