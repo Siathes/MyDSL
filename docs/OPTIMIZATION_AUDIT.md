@@ -66,7 +66,7 @@ is looking for.
 7. ✅ `MyDSL_RawCapture.lua`
 8. ✅ `MyDSL_TickSource.lua`
 9. ✅ `MyDSL_DataBridge.lua`
-10. ⬜ `DSL_Generic_Mapper.xml` (embedded Lua)
+10. ✅ `DSL_Generic_Mapper.xml` (embedded Lua)
 11. ⬜ `MyDSL_PromptSetup.lua`
 12. ⬜ `MyDSL_AutoWhere.lua`
 13. ⬜ `MyDSL_PromptView.lua`
@@ -686,4 +686,118 @@ Steven asked this audit to find:**
 
 ---
 
-*(Sections 10-40 not yet written — in progress.)*
+## 10. `DSL_Generic_Mapper.xml` (embedded Lua — the `map.dsl.*` fork layer)
+
+**6,631-line native XML package.** Lines 1-5666 are the stock
+third-party "Generic Mapper 2.1.8" base package (reused per this
+project's own "reuse, don't reinvent" philosophy — not our code, not
+audited line-by-line here). **Lines 5667-6623 (~957 lines) are the
+real subject of this audit**: `map.dsl.*`, this project's own
+"Minimal Hardening Layer" fork, currently v0.2.6. Three native Trigger
+objects elsewhere in the file (not inside the `map.dsl` script block
+itself) also call into it: "English Exits Trigger" (calls `map.dsl.
+beforeExits()` on every `[Exits: ...]` line — once per room, a real
+hot path), "DSL Door State Capture" (`map.dsl.onDoorLine()`), "DSL
+Terrain Capture" (`map.dsl.onTerrainLine()`).
+
+**What it does:** passive GMCP-assisted metadata layered on top of the
+stock room-mapping engine, which remains untouched. Room terrain/color
+(`normalizeSector()`/`applySectorColor()`/`setManualTerrain()`, 14
+sector categories including the 2026-07-18 "air" gap fix), room weight
+from REAL observed movement-point cost rather than a guessed table
+(`captureMovePoints()`/`applyMoveCost()`, averaged across repeat
+visits), door-state tracking via a command/reply FIFO queue
+(`captureCommand()`/`onDoorLine()`/`setGenericDoor()` — converted from
+single overwritable slots to real queues 2026-07-19 to fix a genuine
+reply-misattribution bug), area-change announcements
+(`announceAreaChange()`), "Players near you:" room highlighting
+(`highlightPlayersNear()`, fed by `MyDSL_DataLayer_ScanLook.lua`'s own
+`MyDSL.playersNear.parsed` event — a real, confirmed cross-repo/
+cross-package dependency), a corruption guard (`roomLooksStale()` —
+compares GMCP's room name against the candidate room's stored name to
+catch `map.currentRoom` desync), and diagnostic commands (`map.dsl.
+status()`/`showGMCP()`/`roomRaw()`).
+
+**Public surface:** none of this is called from `MyDSL_*.lua` in the
+DSL2 package **except** the `MyDSL.playersNear.parsed` event consumed
+by `highlightPlayersNear()` — confirmed via grep, this is the only
+real integration point between the two packages. Everything else is
+self-contained: native aliases (`rt`/`room terrain`, `rw`/room weight,
+`dslroom raw`, etc. — not enumerated line-by-line here, see the stock
+package's own alias list for the base commands this fork adds
+DSL-specific ones alongside) and the 9 `registerAnonymousEventHandler`
+registrations in `map.dsl.registeredEvents` plus the 3 Trigger objects
+above.
+
+**Depends on:** raw `gmcp.char_data`/`gmcp.room_data` directly — this
+is the file's own, **completely independent** GMCP parser, not a
+consumer of `MyDSL_DataLayer.lua`'s parsed `State.char`/`State.room`.
+Confirmed intentional and already documented (`docs/TODO.md`'s
+"Mapper vs. DataLayer" entry, 2026-08-23 audit): the mapper fork is
+designed to survive standalone even without `MyDSL_DataLayer.lua`
+loaded at all, which is exactly why it re-parses GMCP instead of
+reading `MyDSL.State`.
+
+**Called by:** `MyDSL_DataLayer_ScanLook.lua` → `MyDSL.playersNear.
+parsed` → `highlightPlayersNear()` (one-directional; nothing in the
+mapper raises anything MyDSL listens for).
+
+**Candidate cruft:**
+- `map.dsl.updateDisabled()` — a one-line stub that echoes "Updater is
+  disabled in the DSL fork" and returns false. Real, deliberate
+  (per this project's standing rule to kill self-updater mechanisms
+  when porting third-party packages), not dead code, but worth
+  confirming it's actually wired to whatever stock update-check path
+  would otherwise fire, since a stub that's never called would be
+  silent, not disabling.
+- `map.dsl.showGMCP()`/`map.dsl.status()`/`map.dsl.roomRaw()` are
+  diagnostic-only, no other code depends on them — fine as-is, listed
+  here only because "candidate cruft" should note diagnostics
+  explicitly rather than silently pass over them.
+
+**Performance flags:**
+- **Confirmed duplicate GMCP parsing, already on record in `docs/
+  TODO.md` (2026-08-23 audit) — restated here with the performance
+  framing this audit specifically asked for.** `map.dsl.onCharData()`/
+  `onRoomData()` and `MyDSL_DataLayer.lua`'s own `char_data`/
+  `room_data` GMCP handlers are two fully independent parsers of the
+  exact same incoming packets, each doing its own `table.deepcopy()`
+  (mapper) or field-by-field `update()` (DataLayer) on every single
+  packet — during combat, that's two independent full-payload
+  deep-copies of `gmcp.char_data` per round, not one. Already a known,
+  reasoned tradeoff (mapper must survive standalone) rather than an
+  oversight, but it is a real, measurable doubled-parsing cost on the
+  hottest GMCP path in the whole addon, worth having on record
+  alongside `MyDSL_DataBridge.lua`'s double-sync finding since they
+  compound during the same combat rounds.
+- **`map.dsl.captureLine()` (registered on `onNewLine` — literally
+  every incoming line, the single highest-frequency hook available in
+  Mudlet) already had a real O(n) shift-per-line bug found and fixed**
+  2026-07-19 (PVP perf audit) — batch-trim to a high-water mark instead
+  of `table.remove(buf,1)` on every call once the buffer filled.
+  Confirmed current in this source; nothing further to flag here, but
+  worth highlighting as the single most-executed piece of code in
+  either package (runs on every line of everything — combat, chat,
+  room text, everything) and the fact it's already been profiled once
+  is a good sign, not a gap.
+- **`map.dsl.applyMoveCost()`/`applyRoomMetadata()` already carry 3
+  separate documented 2026-07-19 perf fixes**: `dsl_setIfChanged()`
+  skips a `setRoomUserData()` write when the value hasn't changed
+  (each such call takes Mudlet's shared map lock — real, measured
+  contention risk during repeat-visit combat/PVP scenarios);
+  `applyRoomMetadata()` calls `applyMoveCost()`/`announceAreaChange()`
+  inline instead of via a deferred `tempTimer(0,...)` (removed one
+  Qt event-loop round-trip of latency per move, after tracing the
+  actual dispatch order rather than assuming the defer was needed);
+  the `weightSource ~= "auto"` check skips a redundant `setRoomUserData`
+  write on every move through an already-weighted room. All three
+  read as genuinely well-targeted, already-applied fixes from a real
+  prior audit pass — nothing further found this pass.
+- No new performance issues found beyond the already-documented
+  duplicate-parsing tradeoff above — this file has clearly already
+  been through at least one real, careful performance pass (2026-07-19),
+  and it shows.
+
+---
+
+*(Sections 11-40 not yet written — in progress.)*
