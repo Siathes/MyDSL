@@ -1653,10 +1653,21 @@ machine.
       - DslColor: emerald dragon color palette; audit that titles/
         palettes/terms are all consistently colored; check Thax/Thaxanos
         kingdom coloring specifically against real logs.
-      - AffectsView: recast/spellup that can use a potion or skill, not
-        just the spell itself — "think this is in PNP if we havent
-        implemented it," check PNP source first per this project's reuse
-        rule.
+      - [x] **AffectsView: recast via potion/skill, not just spell —
+        checked 2026-08-24, already fully built, nothing to do.**
+        Checked PNP source first per this project's own reuse rule: PNP's
+        real `respell` (`DSL_PNP_Affects.respell.lua`) has exactly 3
+        dispatch modes per affect (song/skill/spell), no potion mode at
+        all — the "think this is in PNP" premise doesn't hold up.
+        Checked MyDSL's own code next and found the ask is ALREADY fully
+        built: `A.commandFor(name)` (`MyDSL_AffectsView.lua`) checks a
+        per-affect custom-command override FIRST, before falling back to
+        song/skill/spell defaults — `mydsl affects command <name>
+        <cmd>` already lets Steven set ANY command per affect, including
+        a potion (`mydsl affects command haste quaff potion of haste`),
+        even multi-step sequences via `|`. Already documented in `mydsl
+        help` too. This TODO entry was simply stale — closing as
+        already-shipped, not building anything new.
       - TargetView: auto-populate from a room's `scan` output, not only
         once combat starts, to cut down on manual clicking.
       - Player-profile fields: alignment, god, notes, hp, mana, etc. —
