@@ -461,6 +461,23 @@ function MyDSL.Target.set(name, is_mob, source)
   TV.render()
 end
 
+-- markPoisoned(rawName) -- real, confirmed, generic third-person poison-
+-- onset text ("<mob> looks very ill.", 8 occurrences across multiple
+-- sessions in log/, any mob, any poison source -- unlike weaken/slow/
+-- blindness/plague, which have zero real observer-side text anywhere,
+-- see docs/TODO.md's PAUSED/Design Ideas sections). Only marks the flag
+-- when it matches the CURRENT target -- this is an "assist, don't
+-- decide" indicator (Focus already shows this), not a new auto-target
+-- mechanism.
+function MyDSL.Target.markPoisoned(rawName)
+  local t = MyDSL.State.target
+  if not t or not rawName then return end
+  local key = rawName:lower():gsub("^[Aa]n? ", ""):gsub("^[Tt]he ", "")
+  if key ~= t.key then return end
+  t.poisoned_at = os.time()
+  TV.render()
+end
+
 function MyDSL.Target.clear()
   MyDSL.State.target = nil
   TV._consider_lines = {}
@@ -800,6 +817,13 @@ function TV.render()
     end
   end
 
+  -- Line: poisoned flag -- real confirmed generic onset text ("<mob>
+  -- looks very ill."), assist-only (mirrors what's already visible on
+  -- the main console, never decides anything for the player).
+  if t and t.poisoned_at then
+    tvLog(statsMc, "<170,68,204>Poisoned<r>\n")
+  end
+
   -- Line: consider output (dim grey, cleared on target change)
   for _, line in ipairs(TV._consider_lines) do
     tvLog(statsMc, string.format("<136,136,136>%s<r>\n", line))
@@ -1070,6 +1094,20 @@ function TV.init()
     function()
       if MyDSL and MyDSL.Target then
         MyDSL.Target.captureConsider(getCurrentLine())
+      end
+    end
+  )
+
+  -- Poison-onset flag, real generic pattern confirmed via log/ corpus
+  -- (see docs/DSL_CommandRef.md) -- gagged nowhere, this is display-only
+  -- (not gagged/moved -- "move text don't fabricate it" only applies to
+  -- redirecting text between windows, and this line already belongs on
+  -- the main console; here it's just also mirrored as a Focus indicator).
+  TV._triggers.poisonOnset = tempRegexTrigger(
+    "^([A-Z][\\w' -]*?) looks very ill\\.$",
+    function()
+      if MyDSL and MyDSL.Target then
+        MyDSL.Target.markPoisoned(matches[2])
       end
     end
   )

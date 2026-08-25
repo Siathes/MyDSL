@@ -1236,15 +1236,21 @@ machine.
       `test/test_affects_bare_spell_song.lua`; confirmed via `git stash`
       that the fix is real (crashes on a nil function call without it,
       not just a normal assertion failure).
-- [ ] **Mage-cast `poison` spell's onset text — re-characterized, still not
-      confirmed as spell-specific.** `"...looks very ill."` now has 3
-      independent real occurrences (up from 1), all immediately following
-      a poison/venom-gas attack landing (a dragon-figurine item power, a
-      warthog's venomous spit) — reasonably strong evidence this is DSL's
-      generic poison-onset reaction text, but still zero occurrence of it
-      following an actual `cast poison` line specifically. Could build
-      against the generic pattern now if source-agnostic capture is
-      acceptable; the mage-spell-specific claim stays unconfirmed.
+- [x] **Built 2026-08-24: generic poison-onset capture, source-agnostic
+      (not confirmed spell-specific — see below).** `"<mob> looks very
+      ill."` re-checked against the full corpus, now 8 independent real
+      occurrences (up from 3), still zero tied to an actual `cast
+      poison` line specifically — the mage-spell-specific claim stays
+      unconfirmed, same as before. Built against the generic,
+      source-agnostic pattern per this entry's own suggestion: new
+      `MyDSL.Target.markPoisoned(rawName)` in `MyDSL_TargetView.lua`,
+      wired to a new trigger, flags the CURRENT target only (not a new
+      auto-targeting mechanism) and shows a "Poisoned" line on Focus
+      until the target changes. Pattern recorded in
+      `docs/DSL_CommandRef.md`. 9 new assertions in
+      `test/test_targetview_poison.lua`; confirmed via `git stash` the
+      fix is real (crashes without it, not a normal failure). Needs live
+      confirmation.
 
 ---
 
@@ -1507,11 +1513,17 @@ machine.
       during this sweep — `grep` across every `log/` file for
       weak/slow-shaped third-person lines still finds only the
       first-person form). This TODO entry itself was never updated to
-      match that finding until now. All 5 debuffs (weaken, slow,
-      blindness, poison, plague) are in the same boat: none has confirmed
-      on-target observer text. Genuinely can't build against invented
-      text — needs a live catch of an actual successful cast landing on
-      someone else, for any of the five, before this is buildable at all.
+      match that finding until now. **Self-correction, same sweep**: an
+      earlier pass at this generalized "all 5 debuffs are in the same
+      boat" from checking weaken/slow ALONE — exactly the kind of
+      unverified extrapolation this project's own discipline exists to
+      catch. Checked blindness/plague individually too: genuinely zero
+      real observer text for either (searched the full corpus for both).
+      **But poison is different** — `"<mob> looks very ill."` is real,
+      confirmed, generic (any mob, any source) third-person poison-onset
+      text, 8 occurrences across multiple sessions — see the PAUSED
+      section's own entry, now built. Weaken/slow/blindness/plague stay
+      placeholders; poison does not.
 - [ ] **TargetView: auto-populate target on aura detection — checked
       2026-08-24, genuinely can't build, zero real data.** `detect good`/
       `detect evil`'s own helpfiles confirm the effect ("reveals a

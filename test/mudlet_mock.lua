@@ -169,7 +169,8 @@ for _, m in ipairs({
   "clear","clearAll","append","setTimestampFormat","setTimestampFGColor",
   "setTimestampBGColor","enableTimestamp","disableTimestamp","display",
   "setStyleSheet","dechoLink","cechoLink","echoLink","hechoLink",
-  "setClickCallback","setUnderline","setBold","setItalics",
+  "setClickCallback","setUnderline","setBold","setItalics","setClickFunction",
+  "setState","setDoubleClickCallback",
 }) do
   StubWidget[m] = function(...) return true end
 end
@@ -194,6 +195,7 @@ _G.Geyser = _G.Geyser or {
   MiniConsole = StubWidget,
   Label = StubWidget,
   Container = StubWidget,
+  Button = StubWidget,
   windowList = {},
 }
 

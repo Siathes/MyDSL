@@ -545,6 +545,17 @@ during Phase B but never checked off here.** Corrected:
       original room-weight table was rejected for the same reason). Add
       the real pattern here the next time Steven types `terrain` while
       swimming/at sea/underwater, then wire it the same way "air" was.
+- [x] **Generic third-person poison-onset text — confirmed real
+      2026-08-24, capture built.** `"<mob> looks very ill."` — 8
+      occurrences across multiple independent sessions in `log/`, any
+      mob, any poison source (not spell-specific — that half of the
+      original ask stays unconfirmed, see `docs/TODO.md`'s PAUSED
+      section). Unlike weaken/slow/blindness/plague (checked the same
+      pass, zero real observer text for any of those), this one is
+      solid. Wired into `MyDSL_TargetView.lua`: `TV._triggers.poisonOnset`
+      → `MyDSL.Target.markPoisoned(rawName)`, which flags the CURRENT
+      target only (not a new auto-targeting mechanism) and shows a
+      "Poisoned" line on Focus/TargetView until the target changes.
 
 ---
 
