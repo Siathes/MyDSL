@@ -7,15 +7,20 @@ really really thorough deep scan of the current state of the project...
 cross check connections of modules... make sure its all in the same
 namespace... review it like its a new project").
 
-**Pass 1 (this document, in progress): inventory only — no code changes.**
-Every `MyDSL_*.lua` file (and `DSL_Generic_Mapper.xml`'s embedded Lua)
-gets a section written as if seeing it for the first time on a new
-project: what it does, its public surface, what it depends on, what
-calls it, candidate cruft, and concrete performance flags. Every claim
-in "Public surface" / "Depends on" / "Called by" is grep-confirmed
-against the actual repo, not assumed from memory or the file's own
-comments — a comment claiming a function is used doesn't count as
-confirmation on its own.
+**Pass 1 (complete, 2026-08-25): inventory only — no code changes.**
+All 40 sections written — every `MyDSL_*.lua` file plus
+`DSL_Generic_Mapper.xml`'s embedded Lua, each covering what it does,
+its public surface, what it depends on, what calls it, candidate
+cruft, and concrete performance flags. Every claim in "Public surface"
+/ "Depends on" / "Called by" is grep-confirmed against the actual
+repo, not assumed from memory or the file's own comments — a comment
+claiming a function is used doesn't count as confirmation on its own
+(this mattered in practice: section 3 originally got a "zero callers"
+claim wrong and had to correct itself once a later section re-checked
+it with a fresh grep — see the Cross-cutting findings section at the
+bottom for the full list of what this pass turned up, including the
+real double-fired-work performance bugs Steven specifically asked this
+audit to find).
 
 **Pass 2 (not started): Steven's notes.** Steven reads each section,
 adds his own notes directly into this doc (what he actually intended
@@ -44,6 +49,13 @@ be noise:
   override snapshot.
 - `MyDSL_windowfonts.lua` — per-window font-size snapshot, several View
   modules read this via `MyDSL.Windows.getFontSize()`.
+- `MyDSL_state.lua` — `MyDSL_DataLayer.lua`'s own `MyDSL.save()` output
+  (see section 1). Kept as numbered **section 24** rather than moved up
+  here, since removing it from the sequence would force renumbering
+  every cross-reference in sections 25-40 (which cite each other by
+  number extensively) — section 24 itself is written as a short
+  data-file note, not a full inventory, so it reads consistently with
+  this list even while keeping its place in the sequence.
 
 ## Ordering
 
@@ -67,36 +79,36 @@ is looking for.
 8. ✅ `MyDSL_TickSource.lua`
 9. ✅ `MyDSL_DataBridge.lua`
 10. ✅ `DSL_Generic_Mapper.xml` (embedded Lua)
-11. ⬜ `MyDSL_PromptSetup.lua`
-12. ⬜ `MyDSL_AutoWhere.lua`
-13. ⬜ `MyDSL_PromptView.lua`
-14. ⬜ `MyDSL_MovementSounds.lua`
-15. ⬜ `MyDSL_CreatureLore.lua`
-16. ⬜ `MyDSL_Roller.lua`
-17. ⬜ `MyDSL_ChatTriggers.lua`
-18. ⬜ `MyDSL_ItemLore.lua`
-19. ⬜ `MyDSL_ItemReference.lua`
-20. ⬜ `MyDSL_RouteHelper.lua`
-21. ⬜ `MyDSL_CreatureReference.lua`
-22. ⬜ `MyDSL_ScanView.lua`
-23. ⬜ `MyDSL_CombatView.lua`
-24. ⬜ `MyDSL_state.lua`
-25. ⬜ `MyDSL_GroupView.lua`
-26. ⬜ `MyDSL_TickView.lua`
-27. ⬜ `MyDSL_CharacterAssist.lua`
-28. ⬜ `MyDSL_LayoutEngine.lua`
-29. ⬜ `MyDSL_Help.lua`
-30. ⬜ `MyDSL_ThemeEngine.lua`
-31. ⬜ `MyDSL_AlterformView.lua`
-32. ⬜ `MyDSL_WindowRegistry.lua`
-33. ⬜ `MyDSL_PortraitView.lua`
-34. ⬜ `MyDSL_Leveling.lua`
-35. ⬜ `MyDSL_MoonWeather.lua`
-36. ⬜ `MyDSL_AffectsView.lua`
-37. ⬜ `MyDSL_LocationView.lua`
-38. ⬜ `MyDSL_LiveView.lua`
-39. ⬜ `MyDSL_TargetView.lua`
-40. ⬜ `MyDSL_Chat.lua`
+11. ✅ `MyDSL_PromptSetup.lua`
+12. ✅ `MyDSL_AutoWhere.lua`
+13. ✅ `MyDSL_PromptView.lua`
+14. ✅ `MyDSL_MovementSounds.lua`
+15. ✅ `MyDSL_CreatureLore.lua`
+16. ✅ `MyDSL_Roller.lua`
+17. ✅ `MyDSL_ChatTriggers.lua`
+18. ✅ `MyDSL_ItemLore.lua`
+19. ✅ `MyDSL_ItemReference.lua`
+20. ✅ `MyDSL_RouteHelper.lua`
+21. ✅ `MyDSL_CreatureReference.lua`
+22. ✅ `MyDSL_ScanView.lua`
+23. ✅ `MyDSL_CombatView.lua`
+24. ✅ `MyDSL_state.lua`
+25. ✅ `MyDSL_GroupView.lua`
+26. ✅ `MyDSL_TickView.lua`
+27. ✅ `MyDSL_CharacterAssist.lua`
+28. ✅ `MyDSL_LayoutEngine.lua`
+29. ✅ `MyDSL_Help.lua`
+30. ✅ `MyDSL_ThemeEngine.lua`
+31. ✅ `MyDSL_AlterformView.lua`
+32. ✅ `MyDSL_WindowRegistry.lua`
+33. ✅ `MyDSL_PortraitView.lua`
+34. ✅ `MyDSL_Leveling.lua`
+35. ✅ `MyDSL_MoonWeather.lua`
+36. ✅ `MyDSL_AffectsView.lua`
+37. ✅ `MyDSL_LocationView.lua`
+38. ✅ `MyDSL_LiveView.lua`
+39. ✅ `MyDSL_TargetView.lua`
+40. ✅ `MyDSL_Chat.lua`
 
 ---
 
@@ -268,14 +280,16 @@ round's `round_data` into one summary line per (attacker,target) pair.
 **Public surface:** `MyDSL.parseCombatDamageLine()`, `parseCombat
 AvoidLine()`, `parseCombatConditionLine()`, `parseCombatDeathLine()`,
 `parseCombatEndLine()`, `parseCombatProcLine()`, `MyDSL.
-getTargetCondition(name)`. Confirmed via grep: `getTargetCondition()`
-has **zero current external callers** — built as "the REAL enemy
-health message data Steven asked for" per its own header comment, but
-nothing in any View module actually calls it yet (worth flagging for
-Steven — was this ever wired into TargetView/Focus, or is it a real
-built-but-unconnected gap?). The 6 `parseCombat*` functions are called
-only from this file's own trigger registrations (by design — see
-`MyDSL_DataLayer_CreatureLore.lua`'s precedent) plus `test/
+getTargetCondition(name)`. **Correction (this doc originally claimed
+zero external callers here — wrong, caught and fixed during section
+39's audit pass with a fresh grep):** `MyDSL_TargetView.lua` genuinely
+calls `MyDSL.getTargetCondition(t.name)` at two real, functioning call
+sites — the nameplate's live condition-percent badge (e.g. `[50-74%]`
+next to the target name) and `MyDSL.Target.status()`'s diagnostic dump.
+This is a real, live, working connection, not a built-but-unwired gap
+— see section 39 for the full detail. The 6 `parseCombat*` functions
+are called only from this file's own trigger registrations (by design
+— see `MyDSL_DataLayer_CreatureLore.lua`'s precedent) plus `test/
 test_combat_damage_regex.lua` and `test/
 test_datalayer_combat_lifecycle.lua`.
 
@@ -287,16 +301,13 @@ CombatView and MyDSL.CombatView.config then ...` — never a hard
 isn't loaded, just with default gag/show behavior).
 
 **Called by:** `MyDSL_CombatView.lua` reads `MyDSL.State.combat` for
-its own window rendering. `MyDSL_TargetView.lua`/Focus **do not**
-currently call `MyDSL.getTargetCondition()` (confirmed via grep) —
-flagging this as the same class of "built but not wired in" gap as the
-already-tracked `MyDSL.Windows.setTitle` case resolved earlier this
-project.
+its own window rendering. `MyDSL_TargetView.lua` calls `MyDSL.
+getTargetCondition()` (see correction above and section 39) — a real,
+live, working cross-file connection.
 
-**Candidate cruft:**
-- `MyDSL.getTargetCondition()` — built, documented as solving a real
-  Steven ask, zero real consumers. Either wire it into TargetView/Focus
-  or confirm it's intentionally staged for a future feature.
+**Candidate cruft:** none — see the correction above. This file's
+public surface is fully connected; the doc's own first-pass grep on
+this one function was simply wrong, not a real gap.
 
 **Performance flags:**
 - **This is the single hottest file in the entire addon** — every
@@ -800,4 +811,1942 @@ mapper raises anything MyDSL listens for).
 
 ---
 
-*(Sections 11-40 not yet written — in progress.)*
+## 11. `MyDSL_PromptSetup.lua`
+
+**72 lines.** One-click DSL prompt setup for brand-new characters.
+
+**What it does:** detects the character-birth cutscene room ("The Gray
+Mist of Nothingness") and offers a clickable link to send Steven's
+chosen `prompt <format>` string, rather than auto-sending it — per this
+project's "any game command a module sends must be user-initiated"
+principle, confirmed via an explicit `AskUserQuestion` at build time
+(2026-07-09). Also exposes a manual `mydsl setprompt` alias so the
+format can be reapplied any time, not just at creation.
+
+**Public surface:** `MyDSL.PromptSetup.apply()` — called from the
+`mydsl setprompt` alias and from the birth-trigger's clickable link
+(`dechoLink`). Confirmed via grep: no other `.lua` file references
+`MyDSL.PromptSetup`.
+
+**Depends on:** nothing — self-contained, no reads from `MyDSL.State`
+or any other module.
+
+**Called by:** nothing external.
+
+**Candidate cruft:** none found — small, single-purpose, matches its
+own stated scope exactly.
+
+**Performance flags:** none — the birth trigger fires on one specific,
+rare literal line ("The Gray Mist of Nothingness"), not a hot path;
+`mydsl setprompt` is an explicit user command.
+
+---
+
+## 12. `MyDSL_AutoWhere.lua`
+
+**121 lines.** State-aware periodic `where` polling, replacing a native
+alias that had no state awareness.
+
+**What it does:** on a user-toggled timer (`autowhere on|off|status`,
+default interval 20s), sends `where` unless a skip condition is met
+(sleeping, fighting, or blind/no-light — reusing `MyDSL_
+CharacterAssist.lua`'s existing vision check rather than re-deriving
+blindness detection a second way). Deliberately reuses the native
+alias's exact command vocabulary per this project's command-surface
+mandate.
+
+**Public surface:** `MyDSL.AutoWhere.start()/stop()/status()` — called
+only from this file's own `autowhere` alias. Confirmed via grep: no
+other `.lua` file references `MyDSL.AutoWhere`.
+
+**Depends on:** `MyDSL.State.char.posn`/`is_fighting` (from `MyDSL_
+DataLayer_PromptVitals.lua`'s Pos'n trigger / GMCP char_data — read
+directly, not via `MyDSL.get()`, consistent with the dominant
+direct-`State`-access pattern already noted in section 1). Soft
+dependency on `MyDSL.CharacterAssist.checkVision()`, checked
+defensively (`if MyDSL.CharacterAssist and ... then`) — works without
+that module loaded, just skips the blind check.
+
+**Called by:** nothing external.
+
+**Candidate cruft:** the file's own header flags a real, unresolved
+manual step: Steven's native `(autowhere) AutoWhere` alias must be
+disabled by hand in Mudlet's Alias Editor, or both fire simultaneously
+on the same command and run two independent timers. This is a known,
+documented gap (not silently missed), but worth confirming during pass
+2 whether that manual step was ever actually done — if not, this is a
+live double-timer bug, not just a doc note.
+
+**Performance flags:** none — a 20s-interval timer with three cheap
+field checks per tick is negligible; not a hot path.
+
+---
+
+## 13. `MyDSL_PromptView.lua`
+
+**179 lines.** Prompt-gag toggle state manager (`mydsl prompt
+on|off|toggle`) — UI-mode gagging of the server's raw prompt lines.
+
+**What it does:** owns `MyDSL.Prompt.enabled`, persisted per-character
+to `MyDSL/prompt_<CharName>.lua`. The actual gagging (`deleteLine()`)
+happens in **two native Mudlet Triggers this file does NOT create** —
+its own trailing comment block documents the exact pattern/script pairs
+required (`MyDSL_PromptGag_Vitals` on `^\[%d+/%d+HP`, `MyDSL_
+PromptGag_Location` on `^==-`), both reading `MyDSL.Prompt.enabled`
+directly. **Confirmed via grep against both profiles' native XML**:
+these two triggers do **not** exist in DSL2's own reference profile
+(`current/2026-07-18#10-13-31.xml` — zero matches), but **do** exist in
+the live MyDSL profile (confirmed present in its newest `current/*.xml`
+as of this audit) — consistent with this project's established
+DSL2-is-source/MyDSL-is-live-play distinction, not a gap.
+
+**Public surface:** `MyDSL.Prompt.enabled` (read only by the two native
+triggers above — confirmed via grep, zero other `.lua` files reference
+`MyDSL.Prompt`), `MyDSL.Prompt.setEnabled()/toggle()/_cmd()` (internal
+to this file's own alias), `MyDSL.Prompt.onLogin()/save()/load()`
+(internal lifecycle).
+
+**Depends on:** `MyDSL.Char()`, `MyDSL.login.updated` event (from
+`MyDSL_DataLayer_PromptVitals.lua`'s login handler) to trigger a
+per-character reload on login.
+
+**Called by:** the two native triggers described above (not `.lua`
+code — can't be grep-confirmed the same way, confirmed instead by
+reading the native XML directly).
+
+**Candidate cruft:** none found — the design (script owns state/
+persistence, native triggers own the actual gag action) is unusual
+compared to most of this codebase (which does gagging from inside
+`.lua` trigger callbacks directly), but it's deliberate and documented,
+not accidental.
+
+**Performance flags:** the two native triggers fire on every prompt
+line (real hot path — every server round), but each does only a
+2-condition check (`MyDSL.Prompt and MyDSL.Prompt.enabled`) plus
+`deleteLine()` when enabled — as cheap as this kind of gag can be. No
+concerns.
+
+---
+
+## 14. `MyDSL_MovementSounds.lua`
+
+**205 lines.** Movement key sound selector — plays a walk/ride/fly/swim
+sound effect when a NumPad movement key is pressed.
+
+**What it does:** `MyDSL.MoveSound.go(dir)` sends the movement command
+then plays a mode-appropriate sound; mode is picked by priority
+(riding > flying > swimming > walking), each check reading `MyDSL.
+State`/GMCP directly via a private `dataGet()` helper that prefers
+`MyDSL.get()` and falls back to raw `gmcp.char_data`/`room_data` if
+DataLayer isn't available yet.
+
+**Public surface:** `MyDSL.MoveSound.go(dir)` — confirmed via grep,
+called from **10 real native key bindings** in `MyDSL_
+GameplayTriggers.xml` (NumPad 1-4/6-9, up/down — the git-tracked native
+inventory extraction, not a guess). `MyDSL.MoveSound.status()` —
+confirmed via grep, **zero callers anywhere** (no alias, no other file)
+— see Candidate cruft. `MyDSL.MoveSound.mode()/isSwimmingSector()/
+soundPath()/normalizeDir()` are internal helpers only, called from
+`go()`/`play()`/`status()`.
+
+**Depends on:** `MyDSL.get()` (this is the **one and only real caller**
+of `MyDSL_DataLayer.lua`'s Get/Set API project-wide, confirmed in
+section 1's audit) with a raw-GMCP fallback if it's unavailable.
+
+**Called by:** `MyDSL_GameplayTriggers.xml`'s native NumPad key
+bindings (real, live, confirmed via grep).
+
+**Candidate cruft:**
+- **`MyDSL.MoveSound.status()` has zero callers anywhere** — no alias
+  wires it to a command, no other file references it. A real,
+  built-but-unreachable diagnostic function, same class as the
+  already-flagged `MyDSL.getTargetCondition()` in section 3. Either add
+  a `mydsl movesound status` alias or confirm it's fine to leave
+  unreachable.
+
+**Performance flags:** none — fires once per explicit movement
+keypress, not a continuous hot path. `stopSounds()`+`playSoundFile()`
+per press is the expected cost for this feature.
+
+---
+
+## 15. `MyDSL_CreatureLore.lua`
+
+**249 lines.** Persistent, cross-session, cross-character creature-lore
+reference database (Layer 4) — distinct from `MyDSL_DataLayer_
+CreatureLore.lua` (Layer 1, raw `creaturelore <keyword>` output
+capture); this file is the permanent DB that capture feeds into.
+
+**What it does:** `CL.merge(rec)` upserts a capture into `CL.db`
+(keyed by normalized creature name), `CL.get(key)`/`CL.knownState(key)`
+(`"known"`/`"seen"`/`"unknown"`, based on whether real lore fields vs.
+just a bare sighting exist), `CL.markSeen(key, name)` (creates a stub
+record on a mere `look`/`scan` sighting, no lore fields), `CL.
+importScraped(path)` (bulk-import from a scraped shatteredarchive.com
+bestiary file, additive-only, never overwrites existing fields).
+Persisted to `MyDSL/creaturelore_db.lua`, shared across all characters
+(objective game data, not character-specific — same reasoning as
+`ThemeEngine`).
+
+**Public surface:** confirmed via grep, this module is **genuinely
+widely and correctly wired**: `CL.merge()` called from `MyDSL_
+DataLayer_CreatureLore.lua`'s `endCreatureLore()`; `CL.knownState()`
+called from `MyDSL_ScanView.lua`, `MyDSL_Leveling.lua`, and `MyDSL_
+DataLayer_ScanLook.lua`; `CL.markSeen()` called from `MyDSL_
+DataLayer_ScanLook.lua` (2 call sites — both mob-sighting paths); `CL.
+get()` called from `MyDSL_TargetView.lua` and `MyDSL_
+CreatureReference.lua` (the Bestiary window). Every one of these is a
+real function call, not a comment mention. `CL.hasLore()` is internal
+only (called from `knownState()`). `CL.importScraped()` is called only
+from its own one-time `mydsl creaturelore import` alias.
+
+**Depends on:** nothing structurally beyond Mudlet stdlib
+(`table.save`/`table.load`, `dofile` for the scraped-import file) —
+does not read `MyDSL.State` at all, purely a standalone reference DB
+fed by other modules calling into it.
+
+**Called by:** `MyDSL_DataLayer_CreatureLore.lua`, `MyDSL_ScanView.lua`,
+`MyDSL_Leveling.lua`, `MyDSL_DataLayer_ScanLook.lua`, `MyDSL_
+TargetView.lua`, `MyDSL_CreatureReference.lua` — six real, confirmed
+consumers.
+
+**Candidate cruft:** none found — every public function has a real,
+traceable caller; this is one of the more cleanly-connected modules
+audited so far.
+
+**Performance flags:** `CL.markSeen()` is explicitly documented and
+confirmed to only call `CL.save()` (a full `table.save()` disk write)
+on a creature's *first-ever* sighting, not on repeat sightings — a
+deliberate, already-applied optimization ("stale data beats spam").
+`CL.merge()` calls `CL.save()` unconditionally on every real
+`creaturelore` capture, but that's an explicit, infrequent user
+command, not a hot path. No concerns.
+
+---
+
+## 16. `MyDSL_Roller.lua`
+
+**258 lines.** Character-creation stat-reroll assistant, ported from
+PNP's `DSL_PNP_Roller.lua` plus new per-stat-minimum functionality not
+present in PNP's original.
+
+**What it does:** matches a `Str: N Int: N Wis: N Dex: N Con: N` stat
+line, auto-sends `n` (reject) if the total is below a configurable goal
+(default 241) or any individual stat is below its own configured
+minimum, and pauses for manual review (never auto-accepts) if the roll
+qualifies. Explicitly disables the legacy native `roller` trigger this
+module replaced, since it was never actually killed on port and would
+otherwise double-reject in parallel with its own, separately-configured
+goal.
+
+**Public surface:** `MyDSL.Roller.setGoal()/setMin()/reset()/
+showStats()` — all called only from this file's own 4 aliases (`set
+goal`, `set min <stat>`, `roll stats`, `reset roll`). Confirmed via
+grep: zero external callers of anything in `MyDSL.Roller.*`.
+
+**Depends on:** nothing — fully self-contained, character-creation-only
+feature with no read of `MyDSL.State`/GMCP.
+
+**Called by:** nothing external.
+
+**Candidate cruft:** none found — every function traces to a real
+alias, and the module's own comments document 3 real historical bugs
+(stale-timer race across rapid re-rolls, per-stat-floor logic, native
+trigger not being disabled on port) all with confirmed fixes.
+
+**Performance flags:** none — the roll-line trigger only matches
+during character creation (a rare, one-time event per character), not
+a hot path. `scheduleReject()`'s 0.2s `tempTimer` is single-shot per
+roll, not a recurring loop.
+
+---
+
+## 17. `MyDSL_ChatTriggers.lua`
+
+**278 lines.** Layer-3 chat-channel routing — intercepts chat lines and
+routes them to EMCO tabs via `MyDSL.Chat.emco:append()`, removing them
+from the main console (except where `gag=false` is explicitly passed
+for say/tell/yell/shout, per Steven's request to keep those visible
+too).
+
+**What it does:** 20 always-active `tempRegexTrigger()` registrations
+(confirmed via grep — `route()` called 20 times), each matching one
+real, corpus-confirmed DSL chat-line shape (Tells, Group, OOC, City/
+gossip family, Local speech, auctions/grats/ask-answer-newbie/
+Bloodbath-quest). The file's own extensive comment history documents a
+real, confirmed double-fire bug class (unanchored patterns with a
+quote-crossing `.+` prefix let one line match two different `route()`
+patterns at once, corrupting both) fixed by anchoring every pattern to
+line-start and introducing the `NC` character class (matches any
+non-quote character, or a mid-word apostrophe like "Iler'yx", so a real
+opening quote is never mistaken for part of a name).
+
+**Public surface:** nothing — `MyDSL.ChatTriggers._triggers` is a
+private ID-tracking table for deregistration on reload, not read by
+any other file. Confirmed via grep: zero external references to
+`MyDSL.ChatTriggers`.
+
+**Depends on:** `MyDSL.Chat.emco` (created by `MyDSL_Chat.lua` — this
+file's own header states it "must load LAST" for exactly this reason).
+The `route()` helper defensively checks `if MyDSL and MyDSL.Chat and
+MyDSL.Chat.emco then` before appending, so a chat line arriving before
+`MyDSL_Chat.lua`'s own startup ladder finishes stays visible on the
+main console instead of being silently deleted with nowhere to go — a
+real, documented 2026-07-17 data-loss fix.
+
+**Called by:** nothing external — purely a self-contained routing
+layer.
+
+**Candidate cruft:**
+- `deregisterTriggers()` calls both `pcall(killAnonymousEventHandler,
+  id)` and `pcall(killTrigger, id)` on every stored ID, but this file
+  only ever creates regex triggers via `tempRegexTrigger()` (never an
+  anonymous event handler) — the `killAnonymousEventHandler` call is
+  dead code that always no-ops silently inside its own `pcall`. Cosmetic
+  only, harmless, but worth a one-line cleanup (remove the
+  `killAnonymousEventHandler` call) if this file is touched for other
+  reasons.
+
+**Performance flags:**
+- **20 always-active regex triggers evaluate against every single
+  incoming line**, whether or not it's chat-shaped at all — the same
+  class of concern already flagged for `MyDSL_DataLayer_Combat.lua`'s
+  24 always-active combat triggers (section 3) and `map.dsl.
+  captureLine()`'s `onNewLine` hook (section 10). Individually cheap
+  (Mudlet's regex engine short-circuits non-matches), but this is now
+  the third file in this audit with a large always-on trigger count —
+  worth a project-wide note once all 40 sections are done: how many
+  total always-active regex evaluations does one incoming line pay for
+  across the whole addon? Not answerable from any single file's
+  section alone.
+- The `NC` character class (`(?:[^']|(?<=\w)'(?=\w))`) uses a
+  lookbehind/lookahead per non-quote character matched, which is
+  somewhat more expensive per-character than a plain negated character
+  class — but chat lines are short and this only runs on the subset of
+  lines that get past each pattern's fixed literal prefix first, so
+  this is unlikely to be a measurable cost. Not flagged as a real
+  concern, noted for completeness only.
+## 18. `MyDSL_ItemLore.lua`
+
+**326 lines.** Layer 4, first slice — persistent, cross-session item-stats
+DB, shared across characters (not character-bound, same reasoning as
+CreatureLore/ThemeEngine: item stats are objective game data).
+
+**What it does:** `IL.merge(rec)` (upsert-by-key for a live `identify`/
+`lore` capture — a real `identify` authoritatively clears any
+`FULL_STAT_FIELDS` entry it doesn't report, fixing a 2026-07-19 bug where
+a stale scrape-imported flag could never be cleared by a real identify
+confirming "none"), `IL.get(key)`/`IL.knownState(key)`/`IL.hasFullStats(rec)`
+(three-state known/seen/unknown model), `IL.importScraped(path)` (bulk
+community-scrape import, fill-gaps-only, never overwrites a real capture),
+`IL.cleanupBadSpellCharges()` (one-time fixup command), `IL.save()`/
+`IL.load()` (own dedicated `itemlore_db.lua` file, correct `table.load(file,
+target)` two-argument form).
+
+**Public surface:** `IL.merge()` — called from `MyDSL_DataLayer_ItemLore.lua`
+(2 real call sites: identify and lore-item capture completion). `IL.get()`
+— called from `MyDSL_DataLayer_ItemLore.lua` (5 call sites, hover-text
+lookups), `MyDSL_DataLayer_ScanLook.lua` (ground-item hover), `MyDSL_
+ItemReference.lua` (render lookup). `IL.knownState()` — called from `MyDSL_
+ItemReference.lua` only. `IL.hasFullStats()` — **zero external callers**,
+used only internally by `IL.knownState()` itself; not cruft, just a private
+helper that happens to be exposed on the public table. `IL.save()`/
+`IL.load()` — called only from within this file (via `merge()`/
+`importScraped()`/`cleanupBadSpellCharges()`/boot). All confirmed via grep,
+not assumed.
+
+**Depends on:** nothing else in this codebase structurally — a standalone
+Layer-4 DB with its own save file. Reads `getMudletHomeDir()`/`dofile()`
+(for scrape import) directly.
+
+**Called by:** `MyDSL_DataLayer_ItemLore.lua` (merge, on every identify/lore
+capture), `MyDSL_DataLayer_ScanLook.lua` (get, for ground-item hover text),
+`MyDSL_ItemReference.lua` (get + knownState, for window rendering).
+
+**Candidate cruft:** none found — every public function traces to a real
+caller except the internal-only `hasFullStats()`, which is fine as an
+implementation detail.
+
+**Performance flags:** `IL.save()` does a full `table.save()` of the
+**entire item DB** (potentially thousands of entries after a scrape
+import) on every single `merge()` call — i.e. every real in-game identify/
+lore capture triggers a full-DB disk write, not just the one changed
+record. This is the same class of issue `MyDSL_DataLayer.lua`'s own
+`MyDSL.save()` had before its 2026-07-19 debounce fix (see section 1) —
+but identify/lore captures happen far less often than combat, so the
+practical impact is much smaller. Not flagged as urgent, but worth noting
+for consistency if a future pass debounces saves project-wide. `import
+Scraped()` saves once at the end (already correctly batched, per its own
+comment) — no concern there.
+
+---
+
+## 19. `MyDSL_ItemReference.lua`
+
+**359 lines.** Layer 4 display — listens for `MyDSL.itemlore.updated`,
+renders the item record in the `MyDSL_ItemReference` window. Directly
+modeled on `MyDSL_CreatureReference.lua`'s (Bestiary) pattern.
+
+**What it does:** `IR.render(name)` (DB-first, falls back to `MyDSL.State.
+itemlore` live capture), `IR.onItemUpdate()` (auto-show on fresh data),
+`IR.show()`/`hide()`/`status()`/`rebuild()`/`setFont()`, the `item <name>`
+alias family (including `item map <ground> = <target>`, the manual
+ground-to-inventory override escape hatch).
+
+**Public surface:** `IR.render()`/`IR.show()` are called indirectly via
+**dynamically-generated hover-link click scripts** built as string literals
+inside `MyDSL_DataLayer_ItemLore.lua` (4 call sites) and `MyDSL_
+DataLayer_ScanLook.lua` (1 call site) — e.g. `'if MyDSL and MyDSL.
+ItemReference then MyDSL.ItemReference.render("%s"); MyDSL.ItemReference.
+show() end'`, wired as a clickable link's script, not a direct Lua call.
+Confirmed real via grep, not assumed — this is the "Click for Item
+Reference" hover pattern referenced elsewhere in the codebase. Every
+other function (`hide`/`status`/`rebuild`/`setFont`) is called only from
+this file's own `item <name>` alias.
+
+**Depends on:** `MyDSL.ItemLore.get()`/`knownState()` (real, direct
+call), `MyDSL.setGroundItemOverride()` (defined in `MyDSL_DataLayer_
+ItemLore.lua`, called from the `item map ... = ...` alias branch — a real,
+confirmed Layer-4-to-Layer-1 cross-reference), `MyDSL.Windows.*` (generic
+window lifecycle), `MyDSL.Theme.styleConsole` (soft-checked).
+
+**Called by:** `MyDSL_DataLayer_ItemLore.lua`/`MyDSL_DataLayer_ScanLook.lua`
+via the generated hover-link scripts described above (the real, primary
+way this window actually gets shown/populated day-to-day — a player
+clicking an item's hover hint, not typing `item <name>` by hand, is
+almost certainly the dominant real usage path, though both work).
+
+**Candidate cruft:** none found — every function has a real, traceable
+caller (direct alias dispatch or the hover-link mechanism).
+
+**Performance flags:** none — this file only runs in response to an
+explicit player action (identify/lore capture completing, or a hover-link
+click). Not a hot path.
+
+---
+
+## 20. `MyDSL_RouteHelper.lua`
+
+**363 lines.** Layer 3 — generic text routing to windows
+(`MyDSL.Route.to(windowName, line)` plus shorthand helpers), used by
+whichever captures still route raw/decho'd text rather than rendering
+through their own structured View module.
+
+**What it does:** `getOrCreateConsole(windowName)` (lazy MiniConsole
+creation inside a registered UserWindow), `MyDSL.Route.to()` (decho mode
+with an explicit line, or raw-copy `appendBuffer()` mode preserving
+original game colors when `line` is nil), `MyDSL.Route.clear()`/
+`getConsole()`, the `MyDSL_History` window's font/status commands
+(`setHistoryFont()`/`historyStatus()`), and the `MyDSL_PlayersNear`
+window's show/hide/font/status command family. The file's own header
+already documents that Combat/Scan/Group/RightHere's shorthand helpers
+were removed 2026-08-23 as confirmed dead — those windows now have their
+own structured View modules instead of raw-text routing.
+
+**Public surface:** `MyDSL.Route.players()`/`MyDSL.Route.clear(
+"MyDSL_PlayersNear")` — confirmed real callers in `MyDSL_DataLayer_
+ScanLook.lua` (4 call sites total, the "Players near you:" capture
+routing). `MyDSL.Route.history()` and `MyDSL.Route.getConsole()` —
+**confirmed via grep across the entire repo: ZERO external callers of
+either, and `MyDSL.Route.history()` isn't even referenced from within
+this file beyond its own one-line definition.** See Candidate cruft — this
+is a real, notable finding.
+
+**Depends on:** `MyDSL.Windows.*` (registry/ensure/getFontSize/
+setFontSize), `MyDSL.Theme.styleConsole` (soft), `MyDSL.logWindow`
+(soft).
+
+**Called by:** `MyDSL_DataLayer_ScanLook.lua` (`Route.players`/
+`Route.clear`, real, confirmed). Nothing calls `Route.history()`.
+
+**Candidate cruft — genuinely notable finding, not just narrow-usage
+noise:**
+- **The entire `MyDSL_History` window appears fully wired but never
+  actually fed any content.** It's a real, registered window (`MyDSL_
+  WindowRegistry.lua`'s registry, `MyDSL_LayoutEngine.lua`'s layout slot
+  — described there as "general informational output — sailing, quests,
+  atmosphere events" — `MyDSL_ThemeEngine.lua`'s theme mapping, `MyDSL_
+  Help.lua`'s help text, and this file's complete font/status/config
+  surface), but `MyDSL.Route.history()` — the one function that would
+  actually put text into it — has no caller anywhere in the codebase.
+  Confirmed via grep, not a narrow-usage judgment call: this looks like a
+  window that was fully built out (title, font persistence, adaptive
+  word-wrap, theme integration, status diagnostics) but the actual
+  trigger/capture wiring that was supposed to feed it (sailing/quest/
+  atmosphere text, per its own layout comment) was never connected, or
+  was connected once and later removed without anyone noticing the
+  window went silent. Worth Steven confirming: was History ever
+  populated in practice, or has it always shown empty since it was
+  built?
+- `MyDSL.Route.getConsole()` has zero external callers — much lower
+  stakes (a generic accessor nobody happened to need yet), listed for
+  completeness.
+
+**Performance flags:** none — this file only runs in response to an
+explicit routed capture completing (rare, not a hot path), plus one
+`registerAnonymousEventHandler("MyDSL.theme.changed", ...)` that only
+fires on an explicit user theme switch.
+
+---
+
+## 21. `MyDSL_CreatureReference.lua`
+
+**380 lines.** Layer 3 Phase B — listens for `MyDSL.creaturelore.updated`
+(and, since a 2026-07-12 fix, `MyDSL.target.updated`), renders the
+Bestiary window.
+
+**What it does:** `CR.render(name)` (DB-first via `MyDSL.CreatureLore.get()`,
+falls back to `MyDSL.State.creaturelore`), `CR.onLoreUpdate()` (auto-show
+on fresh capture), `CR.onTargetUpdate()` (keep content in sync when the
+current target changes, without auto-showing — a real 2026-07-12 gap fix,
+documented in its own header), `CR.show()`/`hide()`/`status()`/
+`rebuild()`/`setFont()`, the `bestiary <name>` alias family.
+
+**Public surface:** every function here is called only from this file's
+own event handlers/alias (confirmed via grep — every other mention of
+`MyDSL.CreatureReference` project-wide is a comment referencing this
+module's design pattern, not a real call, e.g. `MyDSL_ItemReference.lua`'s
+header explicitly modeling itself on this file). This is the expected,
+correct pattern for an event-driven display module, not cruft.
+
+**Depends on:** `MyDSL.CreatureLore.get()`/`knownState()` (real,
+confirmed — `MyDSL_CreatureLore.lua`'s DB), `MyDSL.State.creaturelore`/
+`MyDSL.State.target` (direct State reads, bypassing any Get/Set API, same
+pattern as most other View modules), `MyDSL.Windows.*`, `MyDSL.Theme.
+styleConsole` (soft).
+
+**Called by:** nothing external — self-contained event-driven module.
+
+**Candidate cruft:** none found — this file's own comments document two
+real historical bugs (hex-color-tag/cecho mismatch; missing target-update
+listener) that were found and fixed, not speculative code left in place.
+
+**Performance flags:** none — fires only on a real `creaturelore`
+capture completing or a target switch (via `MyDSL.target.updated`, which
+itself only fires on an explicit target change, not a hot path).
+
+---
+
+## 22. `MyDSL_ScanView.lua`
+
+**389 lines.** Layer 3 Phase B — passive display for two windows:
+`MyDSL_Scan` (raw game-colored feed via `appendBuffer`) and `MyDSL_
+RightHere` (clickable target list rebuilt from `MyDSL.State.scan.
+rightHere`).
+
+**What it does:** `SV.renderRightHere()`/`SV.render()` (clickable
+Known/Seen/Unknown-badged target links, badge sourced from `MyDSL.
+CreatureLore.knownState()`), `SV.setGag(enabled)` (header-line gagging;
+body-line gagging lives in `MyDSL_DataLayer_ScanLook.lua`'s own
+`parseScanLine()`, checked via this module's `config.gagScan` flag — a
+real, confirmed Layer-1-reads-Layer-3-config dependency), the combat-
+death RightHere decrement handler (a real 2026-07-16 gap fix — nothing
+previously removed a dead mob from RightHere's count mid-fight), the full
+status/show/hide/rebuild/font command family for both windows, and
+`SV.dumpRightHere()` (a one-shot live diagnostic alias).
+
+**Public surface:** `SV.ui.scanConsole` — **read and written directly by
+`MyDSL_DataLayer_ScanLook.lua`** (`:clear()`/`:appendBuffer()`, 3 call
+sites), a real, deliberate Layer-1-reaches-into-Layer-3 dependency
+(DataLayer needs the raw MiniConsole object to preserve original game
+colors via `appendBuffer`, which only works on the actual widget, not a
+decho'd copy) — documented in this file's own comment ("so DataLayer can
+call appendBuffer on it"). `SV.config.gagScan` — read by `MyDSL_
+DataLayer_ScanLook.lua`'s `parseScanLine()`. `SV.render()`/`renderRight
+Here()` — called only from this file's own event handlers/aliases.
+
+**Depends on:** `MyDSL.State.scan` (direct read), `MyDSL.CreatureLore.
+knownState()` (soft-checked, for the Known/Seen/Unknown badge), `MyDSL.
+Target.set()` (generated click-link script, real cross-reference to
+`MyDSL_TargetView.lua`'s Target API — confirmed via the `cmd` string
+built in `renderRightHere()`), `MyDSL.Windows.*`, `MyDSL.Theme.
+styleConsole` (soft), `MyDSL.logWindow` (soft).
+
+**Called by:** `MyDSL_DataLayer_ScanLook.lua` (direct MiniConsole access
++ `config.gagScan` read, both confirmed real and load-bearing —
+this is one of the tightest two-way couplings found in this audit so
+far, though a deliberate, documented one rather than an oversight).
+
+**Candidate cruft:** none found — every piece of this file traces to a
+real caller or a documented design reason (including the click-to-target
+link generation, confirmed wired to `MyDSL.Target.set()`).
+
+**Performance flags:** `SV.render()`/`renderRightHere()` only fire on
+`MyDSL.scan.updated` (an explicit `scan`/`look` command) or `MyDSL.
+combat.died` (once per kill, not per swing) — not a hot path. The
+Known/Seen/Unknown badge lookup is O(1) per RightHere entry (a single DB
+`get()`), and RightHere entries are bounded by room population. No
+concerns.
+
+---
+
+## 23. `MyDSL_CombatView.lua`
+
+**459 lines.** Layer 3 Phase B — the Combat window. Two responsibilities:
+a live per-swing feed (`CV.appendSwing()`, called directly and
+synchronously from `MyDSL_DataLayer_Combat.lua`'s `parseCombatDamageLine()`
+for every non-miss swing) and a per-target fight-summary block
+(`CV.renderSummary()`, on death/flee/rescue — this project's own addition,
+no PNP equivalent).
+
+**What it does:** `CV.appendSwing(text)` (raw append, never cleared —
+matches PNP's `battle_console` exactly), `CV.renderSummary(snapshot)`
+(hit-rate/proc-percentage breakdown per attacker/weapon), `CV.
+renderRage(dmg, vamp)` (rage-mode indicator), the full raw/condensed/gag
+3-way main-console mode system (`mydsl combat mode <raw|condensed|gag>`,
+collapsed 2026-07-11 from 3 near-duplicate if/elseif branches into one
+data table per a code-review finding), font persistence (character-
+bound, correct `table.load(file, target)` 2-arg form — this file's own
+comment documents the historical 1-arg bug and its fix), and the
+`mydsl combat <verb>` alias family (`clear`/`history`/`gag`/`ungag`/
+`show <flag>`/`hide <flag>`/`font <n>`), plus PNP's native `toggle
+battle` command vocabulary reused directly (not reinvented).
+
+**Public surface:** `CV.appendSwing()` — called directly from `MyDSL_
+DataLayer_Combat.lua`'s `parseCombatDamageLine()` (confirmed, the
+primary hot-path integration point for this file) and from the
+`combatRoundFlush` handler for the pending-condition note. `CV.
+renderSummary()` — called from this file's own `MyDSL.combat.ended`
+handler and the `mydsl combat history` alias (replays stored snapshots).
+`CV.config` (the gag/show/summarize_damage table) — read defensively by
+`MyDSL_DataLayer_Combat.lua` throughout (`if MyDSL.CombatView and
+MyDSL.CombatView.config then ...`, confirmed in section 3's own
+findings) — this is the real gag/show decision surface for the entire
+combat-capture pipeline, living in the View layer rather than DataLayer,
+a real but long-standing and clearly deliberate architectural choice
+(matches PNP's own design, per this file's header).
+
+**Depends on:** `MyDSL.charName()`/`MyDSL.safeFileName()` (delegated to
+`MyDSL_DataLayer.lua`, with a local fallback copy if DataLayer somehow
+isn't loaded yet — defensive, not a hard `dofile` dependency), `MyDSL.
+State.combat` (direct read/write via the `mydsl combat clear` alias),
+`MyDSL.Windows.*`, `MyDSL.Theme.styleConsole` (soft), `MyDSL.logWindow`
+(soft).
+
+**Called by:** `MyDSL_DataLayer_Combat.lua` (`appendSwing`, `config.*` —
+both real, hot-path-adjacent dependencies, confirmed in section 3).
+
+**Candidate cruft:** none found — every function traces to a real caller,
+and the file's own comment history documents genuine bugs found and
+fixed (the table.load 1-arg bug; the "raw mode" promise being
+structurally broken before a 2026-07-11 fix; the missing scrollbar
+removal Combat was left out of).
+
+**Performance flags:** `CV.appendSwing()` runs once per non-miss swing —
+genuinely hot during combat (same hot path as `MyDSL_DataLayer_Combat.lua`
+itself), but the function body is a single `mc:decho()` call plus a
+`MyDSL.logWindow()` mirror — no loops, no table rebuilds. Not a concern
+on its own. `CV.renderSummary()` is O(attackers × weapons) per fight-end
+event, bounded and infrequent (once per kill/flee/rescue, not per
+swing). No new performance issues found.
+
+---
+
+## 24. `MyDSL_state.lua` — data file, not a logic module
+
+**459 lines.** Confirmed by inspection: this is `MyDSL_DataLayer.lua`'s
+own `MyDSL.save()` output (`table.save()` of `MyDSL.Data`, a per-
+character snapshot of 16 State sections — char/login/room/affects/tick/
+score/lunar/time/weather/who/group/unread/inv/map/improve/flags — see
+section 1's own `saveFilePath()`/`MyDSL.save()` writeup). Same category
+as `MyDSL_windowstate_<CharName>.lua`/`MyDSL_theme_settings.lua`/
+`MyDSL_windowfonts.lua` already listed in this doc's "Data-only files"
+section at the top — pure persisted data, no logic, loaded via `table.
+load()` by `MyDSL.load()`. Not given a full inventory writeup for the
+same reason those aren't: there's no "what it does"/"public surface" to
+audit in a saved snapshot. Worth folding this file into that top-level
+"Data-only files" list alongside the others when this doc gets tidied
+up, rather than leaving it as a numbered section that looks like a real
+module at a glance.
+## 25. `MyDSL_GroupView.lua`
+
+**474 lines.** Layer 3 display: renders the group-members window (class,
+name, HP/mana/mv bars, quick-action buttons) from `MyDSL.State.group`.
+Passive only, never sends commands directly (quick-action buttons send
+via `MyDSL.TargetView.actions[key].cmd()`, reusing TargetView's action
+table rather than defining its own).
+
+**What it does:** `GV.render()` redraws the window on every `MyDSL.
+group.updated` event; `GV.setGag()` toggles a header-line gag trigger
+(body-line gagging is delegated to `MyDSL_DataLayer_PromptVitals.lua`'s
+`beginGroup()` catch-all reading `GV.config.gagGroup` directly — a real,
+confirmed cross-file read, not a comment claim); `GV.setTarget()`/
+`GV.quickAction()` are dechoLink click handlers (set Focus target, fire
+a quick command); per-character `quickActions` config persistence
+(`loadConfig()`/`saveConfig()`, same pattern as `MyDSL_TargetView.lua`).
+Standard window lifecycle: `status()/show()/hide()/rebuild()/setFont()`.
+
+**Public surface:** `GV.render/setGag/setTarget/quickAction/
+resetQuickActions/status/show/hide/rebuild/setFont` — confirmed via grep,
+**zero external module callers** for any of these; every real call site
+is either this file's own aliases/dechoLinks or `MyDSL_DataLayer_
+PromptVitals.lua` reading `GV.config.gagGroup` (soft, defensive check).
+This is the expected, correct pattern (matches `MyDSL_TargetView.lua`'s
+own shape).
+
+**Depends on:** `MyDSL.State.group` (from `MyDSL_DataLayer_
+PromptVitals.lua`), `MyDSL.TargetView.actions` (quick-action lookup —
+real cross-file dependency, confirmed via grep this table is shared by
+construction, not duplicated), `MyDSL.copyArray()` (a real, 3-caller
+shared utility in `MyDSL_DataLayer.lua` — also used by `MyDSL_
+TargetView.lua`, not dead), `MyDSL.charName()`/`MyDSL.safeFileName()`
+(`MyDSL_DataLayer.lua`, each with 4 real callers project-wide), `MyDSL.
+Windows.*`/`MyDSL.Theme.styleConsole` (Layer 2/3 infra).
+
+**Called by:** nothing external calls into this module's functions —
+it's a leaf display module. `MyDSL.GroupView.config.gagGroup` is read
+by `MyDSL_DataLayer_PromptVitals.lua` (the one real, confirmed
+cross-file dependency, matching what that file's own section already
+documents).
+
+**Candidate cruft:** none found this pass — every function traces to a
+real trigger, alias, or dechoLink; config persistence is real and
+wired correctly (fixed 2026-07-11 per its own comment history).
+
+**Performance flags:** none — this module only redraws on `MyDSL.
+group.updated` (fires when the `group` command output is parsed, not a
+hot path) and `MyDSL.theme.changed` (user-triggered). No polling, no
+per-tick redraw, no unbounded loops (`render()` iterates `grp.members`,
+bounded by real group size).
+
+---
+
+## 26. `MyDSL_TickView.lua`
+
+**478 lines.** Display-only tick countdown window ("TickSource owns
+timing, TickView only renders `MyDSL.DB.tick`/`MyDSL.DB.timers.tick`" —
+its own header comment, confirmed accurate by this audit).
+
+**What it does:** `V.render(reason)` redraws a vertical gauge (tube +
+fill + countdown text + detail line) from `MyDSL.DB.tick`, color-coded
+by remaining time (`V.palette()`: green "ready" / yellow "warn" at
+≤15s / red "danger" at ≤5s). Settings persistence via its own
+`tickview_settings.lua` (separate from `MyDSL.Windows`'s per-window
+registry — see Candidate cruft). Standard lifecycle: `show/hide/
+toggle/rebuild/setFont/setMode/setTitle/status`.
+
+**Public surface:** `V.render/show/hide/toggle/rebuild/setFont/
+setMode/setTitle/status/installHandlers/installAliases/boot` —
+confirmed via grep, **zero external module callers** — every real call
+site is this file's own `mydsl tickview <verb>`/`toggle ticktimer`
+aliases.
+
+**Depends on:** `MyDSL.DB.tick`/`MyDSL.DB.timers.tick` (`MyDSL_
+DataBridge.lua`/`MyDSL_TickSource.lua`), `MyDSL.Theme.panelCSS/
+colorToCSS/get` (soft-checked), `MyDSL.Windows.registry["MyDSL_Tick"]`
+(read/written directly for a visibility-state sync — see Candidate
+cruft).
+
+**Called by:** nothing external — leaf display module.
+
+**Candidate cruft:**
+- **Two independently-persisted visibility flags for the same window,
+  confirmed still real as of this pass**: `V.config.shown` (this
+  file's own `tickview_settings.lua`) and `MyDSL.Windows.
+  registry["MyDSL_Tick"].visible` (WindowRegistry's separate state
+  file). The file's own 2026-07-11 comment already documents this
+  exact drift risk and added `syncRegistryVisible()`/`V.toggle()`
+  preferring the registry's value as a partial fix — but `V.show()`/
+  `V.hide()` still write to BOTH locations on every call rather than
+  there being one source of truth, so the drift is mitigated, not
+  eliminated. Worth Steven deciding whether TickView should stop
+  keeping its own `shown` flag entirely and read WindowRegistry
+  exclusively, now that a sync path already exists.
+- `V.settingsFile()`/`saveSettings()`/`loadSettings()` hand-roll a
+  bespoke `return { ... }` Lua-literal serializer instead of using
+  `table.save()`/`table.load()` like every other module in this
+  codebase (`MyDSL_GroupView.lua`, `MyDSL_LayoutEngine.lua`, `MyDSL_
+  ThemeEngine.lua`, etc. all use the stdlib pair). Not a bug — it
+  works — but it's a real, isolated inconsistency in persistence
+  convention worth flagging since the audit is specifically looking
+  for "connections not in the same namespace" drift.
+
+**Performance flags:**
+- **Cross-references `MyDSL_TickSource.lua`'s section 8 finding
+  directly: `V.render()` is called on every `MyDSL.Timers.Updated`
+  event, which fires at TickSource's unconditional 4Hz loop rate —
+  and `V.render()` does NOT check `V.config.shown`/window-visibility
+  before doing its work.** Confirmed via grep: no early-return on
+  hidden state anywhere in `render()` — it always recomputes the
+  palette, repositions/restyles the fill Label, and re-echoes 3 text
+  labels, 4 times a second, even while the window is fully hidden via
+  `V.hide()` (which only calls `win:hide()`, it doesn't stop the
+  render loop feeding it). This means gating TickSource's 4Hz loop
+  alone (the fix suggested in that file's section) wouldn't fully
+  solve the problem on its own — `V.render()` itself would need the
+  same visibility gate, or the fix has to happen at the TickSource
+  level so nothing downstream needs to know about visibility at all.
+  Real, concrete, connects two separately-audited files into one
+  finding.
+
+---
+
+## 27. `MyDSL_CharacterAssist.lua`
+
+**479 lines.** Interactive equipment/combat-recovery assists — rearm on
+disarm, standup on knockdown, spellup automation loop. Ported from
+PNP's `DSL_PNP_Character.{disarm,spellup,standup}.lua`. Unlike Layer 1
+(`MyDSL_DataLayer*.lua`), this module deliberately SENDS real game
+commands — an approved, scoped exception (rearm/standup fire with zero
+typed input on a passive combat trigger; spellup's loop is gated behind
+an explicit user-typed start command).
+
+**What it does:** `CA.useItem()` (the one command-sending primitive
+everything else is built on — retrieve+wear/wield/cast an equipment
+item by derived keyword), `CA.checkVision()` (blind/no-light/can-see,
+derived from `MyDSL.State.room.name == "darkness"`), `CA.rearm()`/
+`rearmShield()` (auto-triggered on 6 disarm message patterns),
+`CA.standup()` (auto-triggered on 2 knockdown message patterns),
+`CA.startSpellup()`/`nextItem()`/`repeatItem()`/`stop()` (the bless/
+fireproof per-item automation loop, driven by `MyDSL.char.updated` for
+its "wait for server response" step since DSL2 has no native
+`onPrompt`-equivalent event).
+
+**Public surface:** `CA.checkVision()` — confirmed via grep, the one
+real external dependency: **exported specifically so `MyDSL_
+AutoWhere.lua` can reuse it** (that file's own comment says so, and the
+call site is real, not a comment). Every other `CA.*` function
+(`useItem/rearm/rearmShield/standup/startSpellup/nextItem/repeatItem/
+stop/setSpellInfo/spellupIgnore/equipWand/onCharUpdated`) has zero
+external callers — all wired internally via this file's own triggers/
+aliases/`registerAnonymousEventHandler`.
+
+**Depends on:** `MyDSL.State.equipment.slots`/`ignore` (read AND
+written — `spellupIgnore()` writes `MyDSL.State.equipment.ignore`
+directly, one more confirmed instance of the already-documented
+State-bypasses-Get/Set-API pattern), `MyDSL.State.room.name` (vision
+check).
+
+**Called by:** `MyDSL_AutoWhere.lua` → `CA.checkVision()` (real,
+confirmed).
+
+**Candidate cruft:** none found — every trigger/alias/function traces
+to a real, documented, Steven-approved feature. `deriveKey()`'s own
+comment notes PNP has a "set keyword" override alias for auto-derived
+keywords guessing wrong that wasn't ported ("v1: auto-derive only,
+revisit if it turns out to guess wrong often enough to matter") — a
+deliberate, self-flagged scope cut, not an oversight.
+
+**Performance flags:**
+- `registerAnonymousEventHandler("MyDSL.char.updated", "MyDSL.
+  CharacterAssist.onCharUpdated")` adds one more listener to the same
+  hot `char.updated` event storm already flagged in `MyDSL_
+  DataBridge.lua`'s and `MyDSL_DataLayer_Combat.lua`'s sections (fires
+  every combat round). `onCharUpdated()` itself is cheap when idle —
+  immediate `if CA._waiting ... elseif CA._repeatWaiting` check, both
+  false outside an active spellup run — so this is a small, not a
+  major, addition to that same event's total listener count. Worth
+  noting only because it's one more entry in the tally, not because
+  it's independently expensive.
+- No other concerns — `useItem()`/`rearm()`/etc. only run on an
+  explicit disarm/knockdown/spellup event, not on every line.
+
+---
+
+## 28. `MyDSL_LayoutEngine.lua`
+
+**516 lines.** Layer 2, File 2 of 3: percentage-based window layout
+system. Owns where every window's *first-ever* position is; Mudlet's
+own native dock-state persistence takes over after that (this file's
+own header is explicit about this — its positions only matter "the
+very first time a window is ever created"). Deliberately has zero
+dependency on `MyDSL_WindowRegistry.lua` (File 3) to avoid a circular
+import — `reflowAll(registry)` takes the registry as a parameter
+instead.
+
+**What it does:** `MyDSL.Layout.defaults` (one `{x,y,w,h}` fractional-
+position entry per window, heavily comment-annotated with real
+per-window layout history), `get/set/snapBack` (accessors),
+`save/load/validate` (persistence to `MyDSL_layout.lua`, with the
+already-fixed `table.load()` two-argument bug documented inline),
+`isOnScreen/applyToWindow/reflowAll` (pixel-math + apply-to-a-real-
+Geyser-object).
+
+**Public surface:** `MyDSL.Layout.get/set/resetAll/reflowAll/
+applyToWindow/isOnScreen/snapBack/save/load/validate`. Confirmed via
+grep: `get()` is the dominant real caller (`MyDSL_WindowRegistry.lua`
+×2, `MyDSL_MoonWeather.lua`, `MyDSL_AlterformView.lua` — both of the
+latter for their own Container-anchored positioning, not real
+UserWindows). `resetAll()`/`reflowAll()` are called from `MyDSL_
+WindowRegistry.lua`'s "mydsl layout reset" alias only. `set/snapBack/
+isOnScreen/applyToWindow/save/load/validate` have zero external
+callers — used only internally by this file's own functions.
+
+**Depends on:** nothing else in this codebase (by design — this is
+explicitly one of the two Layer-2 "own their data, no cross-imports"
+files alongside `MyDSL_ThemeEngine.lua`).
+
+**Called by:** `MyDSL_WindowRegistry.lua` (`get`, `resetAll`,
+`reflowAll`), `MyDSL_MoonWeather.lua`/`MyDSL_AlterformView.lua` (`get`,
+for their own Container positioning).
+
+**Candidate cruft:**
+- **Real dead scaffolding, confirmed via grep**: `MyDSL.Layout.
+  _handlers.characterIdentified` is declared and deregistered at
+  module-load time (lines 33-39, the standard "safe-reload" pattern
+  every other module uses) — but no code anywhere in this 516-line
+  file ever registers a handler under that key. There is no
+  corresponding `registerAnonymousEventHandler(..., ...)` call
+  assigning into `MyDSL.Layout._handlers.characterIdentified` at all.
+  Either a handler was removed at some point and its dereg cleanup was
+  left behind, or one was planned and never implemented — either way,
+  4 lines of pure dead code, safe to remove (killing a handler that
+  was never registered is a harmless no-op via the `pcall` guard, so
+  this has caused zero live bugs, just leftover scaffolding).
+
+**Performance flags:** none — `set()`/`snapBack()` call `save()`
+(`table.save()`, a real disk write) on every invocation with no
+debounce, unlike `MyDSL_DataLayer.lua`'s persistence layer — but both
+are only ever called from an explicit user drag/resize or `snapBack`
+action, never a hot path, so the lack of debouncing here is a
+non-issue (contrast with `MyDSL.save()`'s 2026-07-19 debounce fix,
+which mattered specifically because THAT save fired on every
+affect-change during combat). `reflowAll()`/`applyToWindow()` are only
+invoked explicitly (Section 8's own comment: automatic reflow-on-resize
+was deliberately removed because it fought the user), never on a
+timer or per-line trigger.
+
+---
+
+## 29. `MyDSL_Help.lua`
+
+**567 lines.** Layer 3: in-UI 3-level help system for DSL2's own UI
+(main-console terse list → clickable overview window → per-module
+detail page). Replaces an older flat `MyDSL.help()` dump that used to
+live directly in `MyDSL_DataLayer.lua`.
+
+**What it does:** `MyDSL.Help.modules` — a large (24-entry) hand-
+maintained content table, one entry per user-facing module (title,
+category, summary, command list with examples). `MyDSL.help()` prints
+the terse main-console version with clickable links; `MyDSL.Help.
+renderOverview()`/`render(key)`/`open(key)` drive the `MyDSL_Help`
+UserWindow's 3 view levels via `dechoLink()` navigation (confirmed via
+this file's own header comment and cross-referenced against `MyDSL_
+PromptSetup.lua`/`MyDSL_GroupView.lua`: the 2nd `dechoLink` arg is Lua
+code executed on click, not a typed alias command, so no per-module
+alias is needed for navigation).
+
+**Public surface:** `MyDSL.Help.init/renderOverview/render/open/
+setFont`, `MyDSL.help()`. Confirmed via grep: **zero external module
+callers** for any of these — every real call site is this file's own
+`mydsl help[...]`aliases or its own internal `dechoLink` click targets.
+This is a correctly self-contained leaf module.
+
+**Depends on:** `MyDSL.Windows.ensure/show/setFontSize` (Layer 2/3
+window infra), `MyDSL.Theme.styleConsole` (soft-checked).
+
+**Called by:** nothing external.
+
+**Candidate cruft:**
+- **Self-identified maintenance-drift risk, not code cruft**: the
+  file's own header explicitly says `MyDSL.Help.modules` is "hand-
+  maintained... not derived at runtime from the live alias tree, so
+  keep this in sync by hand when a module gains/loses a command." Not
+  independently audited command-by-command against the live alias
+  tree this pass (would require cross-referencing all 24 modules'
+  documented commands against every other file's real `tempAlias`
+  registrations, a separate exercise) — flagging the file's own
+  admitted risk here rather than silently passing over it, since the
+  audit's own goal ("cross check connections... review it like it's a
+  new project") is exactly the kind of check that would catch this if
+  it's drifted.
+
+**Performance flags:** none — purely reactive to explicit `mydsl
+help...` commands and window-open clicks, no polling, no per-tick
+work, one `MyDSL.theme.changed` listener (cheap, user-triggered only).
+
+---
+
+## 30. `MyDSL_ThemeEngine.lua`
+
+**572 lines.** Layer 2, File 1 of 3: visual theme system — 5 named
+presets, per-window zone assignment (used only by the `zoned_hud`
+preset), per-window override escape hatch, and the `theme` alias
+family. Already been through one real cleanup pass (2026-08-23: 3 dead
+functions — `titleCSS()`/`bodyTextCSS()`/`colorToEcho()` — removed
+after confirming zero real callers; `setOverride()`/`clearOverride()`
+were found half-wired and finished into the real `theme override`
+alias).
+
+**What it does:** `MyDSL.Theme.presets` (5 complete key-sets: refined_
+convergence/terminal_purist/zoned_hud/obsidian_ember/arcane_midnight),
+`MyDSL.Theme.get(windowName, key)` (4-tier precedence: per-window
+override → active preset's zone entry → active preset's flat value →
+bare default), `colorToCSS()`/`colorToBracket()` (two genuinely
+different, non-interchangeable color-string formats — CSS rgba() vs.
+Geyser's own `"<r,g,b>"` bracket notation, confirmed against real
+`GeyserLabel.lua` source per this file's own comment), `panelCSS()`/
+`styleConsole()` (ready-made stylesheet builders every View module's
+background Label/MiniConsole calls into), `setTheme()`/`setOverride()`/
+`clearOverride()` (mutators, each raising `MyDSL.theme.changed`).
+
+**Public surface, confirmed via grep (real external call counts, not
+just definitions):** `MyDSL.Theme.get` (26 external call sites — the
+dominant real API), `styleConsole` (36 — the single most-called
+function in this file, used by nearly every View module's window
+init), `colorToCSS` (15), `panelCSS` (9), `colorToBracket` (3, real —
+`MyDSL_Chat.lua`'s EMCO tab-color integration per that file's own
+2026-08-24 addition), `setOverride`/`clearOverride`/`setTheme`/`list`/
+`loadActive`/`saveActive` (2-4 each, all real, all from this file's own
+alias bodies — confirmed no OTHER module calls the mutators directly,
+which is correct: theme changes are meant to go through the `theme`
+alias, not be triggered programmatically by a View module).
+
+**Depends on:** nothing else in this codebase (by design, same as
+`MyDSL_LayoutEngine.lua` — the other "owns its data, no cross-imports"
+Layer-2 file). Soft-checks `MyDSL.Windows.registry` in the `theme
+override` alias body (a guarded typo-warning, not a hard dependency).
+
+**Called by:** nearly every Layer-3 View module (`styleConsole`/`get`/
+`panelCSS`/`colorToCSS` are the most widely-shared functions in the
+entire Layer-2/3 boundary).
+
+**Candidate cruft:**
+- **Real, confirmed dead table, same class of finding as `MyDSL_
+  LayoutEngine.lua`'s dead handler slot above.** `MyDSL.Theme._handlers
+  = MyDSL.Theme._handlers or {}` is declared at the top of the file
+  (Section 1, the standard safe-reload scaffold every module uses) —
+  but grep confirms nothing anywhere in this 572-line file ever writes
+  into it (no `MyDSL.Theme._handlers.<name> = registerAnonymousEvent
+  Handler(...)` exists) or reads from it beyond the declaration itself.
+  This file doesn't register any event handlers at all — it's purely
+  a data+accessor module, reacting to nothing, so the `_handlers` table
+  was never actually needed. 3 lines of dead scaffolding, safe to
+  remove.
+- Beyond that specific table, nothing else looks unused this pass —
+  the file reads as genuinely clean following its 2026-08-23 cleanup;
+  every preset, every accessor, every alias traces to a real, still-
+  live consumer.
+
+**Performance flags:** none — this file does no polling, no per-tick
+work, and every function only runs in response to an explicit `theme`
+alias command or a `styleConsole()`/`get()` call made by some other
+module's own event-driven render path (which is that OTHER module's
+performance profile to account for, not this file's).
+## 31. `MyDSL_AlterformView.lua`
+
+**586 lines.** Small standalone countdown window for the "alterform"
+affect, structurally mirroring `MyDSL_TickView.lua`'s panel/tube/fill
+layout but sitting beside it as a matched pair with its own violet
+accent.
+
+**What it does:** renders a countdown widget (`F.render()`) driven
+entirely by `MyDSL.Affects.getRemaining("alterform")` — owns no timing/
+parsing of its own, reusing `MyDSL_AffectsView.lua`'s existing tick-
+average-based duration math. Three visual zones (ready/warn/danger)
+via `F.palette()`, a matching warning/danger sound at the same
+thresholds (`F.checkSoundWarning()`, fires once per zone transition,
+not per render), auto-hide when the affect isn't active, and the usual
+show/hide/toggle/rebuild/font/title/sound aliases under `mydsl
+alterform <verb>`.
+
+**Public surface:** `F.render()/show()/hide()/toggle()/rebuild()/
+setFont()/setSoundEnabled()/setTitle()/status()`. Confirmed via grep:
+**zero external callers of any `MyDSL.AlterformView.*` function** —
+every real reference outside this file is either a `WINDOW_INITIAL_
+DOCK`/`DEFAULT_REGISTRY`/theme/layout config entry keyed by the window
+name `"MyDSL_Alterform"` (data, not a function call) or `test/
+test_alterform_sound_warning.lua`. This is the expected, correct
+pattern for a self-contained View module (same as every DataLayer
+domain's parse functions) — not cruft.
+
+**Depends on:** `MyDSL.Affects.getRemaining()` (defined in `MyDSL_
+AffectsView.lua` — a real View-to-View dependency, not a DataLayer
+read; confirmed via grep this is the ONLY other module besides
+AffectsView itself calling this function), `MyDSL.Theme`/`MyDSL.Layout`/
+`MyDSL.Windows` (all soft, defensively checked), `Adjustable.Container`
+directly (bypasses `MyDSL.Windows.ensure()` for its own window creation,
+same pattern as `MyDSL_MoonWeather.lua`, with a `MyDSL.Windows.registry`
+fallback if the direct construction fails).
+
+**Called by:** nothing calls into this module — it's a leaf display
+node. `MyDSL_WindowRegistry.lua`'s `characterIdentified`/`themeChanged`
+handlers iterate the registry and would call `show()/hide()`/apply
+theme CSS on whatever object is registered under `MyDSL_Alterform`, and
+this file's own `F.ensureUI()` does register the real object into
+`MyDSL.Windows.registry[F.name].obj` (a documented 2026-07-12 bug fix,
+comment still present in source) — so unlike `MyDSL_PortraitView.lua`
+(see section 33), this module's registry integration is real and
+correctly wired, not orphaned.
+
+**Candidate cruft:** none found — every function has a real trigger
+(alias or event handler), and the two historical Adjustable.Container
+lock/title bugs documented in the file's own comments (padding lockStyle
+silently no-op'ing; `lockContainer("light")` disabling resize, not just
+hiding chrome) are both fixed in the current source, confirmed by
+reading the actual `F.ensureUI()`/`F.boot()` code, not just trusting
+the comment.
+
+**Performance flags:** `F.render()` is driven by `MyDSL.Timers.Slow`
+(the shared 1Hz heartbeat from `MyDSL_TickSource.lua`), not its own
+timer — correct, lightweight pattern, consistent with the rest of the
+codebase. `F.checkSoundWarning()` correctly fires only on a zone
+*transition*, not on every render call, avoiding a real "sound spam
+every tick while in the danger zone" bug that a naive implementation
+would have. No concerns.
+
+---
+
+## 32. `MyDSL_WindowRegistry.lua`
+
+**938 lines.** Layer 2, file 3 of 3 — the central window-lifecycle
+manager virtually every View module depends on. Must load after
+`MyDSL_ThemeEngine.lua`/`MyDSL_LayoutEngine.lua`.
+
+**What it does:** owns the single registry of all windows (`MyDSL.
+Windows.registry`, 19 entries — see Candidate cruft, the file's own
+header/comments say "20" in two places, both stale), lazy on-demand
+window creation (`ensure()`), show/hide/toggle, visibility-state
+persistence (character-bound, `MyDSL_windowstate_<Char>.lua`), the
+one-time-per-profile initial dock-side assignment (`WINDOW_INITIAL_
+DOCK`, the 2026-08-24 fix for the "fresh profile piles every window on
+the right" bug), profile-level (not character-bound) font-size and
+title-visibility persistence (`MyDSL_windowfonts.lua`/`MyDSL_titles_
+visible.lua`), the shared `enableAdaptiveWrap()` helper (extracted
+2026-07-18 after 3 View modules each hand-copied the same buggy
+pattern), and a `Geyser.UserWindow.new` constructor patch that forces
+`restoreLayout=true`/`autoDock=true` onto every window any module
+creates.
+
+**Public surface** (confirmed via grep — real external callers only):
+`MyDSL.Windows.get()/ensure()/ensureAll()/show()/hide()/toggle()/
+saveState()/loadState()` are called from **17 different `MyDSL_*.lua`
+files** (`MyDSL_TickView`, `MyDSL_PortraitView`, `MyDSL_ScanView`,
+`MyDSL_ItemReference`, `MyDSL_GroupView`, `MyDSL_AffectsView`, `MyDSL_
+LocationView`, `MyDSL_ThemeEngine`, `MyDSL_Leveling`, `MyDSL_
+CombatView`, `MyDSL_CreatureReference`, `MyDSL_AlterformView`, `MyDSL_
+RouteHelper`, `MyDSL_Chat`, `MyDSL_TargetView`, `MyDSL_Help`, `MyDSL_
+MoonWeather`) plus `MyDSL_DataLayer.lua` itself (a real, harmless status-
+readout that counts `MyDSL.Windows.registry` entries for a diagnostic
+command — reads the registry table directly, doesn't call any
+function). `MyDSL.Windows.getFontSize()/setFontSize()/
+enableAdaptiveWrap()` are the other widely-used entry points (font
+persistence, confirmed called from multiple View modules). This is
+genuinely the single most depended-upon Layer-2/3 file after `MyDSL_
+DataLayer.lua` itself.
+
+**Depends on:** `MyDSL_ThemeEngine.lua` (`MyDSL.Theme.panelCSS`, must
+load first per this file's own header), `MyDSL_LayoutEngine.lua`
+(`MyDSL.Layout.get()`, must load second), `Geyser`/`Adjustable.
+Container` directly.
+
+**Called by:** effectively every View module in the codebase — see
+Public surface. `MyDSL_PortraitView.lua` is the one confirmed exception
+that thinks it's calling in but isn't landing correctly — see section
+33's own writeup for the real cross-file bug this surfaced.
+
+**Candidate cruft:**
+- **Stale window count in two places.** The file's own top-of-file
+  comment says "creates and tracks all 20 UI windows," and the final
+  `debugc()` load-confirmation line computes `table.getn and table.
+  getn(MyDSL.Windows.registry) or 20` — `table.getn` was removed from
+  Lua entirely at 5.1 (this project runs on LuaJIT), so `table.getn`
+  is always `nil`, the `and` short-circuits, and this line **always
+  prints the hardcoded fallback "20 windows registered," never the
+  real count**, regardless of how many are actually registered.
+  Confirmed via grep: `DEFAULT_REGISTRY` has 19 real entries, not 20 —
+  both the header comment and this debug line are stale (predate
+  whichever window was added/removed last) and the debug line's own
+  intended "count them for real" logic has been silently dead code
+  since it was written (any Lua 5.1+/LuaJIT runtime, which is this
+  entire project). Harmless — it's a debug-console cosmetic line, not
+  logic — but a good one-line fix (`local n=0 for _ in pairs(...) do
+  n=n+1 end` — the exact pattern already used identically for the
+  `WindowRegistry: font sizes loaded... (N windows)` line right above
+  it in the same file) and a good example of exactly the kind of
+  cross-check-for-real-behavior gap this audit is looking for.
+
+**Performance flags:**
+- The initial-dock-side logic (`WINDOW_INITIAL_DOCK`) is correctly
+  gated by the one-time `isFirstDockInit()` marker-file check, cached
+  in `MyDSL.Windows._applyInitialDock` after the first read so it's
+  not a disk read per window creation (confirmed by reading the actual
+  `ensure()` code: the disk check only happens once per session, the
+  cached boolean is reused for every subsequent window). No concern —
+  this is exactly the guarded, run-once-per-profile behavior the
+  header comment claims.
+- `saveState()`/`saveFontSizes()` are called synchronously, but only
+  from explicit user actions (show/hide/toggle a window, set a font
+  size) — not from any hot-path event. No debounce needed here the way
+  `MyDSL_DataLayer.lua`'s `MyDSL.save()` needed one (that one fires on
+  every affect change during combat; this one fires on a deliberate,
+  infrequent user action).
+- No other performance concerns — `ensureAll()` runs once at startup
+  (O(19), not a hot path), and the theme-changed/character-identified
+  handlers only re-touch windows that already exist.
+
+---
+
+## 33. `MyDSL_PortraitView.lua`
+
+**1,013 lines.** Character portrait window (`mydsl portrait <verb>` /
+legacy `charpic <verb>` compatibility aliases), ported from an older
+standalone "CharPic" script.
+
+**What it does:** resolves a per-character portrait image path (either
+a manually-configured override in its own `portrait_profiles.lua`, or
+an automatic `<CharacterName>.png` lookup in a configurable directory),
+renders it into a window with a choice of fit modes (stretch/contain/
+cover — `stretch` is the current real default per a 2026-07-12 Steven
+preference), and a full CharPic-compatible alias/global-function
+surface for backward compatibility.
+
+**Public surface:** `MyDSL.Portrait.refresh()/show()/hide()/setPath()/
+setDir()/setFit()/setFont()/setTitle()/setMissing()/probe()/dump()/
+status()`, plus a global `CharPic.*` compatibility table wrapping the
+same functions. Confirmed via grep: **zero external callers of any
+`MyDSL.Portrait.*` or `CharPic.*` function from any other `MyDSL_*.lua`
+file** — every real reference outside this file is a config entry
+keyed by the window name `"MyDSL_Portrait"` (`MyDSL_LayoutEngine.lua`'s
+position, `MyDSL_ThemeEngine.lua`'s color preset, `MyDSL_WindowRegistry
+.lua`'s registry/dock-side entry, `MyDSL_Help.lua`'s help-text link),
+never a real function call. This module is entirely self-contained,
+driven only by its own aliases and GMCP event handlers.
+
+**Depends on:** `MyDSL.Theme` (soft, for border/background CSS),
+`MyDSL.Windows` — **but see the real bug below, this dependency doesn't
+actually work the way it looks like it should.**
+
+**Called by:** nothing — see Public surface.
+
+**Candidate cruft — a real, confirmed cross-file connection bug, exactly
+the class of thing this audit was asked to find:**
+- **`P.getWindowEntry()` (line 471-476) reads `MyDSL.Windows.windows[...]`
+  — a table that has never existed.** Confirmed via grep across `MyDSL_
+  WindowRegistry.lua`: the real, only table it ever exposes is `MyDSL.
+  Windows.registry`, never `MyDSL.Windows.windows`. This means `P.
+  getWindowObject()` (which calls `getWindowEntry()` first) **always**
+  falls through to its final fallback (`return P.window`, which is
+  `nil` on first call) — so even though `P.ensureWindow()` genuinely
+  does call `MyDSL.Windows.ensure("MyDSL_Portrait")` (which creates and
+  registers a real `Geyser.UserWindow` in the central registry), this
+  file never actually picks up that object. Instead, `P.ensureWindow()`
+  falls through to its own manual `Geyser.UserWindow:new({name =
+  "MyDSL_Portrait", ...})` fallback path — **creating a second,
+  independent window object under the exact same name.** Practical
+  effect: `MyDSL_WindowRegistry.lua`'s registry entry for
+  `"MyDSL_Portrait"` holds a real but orphaned window object that
+  nothing shows/positions/themes correctly relative to the one the
+  player actually sees, while the theme-changed/character-identified/
+  dock-side logic in `MyDSL_WindowRegistry.lua` (which iterates the
+  registry and calls `show()`/`hide()`/`applyTheme()` on
+  `entry.obj`) is silently operating on the wrong object — it would
+  have zero visible effect on the real, displayed portrait window.
+  Confirmed via grep this is not a naming inconsistency that resolved
+  itself some other way: no file anywhere in the repo ever defines
+  `MyDSL.Windows.windows`. This single-word field-name mismatch (
+  `windows` vs `registry`) appears to be the reason `MyDSL_Portrait`'s
+  entry in `WINDOW_INITIAL_DOCK`/theme presets/layout positions may
+  never actually be reaching the visible window — worth Steven
+  confirming live whether portrait theme/dock/layout changes visibly
+  apply (if they silently don't, this bug is the reason).
+
+**Performance flags:** `P.installEvents()` registers on `gmcp.
+char_data`/`gmcp.login_data` with a `tempTimer(0.15, ...)` debounce
+before refreshing — reasonable, not a hot-path concern (portrait
+refresh is cheap: one file-exists check, one image render). No new
+concerns beyond the connection bug above.
+
+---
+
+## 34. `MyDSL_Leveling.lua`
+
+**1,031 lines.** Separate outside addon (not part of `MyDSL_Full.
+mpackage`, confirmed via grep: no `dofile()` entry for it anywhere in
+`build_mydsl_package.py`'s output or `current/*.xml` — it's wired in
+manually, per its own header). The one module in this codebase with an
+explicit, narrow, Steven-granted exception to send real automatic game
+commands (movement + `kill`/`order all kill` + `drop <n> silver` +
+optional buff-reapply).
+
+**What it does:** auto-navigates known hunting areas (`map.speedwalk()`
+when a room ID is cached, falling back to a raw direction-list replay
+otherwise) and auto-engages enabled mobs recognized from `MyDSL_
+DataLayer.lua`'s own room-scan capture (reused directly — "no duplicate
+trigger chain," confirmed via grep: this file registers zero of its
+own room-content triggers, only `MyDSL.on("scan", ...)`). Session
+control is deliberately minimal (start/pause/resume/stop, no fallback
+timer — removed entirely per an explicit 2026-07-20 Steven decision),
+with an HP%-threshold safety net as the one remaining automatic stop
+condition. Area/mob data is user-editable and separately seedable from
+a community forum-sourced data file.
+
+**Public surface:** `MyDSL.Leveling.startArea()/pause()/resume()/
+stop()/status()/tryKill()/processStep()/listAreas()/areaInfo()/
+scanMobs()/newArea()/deleteArea()/setMobEnabled()/importSeedAreas()`,
+all dispatched through one alias (`mydsl leveling <verb>`) rather than
+called directly by other modules. Confirmed via grep: **zero external
+callers of any `MyDSL.Leveling.*` function** — the only other file
+mentioning `MyDSL.Leveling` at all is its own seed data file (`MyDSL/
+leveling_areas_seed.lua`, a data reference, not a call). This matches
+the file's own documented "separate outside addon" design — not cruft.
+
+**Depends on:** `MyDSL_DataLayer.lua` (`MyDSL.on("scan", ...)`/
+`MyDSL.on("char", ...)` — the two real consumers of the whole-codebase's
+otherwise-rarely-used `MyDSL.on()` API, see section 1's own finding
+that `MyDSL.on()` has exactly one real consumer — this file confirms
+that consumer is Leveling, twice over), guarded by its own `
+onceDataLayerReady()` retry-poll wrapper (a real 2026-07-21 bug fix —
+a load-order race could otherwise abort this file's entire
+initialization with a Lua error). Also soft-depends on `MyDSL.Target.
+set()` (`MyDSL_TargetView.lua`), `_G.map`/`_G.getPath` (the
+`DSL_Generic_Mapper.xml` fork's `speedwalk()`/pathfinding), `MyDSL.
+CreatureLore.knownState()` (soft, for danger-level display in `area
+info`).
+
+**Called by:** nothing — a leaf addon, entirely alias-driven.
+
+**Candidate cruft:** none found — every function traces to a real
+alias dispatch or event handler, and the file's own extensive comment
+history shows a real pattern of live bugs found and fixed (load-order
+crash, seed-file path resolution, aura-tag mob-matching mismatch,
+Focus/TargetView never being told what's being fought) rather than
+speculative/unused code.
+
+**Performance flags — special attention was requested here since this
+module actually sends autonomous game commands, unlike every passive-
+observation module elsewhere in this codebase:**
+- **No polling loop of any kind, confirmed by reading every trigger/
+  handler in the file.** All control flow is event-driven: the
+  `xpGain`/`fleeCombat`/`killStolen`/`cannotMove`/`tooHeavy`/buff-
+  wearoff triggers all fire only on specific real game text, and the
+  `MyDSL.on("scan"/"char", ...)` listeners fire only on real upstream
+  DataLayer events. The only two `tempTimer()` calls in the whole file
+  (`cannotMove`'s 2s retry, `tooHeavy`'s 2s retry-after-drop) are both
+  genuine one-shot delays for a specific interruption, not a
+  recurring loop — confirmed neither re-schedules itself. This is
+  exactly the well-behaved pattern the "special attention" ask was
+  checking for; nothing to flag.
+- `L.tryKill()`/`L.processStep()` are called once per real game event
+  (XP gain, room-scan completion), not on any fixed interval — the
+  pacing is entirely server-driven, which is the correct design for a
+  module that sends real commands (it can never get ahead of what the
+  server has actually confirmed).
+- No new performance concerns.
+## 35. `MyDSL_MoonWeather.lua`
+
+**1,062 lines.** Layer-3 passive display: moon phase (3-moon HUD with
+focal-moon selection by alignment), weather description, and a live
+interpolated game-time clock.
+
+**What it does:** `MW.render()` builds one HTML table (moon circles +
+focal phase/bonus text + day/night/clock/date row) and echoes it to a
+single `Geyser.Label`. Live clock (`MW.clockStr()`) interpolates DSL
+time forward in real-time between `time`/tick anchors using
+`MyDSL.DB.tick.average` (TickSource's smoothed tick length) rather than
+a fixed constant. Lunar countdown (`MW.cyclesNow()`/`countdownStr()`)
+similarly interpolates cycles-remaining between real `lunar` command
+parses. Weather line (`buildWeatherText()`) derives an icon+label+wind
+summary from `MyDSL.State.weather.description`/`windDescription`
+(`MyDSL_DataLayer_PromptVitals.lua`'s capture). Optional gag triggers
+suppress the raw `lunar` output on the main console (default off).
+
+**Public surface:** `MW.show()/hide()/toggle()/render()/setGag()`, all
+wired only to this file's own `mydsl moon <verb>` aliases (`toggle`,
+`on`, `off`, `font <n>`, `gag`, `ungag`) plus a PNP-vocabulary `toggle
+moons` alias. Confirmed via grep: **zero external callers of any
+`MyDSL.MoonWeather.*` function** — `MyDSL_Help.lua` only references it
+in help text, not code. Fully self-contained.
+
+**Depends on:** `MyDSL.State.lunar/weather/time/score` (read directly,
+bypassing the Get/Set API, same pattern as the 12 modules section 1
+already flagged), `MyDSL.DB.tick` (TickSource), `MyDSL.Theme.get()`
+(background color), `MyDSL.Layout.get()` (initial position), `MyDSL.
+Windows` (show/hide/toggle delegation — a 2026-07-11 fix that removed
+this file's own independently-tracked visibility flag in favor of
+WindowRegistry as sole source of truth).
+
+**Called by:** nothing external calls into this module — it is a pure
+leaf display node (real trigger registrations + its own aliases only).
+
+**Candidate cruft:** none found — the file's own header even documents
+a prior real dead-code removal (5 named event-handler functions
+deleted 2026-07-07 after `_registerHandlers()` was refactored to use
+inline closures instead, confirmed via grep at the time). Nothing new
+found this pass.
+
+**Performance flags:**
+- **Genuinely well-optimized, two real applied fixes worth citing as
+  positive examples**: (1) `MW.render()` early-returns if the built
+  HTML string is byte-identical to the last echoed one (`MW._lastHtml`
+  comparison) — added 2026-07-12 specifically because re-echoing
+  unchanged HTML every second was forcing Qt to reload the `<img>` moon
+  tiles from disk every second for zero visible change. (2) The live
+  clock/lunar countdown ride `MyDSL.Timers.Slow` (TickSource's shared
+  1Hz heartbeat, see section 8) instead of running an independent
+  `tempTimer` self-reschedule chain — the file's own comment confirms
+  this was audited and is "the only other self-perpetuating timer loop
+  anywhere in the profile besides TickSource's own" before the
+  consolidation, now removed. Both are real, already-shipped fixes,
+  not just design intentions — confirmed current in this source.
+- No new performance issues found.
+
+---
+
+## 36. `MyDSL_AffectsView.lua`
+
+**1,275 lines.** Layer-3 display + light Layer-4 profile persistence:
+active/tracked buff-and-debuff window with GMCP-driven live tracking,
+text-parse fallback capture, per-character spell-command profiles, and
+clickable recast links.
+
+**What it does:** `A.list`/`A.tracked` hold active/watched affects.
+GMCP-first capture (`A.onGmcpEvent()`/`gmcpAdd()`/`gmcpRemove()`/
+`syncGmcpFull()`) is primary; a text-parse fallback
+(`startCapture()`/`captureSpellLine()`/`finishCapture()`) exists for
+when GMCP is unavailable — both paths documented and both gated by
+`A.config.useGmcp`/`useTextFallback`. `A.getRemaining(name)` is a
+public read-only API (same shape as `MyDSL.getTargetCondition()`, per
+its own comment) other modules use to ask "how much time is left on
+X." `A.recast()`/`respell()`/`spellup()` build and send cast-command
+sequences (per-affect custom commands stored via `A.setCommand()`).
+`A.applyLinks()` wires clickable "recast" hyperlinks onto rendered
+affect names. Per-character profile persistence
+(`A.save()`/`loadData()`/`loadProfileForCurrentChar()`) is separate
+from `MyDSL_DataLayer.lua`'s own `MyDSL.save()` — its own dedicated
+data file, not the same mechanism (see section 1's flagged ambiguity
+about which `MyDSL.save()`-shaped callers mean *that* file's function —
+this one confirms it's a distinct, self-contained save, not a call
+into DataLayer's).
+
+**Public surface:** `A.getRemaining(name)` — confirmed real external
+caller: `MyDSL_AlterformView.lua` calls it twice (`getRemaining
+("alterform")`) plus reads `A.config.lowCycles` directly. Every other
+`A.*` function (`show/hide/toggle/track/untrack/recast/respell/
+spellup/setCommand/...`) is called only from this file's own ~35
+`mydsl affects <verb>` aliases (plus 2 bare PNP-vocabulary aliases,
+`respell`/`spellup`) — confirmed via grep, no other module calls them.
+
+**Depends on:** `MyDSL.Windows` (show/hide), `MyDSL.Theme` (colors),
+raw `gmcp.affect_data`/`add_affect`/`remove_affect`/`char_data`/
+`login_data`, `MyDSL.Timers.Slow`/`MyDSL.Tick.Updated` (TickSource).
+
+**Called by:** `MyDSL_AlterformView.lua` (`getRemaining`, `config.
+lowCycles`) — a real, confirmed, intentional cross-View dependency
+(Alterform reuses Affects' own countdown data instead of re-tracking
+its own affect separately).
+
+**Candidate cruft:** none found this pass.
+
+**Performance flags:**
+- **Already carries 2 real, documented 2026-07-11/07-12 perf fixes,
+  same class as `MyDSL_TickSource.lua`'s throttling story**: `A.
+  onTimersUpdated()` switched from the 0.25s `MyDSL.Timers.Updated`
+  event to the 1Hz `MyDSL.Timers.Slow` event, AND was further narrowed
+  to only actually call `A.display()` (described in this file's own
+  comment as "a full window clear+redraw plus an up-to-300-line link-
+  rescan") when `timerMode` is `"time"`/`"both"` — the default
+  `"cycles"` mode no longer redraws on the 1Hz tick at all, since its
+  displayed text doesn't change that often. Both fixes confirmed
+  current in this source.
+- **Worth confirming, not yet confirmed either way**: `A.
+  registerHandlers()` registers `onGmcpEvent` on SIX separate event
+  names for what may be overlapping underlying signals —
+  `gmcp.affect_data`, `gmcp.affect_data.affects`, `gmcp.add_affect`,
+  `gmcp.remove_affect`, and the bare (no `gmcp.` prefix) `add_affect`/
+  `remove_affect`. Unlike section 9's DataBridge finding, this audit
+  did NOT trace whether Mudlet/DSL's GMCP dispatch actually raises both
+  the `gmcp.`-prefixed and bare forms for the same real packet (that
+  would require deeper Mudlet-source tracing than this pass covered) —
+  flagging as a "confirm before assuming either way" item rather than
+  a confirmed double-fire, since the six-registration pattern here
+  looks the same shape as the confirmed DataBridge bug but wasn't
+  independently verified to actually double-fire.
+- `A.onTickUpdated()` already guards against `MyDSL.Tick.Updated`'s own
+  known over-firing (raised on every 0.25s internal timer tick, not
+  just real game ticks) by comparing `MyDSL.DB.tick.ticks` before
+  decrementing — a real, correct fix, not a gap.
+
+---
+
+## 37. `MyDSL_LocationView.lua`
+
+**1,278 lines.** Layer-3 dockable room-picture window, room-ID-keyed
+(not name-keyed, since DSL has many duplicate room names) picture
+assignment with a manual-mapping profile file.
+
+**What it does:** `M.roomData()` resolves the current room via the
+Mudlet mapper's own room ID (`mapperRoomId()`/`mapperAreaName()`) plus
+GMCP, then `M.pathForRoomId()` resolves that room ID to an assigned
+picture file (exact-mapping profile → filename convention → legacy
+fallback → "conflict"/"no picture" states). `M.render()` sets the
+image (3 fit modes: cover/contain/stretch, each with its own
+documented historical Mudlet-rendering-quirk fix) and caption label.
+
+**Public surface:** `M.mapRoom()/unmapRoom()/listMaps()/probe()/
+status()/info()/setImage()/setDir()/setFit()/setMissing()/setTitle()/
+rebuild()`, all wired only to this file's own `mydsl location <verb>`/
+`mydsl loc`/`roompic`/`locpic` aliases. Confirmed via grep: **`MyDSL_
+LiveView.lua` calls `MyDSL.Location.roomData()` directly** (line 16
+comment + line 289-290, wrapped in `pcall`) — a real, deliberate
+cross-View reuse (LiveView asks LocationView for its already-resolved
+room data instead of re-deriving mapper/GMCP room info itself). No
+other external callers found.
+
+**Depends on:** Mudlet's mapper API (`getRoomArea`/room-ID resolution),
+raw `gmcp.room_data` directly (not `MyDSL.State.room`), `MyDSL.Theme`
+(colors), `MyDSL.Windows`.
+
+**Called by:** `MyDSL_LiveView.lua` (`roomData()`, confirmed real,
+guarded with `pcall`).
+
+**Candidate cruft:** `M.h2 = registerAnonymousEventHandler("gmcp.Room.
+Info", ...)` — `gmcp.Room.Info` is the generic-MUD-client GMCP
+convention; this whole project's own established finding (confirmed
+repeatedly elsewhere, e.g. `MyDSL_LiveView.lua`'s own registration list
+below) is that DSL always uses the lowercase `gmcp.room_data` form
+instead, so this specific handler registration is very likely dead
+weight — harmless (never fires) but worth removing for clarity, same
+class of finding as `MyDSL_LiveView.lua`'s own self-documented dead
+capitalized-event registrations below.
+
+**Performance flags:**
+- **Confirmed real double-fire, same class as section 9's `MyDSL_
+  DataBridge.lua` finding.** `M.installEvents()` registers `M.
+  onRoomData()` (→ unconditionally calls `M.refresh()`) on BOTH the raw
+  `gmcp.room_data` event AND the mapper's own `onNewRoom` event — both
+  of which fire for the same real "you entered a new room" moment
+  (`onNewRoom` is raised by `DSL_Generic_Mapper.xml`'s "English Exits
+  Trigger," itself triggered by the same room's `[Exits: ...]` line
+  that accompanies the same `gmcp.room_data` packet). Traced `M.
+  refresh()` → `M.render()` directly: **neither has an unchanged-room
+  early return** — every call re-resolves the room-ID→picture mapping
+  and unconditionally re-sets the image stylesheet + re-echoes the
+  image HTML, which for the `contain`/`stretch` fit modes includes a
+  real `getImageSize()`/`get_width()`/`get_height()` image I/O call
+  (per `containImageHTML()`'s own comment). So every single room
+  entered pays for this full image-resolve-and-redraw pipeline twice,
+  not once. Smaller blast radius than DataBridge's finding (fires once
+  per room change, not once per combat round), but the same root cause
+  (raw GMCP event + a same-moment re-raised/derived event both wired to
+  the same expensive handler) and a real, fixable render-doubling bug
+  worth fixing alongside it.
+- No other performance concerns found — `roomData()`/`pathForRoomId()`
+  themselves are simple lookups, no loops over unbounded collections.
+
+---
+
+## 38. `MyDSL_LiveView.lua`
+
+**1,326 lines.** The largest single-window Layer-3 display: HUD-style
+vitals (HP/mana/move bars), room title/terrain/exits, identity/
+personal-info rows, and the Improve skill-progress bar.
+
+**What it does:** `L.render(reason)` rebuilds every bar/label on the
+window in one pass (title, terrain badge, colored exits line —
+deferring to `MyDSL.DB.room.exitsColoredSource` when a fresher
+same-color capture already exists — HP/mana/move bars, Improve bar
+with a live-interpolated countdown via `improveLiveText()`, identity
+row). `L.setColoredExitsFromCurrentLine()` is a dedicated trigger-fed
+capture that preserves the game's own original exit-line coloring
+(the room-color-vs-white-text bug documented in section 9's `MyDSL_
+DataBridge.lua` entry was fixed on the DataBridge side; this file owns
+the actual color-preserving capture DataBridge's fields protect).
+
+**Public surface:** `L.show()/hide()/rebuild()/render()/setFont()/
+setTitleFont()/setBarFont()/setInfoFont()/setTerrainFont()/setTitle()/
+saveSettings()/loadSettings()`, all wired only to this file's own
+`mydsl live <verb>` aliases. Confirmed via grep: **zero external
+callers of any `MyDSL.LiveView.*` function.**
+
+**Depends on:** `MyDSL.State.*` (multiple sections, read directly),
+`MyDSL.DB.*` (the DataBridge-translated shape — this is DataBridge's
+primary real consumer alongside `MyDSL_TickView.lua`, confirmed in
+section 9), `MyDSL.Location.roomData()` (confirmed real cross-View
+call, see section 37), `MyDSL.Timers.Slow` (TickSource).
+
+**Called by:** nothing external — pure leaf display node.
+
+**Candidate cruft — real, confirmed dead event registrations, found by
+cross-referencing this file's own comment against `MyDSL_DataLayer.lua`'s
+actual `MyDSL.emit()` behavior:** `L.installHandlers()` registers `L.
+render()` on 10 events, and this file's OWN comment at the "MyDSL.
+improve.updated" entry states plainly: *"MyDSL.emit() lowercases the
+section name — the capitalized 'MyDSL.Improve.Updated' above has never
+matched anything DataLayer raises... kept rather than removed in case
+some other still-registered listener depends on it, but this is the
+one that actually fires."* That same reasoning applies to the other 3
+capitalized entries in the same list — `"MyDSL.Live.Updated"`,
+`"MyDSL.Status.Updated"`, `"MyDSL.Score.Updated"`, `"MyDSL.Time.
+Updated"` — none of which match DataLayer's real lowercase `"MyDSL.
+<section>.updated"` naming, and none of which have any other confirmed
+raiser anywhere in the repo (grepped — zero `raiseEvent` call anywhere
+uses any of these exact capitalized strings). Also `"MyDSL.Room.
+Updated"` (capitalized) and `"gmcp.Room.Info"` (the same dead generic-
+GMCP convention flagged in section 37) are in the same list. **Net: of
+the 10 registered events, at least 6 (`Live.Updated`, `Status.Updated`,
+`Score.Updated`, `Time.Updated`, `Room.Updated`, `gmcp.Room.Info`)
+appear to be permanently dead registrations** — harmless (they just
+never fire) but real cruft worth a cleanup pass, and worth double-
+checking against `docs/DSL_CommandRef.md`/a fresh grep before deleting,
+in case something non-obvious does still raise one of these.
+
+**Performance flags:**
+- **Correctly uses `MyDSL.Timers.Slow`** (1Hz, not 0.25s) for its
+  periodic re-render, per its own comment citing the same 2026-07-11
+  consolidation as sections 8/35/36 — confirmed no separate timer chain
+  exists in this file.
+- `L.render()` rebuilds every bar/label unconditionally on every call
+  (no unchanged-skip like `MyDSL_MoonWeather.lua`'s `_lastHtml`
+  comparison) — for the 4 real, live events (`gmcp.room_data`,
+  `MyDSL.improve.updated`, `MyDSL.Timers.Slow`), this is bounded to at
+  most 1/sec plus real room-change frequency, which is unlikely to be
+  a genuine lag source on its own, but is the same "no early return"
+  shape as `MyDSL_LocationView.lua`'s confirmed-costlier case (section
+  37) — worth the same treatment (a cheap unchanged-data check) if this
+  window is ever profiled as a contributor.
+
+---
+
+## 39. `MyDSL_TargetView.lua`
+
+**1,389 lines.** The largest View module after `MyDSL_Chat.lua` —
+`MyDSL.Target`/Focus: current-target tracking, nameplate + condition
+bar + action buttons ([M]elee/[P]eek/clear), poison-onset flagging,
+and cross-module target-set API used by Leveling/Group/Scan.
+
+**CORRECTION to section 3's claim** (`MyDSL_DataLayer_Combat.lua`,
+already written): section 3 states *"`MyDSL_TargetView.lua`/Focus **do
+not** currently call `MyDSL.getTargetCondition()` (confirmed via
+grep)"* — **this is incorrect, confirmed by a fresh grep in this
+pass.** `MyDSL_TargetView.lua` calls `MyDSL.getTargetCondition(t.name)`
+at two real, functional call sites: line 720-721 (populates the
+nameplate's condition-percent badge, e.g. `[50-74%]`, next to the
+target name) and line 1327-1328 (inside `MyDSL.Target.status()`'s
+diagnostic dump, which explicitly cross-checks `getTargetCondition()`'s
+output against the raw `MyDSL.State.combat.active[key]` entry). Both
+are guarded (`if t and t.name and MyDSL.getTargetCondition then`) but
+are real, live, functioning calls, not dead defensive code — the
+percent badge genuinely renders from this data in normal play. Section
+3's "built but not wired in" framing and its Candidate-cruft entry for
+`getTargetCondition()` should be corrected in a follow-up pass; this
+audit doc does not self-edit already-written sections, so flagging it
+here for whoever reconciles the doc.
+
+**What it does:** `MyDSL.Target.set(name, isMob, source)` is the real
+public target-set API (confirmed callers below). Nameplate rendering
+combines the target name, friend/enemy relation coloring
+(`dslColorRelation()`), and the live condition percent badge above.
+Poison-onset detection (`MyDSL.Target.markPoisoned()`, added
+2026-08-24 this session, gated to only flag the CURRENT target) shows
+a "Poisoned" line. Auto-clear/advance-on-death logic listens for
+`MyDSL.combat.died` (added specifically so Leveling's kill-target
+tracking gets Focus/TargetView population "for free," per `docs/
+TODO.md`'s NEEDS LIVE CONFIRMATION item 10).
+
+**Public surface:** `MyDSL.Target.set()` — confirmed real external
+callers: `MyDSL_Leveling.lua` (calls `MyDSL.Target.set(mobDef.label,
+true, "leveling")` when starting a kill, per the already-closed
+`docs/TODO.md` item), `MyDSL_GroupView.lua`, `MyDSL_ScanView.lua` (all
+confirmed via grep). This is a genuinely well-connected, actively-used
+cross-module API — not a niche or unused one.
+
+**Depends on:** `MyDSL.getTargetCondition()` (`MyDSL_DataLayer_
+Combat.lua`, real — see correction above), `MyDSL.State.combat.active`
+(read directly for the diagnostic dump), `MyDSL.Windows`, `MyDSL.
+Theme`, `dslColorRelation()` (likely `DslColors_Core_v1_0`'s native
+kingdom-color data — not independently confirmed this pass, flagging
+for a future check rather than asserting).
+
+**Called by:** `MyDSL_Leveling.lua`, `MyDSL_GroupView.lua`, `MyDSL_
+ScanView.lua` (all call `MyDSL.Target.set()` — confirmed via grep,
+genuinely the most cross-module-depended-on View module found in this
+audit so far besides the DataLayer split itself).
+
+**Candidate cruft:** none found — see the correction above; if
+anything, this file demonstrates the getTargetCondition() connection
+section 3 flagged as missing is actually real and working.
+
+**Performance flags:**
+- `TV._handlers.timersSlow` — confirmed registered on `MyDSL.Timers.
+  Slow` (the correct 1Hz shared heartbeat, not a separate chain),
+  consistent with the pattern established across sections 8/35/36/38.
+- No unbounded loops or hot-path concerns found — nameplate/condition-
+  bar rendering is triggered by real target-change/combat events, not
+  a high-frequency poll.
+
+---
+
+## 40. `MyDSL_Chat.lua`
+
+**3,345 lines — the largest file in the codebase.** Merged 2026-07-17
+from two previously-separate files, per Steven ("do we need chat
+wrapper? can it be all rolled into one chat?"). Splits cleanly into two
+parts with very different audit treatment, the same distinction section
+10 drew between `DSL_Generic_Mapper.xml`'s stock base package and its
+DSL-specific fork layer:
+
+- **Lines 1-2,404 (72% of the file): PART 1, the ported EMCO class.**
+  Cannibalized nearly verbatim from EMCO 2.9.0 (Damian "demonnic"
+  Monogue, MIT license, `github.com/demonnic/EMCO`,
+  `src/resources/emco.lua`). Third-party code reused per this project's
+  "reuse, don't reinvent" philosophy — not scrutinized line-by-line
+  here, same treatment as the stock Generic Mapper package.
+- **Lines 2,405-3,345 (941 lines): PART 2, chat window management**
+  (originally `MyDSL_ChatWrapper.lua`) — this project's own code on top
+  of the ported class. This is the real subject of this audit section.
+
+**What it does:**
+- PART 1 exposes the `EMCO` class (`MyDSL.EMCO`) — a tabbed,
+  multi-console Geyser container with per-tab logging, gagging,
+  notifications, timestamps, and OS-toast support. Two real changes
+  from upstream (both marked inline): the `loggingconsole.lua`
+  optional-require replaced with a plain `local LC = nil` (confirmed
+  unused — every real call site already nil-guards it), and exposure as
+  `MyDSL.EMCO` in addition to the original `return EMCO`.
+- PART 2 (`MyDSL.Chat`, local alias `C`) creates and owns the single
+  live chat window: `C.createInWindow()` builds one `EMCO` instance
+  inside a `MyDSL_Chat` UserWindow with 6 fixed tabs (All/Local/City/
+  OOC/Tells/Group), `C.install()` is the load-time entry point
+  (settings load, aliases, window creation, one lightweight safety-net
+  timer — see Performance flags), persistent per-character settings
+  (font/wrap/timestamp, `chat_settings_<CharName>.lua`), a full ported
+  `emco <verb>` alias vocabulary (`addtab`/`remtab`/`gag`/`ungag`/
+  `gaglist`/`notify`/`unnotify`/`blink`/`blankLine`/`color`/`fontSize`/
+  `timestamp`/`save`/`load`/`show`/`hide`/`title`) plus MyDSL's own
+  `mydsl chat <verb>` vocabulary, a real ThemeEngine hookup
+  (`buildTabTheme()`, re-applies live via `EMCO:adjustTabBackgrounds()`/
+  `adjustTabNames()` on `"MyDSL.theme.changed"`), and a
+  character-identification re-sync (`"MyDSL.character.identified"`)
+  since `C.install()` runs at script-boot time, before login, and would
+  otherwise load the wrong (or no) character's settings.
+
+**Public surface** (PART 2 only — PART 1's `EMCO:*` methods are the
+ported library's own public API, called only from within PART 2 in
+this codebase):
+- `MyDSL.Chat.emco` (the live instance) — the one real, load-bearing
+  cross-file dependency. Confirmed via grep: `MyDSL_ChatTriggers.lua`
+  calls `MyDSL.Chat.emco:append(tabName)` on every captured chat line
+  (line 76-77 — the actual hot path this whole file exists to serve),
+  and `MyDSL_DataLayer.lua`'s `mydsl log chat on|off` alias (line 211)
+  calls `MyDSL.Chat.emco:enableAllLogging()`/`disableAllLogging()`
+  directly. Both are real, confirmed call sites, not comment mentions.
+- `MyDSL.EMCO` (the class itself) — **zero external callers**;
+  confirmed via grep, only `MyDSL_Chat.lua` itself references it
+  (`C._emcoClass = MyDSL.EMCO` inside `requireEMCO()`). Correct and
+  expected — nothing else in this codebase builds its own EMCO
+  instance.
+- Every other `MyDSL.Chat.*` function (`status`/`show`/`hide`/`clear`/
+  `setFont`/`setWrap`/`setTimestamp`/`addTab`/`remTab`/`addGag`/etc.) —
+  confirmed via grep, **zero external callers besides this file's own
+  aliases and `test/test_chat_theme_hookup.lua`**. All are real,
+  reachable command endpoints, not dead — they just aren't called
+  programmatically from other modules, which is correct for a
+  user-facing settings API.
+
+**Depends on:** `Geyser`/`Geyser.Container`/`Geyser.UserWindow` (Mudlet
+built-ins). Soft dependency on `MyDSL.Windows` (`MyDSL_
+WindowRegistry.lua`, checked via `haveWindowCore()` before use, with a
+real bare-`Geyser.UserWindow` fallback path if absent — confirmed this
+file genuinely still works standalone). Soft dependency on `MyDSL.
+Theme`/`MyDSL.Theme.get`/`colorToCSS`/`colorToBracket` (`MyDSL_
+ThemeEngine.lua`, via `buildTabTheme()`) with a real hardcoded-fallback
+branch if ThemeEngine isn't loaded — confirmed both branches are live
+code, not one being dead. Listens for `"MyDSL.character.identified"`
+(raised by `MyDSL_DataLayer.lua:732`, confirmed via grep — the file's
+own comment claim is accurate) and `"MyDSL.theme.changed"` (raised by
+`MyDSL_ThemeEngine.lua`).
+
+`docs/TODO.md` previously flagged this file as having **no `dofile()`
+entry in DSL2's own Script Editor** — checked `current/2026-07-18#10-
+13-31.xml` directly per this task's instructions: **that gap is now
+fixed** (real `<name>MyDSL_Chat</name>` / `dofile(".../MyDSL_Chat.lua")`
+entry exists, added earlier in this same audit session per `docs/
+CHANGELOG.md`'s 2026-08-25 dofile-wiring-gap entry). Flagging here only
+so this file's own section doesn't repeat a now-stale claim from an
+older pass.
+
+**Called by:** `MyDSL_ChatTriggers.lua` (`MyDSL.Chat.emco:append()` —
+must load AFTER this file, confirmed by that file's own header
+comment), `MyDSL_DataLayer.lua` (`mydsl log chat` toggle).
+
+**Candidate cruft:**
+- **Real dead-logic bug, not just cruft, in `C.createInWindow()`
+  (lines 2686-2691):** `local old = C.emco` immediately followed by
+  `if old and old ~= C.emco then` — since `old` was *just* assigned
+  from `C.emco` on the previous line and nothing mutates `C.emco`
+  in between, `old ~= C.emco` can never be true. `C.emco` is only
+  reassigned later, at line 2749, well after this check. The intent
+  was clearly to detect "an EMCO instance already existed before this
+  rebuild" (setting `C.oldChat`/`C.state.replacedExisting = true`),
+  but as written this branch is unreachable — confirmed via grep that
+  `C.oldChat` and `replacedExisting` are never set to `true` anywhere
+  else in the file, and `C.status()` (line 2972) prints
+  `replacedExisting` as always `false`. Harmless in practice (it's
+  diagnostic bookkeeping only, nothing branches on `C.oldChat`
+  elsewhere), but it is a genuine logic bug worth fixing in pass 2 —
+  the fix is capturing `old` *before* whatever would change `C.emco`,
+  which today is never, since `createInWindow()` always builds a fresh
+  object; the real check that was likely intended is just `if old
+  then` (was there already a previous instance at all), not a
+  self-comparison.
+- **Stale error-message text**: `requireEMCO()`'s failure message
+  reads "MyDSL.EMCO not found -- MyDSL_EMCO.lua must load before
+  MyDSL_ChatWrapper.lua" — both filenames it names no longer exist;
+  both were merged into this single file on 2026-07-17. Harmless
+  (this branch can now only fire from a genuine internal error, not a
+  load-order mistake, since there's only one file to load), but
+  worth updating so a future error, if it ever fires, doesn't point
+  someone at two files that don't exist.
+- PART 1's ported EMCO class carries real generality this project
+  never exercises (`mapTab`, `commandLine`, `loggingconsole`
+  integration) — all correctly disabled at the config level
+  (`mapTab = false`, `commandLine = false`, `LC = nil`) rather than
+  left dangling, so this isn't dead code so much as inactive
+  configuration of a general-purpose ported class. Confirmed no
+  self-updater/GitHub-fetch code survived the port (grep for
+  `github`/`http`/`installPackage`/`downloadFile` inside the class body
+  returns only doc-comment links, no live network code) — the
+  project's own standing rule ("kill their self-updater/maintenance
+  mechanisms when porting") was followed correctly here.
+
+**Performance flags:**
+- **Chat is a real, sustained hot-path window** (potentially dozens of
+  lines per minute during active chat use) but the append path is
+  clean: `EMCO:append()`/`cecho()`/`echo()` all funnel through
+  `xEcho()`, and buffer trimming is delegated to Mudlet's own native
+  `window:setBufferSize(bufferSize, deleteLines)` call (`EMCO:
+  setBufferSize()`, line 819) — **not** a hand-rolled Lua array with
+  manual shifting the way `DSL_Generic_Mapper.xml`'s `line_buffer` used
+  to be before its own 2026-07-19 fix (section 10). This is the
+  correct approach and needed no fix, but worth noting explicitly as
+  the positive comparison point section 10's fix implicitly sets up.
+- `EMCO:append()`'s `table.contains(self.consoles, tabName)` and
+  `EMCO:matchesGag()`'s loop over `self.gags` are both O(n) per call,
+  but `n` is bounded by tab count (6, fixed) and however many gag
+  patterns a user has added (typically a handful) — neither scales
+  with message volume, so neither is a real concern regardless of how
+  busy chat gets.
+- `C.applyFont()`/`C.applyWrap()` iterate over `ch.mc`/`ch.consoles`/
+  `ch.tabs` (all bounded by the same fixed 6-tab count) — only called
+  from explicit user commands (`mydsl chat font <n>`, theme/settings
+  reload), never per-line. Not a hot path.
+- No evidence of redraw-more-often-than-data-changes: tab restyling on
+  theme change is event-driven (`"MyDSL.theme.changed"`, fires only
+  when the user actually switches themes) and calls EMCO's own
+  incremental `adjustTabBackgrounds()`/`adjustTabNames()` rather than
+  tearing down and recreating the whole window.
+- No new performance issues found in this file's own code (PART 2). No
+  duplicate GMCP/text parsing — this file doesn't parse any game text
+  at all, only appends already-classified lines routed to it by
+  `MyDSL_ChatTriggers.lua`.
+
+---
+
+## Cross-cutting findings (pass 1 wrap-up)
+
+All 40 sections are now written. This section pulls together what
+matters most across the whole pass — the real lag-spike candidates
+Steven specifically asked this audit to surface, plus the connection
+bugs found along the way. Everything below is inventory-only, same as
+the rest of this doc — none of it has been fixed yet.
+
+### Confirmed real performance bugs (double-fired work on a hot path)
+
+1. **`MyDSL_DataBridge.lua` (section 9): `MyDSL.DB.sync()` fires twice
+   per `gmcp.char_data`/`room_data`/`tick` packet** — once on the raw
+   GMCP event, once on DataLayer's own re-raised `"MyDSL.<section>.
+   updated"` event for the same data. Fires every combat round — the
+   single highest-frequency confirmed double-fire in the addon, and
+   compounds with `MyDSL_DataLayer_Combat.lua`'s `combatRoundFlush`
+   handler firing in the same event storm.
+2. **`MyDSL_LocationView.lua` (section 37): the room-picture
+   render pipeline fires twice per room entry** — registered on both
+   raw `gmcp.room_data` and the mapper's `onNewRoom` for the same
+   moment, neither with an unchanged-room early return, and the
+   `contain`/`stretch` fit modes pay for a real image-size I/O call on
+   each pass. Same root cause as finding 1, smaller blast radius (once
+   per room, not once per round).
+3. **`DSL_Generic_Mapper.xml` vs. `MyDSL_DataLayer.lua` (section 10,
+   already on record in `docs/TODO.md` since 2026-08-23): two fully
+   independent GMCP parsers of the same `char_data`/`room_data`
+   packets**, each doing its own full-payload deep-copy every combat
+   round. A known, reasoned tradeoff (the mapper must survive without
+   DataLayer loaded) rather than an oversight, but it compounds with
+   finding 1 during the exact same combat rounds.
+
+### Confirmed unconditional/unthrottled background cost
+
+4. **`MyDSL_TickSource.lua` (section 8) + `MyDSL_TickView.lua`
+   (section 26), the same problem from both ends**: TickSource's
+   `T.loop()` self-reschedules at 4Hz for the entire session regardless
+   of whether TickView is visible, and TickView's own `V.render()` has
+   no visibility check either — so gating just one side wouldn't fully
+   fix it. A real fix needs either TickSource to stop publishing at 4Hz
+   while nothing needs sub-second precision, or TickView to skip its
+   own render work while hidden (ideally both, but either alone helps).
+
+### Real connection/namespace bugs (not performance, but exactly what
+### "cross-check connections... make sure it's all in the same
+### namespace" was asking for)
+
+5. **`MyDSL_PortraitView.lua` (section 33) reads `MyDSL.Windows.
+   windows[...]` — a table that has never existed anywhere in this
+   codebase.** The real table is `MyDSL.Windows.registry`. Practical
+   effect: the portrait window's registry entry is a real but orphaned
+   object; the actual visible window is a second, independent one this
+   file builds itself as a fallback. Theme/dock/layout changes coming
+   through `MyDSL_WindowRegistry.lua`'s registry iteration would have
+   zero visible effect on the real portrait window. Worth Steven
+   confirming live whether portrait theming/docking has, in fact, never
+   worked — if so, this bug is why.
+6. **`MyDSL_Chat.lua` (section 40): a dead comparison in
+   `C.createInWindow()`** — `local old = C.emco` immediately compared
+   as `old ~= C.emco`, which can never be true since nothing mutates
+   `C.emco` in between. Harmless in practice (only affects a diagnostic
+   flag nothing branches on), but a real logic bug.
+7. **`MyDSL_WindowRegistry.lua` (section 32): a debug line's own
+   "count them for real" fallback has been dead since this project
+   started using LuaJIT** — `table.getn` doesn't exist in Lua 5.1+, so
+   the window-count debug line always prints the hardcoded "20," never
+   the real count (19). Cosmetic only.
+8. **This doc corrected itself once, worth noting as a methodology
+   point**: section 3's first-pass grep concluded `MyDSL.
+   getTargetCondition()` had zero external callers; section 39's fresh
+   grep found `MyDSL_TargetView.lua` genuinely calls it at two real
+   sites. Fixed in section 3 directly. Kept here as a reminder that
+   even a grep-confirmed claim in this doc should be re-checked before
+   Steven or a future pass acts on it, especially anything phrased as
+   "zero callers" — a negative claim is exactly the kind of thing one
+   missed variable name in a grep pattern can get wrong.
+
+### Real "built but never fed" gaps (not bugs, not performance — dead
+### weight worth a decision)
+
+9. **`MyDSL_History` window (section 20, `MyDSL_RouteHelper.lua`) is
+   fully wired — registry, layout slot, theme mapping, help text, a
+   complete font/status command surface — but `MyDSL.Route.history()`,
+   the one function that would put text into it, has zero callers
+   anywhere.** Worth Steven confirming: was this window ever populated,
+   or has it shown empty since it was built?
+10. **`MyDSL.MoveSound.status()` (section 14) and `MyDSL.Route.
+    getConsole()` (section 20)** are smaller versions of the same
+    pattern — real, working functions with no alias or caller wiring
+    them to anything reachable.
+
+### Already-fixed, kept as positive examples
+
+Several files carry real, already-shipped performance fixes from prior
+audit passes (mostly 2026-07-19's PVP perf audit) that are worth citing
+as the model to follow when addressing the findings above:
+`MyDSL_RawCapture.lua`'s registered-only-while-enabled trigger (section
+7), `DSL_Generic_Mapper.xml`'s batch-trimmed line buffer and
+write-skip-on-unchanged room userdata (section 10), `MyDSL_
+DataLayer.lua`'s debounced disk save (section 1), `MyDSL_
+CreatureLore.lua`'s save-only-on-first-sighting (section 15), `MyDSL_
+MoonWeather.lua`'s unchanged-HTML early return and shared 1Hz heartbeat
+(section 35), `MyDSL_AffectsView.lua`'s timer-mode-gated redraw
+(section 36), and `MyDSL_Chat.lua`'s native buffer trimming instead of
+a hand-rolled array (section 40).
+
+### One open question this pass couldn't answer on its own
+
+Sections 3, 10, and 17 each independently flagged the same unanswered
+question from a different file: **how many always-active regex/event
+registrations does a single incoming line pay for, added up across the
+whole addon** (combat's 24, chat-triggers' 20, the mapper's `onNewLine`
+hook, plus whatever else)? No single file's section can answer this —
+it would need a project-wide count across every `tempRegexTrigger`/
+`registerAnonymousEventHandler` registration. Worth doing as a
+dedicated follow-up if the fixes above don't fully explain any lag
+Steven is still seeing after they land.
