@@ -459,25 +459,44 @@ to the per-item live confirmations below.
       on any structural mismatch instead of silently under-counting. Full
       detail + 3 real gaps it surfaced while being written:
       `docs/CHANGELOG.md` (2026-07-19).
-- [ ] **DSL2's own dev reference profile has 3 dofile-wiring gaps — found
-      2026-07-19 while writing the real build script, not yet fixed
-      (manual Script Editor step, can't be done via file edit).**
-      1. `MyDSL_Chat.lua` and `MyDSL_MovementSounds.lua` are both real,
-      git-tracked files with no `dofile()` entry in DSL2's Script Editor —
-      same class of gap as the older `MyDSL_PromptSetup` miss. The build
-      script now works around this (reads both fresh from disk directly),
-      but the real fix is adding the two `dofile()` entries so this
-      doesn't keep depending on a workaround. 2. A stale `dofile()` entry
-      for `MyDSL_ChatWrapper.lua` still exists in DSL2's Script Editor —
-      that file was deleted when merged into `MyDSL_Chat.lua` (commit
-      `4aca249`), but the old Script entry pointing at it was never
-      removed. The build script skips it (loud warning), but it should be
-      deleted by hand. 3. Two Script entries have display names that don't
-      match their real filenames (`MyDsl_Alterform` for
-      `MyDSL_AlterformView.lua`, `MyDSL_Creaturelore` for
-      `MyDSL_CreatureLore.lua`) — cosmetic only (the build script derives
-      the real name from the dofile path, not the display name), but worth
-      renaming for anyone reading the Script Editor directly.
+- [x] **Fixed 2026-08-25: DSL2's own dev reference profile's 3 dofile-
+      wiring gaps, found 2026-07-19 while writing the real build script.**
+      Revisited after this session's DataLayer split proved direct
+      `current/*.xml` edits are safe and reliable (5 new dofile entries
+      added and verified across 5 slices) — the original note's "manual
+      Script Editor step, can't be done via file edit" caveat no longer
+      held. 1. Added real `dofile()` entries for `MyDSL_MovementSounds.lua`
+      (see item 4 below — this one turned out bigger than a missing
+      entry) and repurposed the stale `MyDSL_ChatWrapper` entry (below)
+      into the real `MyDSL_Chat` entry instead of adding a separate new
+      one. 2. Deleted the stale `dofile()` entry for `MyDSL_ChatWrapper.lua`
+      by repurposing it: renamed the Script to `MyDSL_Chat` and pointed
+      its `dofile()` at the real, current `MyDSL_Chat.lua` (that file was
+      deleted when merged into `MyDSL_Chat.lua` itself, commit `4aca249`,
+      but the old Script entry pointing at it was never removed or
+      updated) — one edit both removes the stale entry and closes the
+      missing-`MyDSL_Chat`-wiring gap from item 1. Confirmed load order
+      is safe: `MyDSL_ThemeEngine` (which `MyDSL_Chat.lua`'s theme
+      hookup reads from) loads well before it, `MyDSL_ChatTriggers`
+      (which calls into it) loads after. 3. Renamed the two cosmetically
+      mislabeled Script entries (`MyDsl_Alterform` → `MyDSL_AlterformView`,
+      `MyDSL_Creaturelore` → `MyDSL_CreatureLore`) to match their real
+      filenames. 4. **Real gap found beyond the original note**:
+      `MyDSL_MovementSounds`'s Script entry wasn't just missing a
+      `dofile()` — it had the entire file's source (205 lines) pasted
+      in directly as inline native script content, a frozen snapshot
+      that would silently stop matching the git-tracked file on any
+      future edit. Confirmed byte-identical to the current
+      `MyDSL_MovementSounds.lua` before touching it (no divergence had
+      happened yet), then replaced the inline paste with a real
+      `dofile()` wrapper matching every other module's pattern. All 4
+      fixes verified: XML re-parses well-formed, `build_mydsl_package.py`
+      now reports zero dofile-related warnings (previously 3 every
+      single run), script count unchanged at 38 (these files were
+      already being counted via the build script's disk-fallback/inline-
+      paste, just not through the correct mechanism), full test suite +
+      `check_known_patterns.py --all` re-run clean (pure native-XML
+      wiring change, no `.lua` source touched).
 - [x] **Fixed 2026-08-24: fresh profile piles every window onto the right,
       "impossible to see anything."** The earlier investigation's
       cross-profile-file-collision theory (below, struck through) turned
