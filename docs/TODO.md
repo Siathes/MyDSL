@@ -649,6 +649,17 @@ to the per-item live confirmations below.
       pure-move slice with no logic change), but flagged here as real
       follow-up work, not silently left unnoticed. `MyDSL_DataLayer.lua`
       now 3,697 lines (down from 4,586 after slice 1, 4,745 originally).
+      **Live-confirmed 2026-08-25** — checked MyDSL's own main log AND
+      combat category log (`2026-08-25#16-09-45.html` /
+      `MyDSL/logs/combat/Kien/2026-08-25.log`) right after delivery:
+      Steven fought a real gnome factory worker, and every piece traced
+      correctly — damage round-summaries with the right tier word for
+      the accumulated score ("Your beating do DREADFUL things to Gnome
+      factory worker (235.5)"), avoidance lines, the death sequence, a
+      correctly-tallied fight summary (61 hits, 8 miss, 88% landed), and
+      condensed-mode gagging still hiding raw swings from the main
+      window (combat log only). Zero errors tied to either split file.
+      Both risky slices (CreatureLore, Combat) now fully live-confirmed.
 
       **Remaining slices, not yet started, same order-of-operations each
       time**: Scan/Look/PlayersNear (9o, plus the fuzzy-match helpers
