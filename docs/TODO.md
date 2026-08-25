@@ -668,7 +668,37 @@ to the per-item live confirmations below.
       and after this split (confirmed via grep). Not built this pass
       (would have meaningfully expanded this commit's scope for a
       pure-move slice with no logic change), but flagged here as real
-      follow-up work, not silently left unnoticed. `MyDSL_DataLayer.lua`
+      follow-up work, not silently left unnoticed. **Fixed 2026-08-25**:
+      new `test/test_datalayer_combat_lifecycle.lua`, 37 assertions
+      covering all 5 previously-untested functions plus the
+      `combatRoundFlush` handler — avoid (both the 3-arg dodge/parry/
+      block form and the 1-arg whole-line sense form), condition
+      (including the `getTargetCondition()` public API), death (both
+      confirmed real forms — `"X is DEAD!!"` and `"X hits the ground ...
+      DEAD."` — plus the no-prior-active-entry case where
+      `MyDSL.combat.died` must still raise), end (flee/rescue/mob-fled/
+      escape-fail), proc (flag attachment via the last-attacker/target/
+      noun technique, the no-prior-damage-line no-op case, vampiric rage
+      accrual, and the drowning/freeze false-positive guard), and the
+      round-flush handler itself (summary formatting, round_data
+      clearing, the `MyDSL.combat.updated`/`MyDSL.combat_rage` events,
+      hidden-HP rage accumulation vs. normal-HP reset). Every fixture
+      line is a real corpus string confirmed via grep against `log/`
+      (not invented). Had to override `mudlet_mock.lua`'s no-op
+      `registerAnonymousEventHandler` locally (same technique already
+      established in `test_identify_source_scoping.lua`/
+      `test_mapper_gmcp_and_doorverb.lua`) since the default mock
+      discards the handler function entirely, making `combatRoundFlush`
+      un-invokable from a test as-is — this is very likely *why* that
+      handler had zero coverage before now. Caught and fixed a real
+      vacuous assertion during my own first draft (the drowning-guard
+      test asserted against an active-entry table that was never
+      populated, so it passed whether or not the guard actually fired)
+      — confirmed via 2 separate targeted-revert checks (disabling the
+      drowning guard; disabling `snapshotFight()`'s death-handling call)
+      that the real assertions genuinely fail without the code they
+      test. All 25 test suites + `check_known_patterns.py --all` re-run
+      clean. `MyDSL_DataLayer.lua`
       now 3,697 lines (down from 4,586 after slice 1, 4,745 originally).
       **Live-confirmed 2026-08-25** — checked MyDSL's own main log AND
       combat category log (`2026-08-25#16-09-45.html` /
