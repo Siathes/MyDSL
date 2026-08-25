@@ -1605,10 +1605,21 @@ machine.
         area add, rename, etc).
       - Mapper: alternate/angled exit lines (Z-shaped, not just straight)
         — "discuss this."
-      - Mapper: labels reportedly don't move anymore since a Mudlet
-        version change — needs comparing current behavior against the
-        original/older Generic Mapper behavior. Bigger research item, per
-        Steven's own "big research discussion for this."
+      - **Mapper: labels reportedly don't move anymore — checked
+        Mudlet's real public issue tracker 2026-08-24, no confirmed
+        cause found, still needs Steven's own live reproduction.**
+        Checked for a relevant regression: found Mudlet issue #5299
+        ("Allow to lock map labels," open since 2021, unresolved) but
+        it's the OPPOSITE complaint — that labels are too EASILY
+        dragged by accident, not that they've become stuck/immovable —
+        doesn't match. No confirmed public report of labels becoming
+        unmovable across a version change. This genuinely needs Steven's
+        own live reproduction (which Mudlet version, what he actually
+        sees when trying to drag one) before any further research can
+        narrow it down — can't be resolved from source-reading alone
+        the way the docking/border-color questions were, since there's
+        no known bug to trace into. Still the "big research discussion"
+        item it always was.
       - [x] **Mapper: highlight other players' rooms from `where` — built
         2026-08-24, needs live confirmation; kingdom/org coloring NOT
         built (see below).** `MyDSL_DataLayer.lua`'s real "Players near
@@ -1668,8 +1679,19 @@ machine.
         even multi-step sequences via `|`. Already documented in `mydsl
         help` too. This TODO entry was simply stale — closing as
         already-shipped, not building anything new.
-      - TargetView: auto-populate from a room's `scan` output, not only
-        once combat starts, to cut down on manual clicking.
+      - **TargetView: auto-populate from a room's `scan` output — checked
+        2026-08-24, deliberately NOT built without a design decision
+        first, same class of gap as the already-deferred aura-based
+        auto-targeting item right above.** Real correctness stakes if
+        built wrong: which mob gets picked when `scan` shows several
+        (hostile vs. friendly, multiple hostiles), whether it overrides
+        an already-manually-set target, and whether it fights with
+        Leveling's own `MyDSL.Target.set()` calls during an active run.
+        Buildable mechanically (the data's all there), but "auto-select
+        what gets attacked" is exactly the kind of decision this project
+        treats as needing Steven's explicit call, not an assumption —
+        same reasoning already applied to the aura item, just not
+        previously applied here too.
       - Player-profile fields: alignment, god, notes, hp, mana, etc. —
         explicitly "brainstorm this," not scoped.
       - Roller: pull more comparison stats (racial/class baselines) from
