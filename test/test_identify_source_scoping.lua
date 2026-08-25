@@ -37,6 +37,7 @@ end
 _G.matches = _G.matches or {}
 MyDSL = MyDSL or {}
 dofile("MyDSL_DataLayer.lua")
+dofile("MyDSL_DataLayer_ItemLore.lua")
 dofile("MyDSL_ItemLore.lua")
 local IL = MyDSL.ItemLore
 

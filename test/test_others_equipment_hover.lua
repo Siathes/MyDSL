@@ -17,6 +17,7 @@ local setLinkCalls = {}
 _G.setLink = function(win, cmd, hint) setLinkCalls[#setLinkCalls + 1] = { win = win, cmd = cmd, hint = hint } end
 
 dofile("MyDSL_DataLayer.lua")
+dofile("MyDSL_DataLayer_ItemLore.lua")
 dofile("MyDSL_DataLayer_ScanLook.lua")
 
 local failures = 0

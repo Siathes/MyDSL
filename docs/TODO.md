@@ -695,13 +695,48 @@ to the per-item live confirmations below.
       "Players near you:" listing in-game; will self-check via MyDSL's
       own logs afterward per the established pattern from slices 1-2.
 
-      **Remaining slices, not yet started, same order-of-operations each
-      time**: ItemLore/Equipment/Inventory (9p.1/9r/9q-dup — note the
-      original file's own sub-section numbering has a real duplicate
-      "9q" label, one meant "9s" for inventory — worth a one-line comment
-      fix when this slice happens, not urgent enough on its own), and
-      Score/Flags/Lunar/Time/Weather/Who/Group/Improve (9a-9n, the
-      "prompt/vitals" domain). Sections 1-6/8 (namespace/state/event-bus/
+      **Slice 4 done: ItemLore/Equipment/Inventory** → new
+      `MyDSL_DataLayer_ItemLore.lua` (identify/lore capture,
+      `beginEquip()`/`parseEquipLine()`/`endEquip()` for your own gear,
+      `beginOthersEquip()`/`parseOthersEquipLine()` for "<Name> is
+      using:", `beginInventory()`/`parseInventoryLine()`/
+      `endInventory()`, `beginContainerHolds()`/
+      `parseContainerHoldsLine()`/`endContainerHolds()`, plus
+      `MyDSL.resolveGroundItem()`/`MyDSL.setGroundItemOverride()`, 807
+      lines total). Cleanest slice yet — grepped every function/local in
+      the domain for cross-domain call sites before moving anything and
+      found zero new promotions needed: `MyDSL.bestFuzzyMatch()` (already
+      promoted in slice 3) and the two-way `buildItemStatsSuffix()` /
+      `resolveGroundItem()` relationship with
+      `MyDSL_DataLayer_ScanLook.lua` (one function defined in each file,
+      called from the other) were both already real `MyDSL.*` table
+      functions from slice 3's work, so no core-file changes were needed
+      this time, just the extraction itself. The trigger-registration
+      block for this domain was non-contiguous with two unrelated blocks
+      in between (Group trigger, Improve triggers — both belong to the
+      not-yet-split "prompt/vitals" domain) but the domain's OWN trigger
+      block turned out fully contiguous (`equipStart` through
+      `loreItemStart`, lines 2645-2727 pre-extraction), so no interleaved
+      surgery was needed. Pure relocation, no logic changed — full
+      existing suite passes unchanged once 2 test files' `dofile()`
+      lists were updated (`test_identify_source_scoping.lua`,
+      `test_others_equipment_hover.lua`; `test_itemlore_merge_fix.lua`
+      only referenced `beginIdentify` in a comment, no change needed).
+      `MyDSL_DataLayer.lua` now 1,984 lines (down from 4,745 originally
+      — 58% removed across all four slices so far). All 24 test suites +
+      `check_known_patterns.py --all` re-run clean; `MyDSL_Full.mpackage`
+      rebuilds cleanly at 37 scripts. Not yet live-confirmed — needs
+      Steven to identify/lore an item, check his own equipment, check
+      someone else's equipment, check inventory, and open a container
+      in-game; will self-check via MyDSL's own logs afterward per the
+      established pattern from slices 1-3.
+
+      **Remaining slice, not yet started**: Score/Flags/Lunar/Time/
+      Weather/Who/Group/Improve (9a-9n, the "prompt/vitals" domain — the
+      last one, since it's genuinely the most cross-cutting: Pos'n and
+      Wimpy real-time triggers, Dragon Vitality, and the Group/Improve
+      triggers that had to be worked around during slice 4, all live in
+      this same territory). Sections 1-6/8 (namespace/state/event-bus/
       GMCP-handlers/persistence) stay as the core `MyDSL_DataLayer.lua`
       — genuinely shared infrastructure every domain depends on, not a
       candidate for further splitting.
