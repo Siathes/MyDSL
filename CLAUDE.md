@@ -36,6 +36,13 @@ only hold what git history and the code can't already tell you.** That's:
 - `docs/DSL_CommandRef.md` — confirmed regex/output patterns for DSL
   itself. High-value because it's about an external, stable system (DSL's
   text doesn't change), not our own code (which does).
+- `docs/OPTIMIZATION_AUDIT.md` — the project-wide audit/optimization pass
+  opened 2026-08-23, one section per `MyDSL_*.lua` file (what it does,
+  public surface, dependencies, candidate cruft, performance flags — all
+  grep-confirmed, not assumed), plus Steven's own per-file notes once he's
+  reviewed a section. Unlike `TODO.md`, this one doesn't get pruned as it
+  resolves — it's a standing reference for how each module's actual shape
+  compares to its intent, kept as long as the audit stays active.
 - The actual `.lua` files — how something currently works. Always read
   these directly; there is no separate spec describing them anymore.
 - `notes_utf8.txt` (profile root) — Steven's informal scratch/question

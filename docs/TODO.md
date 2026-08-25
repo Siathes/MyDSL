@@ -24,6 +24,17 @@ check connections of modules... make sure its all in the same namespace...
 review it like its a new project"). This is an explicit go-ahead — not
 scope creep — for a dedicated audit phase, separate from and in addition
 to the per-item live confirmations below.
+
+**Formalized 2026-08-25 into `docs/OPTIMIZATION_AUDIT.md`** — a real,
+per-file inventory (what it does / public surface / depends-on / called-
+by / candidate cruft / performance flags, all grep-confirmed) for every
+`MyDSL_*.lua` file plus `DSL_Generic_Mapper.xml`'s embedded Lua. That
+doc is now the live tracker for this phase's file-by-file pass; see it
+directly rather than looking for the plan restated here. The specific
+findings already on record below (verification-integrity gap, regex-
+verification methodology, live-confirmation backlog size, automation-
+policy sequencing, the PVP performance pass) predate that doc and stay
+here since they're not per-file items.
 - [ ] **Real verification-integrity gap found via an independent Claude
       Desktop review, 2026-08-23 — partially closed, partially still
       open.** Three test files cited BY NAME across multiple
