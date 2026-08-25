@@ -617,7 +617,17 @@ to the per-item live confirmations below.
       every time. Fixed; 20 new assertions in
       `test/test_datalayer_creaturelore_capture.lua`, confirmed via a
       targeted revert the fix is real. `MyDSL_DataLayer.lua` now 4,586
-      lines (down from 4,745).
+      lines (down from 4,745). **Live-confirmed 2026-08-25** — checked
+      MyDSL's own log (`2026-08-25#15-59-22.html`, minutes after
+      delivery): Steven ran `creaturelore` on a real thief, the new
+      `dofile()`-wired file fired correctly with zero errors, and the
+      exact same bug pattern reproduced independently on completely
+      different real data ("a thief appears to be a more neutral soul."
+      then, separately, "They appear to be male." three lines later) —
+      confirms both the split mechanism and the bug fix are real, not
+      just passing a synthetic test. Slice 1 fully closed. Proceeding to
+      the remaining slices (Combat next) with real confidence in the
+      mechanism now, not just test coverage.
 
       **Remaining slices, not yet started, same order-of-operations each
       time**: Combat (9q + its ~350-line trigger-registration block in
