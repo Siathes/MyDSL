@@ -691,6 +691,23 @@ Steven asked this audit to find:**
   dropping the other registration, or having `MyDSL.emit()` itself
   suppress a re-raise when nothing besides DataBridge would care about
   both forms.
+- **Refinement, added after an independent Claude Desktop review of
+  this pass (2026-08-25): the char/room/tick pair above is the clearest
+  example, not the full extent of the problem.** This file registers
+  `onAny()` on **11 separate events total** (see Public surface above),
+  not just those 3 — `MyDSL.score.updated`/`time.updated`/`affects.
+  updated`/`improve.updated`/`login.updated` each independently trigger
+  the exact same full `MyDSL.DB.sync()` rebuild too, and several of
+  these can fire in close succession around the same real moment (a
+  `score` command completing, for instance, plausibly raises `MyDSL.
+  score.updated` around the same tick a `gmcp.char_data` packet also
+  arrives). The real fix shouldn't just dedupe the 3 GMCP-paired
+  registrations — it should coalesce all 11 into a single debounced
+  `sync()` call (e.g. schedule one `sync()` on the next tick/tempTimer(0)
+  regardless of how many of the 11 events fired in that same moment,
+  the same debounce shape `MyDSL_DataLayer.lua`'s own `MyDSL.save()`
+  already uses for an analogous problem — see section 1), not a
+  narrower fix that only addresses the 3 easiest-to-spot duplicates.
 - No other performance concerns found in this file — the sync logic
   itself, while non-trivial, is a single flat pass with no nested
   loops or unbounded collections.
@@ -2649,7 +2666,14 @@ the rest of this doc — none of it has been fixed yet.
    updated"` event for the same data. Fires every combat round — the
    single highest-frequency confirmed double-fire in the addon, and
    compounds with `MyDSL_DataLayer_Combat.lua`'s `combatRoundFlush`
-   handler firing in the same event storm.
+   handler firing in the same event storm. **Refined after an
+   independent Claude Desktop review (2026-08-25): this is 3 of 11 total
+   registrations onto the same `sync()` call** (score/time/affects/
+   improve/login also each trigger it independently) — the real fix
+   should debounce/coalesce all 11 into one call, the same shape
+   `MyDSL.save()` already uses (section 1), not just dedupe the 3
+   GMCP-paired ones this finding originally singled out as the clearest
+   example.
 2. **`MyDSL_LocationView.lua` (section 37): the room-picture
    render pipeline fires twice per room entry** — registered on both
    raw `gmcp.room_data` and the mapper's `onNewRoom` for the same
