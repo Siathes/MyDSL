@@ -1497,13 +1497,32 @@ machine.
 ---
 
 ## OPEN — Design ideas, not yet scoped
-- [ ] **TargetView: show debuffs cast on the current target.** weaken/slow
-      confirmed and ready to build; blindness/poison/plague have zero
-      confirmed on-target success text yet — needs a live catch of an
-      actual successful cast.
-- [ ] **TargetView: auto-populate target on aura detection** — when
-      detect-good/detect-evil shows, auto-set to first opposing-alignment
-      mob visible, else first mob not in your own group.
+- [ ] **TargetView: show debuffs cast on the current target — this
+      entry's own "weaken/slow confirmed and ready to build" claim was
+      stale, corrected 2026-08-24.** The 2026-07-16 "what's left" build
+      pass already checked this and found it doesn't hold up: zero real
+      third-person/observer-side text for either debuff landing on
+      someone else anywhere in the corpus, only self-referential "You
+      feel weaker" text for when it lands on you (re-confirmed again
+      during this sweep — `grep` across every `log/` file for
+      weak/slow-shaped third-person lines still finds only the
+      first-person form). This TODO entry itself was never updated to
+      match that finding until now. All 5 debuffs (weaken, slow,
+      blindness, poison, plague) are in the same boat: none has confirmed
+      on-target observer text. Genuinely can't build against invented
+      text — needs a live catch of an actual successful cast landing on
+      someone else, for any of the five, before this is buildable at all.
+- [ ] **TargetView: auto-populate target on aura detection — checked
+      2026-08-24, genuinely can't build, zero real data.** `detect good`/
+      `detect evil`'s own helpfiles confirm the effect ("reveals a
+      characteristic golden aura") but not the room/scan display text
+      format. Searched the full `log/` corpus for any aura-shaped tag
+      (`(Good)`/`(Evil)` bracket, "aura" as a literal word near a mob
+      name): zero real examples of DSL actually displaying a detected
+      aura on anyone — the only "aura" hits are self-referential ("The
+      white aura around your body fades," a different spell wearing
+      off). Placeholder only until a live catch of a real detect-good/
+      evil aura display exists to build against.
 - [ ] **Skills/Spells → Combat window** — echo real skill/spell actions,
       reduce raw per-swing spam. Warrior/thief skills still have zero
       confirmed first-person text anywhere in the corpus.
@@ -1559,8 +1578,16 @@ machine.
       - Mapper: highlight other players' rooms (from the `where` command)
         on the map, colored by kingdom/org if possible; multiple
         possibilities highlighted when room names are ambiguous.
-      - Leveling: an "order all kill" option instead of direct attack, for
-        classes where that's the right opener.
+      - [x] **Leveling: an "order all kill" option — built 2026-08-24,
+        needs live confirmation.** New `mydsl leveling attackmode
+        <direct|orderall>` (`L.session.attackMode`, default `"direct"` —
+        no behavior change for existing runs). `orderall` mode sends
+        `order all kill <target>` instead of `kill <target>` in
+        `tryKill()` — DSL's real `order` command (`DSL_Helpfiles/order.txt`,
+        confirmed: "orders one or all of your charmed followers... to
+        perform any command"). 3 new assertions in `test/test_leveling.lua`
+        (42 total), confirmed via `git stash` both genuinely fail without
+        the fix.
       - DslColor/Census: track a player's kingdom/clan membership changes
         over time, not just current state.
       - DslColor: "last seen" should reflect real in-game physical

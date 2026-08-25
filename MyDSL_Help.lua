@@ -336,6 +336,7 @@ MyDSL.Help.modules = {
       { cmd = "mydsl leveling area new/delete/info <name>", desc = "Add, remove, or show full detail for a custom area.", example = "mydsl leveling area info gahboom" },
       { cmd = "mydsl leveling hp <percent>", desc = "HP percent auto-stop safety net, on top of DSL's own wimpy (0 disables).", example = "mydsl leveling hp 30" },
       { cmd = "mydsl leveling buff <fury|haste|detects|sanc> <cast-cmd|off>", desc = "Auto-reapply a buff with the given cast command when it wears off during a run; 'off' clears it.", example = "mydsl leveling buff haste cast haste" },
+      { cmd = "mydsl leveling attackmode <direct|orderall>", desc = "'direct' sends 'kill <target>' (default); 'orderall' sends 'order all kill <target>' instead, for classes that open through charmed followers/pets rather than personally.", example = "mydsl leveling attackmode orderall" },
     },
   },
 }

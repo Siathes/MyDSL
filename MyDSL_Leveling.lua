@@ -365,6 +365,15 @@ L.session = L.session or {
   stats             = { killed = 0, xp = 0, started = nil },
   hpThreshold       = 30,   -- percent; 0 disables
   buffs             = {},   -- {fury=cmd, haste=cmd, detects=cmd, sanc=cmd}
+  -- "order all kill <target>" instead of a direct "kill <target>" --
+  -- per Steven's own MyDSL notes ("an order all kill option instead of
+  -- direct attack, for classes where thats the right opener"): DSL's
+  -- real `order` command (DSL_Helpfiles/order.txt, confirmed) orders
+  -- every charmed follower/pet to act, which is the correct opener for
+  -- a class that fights through summoned/charmed creatures rather than
+  -- personally. Defaults to "direct" -- this is an opt-in per-class
+  -- choice, not a universal behavior change.
+  attackMode        = "direct",  -- "direct" | "orderall"
 }
 
 
@@ -644,7 +653,11 @@ function L.tryKill()
   if MyDSL.Target and MyDSL.Target.set and mobDef.label and mobDef.label ~= "" then
     pcall(MyDSL.Target.set, mobDef.label, true, "leveling")
   end
-  send("kill " .. mobDef.kill_kw)
+  if L.session.attackMode == "orderall" then
+    send("order all kill " .. mobDef.kill_kw)
+  else
+    send("kill " .. mobDef.kill_kw)
+  end
 end
 
 L._triggers.xpGain = tempRegexTrigger("^You receive (\\d+) experience points\\.$", function()
@@ -937,6 +950,7 @@ local function help()
   ce("mydsl leveling show | hide  -- window visibility")
   ce("mydsl leveling import  -- load the seed area data")
   ce("mydsl leveling hp <percent> | buff <fury|haste|detects|sanc> <cmd|off>")
+  ce("mydsl leveling attackmode <direct|orderall>  -- 'kill <target>' vs 'order all kill <target>'")
 end
 
 local function command(rest)
@@ -969,6 +983,17 @@ local function command(rest)
 
   local hp = rest:match("^hp%s+(%d+)$")
   if hp then L.session.hpThreshold = tonumber(hp); ce("HP safety threshold set to " .. hp .. "%."); return end
+
+  local attackMode = rest:match("^attackmode%s+(%a+)$")
+  if attackMode then
+    if attackMode ~= "direct" and attackMode ~= "orderall" then
+      ce("Usage: mydsl leveling attackmode <direct|orderall>")
+      return
+    end
+    L.session.attackMode = attackMode
+    ce("Attack mode set to " .. attackMode .. (attackMode == "orderall" and " (order all kill <target>)." or " (kill <target>)."))
+    return
+  end
 
   local buffName, buffCmd = rest:match("^buff%s+(%a+)%s+(.+)$")
   if buffName then

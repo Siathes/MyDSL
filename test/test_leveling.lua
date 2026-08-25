@@ -132,6 +132,30 @@ L.session.mobsInRoom = { "excavator" }
 local ok = pcall(L.tryKill)
 check("tryKill() still works fine when MyDSL.Target doesn't exist at all", ok)
 
+------------------------------------------------------------------------
+-- 3c. "order all kill" attack mode -- per Steven's MyDSL notes ("an
+-- order all kill option instead of direct attack, for classes where
+-- thats the right opener"). Default stays "direct" (unchanged
+-- behavior); the DSL_Helpfiles/order.txt-confirmed real syntax is
+-- "order all <command>".
+------------------------------------------------------------------------
+check("attackMode defaults to 'direct', not a behavior change for existing runs",
+  L.session.attackMode == "direct")
+
+_G.__sentCommands = {}
+L.session.mobsInRoom = { "excavator" }
+L.tryKill()
+check("direct mode sends a plain 'kill <target>' command",
+  _G.__sentCommands[#_G.__sentCommands] == "kill excavator")
+
+L.session.attackMode = "orderall"
+_G.__sentCommands = {}
+L.session.mobsInRoom = { "excavator" }
+L.tryKill()
+check("orderall mode sends 'order all kill <target>' instead",
+  _G.__sentCommands[#_G.__sentCommands] == "order all kill excavator")
+L.session.attackMode = "direct"  -- restore before section 4 (kill-stealing) below
+
 L.session.mobsInRoom, L.session.pendingKillMobKey = savedMobsInRoom, savedPendingKey
 
 ------------------------------------------------------------------------
