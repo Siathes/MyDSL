@@ -5665,7 +5665,7 @@ end
 -- passive door-state feeding, and tiny debug/status helpers.
 -- ============================================================================
 map.dsl = map.dsl or {}
-map.dsl.version = "0.2.5"
+map.dsl.version = "0.2.6"
 map.dsl.base = "Generic Mapper 2.1.8"
 map.dsl.gmcp = map.dsl.gmcp or {}
 map.dsl.line_buffer = map.dsl.line_buffer or {}
@@ -6457,6 +6457,49 @@ function map.dsl.onDoorLine(text)
   if dir and state then map.dsl.setGenericDoor(dir, state) end
 end
 
+-- highlightPlayersNear(list) -- per Steven's MyDSL notes ("mapper:
+-- highlight other players' rooms (from the where command) on the map...
+-- multiple possibilities highlighted when room names are ambiguous").
+-- `list` is a {name=, room=}-shaped array raised by MyDSL_DataLayer.lua's
+-- real "Players near you:" capture (MyDSL.playersNear.parsed). Kingdom/
+-- org coloring (the other half of the original ask) is NOT built here --
+-- that needs cross-referencing DslColors_Core_v1_0's own accumulated
+-- kingdom data, a much bigger native-script integration; this delivers
+-- room-highlighting only, one flat color for every match. Room-name
+-- ambiguity (the maze-style repeated names this project has hit before,
+-- e.g. "The Wing of the Stone Dragon") is handled by highlighting EVERY
+-- match, not guessing which one -- exactly what the original ask itself
+-- asked for. Clears every previously-highlighted room first so a player
+-- who's since moved doesn't leave a stale highlight behind.
+--
+-- searchRoom()'s real return value (confirmed in Mudlet's own C++
+-- source, TLuaInterpreterMapper.cpp) is a table keyed BY ROOM ID
+-- (roomID -> roomName), not a plain array -- iterate with pairs() over
+-- the keys, not ipairs() over values, or every match is silently missed.
+local DSL_PLAYER_HIGHLIGHT_RGB = { 255, 220, 60 }  -- gold -- distinct from every sector env color
+
+map.dsl.highlighted_player_rooms = map.dsl.highlighted_player_rooms or {}
+
+function map.dsl.highlightPlayersNear(list)
+  for _, rid in ipairs(map.dsl.highlighted_player_rooms) do
+    pcall(unHighlightRoom, rid)
+  end
+  map.dsl.highlighted_player_rooms = {}
+  if not list then return end
+  local c = DSL_PLAYER_HIGHLIGHT_RGB
+  for _, entry in ipairs(list) do
+    if entry.room and entry.room ~= "" then
+      local ok, matches = pcall(searchRoom, entry.room, false, true)
+      if ok and type(matches) == "table" then
+        for rid in pairs(matches) do
+          pcall(highlightRoom, rid, c[1], c[2], c[3], c[1], c[2], c[3], 25, 150, 150)
+          table.insert(map.dsl.highlighted_player_rooms, rid)
+        end
+      end
+    end
+  end
+end
+
 function map.dsl.install()
   map.dsl.registerEnvColors()
   if map.defaults then
@@ -6572,7 +6615,8 @@ map.dsl.registeredEvents = {
   registerAnonymousEventHandler("onNewRoom", "map.dsl.onGenericNewRoom"),
   registerAnonymousEventHandler("onMoveFail", "map.dsl.onMoveFailCleanup"),
   registerAnonymousEventHandler("onNewLine", "map.dsl.captureLine"),
-  registerAnonymousEventHandler("sysDataSendRequest", "map.dsl.captureCommand")
+  registerAnonymousEventHandler("sysDataSendRequest", "map.dsl.captureCommand"),
+  registerAnonymousEventHandler("MyDSL.playersNear.parsed", "map.dsl.highlightPlayersNear")
 }
 
 tempTimer(0, [[if map and map.dsl then map.dsl.install() end]])

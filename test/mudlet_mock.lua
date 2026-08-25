@@ -71,6 +71,7 @@ function _G.dcecho(...) end
 function _G.debugc(...) end
 function _G.display(...) end
 function _G.selectString(...) return -1 end
+function _G.selectSection(...) return true end
 function _G.replace(...) end
 function _G.deleteLine() end
 function _G.moveCursor(...) return true end
@@ -171,7 +172,7 @@ for _, m in ipairs({
   "setTimestampBGColor","enableTimestamp","disableTimestamp","display",
   "setStyleSheet","dechoLink","cechoLink","echoLink","hechoLink",
   "setClickCallback","setUnderline","setBold","setItalics","setClickFunction",
-  "setState","setDoubleClickCallback",
+  "setState","setDoubleClickCallback","appendBuffer",
 }) do
   StubWidget[m] = function(...) return true end
 end
@@ -250,6 +251,27 @@ function _G.setRoomArea(id, areaID) __room(id).area = areaID end
 _G.__areaNames = _G.__areaNames or {}
 function _G.getRoomAreaName(areaID) return _G.__areaNames[areaID] end
 function _G.setAreaName(areaID, name) _G.__areaNames[areaID] = name end
+
+-- searchRoom(name, caseSensitive, exactMatch) -- real return shape
+-- confirmed against Mudlet's own C++ source (TLuaInterpreterMapper.cpp):
+-- a table keyed BY ROOM ID (roomID -> roomName), not a plain array.
+function _G.searchRoom(name, caseSensitive, exactMatch)
+  local found = {}
+  local needle = caseSensitive and name or tostring(name):lower()
+  for id, r in pairs(_G.__rooms) do
+    if r.exists and r.name then
+      local hay = caseSensitive and r.name or r.name:lower()
+      local isMatch = exactMatch and (hay == needle) or (not exactMatch and hay:find(needle, 1, true) ~= nil)
+      if isMatch then found[id] = r.name end
+    end
+  end
+  return found
+end
+
+_G.__highlightCalls = _G.__highlightCalls or {}
+_G.__unhighlightCalls = _G.__unhighlightCalls or {}
+function _G.highlightRoom(rid, ...) _G.__highlightCalls[#_G.__highlightCalls + 1] = rid; return true end
+function _G.unHighlightRoom(rid) _G.__unhighlightCalls[#_G.__unhighlightCalls + 1] = rid; return true end
 
 _G.demonnic = _G.demonnic or {}
 

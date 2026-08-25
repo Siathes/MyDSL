@@ -2439,9 +2439,25 @@ local function routePlayersNearBodyLine(line)
   MyDSL.Route.players(nil)
 end
 
+-- parsePlayersNearBodyLine(line) -- structured name+room extraction, per
+-- Steven's MyDSL notes ("mapper: highlight other players' rooms from the
+-- where command"). Same split this function's raw-text sibling above
+-- already relies on (confirmed real DSL column-padded shape); this just
+-- ALSO keeps the two parts instead of only using them to tighten
+-- whitespace. Room text feeds map.dsl.highlightPlayersNear() in
+-- DSL_Generic_Mapper.xml via a raised event -- deliberately NOT resolved
+-- to a room ID here, since room lookup (searchRoom()) is the mapper's
+-- own domain, not DataLayer's.
+local function parsePlayersNearBodyLine(line)
+  local name, _, room = line:match("^(%S+)(%s%s+)(%S.*)$")
+  if not name or not room then return nil end
+  return { name = name, room = trim(room) }
+end
+
 function MyDSL.beginPlayersNear()
   if not (MyDSL and MyDSL.Route) then return end
   MyDSL.Route.clear("MyDSL_PlayersNear")
+  MyDSL._playersNearParsed = {}
   selectCurrentLine()
   copy()
   MyDSL.Route.players(nil)
@@ -2459,6 +2475,8 @@ function MyDSL.beginPlayersNear()
     -- capturing (don't end early): more real player lines may still
     -- follow before the actual blank-line terminator arrives.
     if not isPlayersNearBodyLine(ln) then return end
+    local parsed = parsePlayersNearBodyLine(ln)
+    if parsed then table.insert(MyDSL._playersNearParsed, parsed) end
     routePlayersNearBodyLine(ln)
     deleteLine()
   end)
@@ -2468,6 +2486,9 @@ function MyDSL.endPlayersNear()
   if MyDSL._triggers.playersNearBody then
     pcall(killTrigger, MyDSL._triggers.playersNearBody)
     MyDSL._triggers.playersNearBody = nil
+  end
+  if MyDSL._playersNearParsed and #MyDSL._playersNearParsed > 0 then
+    raiseEvent("MyDSL.playersNear.parsed", MyDSL._playersNearParsed)
   end
 end
 

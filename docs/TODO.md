@@ -1609,9 +1609,33 @@ machine.
         version change — needs comparing current behavior against the
         original/older Generic Mapper behavior. Bigger research item, per
         Steven's own "big research discussion for this."
-      - Mapper: highlight other players' rooms (from the `where` command)
-        on the map, colored by kingdom/org if possible; multiple
-        possibilities highlighted when room names are ambiguous.
+      - [x] **Mapper: highlight other players' rooms from `where` — built
+        2026-08-24, needs live confirmation; kingdom/org coloring NOT
+        built (see below).** `MyDSL_DataLayer.lua`'s real "Players near
+        you:" capture (already existed for the PlayersNear window) now
+        also extracts structured `{name, room}` pairs and raises
+        `MyDSL.playersNear.parsed`. `DSL_Generic_Mapper.xml`'s new
+        `map.dsl.highlightPlayersNear(list)` listens for it, resolves
+        each room name via the real `searchRoom(name, false, true)`, and
+        highlights every match via `highlightRoom()` — ambiguous/
+        maze-duplicate room names (this project's own confirmed real
+        case, "The Wing of the Stone Dragon") highlight ALL matches
+        rather than guessing one, exactly what the original ask wanted.
+        Clears every previously-highlighted room first so a player who's
+        moved doesn't leave a stale highlight. **Real bug caught before
+        shipping**: `searchRoom()`'s actual return value (confirmed
+        against Mudlet's own C++ source, `TLuaInterpreterMapper.cpp`) is
+        a table keyed BY ROOM ID, not a plain array — an `ipairs()` loop
+        over it would have silently found nothing; used `pairs()`
+        instead, confirmed via a targeted revert that this exact
+        distinction is what the tests catch. Kingdom/org coloring is
+        NOT built — that needs cross-referencing `DslColors_Core_v1_0`'s
+        own accumulated kingdom data, a materially bigger native-script
+        integration than this pass; one flat gold highlight for every
+        match for now. 5 new assertions in
+        `test/test_datalayer_playersnear_parse.lua` + 4 more in
+        `test/test_mapper_terrain_lock.lua` (34 total there). Fork
+        version bumped 0.2.5 → 0.2.6.
       - [x] **Leveling: an "order all kill" option — built 2026-08-24,
         needs live confirmation.** New `mydsl leveling attackmode
         <direct|orderall>` (`L.session.attackMode`, default `"direct"` —

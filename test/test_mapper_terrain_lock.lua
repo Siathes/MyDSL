@@ -238,6 +238,38 @@ check("a room with no assigned area (-1) never triggers a banner", #echoed == 0)
 
 _G.cecho = realCecho
 
+------------------------------------------------------------------------
+-- Part 6: highlightPlayersNear() -- per Steven's MyDSL notes ("mapper:
+-- highlight other players' rooms from the where command... multiple
+-- possibilities highlighted when room names are ambiguous").
+------------------------------------------------------------------------
+_G.__mock_defineRoom(600, "The Marketplace")
+_G.__mock_defineRoom(601, "The Wing of the Stone Dragon")
+_G.__mock_defineRoom(602, "The Wing of the Stone Dragon")  -- real maze duplicate-name case
+_G.__highlightCalls = {}
+_G.__unhighlightCalls = {}
+
+map.dsl.highlightPlayersNear({
+  { name = "Youiwe", room = "The Marketplace" },
+})
+check("a single exact room match gets highlighted", #_G.__highlightCalls == 1 and _G.__highlightCalls[1] == 600)
+
+_G.__highlightCalls = {}
+map.dsl.highlightPlayersNear({
+  { name = "Vrokt", room = "The Wing of the Stone Dragon" },
+})
+check("an ambiguous room name highlights EVERY match, not just one", #_G.__highlightCalls == 2)
+check("the previous player's stale highlight was cleared first",
+  #_G.__unhighlightCalls == 1 and _G.__unhighlightCalls[1] == 600)
+
+_G.__highlightCalls = {}
+map.dsl.highlightPlayersNear({})
+check("an empty players-near list clears everything and highlights nothing new",
+  #_G.__highlightCalls == 0)
+
+local okX = pcall(map.dsl.highlightPlayersNear, { { name = "Nobody", room = "A Room That Doesn't Exist" } })
+check("a room name with zero matches is a safe no-op, not an error", okX)
+
 print(string.rep("-", 60))
 if failures == 0 then
   print("ALL PASS")
