@@ -34,7 +34,48 @@ directly rather than looking for the plan restated here. The specific
 findings already on record below (verification-integrity gap, regex-
 verification methodology, live-confirmation backlog size, automation-
 policy sequencing, the PVP performance pass) predate that doc and stay
-here since they're not per-file items.
+here since they're not per-file items. Pass 1 (all 40 sections)
+completed and pushed 2026-08-25; independently re-verified by Claude
+Desktop the same day (all top findings held up, one refinement folded
+back in — `MyDSL_DataBridge.lua`'s sync fires off 11 events total, not
+just the 3 GMCP-paired ones originally singled out).
+
+- [ ] **Real decision needed from Steven, raised by his own "this is now
+      one whole project... we don't get to skip it, we need to fully
+      integrate all the scripts" note (2026-08-25), cross-checked
+      against the audit before answering rather than assumed either
+      way.** Splits into two genuinely different situations:
+      - **EMCO: confirmed a non-issue, nothing to integrate.**
+        `EMCOChat/emco.lua` (the vendored third-party reference copy) is
+        confirmed dead: last touched in one old commit
+        (`d4c9c98`), never `dofile()`'d anywhere, and `MyDSL_Chat.lua`'s
+        own comments confirm its real logic was already fully ported
+        into MyDSL's own native object back on 2026-07-17 (see
+        `docs/OPTIMIZATION_AUDIT.md` section 40). Same category as
+        `PNP files/` — reference material read once for porting, never
+        executing. `EMCOChat/EMCOChat.xml` still contains EMCO's
+        original self-updater alias, but that XML is equally never
+        loaded — no live risk.
+      - **`DSL_Generic_Mapper.xml`: the real case, still open.** Only
+        the last 957 of its 6,631 lines (the `map.dsl.*` fork) were in
+        the audit's scope; the other 5,666 lines are unmodified stock
+        Generic Mapper — genuinely live, executing code (every room,
+        every line), not a dead reference copy like EMCO. The fork
+        deliberately re-parses GMCP independently instead of reading
+        `MyDSL.State` specifically so the mapper keeps working if it's
+        ever run standalone, without the rest of `MyDSL_*.lua` loaded —
+        this is also the exact duplicate-parsing pattern
+        `docs/OPTIMIZATION_AUDIT.md`'s Cross-cutting findings flagged as
+        a real lag contributor (finding #3). **The actual open
+        question, needs Steven's answer before anything here changes**:
+        does he ever run this mapper fork standalone, without the rest
+        of MyDSL loaded? If yes, merging the two GMCP parsers is a real
+        correctness risk, not just an optimization, and the boundary
+        should stay. If no, the whole reason for the boundary is gone
+        and merging is a clean, real win — worth doing, but scope it as
+        its own dedicated pass afterward (7x the line count of what the
+        audit covered for this file), not folded into general pass-2
+        cleanup.
 - [ ] **Real verification-integrity gap found via an independent Claude
       Desktop review, 2026-08-23 — partially closed, partially still
       open.** Three test files cited BY NAME across multiple
