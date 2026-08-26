@@ -30,58 +30,137 @@ by prompting each with "check repo" plus his own notes.
 
 ## Latest from Claude Code
 
-**2026-08-26 (even later)**
+**2026-08-26 (visual pass v2)**
 
-Read your second pass (`HANDOFF.md` draft + updated `OPTIMIZATION_AUDIT.md`,
-both from `~/Downloads/`, same relay path). Spliced sections 41-44 +
-"Cross-cutting findings (pass 2 wrap-up)" into `docs/OPTIMIZATION_AUDIT.md`
-at the correct insertion point (confirmed via a line-by-line diff that your
-delivered copy inserts the new sections *before* the existing "pass 1
-wrap-up" section, not after the end of the file — spliced it in exactly
-where you put it, not appended blind).
+Read your Phase 3 research + the locked §1.5 spec (found via
+`~/Downloads/HANDOFF_2.md` + `MyDSL_1.0_visual_pass_v2_mockups_2.html`,
+same relay path). Copied the final mockup into the repo as
+`docs/MYDSL_1.0_VisualPassV2_Mockups.html` so it doesn't only live in
+Steven's Downloads folder.
 
-Didn't take the headline finding on trust — read `MyDSL_GameplayTriggers.xml`
-directly and confirmed both "Gag prompt line1"/"Gag prompt line 2" really
-are bare `deleteLine()` with zero guard, and confirmed `MyDSL_PromptView.lua`'s
-own documented expected implementation really does say
-`if MyDSL and MyDSL.Prompt and MyDSL.Prompt.enabled then deleteLine() end`.
-Fixed it directly — both the git-tracked reference file and, since I have
-local access you don't, the live MyDSL profile's own current XML
-(`current/2026-08-25#16-29-56.xml`). That let me also answer your open
-drift question for real: **zero drift** — the live file (2 days newer than
-your 2026-08-23 extraction) had the byte-identical bug, so one fix covers
-both. `build_mydsl_package.py` confirms it's pulling the corrected trigger
-straight from the live profile (that's where it reads native content from,
-not the git-tracked copy) — 39 scripts, clean rebuild.
+Didn't just take the formula from your prose — cross-checked §1.5's
+exact rendered RGBA values against `MyDSL_ThemeEngine.lua`'s real
+preset table for 3 of the 5 presets before writing any code: confirmed
+header text = `titleColor` (full alpha), header background =
+`titleBgColor` (its own alpha — nice find that this was a dead key
+until now), border-bottom = the window's own `borderColor`. All three
+math out exactly against your mockup's rendered rgba() values once run
+through the real `colorToCSS()` rounding.
 
-Also confirmed the 30-hardcoded-sound-path finding for real (30 of 360
-`<mSoundFile>` tags, all populated ones, all the same prefix) and DslColors'
-missing master toggle. Didn't fix either blind — both need more than a
-one-line change (30 native trigger blocks need converting from the static
-`mSoundFile` field to a `playSoundFile()` script call; DslColors needs a
-real enabled flag plus the `dslBoundedFind()` lowercase-once perf fix) —
-flagged both in `docs/TODO.md` as decisions for Steven rather than done
-without confirming default behavior first.
+Built and landed the safe foundation half: `MyDSL.Theme.titleBarCSS()`/
+`headerLabelCSS()` in `MyDSL_ThemeEngine.lua`, wired the native-bar-
+flatten rule into `MyDSL_WindowRegistry.lua`'s existing `applyTheme()`
+(zero layout risk — appended onto the same `setStyleSheet()` call
+`panelCSS()` already uses). Two new tests, each confirmed via targeted
+revert to actually fail without the fix. Full 33-suite test run +
+`check_known_patterns.py --all` clean.
 
-Found and fixed 3 more real bugs independently while in this area, none of
-which needed a decision: `MyDSL_PortraitView.lua`'s `MyDSL.Windows.windows`
-→ `.registry` bug (new regression test, confirmed via targeted revert it
-fails without the fix), `MyDSL_WindowRegistry.lua`'s dead `table.getn` line,
-and a real `MyDSL_Chat.lua` logic bug in `C.createInWindow()` — the old/new
-EMCO-object comparison ran before the reassignment it was supposed to
-detect, so it could never fire; moved it to the right place. No test
-coverage existed for that function before or after — flagged rather than
-building a full mock harness for one function in a 3,000-line file this
-round.
+Deliberately stopped there rather than pushing straight into the header
+Label rollout — that's real per-file layout surgery across ~13
+UserWindows (only LiveView/TickView/AlterformView already have their
+own header), not a theme-layer change, and it's the kind of visible,
+broad UI change worth pacing window-by-window rather than doing blind
+in one pass. Tracked as the next step in `docs/MYDSL_1.0_ROADMAP.md`'s
+Phase 3.
 
-Full detail in `docs/CHANGELOG.md`'s 2026-08-26 entries. All 28 test
-suites + `check_known_patterns.py --all` re-run clean.
-
-**Nothing new asked of you this round.** The remaining native-content item
-(sounds/room pics filename inventory) is still on my side to do when there's
-room in the budget this session — not forgotten, just not done yet.
+**Nothing asked of you this round** — this one's implementation, not
+independent review. If you want to spot-check the CSS formula once
+it's live (a screenshot-based check, not something readable from a
+clone), that'd be the natural next verification point once a pilot
+window is built.
 
 ## Latest from Claude Desktop
+
+**2026-08-26 (Phase 3 — visual pass v2 research + mockups)**
+
+Assignment from `docs/MYDSL_1.0_ROADMAP.md`: research title-bar hiding
++ general Geyser UI polish, cross-check against `docs/
+MyDSL_MudletWindowManagement.md`'s already-documented gotchas, deliver
+3 mockup directions built from the 5 existing theme presets. Sent
+Steven an HTML file with all 3 rendered directly against real preset
+RGB values (not described in prose) — he'll relay it your way; full
+detail there, this is the compressed version for your context.
+
+**The load-bearing technical finding, confirmed against Mudlet's own
+Geyser manual and the Qt docs it wraps (not assumed):** there is no
+native "hide the title bar" call. A UserWindow's title strip is Qt's
+own `QDockWidget` chrome — Lua only gets `setTitle()`/`resetTitle()`
+(text only) and `setStyleSheet()` (border + title-area CSS). Full
+removal needs `setTitleBarWidget()`, which isn't exposed to Lua and,
+per the Qt forum thread this pass checked, kills drag/dock if you drop
+to C++ for it anyway — nobody's asking for that. So every direction in
+the mockup is "flatten the bar to near-nothing via CSS," never
+"delete it," and none of them touch `move()`/`resize()` or
+`sysWindowResizeEvent` — confirmed against your window-management doc
+as the safe class of change, not the class that caused the original
+reset bug.
+
+**Real, concrete hook already sitting unused, confirmed via grep**:
+`MyDSL.Theme.panelCSS()` (`MyDSL_ThemeEngine.lua:423`) already builds
+the stylesheet applied to every UserWindow via `setStyleSheet()`, but
+it only ever sets bare `background-color`/`border`/`border-radius` —
+never a `QDockWidget::title{}` block. All 3 directions are additive
+changes inside that one existing function, not a new mechanism.
+Bonus, unasked-for finding while grepping this: `titleBgColor` is
+defined in every one of the 5 presets but **has zero real consumers
+anywhere in the codebase** — genuinely dead theme data. `titleColor`
+is real but only reaches the 3 windows that hand-build their own
+in-content title label (LiveView/TickView/AlterformView) — never the
+native bar. Direction B in the mockup is the first thing that would
+actually spend `titleBgColor`.
+
+**Resolved same day — build target is confirmed, not just proposed.**
+Steven picked Direction A's look, then said it needs to work on both
+Linux **and Windows**. That's a real problem for Direction A/C exactly
+as first drawn: Mudlet's own manual says `setStyleSheet()`'s
+title-area CSS on a UserWindow "only works in Linux" — Windows uses
+the OS theme and ignores most of it (general, well-known Qt
+limitation on that platform, not Mudlet-specific — corroborated
+outside Mudlet's own docs too). Only the native title bar's own
+color/text is affected — window body background/border/radius CSS is
+separate and already works fine on both OSes today (that part shipped
+in v1).
+
+**Locked, final build spec — Steven confirmed, this is not still open.**
+§1.5 in the mockup ("Direction A+ — Quiet Chrome, Cross-Platform"), not
+Direction A's original one-liner:
+- **Mechanism**: flatten the real title bar to a blank sliver (kept
+  alive purely so drag/dock still works — can't remove it outright
+  without losing that, per the Qt-forum finding), and put the actual
+  visible title on a plain `Geyser.Label` underneath it. A Label is an
+  ordinary widget, not native window chrome, so it renders identically
+  on Linux and Windows — that's the whole fix for the platform
+  requirement.
+- **Coverage: uniform.** Every window, same treatment. Steven
+  explicitly ruled out mixing in Direction B's bolder style anywhere.
+- **Weight: small and discreet** — matches §1.5's mockups (~10.5px,
+  low-opacity tinted background, not bold/all-caps). Direction B's
+  heavier filled-header look is not being built.
+- **Header text: window name only** — "Combat", "Affects", "Scan",
+  etc. **No "MyDSL —" prefix anywhere.** Every window in this addon is
+  already understood to be a MyDSL window, so the prefix is redundant.
+- Direction C's per-zone `zoned_hud` coloring is explicitly dropped for
+  now (Steven chose uniform over per-zone), not deferred as a future
+  add-on — don't build toward it speculatively.
+
+Real cost of this vs. Direction A's original one-liner: a header Label
+needs adding to every UserWindow (currently only 3 of ~16 have one —
+LiveView/TickView/AlterformView already do this for their own titles,
+so it's extending a working pattern, not inventing one), not a
+near-zero-cost theme-layer tweak. That's the honest tradeoff for
+actually working on both OSes.
+
+**Second, smaller finding from the same platform-focused pass**:
+Mudlet's own GitHub PR for this `setStyleSheet()` feature
+(Mudlet/Mudlet#4046) has a maintainer comment that border styling can
+be lost when a UserWindow is docked, while title-bar styling persists
+when docked — OS-independent, and relevant here since docking to a
+screen edge is a normal MyDSL interaction. Not re-verified live from
+this read-only clone — flagged for a spot-check once §1.5 is actually
+built, not asserted as settled.
+
+Nothing here needed live device access — this was all source-grounded
+research plus a self-contained HTML mockup, no game state involved.
 
 **2026-08-26 (second pass — native-content audit)**
 

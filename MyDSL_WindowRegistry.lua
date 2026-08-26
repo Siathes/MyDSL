@@ -236,7 +236,17 @@ local function applyTheme(windowName, winObj)
   if not (MyDSL.Theme and MyDSL.Theme.panelCSS) then return end
   local entry = MyDSL.Windows.registry[windowName]
   if entry and entry.type == "UserWindow" and winObj.setStyleSheet then
-    pcall(function() winObj:setStyleSheet(MyDSL.Theme.panelCSS(windowName)) end)
+    -- Visual pass v2, "Direction A+" (locked spec, HANDOFF.md 2026-08-26):
+    -- panelCSS's bare declarations theme the window's own frame; appending
+    -- titleBarCSS's QDockWidget::title{} rule flattens the REAL native
+    -- title bar to match (Linux-only rendering, confirmed via Mudlet's own
+    -- Geyser manual -- harmless no-op elsewhere). This half alone changes
+    -- no layout and touches no other file -- the cross-platform half (a
+    -- themed header Label under the flattened bar) is a separate, larger
+    -- per-window rollout, tracked in docs/MYDSL_1.0_ROADMAP.md.
+    local css = MyDSL.Theme.panelCSS(windowName)
+    if MyDSL.Theme.titleBarCSS then css = css .. " " .. MyDSL.Theme.titleBarCSS(windowName) end
+    pcall(function() winObj:setStyleSheet(css) end)
   end
   -- Container-type windows (MoonWeather) have no setStyleSheet of their
   -- own; they theme their own child Label directly and are not touched here.

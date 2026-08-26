@@ -431,6 +431,58 @@ function MyDSL.Theme.panelCSS(windowName)
   )
 end
 
+-- titleBarCSS(windowName) -- MyDSL 1.0 visual pass v2 ("Direction A+ --
+-- Quiet Chrome, Cross-Platform"), locked spec confirmed by Steven
+-- 2026-08-26 via Claude Desktop's research (HANDOFF.md). Flattens the
+-- REAL native UserWindow title bar to a blank sliver matching the
+-- window's own background -- kept alive (not removed) purely so
+-- drag/dock still works; Qt exposes no Lua-reachable way to remove a
+-- QDockWidget's title bar outright without losing that. This is a
+-- QDockWidget::title{} sub-control selector, NOT the bare declarations
+-- panelCSS() above returns -- must be concatenated onto a UserWindow's
+-- setStyleSheet() call, never passed to a plain Label. Confirmed (Mudlet's
+-- own Geyser manual, corroborated by the wider Qt community) that this
+-- specific sub-control styling only reliably renders on Linux -- on
+-- Windows/macOS the OS theme draws the title bar and mostly ignores it.
+-- That's expected and harmless, not a bug: the real cross-platform payoff
+-- is headerLabelCSS() below (an ordinary Label, not native chrome), this
+-- is just a bonus on the one OS where it actually renders.
+function MyDSL.Theme.titleBarCSS(windowName)
+  local bg = MyDSL.Theme.get(windowName, "bgColor")
+  return string.format(
+    "QDockWidget::title { background-color: %s; border: none; padding: 1px; }",
+    MyDSL.Theme.colorToCSS(bg)
+  )
+end
+
+-- headerLabelCSS(windowName) -- the actual cross-platform half of the
+-- same spec: styling for a plain Geyser.Label (ordinary widget CSS,
+-- renders identically on every OS) sitting just under the flattened
+-- native bar, carrying the window's real visible title. Formula
+-- confirmed exact-match against Claude Desktop's delivered mockup HTML
+-- (MyDSL_1.0_visual_pass_v2_mockups_2.html section 1.5) for all 5
+-- presets: header text = titleColor (full alpha, this preset key exists
+-- specifically for a title, which this finally is); header background =
+-- titleBgColor (its own alpha -- this is the first real consumer of that
+-- key anywhere in the codebase, confirmed dead until now via
+-- HANDOFF.md); border-bottom = the window's own existing borderColor at
+-- its own alpha, so the header reads as part of the same frame rather
+-- than a separate box. Small and discreet per the locked spec: 10.5px
+-- text, normal weight, slight letter-spacing, no "MyDSL --" prefix --
+-- callers pass just the window's own display name (e.g. "Combat").
+function MyDSL.Theme.headerLabelCSS(windowName)
+  local titleColor   = MyDSL.Theme.get(windowName, "titleColor")
+  local titleBgColor = MyDSL.Theme.get(windowName, "titleBgColor")
+  local border       = MyDSL.Theme.get(windowName, "borderColor")
+  local size         = MyDSL.Theme.get(windowName, "borderSize") or 1
+  return string.format(
+    "background-color: %s; color: %s; border-bottom: %dpx solid %s; " ..
+    "font-size: 10.5px; font-weight: normal; letter-spacing: 0.02em; padding: 4px 10px;",
+    MyDSL.Theme.colorToCSS(titleBgColor), MyDSL.Theme.colorToCSS(titleColor),
+    size, MyDSL.Theme.colorToCSS(border)
+  )
+end
+
 -- styleConsole(consoleObj, windowName, fontSizeOverride)
 -- Applies the active theme's background fill and font to a MiniConsole
 -- (or any Geyser.Window subclass with setColor/setFont/setFontSize --

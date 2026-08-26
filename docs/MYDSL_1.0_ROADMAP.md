@@ -33,7 +33,7 @@ to one line once it's closed, same discipline as everywhere else.
 | Pass 2 audit — 4 native XML files (mapper's stock code, DslColors, gameplay triggers, personal aliases) | Claude Desktop, re-verified + partly fixed by Claude Code | **Done** (2026-08-26) |
 | `check_text_coverage.py` build + spot-check | Claude Code built, Claude Desktop spot-checked | **Done** (2026-08-25/26), 2 known blind spots documented, not fixed |
 | Bug-fix sweep on pass-1/pass-2 findings (no-decision-needed items) | Claude Code | **Phase 1 mostly done** 2026-08-26 — 7 fixed, including 1 critical regression found along the way (see table below) |
-| Visual pass v2 — title-bar hiding, UI best-practices research, 3 mockups | Claude Desktop (assigned below) | **Not started** |
+| Visual pass v2 — title-bar hiding, UI best-practices research, 3 mockups | Claude Desktop researched, Steven locked the spec, Claude Code building | **Foundation done** 2026-08-26; per-window header rollout (~13 files) still ahead |
 | Step 4 — interconnection/performance pass | Not started | **Not started** |
 | Step 5 — unknown-line routing design (Principle 4 Part B) | Deferred | **Deferred**, blocked on coverage tool maturity |
 | Mapper's own DSL-specific rewrite | Deferred | **Deferred**, own dedicated pass, scope not yet sized |
@@ -169,18 +169,38 @@ TickSource/TickView pair, since all three touch the same "how much
 does one line/tick cost" question and are easier to reason about
 together than interleaved with unrelated module fixes.
 
-### Phase 3 — Visual pass v2 (Steven's new ask, 2026-08-26)
-Assigned to Claude Desktop — see the prompt below. Scope: research
-title-bar hiding and general Mudlet/Geyser UI polish techniques, cross-
-check against the 6 window-management gotchas already documented in
-`docs/MyDSL_MudletWindowManagement.md`, integrate the MyDSL 1.0
-philosophy (Principle 2 toggles, "main console is sacred," percentage-
-only positioning — no new absolute-pixel regressions), and deliver 3
-distinct visual mockup directions built from the *existing* 5 theme
-presets in `MyDSL_ThemeEngine.lua` (`refined_convergence`,
-`terminal_purist`, `zoned_hud`, `obsidian_ember`, `arcane_midnight`) —
-not a disconnected new palette. Claude Code implements whichever
-direction Steven picks, same as the v1 theme work.
+### Phase 3 — Visual pass v2 ("Direction A+ — Quiet Chrome, Cross-Platform")
+Research done by Claude Desktop 2026-08-26 (`docs/MyDSL_MudletWindowManagement.md`
+cross-checked, 3 mockup directions delivered against the real 5 presets,
+full detail in `HANDOFF.md`). **Steven picked and locked a final spec
+the same day** — not still open:
+- Native title bar flattened to a blank sliver matching the window's
+  own background (kept alive only so drag/dock still works — Qt exposes
+  no Lua-reachable way to remove it outright). Linux-only rendering,
+  confirmed via Mudlet's own manual — harmless no-op on Windows/macOS.
+- A plain `Geyser.Label` underneath carries the real visible title —
+  ordinary widget CSS, renders identically on every OS, which is the
+  actual fix for Steven's Linux+Windows requirement.
+- Uniform across every window (no mixing in the bolder "Direction B"
+  style anywhere), small/discreet (~10.5px, low-opacity tint), header
+  text is the window name only — no "MyDSL —" prefix.
+
+**Done 2026-08-26**: the safe foundation — `MyDSL.Theme.titleBarCSS()`/
+`headerLabelCSS()` (exact formula confirmed against Desktop's mockup:
+text=`titleColor`, background=`titleBgColor`, border=the window's own
+`borderColor`), wired into `MyDSL_WindowRegistry.lua`'s `applyTheme()`
+for the native-bar flatten half. Two new tests, full suite clean.
+
+**Still open — the real remaining cost**: the header Label itself needs
+adding to the ~13 UserWindows that don't already build their own (only
+`MyDSL_LiveView.lua`/`MyDSL_TickView.lua`/`MyDSL_AlterformView.lua` do).
+This is genuine per-file layout work — each window's existing content
+needs to shift down to make room, not just a theme-layer change — so
+it's paced as its own rollout rather than done in one blind pass across
+every file. Do it window-by-window, same verification standard as
+everything else (targeted revert, test, `check_known_patterns.py
+--all`), starting with a simple window to confirm the pattern before
+repeating it 12 more times.
 
 ### Phase 4 — Step 5: unknown-line routing design (Principle 4 Part B)
 Still blocked on the known-pattern catalog maturing — `check_text_
