@@ -219,6 +219,11 @@ background job:
   confirmed past bug — see `MyDSL_Audit.md` item 9, profile root, not docs/ —
   fixed 2026-07-06, this file previously said "in docs/" which was wrong).
 - **Reuse PNP/EMCO source and their command vocabulary — don't reinvent.**
+  Narrowed by the MyDSL 1.0 mandate above (2026-08-25): once ported,
+  that code is this project's own, not a third-party dependency kept at
+  arm's length — this bullet is about *how a port starts* (reuse
+  tested logic and vocabulary instead of rewriting from scratch), not a
+  claim that the result stays someone else's code afterward.
   Restated 2026-07-05 after Steven reported having to repeatedly fight
   Claude.ai's tendency to recreate PNP/EMCO functionality from scratch
   instead of reusing it. This applies at two levels: (1) internal logic —

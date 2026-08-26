@@ -717,9 +717,18 @@ Steven asked this audit to find:**
 ## 10. `DSL_Generic_Mapper.xml` (embedded Lua — the `map.dsl.*` fork layer)
 
 **6,631-line native XML package.** Lines 1-5666 are the stock
-third-party "Generic Mapper 2.1.8" base package (reused per this
-project's own "reuse, don't reinvent" philosophy — not our code, not
-audited line-by-line here). **Lines 5667-6623 (~957 lines) are the
+"Generic Mapper 2.1.8" base package. **Ownership framing updated
+2026-08-25**: `docs/MYDSL_1.0_PHILOSOPHY.md`'s Principle 1 retired the
+"third-party, not our code" distinction this section originally used
+here — these 5,666 lines are this project's own code now, same as
+everything else that runs in this profile. What hasn't changed is the
+underlying fact this section is actually reporting: they haven't been
+audited line-by-line as part of this pass (only the 957-line `map.dsl.*`
+fork below was in scope) — that's a real, still-true statement about
+audit coverage, not a claim about who owns the code. The mapper's own
+DSL-specific rewrite (Principle 1, "the real remaining case") is
+tracked as its own future pass in `docs/TODO.md`, not started yet.
+**Lines 5667-6623 (~957 lines) are the
 real subject of this audit**: `map.dsl.*`, this project's own
 "Minimal Hardening Layer" fork, currently v0.2.6. Three native Trigger
 objects elsewhere in the file (not inside the `map.dsl` script block
@@ -2496,9 +2505,18 @@ DSL-specific fork layer:
 - **Lines 1-2,404 (72% of the file): PART 1, the ported EMCO class.**
   Cannibalized nearly verbatim from EMCO 2.9.0 (Damian "demonnic"
   Monogue, MIT license, `github.com/demonnic/EMCO`,
-  `src/resources/emco.lua`). Third-party code reused per this project's
-  "reuse, don't reinvent" philosophy — not scrutinized line-by-line
-  here, same treatment as the stock Generic Mapper package.
+  `src/resources/emco.lua`). Ownership framing updated 2026-08-25 to
+  match `docs/MYDSL_1.0_PHILOSOPHY.md`'s Principle 1 — this is this
+  project's own code now, same as everything else running in this
+  profile, not a "third-party" carve-out. What's still true and worth
+  keeping separate from the ownership question: this pass didn't
+  scrutinize these lines line-by-line (same audit-scope note as the
+  stock Generic Mapper package, section 10) — and per that same
+  Principle 1, EMCO specifically is confirmed already fully absorbed
+  (the vendored `EMCOChat/emco.lua` reference copy is dead, untouched
+  since one old commit, never `dofile()`'d — see `docs/TODO.md`'s
+  2026-08-25 entry), so unlike the mapper there's no further
+  integration work outstanding here.
 - **Lines 2,405-3,345 (941 lines): PART 2, chat window management**
   (originally `MyDSL_ChatWrapper.lua`) — this project's own code on top
   of the ported class. This is the real subject of this audit section.

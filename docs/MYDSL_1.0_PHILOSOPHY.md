@@ -166,15 +166,15 @@ One concrete, real finding folds into this philosophy as a standing
 rule rather than a one-off fix: **no credentials in native trigger/
 alias scripts, ever, live or in any tracked backup.** Steven found his
 own login password sitting in a live Mudlet trigger — real, current
-exposure, independent of the redesign timeline, and something that
-gets fixed with real care during the module pass that reaches login
-handling (folded into that pass per Steven's own call, not treated as
-urgent enough to interrupt this document). Recorded here as a
-standing rule so it can't recur elsewhere as more native content gets
-absorbed under Principle 1: any credential, password, or personally
-identifying secret must never be typed directly into a native
-trigger/alias script body. It belongs in a local, `.gitignore`d file
-read at runtime, or prompted for interactively — never committed,
+exposure, independent of the redesign timeline. He's fixing this one
+himself, on his own timeline, with his own replacement approach in
+mind (see "Separately tracked, not blocking this document" below for
+the actual, current status — not a module-pass carry-over). Recorded
+here as a standing rule so it can't recur elsewhere as more native
+content gets absorbed under Principle 1: any credential, password, or
+personally identifying secret must never be typed directly into a
+native trigger/alias script body. It belongs in a local, `.gitignore`d
+file read at runtime, or prompted for interactively — never committed,
 never embedded in exported/backup XML.
 
 ## Principle 6: Recorded Best Practices (Mudlet/Lua)
