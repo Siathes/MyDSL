@@ -46,14 +46,22 @@ Desktop, written up in `docs/MYDSL_1.0_MODULE_REDESIGN.md`** (all 39
 Code against current source via direct grep before folding in below —
 every claim confirmed still real. Two categories came out of it:
 
+**Step 3 fixes landed 2026-08-26 (Claude Code)**: `MyDSL_PortraitView.lua`'s
+`MyDSL.Windows.windows` → `.registry` fix (new regression test,
+`test/test_portraitview_window_registry.lua`, confirmed via targeted
+revert it fails without the fix — worth Steven confirming live whether
+portrait theme/dock/layout now actually reaches the visible window),
+`MyDSL_WindowRegistry.lua`'s dead `table.getn` debug line, and a real
+`MyDSL_Chat.lua` logic bug beyond the one already known (`old ~=
+C.emco` was compared before `C.emco` was ever reassigned, so a chat
+window rebuild never actually hid/tracked the previous EMCO object —
+fixed by moving the comparison after the real reassignment; no test
+coverage existed for `createInWindow()` before or after, flagged
+separately below rather than adding a heavy new harness for one
+function in a 3,000-line file).
+
 - [ ] **Real bugs, no decision needed, just need doing** (bug fixes
       under the existing feature-creep-paused rule, not new scope):
-      - `MyDSL_PortraitView.lua` reads `MyDSL.Windows.windows[...]`, a
-        table that has never existed (the real one is `.registry`) —
-        confirmed still present; one-line fix (`windows` → `registry`),
-        but worth Steven confirming live first whether portrait
-        theme/dock/layout changes have in fact never applied, since
-        that's what this bug would cause.
       - `MyDSL_DataBridge.lua`'s confirmed double-fire (`sync()` runs
         twice per `char_data`/`room_data`/`tick`, worst case since it's
         every combat round) and `MyDSL_LocationView.lua`'s confirmed
@@ -99,6 +107,78 @@ every claim confirmed still real. Two categories came out of it:
         script's own "Scope" docstring 2026-08-26, not yet fixed. Low
         urgency (affects the *ranking*, not the tool's core design) but
         worth knowing before trusting its coverage number as precise.
+
+**Step 2 (native-content second audit pass) done 2026-08-26 by Claude
+Desktop**, sections 41-44 + a "Cross-cutting findings (pass 2 wrap-up)"
+appended to `docs/OPTIMIZATION_AUDIT.md`, covering the 4 native XML
+files pass 1 explicitly scoped out (`DSL_Generic_Mapper.xml`'s stock
+~5,666 lines, `DslColors_Core_v1_0.xml`, `MyDSL_GameplayTriggers.xml`,
+`MyDSL_PersonalAliases.xml`) — required under Principle 1. Spot-checked
+by Claude Code against current source before folding in below.
+
+- [x] **Fixed 2026-08-26 (Claude Code) — highest-confidence finding of
+      pass 2**: `MyDSL_GameplayTriggers.xml`'s "Gag prompt line1"/"Gag
+      prompt line 2" native triggers ran bare, unconditional
+      `deleteLine()` with no `MyDSL.Prompt.enabled` guard, contradicting
+      `MyDSL_PromptView.lua`'s own documented expected implementation —
+      confirmed via direct read that `mydsl prompt on|off` was not
+      actually controlling prompt-line gagging. Fixed both the
+      git-tracked reference copy and the live MyDSL profile's actual
+      `current/*.xml` (confirmed no drift between the 2026-08-23
+      extraction and 2026-08-25's live file first — same bug, byte-
+      identical trigger — so one fix covers both). Package rebuilds
+      clean (39 scripts). **Needs Steven's live confirmation**: toggle
+      `mydsl prompt off` and check that prompt-line gagging actually
+      stops now.
+- [ ] **Real decisions needed from Steven, native content**:
+      - `DslColors_Core_v1_0.xml` has no master on/off — its full
+        803-term-vocabulary scan runs unconditionally on every non-blank
+        line, only a minor `echo on/off` notification setting exists.
+        Direct Principle 2 gap; also a real per-line perf cost
+        (`dslBoundedFind()` re-lowercases the line on every one of ~803
+        term comparisons instead of once). Needs a real toggle + the
+        lowercase-once fix — a bigger change than the prompt-gag fix,
+        not done without confirming default on/off behavior first.
+      - **30 native `<mSoundFile>` entries in `MyDSL_GameplayTriggers.xml`
+        hardcode `/home/owner/Desktop/Mudlet/mudlet-data/profiles/DSL2/
+        Sounds/...`** — confirmed real (grep-verified: all 30 of the
+        file's 360 `<mSoundFile>` tags that are actually populated use
+        this exact prefix; the path happens to still resolve on this
+        machine since `~/.config/mudlet/profiles/DSL2` and that Desktop
+        path are the same physical directory, confirmed via inode check
+        — so nothing is broken today, but it isn't portable to a fresh
+        install). Same bug class already fixed once in
+        `MyDSL_Leveling.lua`. Fixing this for real means converting each
+        of the 30 native sound triggers from the static `mSoundFile`
+        field to a `playSoundFile(getMudletHomeDir() .. "/Sounds/...")`
+        script call instead (the pattern "is DEAD!! Scan" in the same
+        file already uses) — real native-XML surgery across 30 trigger
+        blocks, not a one-line fix, so flagged for a decision rather
+        than done blind.
+      - `scripts/check_known_patterns.py` only ever scans `.lua` files
+        — both bugs above were invisible to its `--all` sweep purely
+        because they live in XML. Worth deciding whether to extend it
+        to the 4 native files (a path-literal check is a small addition
+        to a rule it already has) or keep native-XML review manual.
+      - `MyDSL_PersonalAliases.xml`'s 29 personal command-shortcut
+        aliases aren't "features" in the sense Principle 2 was written
+        for (closer to ordinary native Mudlet aliases than a toggleable
+        subsystem) — whether Principle 2 is meant to reach this far is
+        a real open question, not something to resolve without asking.
+- [ ] **Trivial cleanup, no decision needed, low priority**: `MyDSL_
+      GameplayTriggers.xml`'s "BACKSTABS Fail" trigger has its entire
+      script body commented out (PNP-era dead code, still fires and
+      matches, does nothing) — safe to remove whenever the native XML
+      is next hand-edited for something else, not worth a standalone
+      pass on its own.
+- [x] **Two pass-1 open items resolved, not new bugs**: `MyDSL_History`
+      is NOT dead weight — `MyDSL.Route.history()` has 83 real native
+      callers inside `MyDSL_GameplayTriggers.xml` (pass 1's "zero
+      callers" read only searched `.lua` files). `dslColorRelation()`'s
+      data source is confirmed as `DslColors_Core_v1_0.xml`'s own
+      `_G.DSL_COLOR_DB`, with 3 real external callers now identified
+      (`MyDSL_TargetView.lua`, `MyDSL_DataLayer.lua`,
+      `MyDSL_PersonalAliases.xml`'s `(whobe)` alias).
 
 - [ ] **Real decision needed from Steven, raised by his own "this is now
       one whole project... we don't get to skip it, we need to fully

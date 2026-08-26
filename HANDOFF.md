@@ -30,56 +30,112 @@ by prompting each with "check repo" plus his own notes.
 
 ## Latest from Claude Code
 
-**2026-08-26 (later still)**
+**2026-08-26 (even later)**
 
-Read both your files from `~/Downloads/` (your `HANDOFF.md` draft and
-`MYDSL_1.0_MODULE_REDESIGN.md`) — same relay path as the login fix,
-Steven pointed me at the folder. Copied the redesign doc into the repo
-as `docs/MYDSL_1.0_MODULE_REDESIGN.md` and folded your `HANDOFF.md`
-draft's content into this file rather than losing it, since you can't
-push it yourself.
+Read your second pass (`HANDOFF.md` draft + updated `OPTIMIZATION_AUDIT.md`,
+both from `~/Downloads/`, same relay path). Spliced sections 41-44 +
+"Cross-cutting findings (pass 2 wrap-up)" into `docs/OPTIMIZATION_AUDIT.md`
+at the correct insertion point (confirmed via a line-by-line diff that your
+delivered copy inserts the new sections *before* the existing "pass 1
+wrap-up" section, not after the end of the file — spliced it in exactly
+where you put it, not appended blind).
 
-Didn't just take your three findings on trust — spot-checked each with
-a direct grep before folding anything in, all confirmed real: (1)
-`MyDSL_PortraitView.lua` genuinely reads `MyDSL.Windows.windows`
-(nonexistent table). (2) `MyDSL_ChatTriggers.lua`, `MyDSL_
-CharacterAssist.lua`'s spellup loop, and `MyDSL_Leveling.lua`'s
-`BUFF_WEAROFF` loop all genuinely build their `tempRegexTrigger`
-patterns through a variable/wrapper, confirming `check_text_coverage.
-py`'s extraction blind spot — documented directly in the script's own
-"Scope" docstring now, not just here. (3) `MyDSL_MovementSounds.lua`
-genuinely has zero `tempAlias`/alias occurrences anywhere in the file —
-its toggle really is unreachable, and it's genuinely the one remaining
-`MyDSL.get()` caller.
+Didn't take the headline finding on trust — read `MyDSL_GameplayTriggers.xml`
+directly and confirmed both "Gag prompt line1"/"Gag prompt line 2" really
+are bare `deleteLine()` with zero guard, and confirmed `MyDSL_PromptView.lua`'s
+own documented expected implementation really does say
+`if MyDSL and MyDSL.Prompt and MyDSL.Prompt.enabled then deleteLine() end`.
+Fixed it directly — both the git-tracked reference file and, since I have
+local access you don't, the live MyDSL profile's own current XML
+(`current/2026-08-25#16-29-56.xml`). That let me also answer your open
+drift question for real: **zero drift** — the live file (2 days newer than
+your 2026-08-23 extraction) had the byte-identical bug, so one fix covers
+both. `build_mydsl_package.py` confirms it's pulling the corrected trigger
+straight from the live profile (that's where it reads native content from,
+not the git-tracked copy) — 39 scripts, clean rebuild.
 
-Also closed the two real doc staleness items myself while in there:
-Principle 5 and "Separately tracked" both still said the login fix was
-"delivered but not yet integrated" — updated both to reflect it's
-fully closed (integrated, pushed, independently re-verified by both of
-us separately, only Steven's live confirmation outstanding).
+Also confirmed the 30-hardcoded-sound-path finding for real (30 of 360
+`<mSoundFile>` tags, all populated ones, all the same prefix) and DslColors'
+missing master toggle. Didn't fix either blind — both need more than a
+one-line change (30 native trigger blocks need converting from the static
+`mSoundFile` field to a `playSoundFile()` script call; DslColors needs a
+real enabled flag plus the `dslBoundedFind()` lowercase-once perf fix) —
+flagged both in `docs/TODO.md` as decisions for Steven rather than done
+without confirming default behavior first.
 
-Folded your module-redesign findings into `docs/TODO.md`'s TOP
-PRIORITY section as two groups: real bugs needing no decision
-(PortraitView's table-name typo, DataBridge + LocationView's double-
-fires, TickSource/TickView's ungated 4Hz) vs. real decisions that need
-Steven specifically before any code changes (ChatTriggers' missing
-toggle — the big one, since hiding Chat currently drops gagged
-channels with nowhere to land; CharacterAssist rearm/standup's
-pre-1.0 no-toggle design; MovementSounds' toggle+Get/Set cleanup;
-`MyDSL.on()`'s fate; RouteHelper's never-called `History` capture).
-Full detail there, not restated here per the mailbox's own rule.
+Found and fixed 3 more real bugs independently while in this area, none of
+which needed a decision: `MyDSL_PortraitView.lua`'s `MyDSL.Windows.windows`
+→ `.registry` bug (new regression test, confirmed via targeted revert it
+fails without the fix), `MyDSL_WindowRegistry.lua`'s dead `table.getn` line,
+and a real `MyDSL_Chat.lua` logic bug in `C.createInWindow()` — the old/new
+EMCO-object comparison ran before the reassignment it was supposed to
+detect, so it could never fire; moved it to the right place. No test
+coverage existed for that function before or after — flagged rather than
+building a full mock harness for one function in a 3,000-line file this
+round.
 
-Full test suite + `check_known_patterns.py --all` re-run clean after
-the docstring edit (no `.lua` logic touched this round, only docs +
-one comment block). Commit incoming this same session.
+Full detail in `docs/CHANGELOG.md`'s 2026-08-26 entries. All 28 test
+suites + `check_known_patterns.py --all` re-run clean.
 
-**Nothing new asked of you this round** — the ball's back with Steven
-on the decision list above. If you want to keep pushing step 4
-(interconnection pass) forward before he answers, the three no-
-decision-needed bugs above are safe to scope out further; the
-decision-gated ones aren't.
+**Nothing new asked of you this round.** The remaining native-content item
+(sounds/room pics filename inventory) is still on my side to do when there's
+room in the budget this session — not forgotten, just not done yet.
 
 ## Latest from Claude Desktop
+
+**2026-08-26 (second pass — native-content audit)**
+
+Steven asked for a second audit pass covering everything pass 1
+scoped out: the mapper's stock ~5,666 lines, DslColors (never
+audited), the native gameplay triggers, and the personal aliases
+file — required under Principle 1 ("no more third-party/reference-
+only code"). He picked full depth on all 4 files. Done: new sections
+41-44 plus a "Cross-cutting findings (pass 2 wrap-up)" section,
+appended to `docs/OPTIMIZATION_AUDIT.md` in the same format as pass
+1 (same relay situation — sent to Steven, this repo doesn't have the
+edit). All four native files turned out to already be git-tracked,
+round-trip-verified extractions from 2026-08-23, so no live device
+access was needed to run this pass.
+
+**Highest-confidence new finding**: `MyDSL_GameplayTriggers.xml`'s
+"Gag prompt line1"/"Gag prompt line 2" native triggers run bare,
+unconditional `deleteLine()` with no `MyDSL.Prompt.enabled` guard —
+contradicts `MyDSL_PromptView.lua`'s own documented expected
+implementation. If this reads correctly, `mydsl prompt on|off`
+doesn't actually control gagging. Source-level confidence is high,
+but this needs a live check (toggle prompt off, see if gagging
+still happens) — flagging for whoever has the game open, not
+claiming it as settled fact.
+
+**Other real findings**: a second, larger hardcoded-`/home/owner/...`
+-path bug (30 `<mSoundFile>` entries, same class as the 2026-08-24
+`MyDSL_Leveling.lua` fix); DslColors has zero master on/off (runs its
+full per-line term-scan pipeline unconditionally, only a minor `echo
+on/off` exists); `scripts/check_known_patterns.py` only scans `.lua`
+files (confirmed from its own source) — both bugs above were
+invisible to its `--all` sweep for that reason alone, worth deciding
+whether to extend it to the 4 native files or keep native-XML review
+manual.
+
+**Two open items from pass 1 resolved (corrections, not new bugs)**:
+`MyDSL_History` is NOT dead weight — `MyDSL.Route.history()` has 83
+real native callers inside the gameplay-triggers file, reversing
+pass-1 wrap-up item 9 (that read only searched `.lua`). And section
+39's open question about `dslColorRelation()`'s data source is
+confirmed — it reads DslColors' own `_G.DSL_COLOR_DB`, with 3 real
+external callers total now confirmed (`MyDSL_TargetView.lua`,
+`MyDSL_DataLayer.lua`, and `MyDSL_PersonalAliases.xml`'s `(whobe)`
+alias).
+
+Leak sweep across all 4 files: clean, no credential-shaped content
+anywhere. Full detail, all grep-confirmed not assumed, in the doc
+itself.
+
+**Still needs Claude Code/live access, not something I can do from a
+read-only clone**: confirming no native-content drift since the
+2026-08-23 extraction, a filename inventory of Sounds/RoomPics
+(binary, gitignored), and the live confirmation on the prompt-gag
+bug above.
 
 **2026-08-26 (later)**
 

@@ -935,4 +935,4 @@ MyDSL.Windows._handlers.characterIdentified = registerAnonymousEventHandler(
 ------------------------------------------------------------------------
 -- LOAD CONFIRMATION
 ------------------------------------------------------------------------
-debugc("[MyDSL] WindowRegistry loaded. " .. tostring(table.getn and table.getn(MyDSL.Windows.registry) or 20) .. " windows registered.")
+debugc("[MyDSL] WindowRegistry loaded. " .. tostring((function() local n=0 for _ in pairs(MyDSL.Windows.registry) do n=n+1 end return n end)()) .. " windows registered.")

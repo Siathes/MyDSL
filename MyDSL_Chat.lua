@@ -2684,11 +2684,6 @@ function C.createInWindow()
   if not C.ensureWindow() then return false end
 
   local old = C.emco
-  if old and old ~= C.emco then
-    C.oldChat = old
-    C.state.replacedExisting = true
-    pcall(function() if old.hide then old:hide() end end)
-  end
 
   C.hideOldPrebuilt()
 
@@ -2744,6 +2739,12 @@ function C.createInWindow()
 
   if not ok or not obj then
     return err("failed to create MyDSL-owned EMCOChat object: " .. tostring(obj))
+  end
+
+  if old and old ~= obj then
+    C.oldChat = old
+    C.state.replacedExisting = true
+    pcall(function() if old.hide then old:hide() end end)
   end
 
   C.emco = obj

@@ -2668,6 +2668,418 @@ comment), `MyDSL_DataLayer.lua` (`mydsl log chat` toggle).
 
 ---
 
+## 41. `DSL_Generic_Mapper.xml` (stock, unmodified package code — ~5,666 of the file's 8,174 lines)
+
+Scoped out of section 10 deliberately ("this pass didn't scrutinize these
+lines line-by-line... planned as its own dedicated rewrite pass, not
+started yet") — now in scope under Principle 1. Covers everything in the
+file's single `<Script>` block ("Map Script") EXCEPT the already-audited
+`map.dsl.*` fork layer (lines ~5667-6623, section 10), plus the native
+alias vocabulary outside the already-covered "DSL Minimal Hardening"
+group.
+
+**What it does:** ~68 stock `map.*` functions — the standard Generic
+Mapper 2.1.8 package: room/area/path scripting on Mudlet's native mapper
+widget, map file load/save, coordinate math, symbol/color assignment,
+door-state-aware path search (`getPath()`) and speedwalking (`map.
+speedwalk()`), map-file sharing (upload/download via `map.load_map
+(address)`). Wired to 67 `<Alias>` entries across 6 `<AliasGroup>`s
+(Setup/Information/Regular Use/Map Creation/Map Sharing Aliases) using
+the package's original command surface (`map ...`, `mmp ...`) — reused
+as-is, same "don't reinvent the vocabulary" rule already applied to
+PNP/EMCO.
+
+**Public surface:** contrary to the assumption a first pass might make
+(that stock package internals are only ever reached through their own
+aliases), **`MyDSL_Leveling.lua` genuinely calls into this stock code**:
+`_G.map.speedwalk(cachedRoomId)` (line 542, confirmed via grep — not a
+comment), used as "an opportunistic same-session upgrade" once a cached
+room ID resolves, per that file's own comments. This is a real, live
+dependency from this project's own Lua onto the *stock* mapper package
+(not just the `map.dsl.*` fork), worth recording since Principle 1's
+reframing ("anything running in this profile is this project's own code
+now") applies here concretely, not just in the abstract.
+
+**Depends on:** Mudlet's native mapper widget/API (`getPath`,
+`createMapper`, room/area DB) — same as documented for the fork layer in
+section 10.
+
+**Called by:** its own 67 aliases (internal); `MyDSL_Leveling.lua` →
+`map.speedwalk()` (external, confirmed above).
+
+**Candidate cruft:** the package's own self-update mechanism is present
+but fully neutralized, not removed — worth recording explicitly since
+it's exactly the kind of thing the project's standing rule ("kill their
+self-updater/maintenance mechanisms when porting," already verified for
+EMCO in section 40) exists to catch. Three call sites all short-circuit
+through the same fork-provided guard: the `map update` alias's script
+(line 555) checks `map.dsl.updateDisabled` first and returns before
+reaching any real update logic; `map.checkVersion()` (line 4317) and
+`map.updateVersion()` (line 4329) do the same. `map.dsl.updateDisabled()`
+itself (fork layer, line 5714) clears any pending update timer, echoes
+"Updater is disabled in the DSL fork," and returns `false` — a real,
+working kill switch, not a dead comment. Separately, `map.load_map
+(address)` (map-file download/import) is a distinct, legitimate
+map-sharing feature reachable only through the explicit "Load Map Alias"
+(`map load <address>`) — not the package's own self-update path, and not
+something this pass is flagging as a concern.
+
+**Performance flags:** none new — this pass didn't find evidence of the
+stock code running unconditionally on every line (it's alias/command-
+driven, not trigger-driven, except where it hooks the mapper's own
+room-change events, already covered by section 10's fork-layer analysis
+of the same hook points). A full line-by-line performance read of all
+~68 functions was out of scope for this pass (matches the audit-scope
+note section 10 and section 40 both already use for large ported/stock
+code) — flagged here as still open if Steven wants that depth later,
+same as those two sections flag it.
+
+**Leak sweep:** clean — no credential/password/API-key/token-shaped
+content anywhere in the file (grepped directly, not assumed).
+
+---
+
+## 42. `DslColors_Core_v1_0.xml`
+
+**3,333 lines, 1 `<Script>` ("DslColors_Core_v1_0") + 1 `<TriggerGroup>`
+with a single always-on `<Trigger>`.** Never previously audited — absent
+from pass 1 entirely. Extracted verbatim from the live profile
+2026-08-23, round-trip-verified against live source (0 mismatches).
+Standalone: confirmed via grep it never references `MyDSL.*` itself, but
+two `.lua` modules reach into it (see Called by).
+
+**What it does:** colorizes race/class/organization/craft terms and
+known people's names as they scroll by, using large static vocabulary
+tables (`DSL_RACE_ALIASES` = 214 entries, `DSL_CLASS_ALIASES` = 358,
+`DSL_ORG_ALIASES` = 170, `DSL_CRAFT_TERMS` = 61) plus a learned,
+persisted per-player relationship/identity table (`dslColorSave()`/
+`dslColorLoad()`, written to `getMudletHomeDir() .. "/DSL_
+PeopleColors_data.lua"`). The single native `<Trigger>` ("DslColors v1.0
+line processor") matches essentially every non-blank line
+(`^(?!\s*$).+`) and calls `dslColorOnLine()` (script lines 2735-2763),
+which runs the full term-scan pipeline unconditionally on every one of
+those lines.
+
+**Public surface:** `dslColorCommand()` (script lines 3166-3316) — the
+`dslcolor <verb>` alias family (`show`/`combat show`/`echo on|off`/etc.).
+`dslColorRelation(name)` — read externally (see Called by).
+
+**Depends on:** its own static vocabulary tables and the persisted `DSL_
+PeopleColors_data.lua` file only — no `MyDSL.*` dependency in either
+direction from inside this file.
+
+**Called by:** two real, confirmed external call sites reaching *into*
+DslColors — this resolves section 39's own open question about `MyDSL_
+TargetView.lua`'s `dslColorRelation()` ("worth confirming where this
+actually reads from"): `MyDSL_TargetView.lua` (line 527,
+`dslColorRelation(name)` reads `_G.DSL_COLOR_DB.relations.people`, used
+at line 730 to color a target's relation) and `MyDSL_DataLayer.lua`
+(line 243, `pcall(function() dslColorCommand("show " .. name) end)`).
+`MyDSL_PersonalAliases.xml`'s `(whobe)` alias also calls in
+(`expandAlias("dslcolor show person " .. name, false)`, section 44) — a
+third confirmed caller, found during this same pass.
+
+**Candidate cruft:** none found in the sense of dead code — every table
+and function traces to the single trigger or the alias family. The
+stale `colors.xml` file at the repo root (153,595 bytes, pre-v1.0
+snapshot per this file's own header comment) is a separate,
+already-flagged non-issue — zero references to anything in this file.
+
+**Performance flags — the real finding of this section:**
+- `dslColorOnLine()` has **no `enabled`/toggle check anywhere in its
+  body** — it runs its full pipeline on every single non-blank incoming
+  line, unconditionally, for the life of the session. The only on/off
+  surface anywhere in `dslColorCommand()`'s dispatch table is `echo
+  on/off` (a notification-verbosity setting, not a master switch) —
+  there is no way to fully disable this engine short of removing the
+  native trigger by hand. This is a direct **Principle 2 violation**
+  ("Toggleable By Default — every feature needs independent on/off, even
+  former native content") and, separately, a real per-line performance
+  cost: `dslColorAnyTermTable()`/`dslColorAllRaceTermsOnLine()`/
+  `dslColorAllClassTermsOnLine()`/`dslColorAllCraftTermsOnLine()`
+  (script lines 2194-2247) each do an O(n) scan of their respective term
+  table against the current line, and the shared substring-match helper
+  `dslBoundedFind()` (lines 1799-1812) calls `string.lower(line)`
+  **fresh on every single term comparison** rather than lowercasing the
+  line once per call — a real, avoidable recomputation given
+  214+358+170+61 = 803 total terms scanned per line.
+- No leak risk in the persisted data: `DSL_PeopleColors_data.lua` is
+  correctly covered by `.gitignore`'s `DSL_PeopleColors_data*` entry
+  (exact path match confirmed).
+
+---
+
+## 43. `MyDSL_GameplayTriggers.xml`
+
+**8,174 lines — the largest of the four native files, and the one with
+the most individually significant findings.** 277 `<Trigger>` across 83
+`<TriggerGroup>`s, 45 `<Key>` across 14 `<KeyGroup>`s. Never previously
+audited. Extracted verbatim 2026-08-23, confirmed to include both the
+trigger and the keybind content in one file.
+
+**What it does:** the native (non-`.lua`) half of gameplay automation
+and feedback — death-scan/sound cues, prompt-line gagging, buff/spellup-
+loop assist triggers, combat sound effects and notifications,
+area-specific broadcast/toast captures, and the full movement/action
+keybind set (Movement, Open/Close/Unlock Doors, Directions NumPad,
+Scan/Where/Affects/Up/Down/Look/Exits), largely under a `MyDSL_Full`-
+tagged Key hierarchy. Broad category structure: standalone triggers
+(Welcome, Gag-prompt-line1/2, is-DEAD!!-Scan, The-corpse-of-a) plus two
+large trees ("Areas" and "Actions") with Skills/Spells/Combat/Combat
+Sounds/Broadcasts/Notifications/Toasts-History-Captures/Blood-Bath-
+Notifications/Trumpet-Sounds-and-History subgroups.
+
+**Public surface:** `MyDSL.Route.history()` — called from native trigger
+scripts 83 times (`grep -c`), resolving section 20's/the pass-1 wrap-up's
+open item #9 the other direction: **`MyDSL_History` is not dead
+weight** — `MyDSL.Route.history()` has 83 real native callers, so the
+window this population function feeds has, in fact, been receiving text
+all along; the earlier "zero callers" read only searched `.lua` files.
+`MyDSL.MoveSound.go()` (10 native callers) and `MyDSL.Route.to()` (2)
+are the same pattern at smaller scale.
+
+**Depends on:** `playSoundFile()` (native, many triggers), `deleteLine()`
+(native, prompt-gag triggers), `send()`/`expandAlias()` (native), plus
+the three `MyDSL.*` call sites above.
+
+**Called by:** n/a (native content is the entry point, not a dependency
+of anything else in the traditional sense) — except the reverse
+relationship above.
+
+**Candidate cruft:** spot-checked a sample from the Skills/Spells/Combat
+category tree for duplication against the already-audited Lua capture
+pipeline (section 23's `MyDSL_CombatView.lua`, fed exclusively by
+`MyDSL_DataLayer_Combat.lua`'s `parseCombatDamageLine()`, and section
+27's `MyDSL_CharacterAssist.lua`, whose rearm/standup/spellup triggers
+are its own separate `.lua`-side `tempRegexTrigger`s) — **found no
+systemic duplication**: the sampled native triggers are either pure
+colorizers with empty scripts (e.g. "Spells" > "Bless" > "bless" —
+`isColorizerTrigger="yes"`, no script body at all, just text
+highlighting) or carry their own distinct concern (sound effects,
+notifications) that doesn't overlap the Lua-side data capture. One
+small, genuine piece of cruft found in the sample: "BACKSTABS Fail"
+(under Combat) has an **active trigger whose entire script body is
+commented out** (`--if dslpnp.battle.Active then ... --end`, all three
+lines dead) — it still matches and fires, it just does nothing when it
+does. Harmless (no `mCommand`, not a sound trigger) but a real example
+of the "PNP-era code left in place, doing nothing" pattern, worth a
+cleanup pass alongside any other native-XML editing.
+
+**Performance flags:** "is DEAD!! Scan" (lines 117-137) fires
+unconditionally on any death message with no toggle, `playSoundFile()`+
+two real `send()` game commands (`group`, `scan`) per match — low
+frequency (once per kill), not a hot-path concern, but worth noting
+alongside the toggle-gap findings below since it's one more always-on
+native trigger with no off switch.
+
+**Real bugs found, not performance:**
+1. **Likely prompt-gag toggle bypass — highest-confidence finding of
+   this whole pass.** "Gag prompt line1" and "Gag prompt line 2" (lines
+   77-116) are bare, unconditional `deleteLine()` scripts — no guard of
+   any kind. `MyDSL_PromptView.lua`'s own trailing comment (lines
+   169-177, re-read directly to confirm) documents the *expected*
+   native implementation as `if MyDSL and MyDSL.Prompt and MyDSL.Prompt.
+   enabled then deleteLine() end` for triggers named exactly
+   "MyDSL_PromptGag_Vitals"/"MyDSL_PromptGag_Location" — names that
+   don't match what's actually in this file ("Gag prompt line1"/"Gag
+   prompt line 2"), and scripts that don't match either (no `enabled`
+   check at all). **Practical effect, if this reads correctly: `mydsl
+   prompt on|off` does not actually stop prompt-line gagging** — the gag
+   runs unconditionally regardless of the toggle's state. High
+   confidence from the source alone, but this is native trigger
+   behavior, which this read-only clone can't run live — **flagging as
+   needing Steven's/Claude Code's live confirmation** (toggle `mydsl
+   prompt off`, watch whether prompt lines still vanish from the main
+   console) before treating it as fixed-fact rather than "likely."
+2. **Hardcoded absolute paths, quantified — 30 instances, systemic.**
+   `grep -c "<mSoundFile>/"` → 30 of the file's 360 total `<mSoundFile>`
+   entries use the literal prefix `/home/owner/Desktop/Mudlet/mudlet-
+   data/profiles/MyDSL/Sounds/...` (confirmed via `grep -oE` that this is
+   the *only* such prefix present — not a mix of different machines'
+   paths, just one). Same bug class already found and fixed once in
+   `MyDSL_Leveling.lua` (2026-08-24, per `docs/CHANGELOG.md`) — this is a
+   second, larger, previously-uncaught instance of it, breaking
+   portability to any machine where the profile doesn't live at that
+   exact path.
+3. **Both bugs above are invisible to existing automated tooling by
+   design, not oversight**: `scripts/check_known_patterns.py` documents
+   itself (confirmed via its own file-scope comments and glob default)
+   as checking `.lua` files only — it has no XML-scanning path at all,
+   so neither the hardcoded-path pattern (a known bug class this exact
+   tool exists to catch recurrences of) nor the prompt-gag-toggle
+   pattern would ever surface from a routine `--all` sweep. Worth a
+   decision from Steven: extend the tool to also scan the four native
+   XML files (at minimum a path-literal check, which is a simple regex
+   extension of a rule the script already has for `.lua`), or treat
+   native-XML review as a manual, periodic pass instead.
+
+**Leak sweep:** clean.
+
+---
+
+## 44. `MyDSL_PersonalAliases.xml`
+
+**469 lines, 1 `<AliasGroup>` ("Aliases") holding 29 `<Alias>` entries,
+all `packageName=None`.** Never previously audited. Distinct from the
+other three native files in kind, not just size: this is Steven's own
+hand-built personal alias set (target/attack shortcuts, personal-quest
+command shortcuts, multi-bag inventory check, navigation macros,
+attire-swap macros, a message-of-the-day display, roleplay macros),
+extracted 2026-08-23 specifically because `build_mydsl_package.py` only
+ever captures Script/Trigger/Key content tagged with
+`packageName="MyDSL_Full"` — hand-built aliases created directly in
+Mudlet's Alias editor with no package tag were a genuine backup gap that
+predates this file (documented in the file's own header comment, and in
+`CLAUDE.md`'s housekeeping-routine section as the reason the periodic
+native-content inventory check was added). Round-trip-verified against
+live source, 0 mismatches across all 29.
+
+**What it does:** simple always-on command-shortcut aliases — `(k)`/
+`(oak)` target-and-attack, `(kall)`/`(lall)` all-direction knock/look,
+`(pqr)/(pqi)/(pqt)/(pqc)/(pqf)/(pqh)` personal-quest shortcuts (thin
+wrappers over real `pq` game commands), `(inv)` multi-bag inventory
+check, `(RV)`/`(SW-dh)`/`(SW-dw)` navigation macros, `(casual)`/
+`(combat)` attire swaps, `(safetoleave)`/`(safetoreturn)`, `(start
+writing)`/`(stop writing)`, `(MYMOTD)`, and 5 `(smoke *)` roleplay
+macros.
+
+**Public surface:** none in the `MyDSL.*` sense — these are plain
+command macros, not a subsystem with an API. One real cross-reference
+into another audited file: `(whobe)` calls `expandAlias("dslcolor show
+person " .. name, false)` (line 114) — a third confirmed external caller
+of DslColors (section 42), alongside `MyDSL_TargetView.lua` and
+`MyDSL_DataLayer.lua`.
+
+**Depends on:** native `send()`/`cecho()`/`expandAlias()`/`tempTimer()`
+only, plus the one DslColors call above.
+
+**Called by:** n/a — these are user-typed entry points, not called from
+anywhere else.
+
+**Candidate cruft:** two aliases use very short, generic regexes with no
+anchoring safety margin — `(RV)`'s `^rv` (no trailing `$`, so it also
+matches any longer input starting with "rv") and `(SW-dh)`/`(SW-dw)`'s
+`^dh$`/`^dw$` (two-letter names, a real collision risk with ordinary
+typed input, though this is a general Mudlet-aliasing risk rather than a
+MyDSL-1.0-specific one). Not flagging as a bug, just noting since
+nothing else in this pass has generic-input collision risk at this
+level.
+
+**MyDSL 1.0 fit:** unlike the other three native files, these aren't
+"features" in the sense Principle 2 (Toggleable By Default) was written
+for — they're personal command shortcuts, closer in kind to native
+Mudlet aliases in general than to a subsystem like DslColors or the
+gameplay triggers. Whether Principle 2 is meant to reach this far is a
+real open question rather than something this pass can resolve on its
+own — flagging as a decision for Steven, not asserting it as a
+violation.
+
+**Leak sweep:** clean.
+
+---
+
+## Cross-cutting findings (pass 2 wrap-up)
+
+**2026-08-26.** Sections 41-44 cover the four native-content XML files
+pass 1 explicitly scoped out (`DSL_Generic_Mapper.xml`'s stock 5,666
+lines, `DslColors_Core_v1_0.xml`, `MyDSL_GameplayTriggers.xml`, `MyDSL_
+PersonalAliases.xml`) — required under Principle 1 ("no more
+third-party/reference-only code... anything running in this profile is
+this project's own code now"). All four were already git-tracked,
+round-trip-verified extractions from 2026-08-23 — no live device access
+was needed to run this pass. Native sounds/room pics (binary,
+gitignored) are the one piece of native content this pass genuinely
+couldn't reach from a read-only clone; still needs a filename inventory
+from whoever has local access.
+
+### New real bugs, not previously flagged
+
+11. **Prompt-line gag toggle likely doesn't work (section 43)** —
+    highest-confidence new finding of this pass. Native "Gag prompt
+    line1"/"Gag prompt line 2" triggers run bare, unconditional
+    `deleteLine()` with no `MyDSL.Prompt.enabled` guard, contradicting
+    `MyDSL_PromptView.lua`'s own documented expected implementation.
+    Needs live confirmation (toggle `mydsl prompt off`, check whether
+    gagging actually stops) before treating as settled.
+12. **A second, larger hardcoded-absolute-path instance (section 43)** —
+    30 native `<mSoundFile>` entries use the literal `/home/owner/
+    Desktop/Mudlet/...` prefix. Same bug class as the 2026-08-24 `MyDSL_
+    Leveling.lua` fix, previously uncaught here because it lives in XML,
+    not `.lua`.
+13. **DslColors has no master on/off (section 42)** — a direct
+    Principle 2 gap: the color-term engine runs its full per-line
+    pipeline unconditionally, with only a minor `echo on/off`
+    notification setting anywhere in its command surface.
+14. **"BACKSTABS Fail" native trigger is fully inert (section 43)** — a
+    small, harmless example of the "PNP-era code left in place, doing
+    nothing" pattern (its entire script is commented out) worth a
+    cleanup pass whenever the native XML is next hand-edited.
+
+### Real "invisible to existing tooling" gap
+
+15. **`scripts/check_known_patterns.py` only ever scans `.lua` files
+    (confirmed via its own file-scope documentation/glob defaults)** —
+    both new bugs above (11, 12) are exactly the kind of known-bad-
+    pattern-class recurrence that tool exists to catch, and both were
+    invisible to its `--all` sweep purely because they live in XML.
+    Worth a decision: extend the tool's scanning to the four native
+    files (a path-literal check is a small addition to a rule it
+    already has for `.lua`), or keep native-XML review manual and
+    periodic (matches `CLAUDE.md`'s existing native-content-inventory
+    housekeeping item, which currently checks for coverage/backup gaps,
+    not pattern-correctness).
+
+### Real open items resolved this pass (not new bugs — corrections to
+### pass 1's own record)
+
+16. **`MyDSL_History` is not dead weight — reverses pass-1 wrap-up item
+    9.** `MyDSL.Route.history()` has 83 real native callers inside
+    `MyDSL_GameplayTriggers.xml` (section 43). Pass 1's "zero callers"
+    read only searched `.lua` files, the same category of miss item 8
+    already flagged as a methodology reminder — extended here to native
+    content specifically: a "zero callers" claim against only the `.lua`
+    corpus was never a claim against the whole codebase, and this pass
+    is the concrete case where that gap mattered.
+17. **`dslColorRelation()`'s data source, open since section 39, is
+    confirmed** — genuinely reads `_G.DSL_COLOR_DB.relations.people`,
+    populated by `DslColors_Core_v1_0.xml` (section 42). Three real
+    external callers into DslColors now confirmed total: `MyDSL_
+    TargetView.lua`, `MyDSL_DataLayer.lua`, and `MyDSL_
+    PersonalAliases.xml`'s `(whobe)` alias (new, found this pass).
+18. **The mapper's stock code is not fully inert reference material —
+    `MyDSL_Leveling.lua` calls `map.speedwalk()` directly (section
+    41)**, a real, live dependency on the stock package predating this
+    pass. Worth noting since it means the planned "dedicated rewrite
+    pass" for the stock 5,666 lines (per `docs/MYDSL_1.0_PHILOSOPHY.md`)
+    has at least one real external caller to keep working, not a clean
+    slate.
+19. **The mapper's self-update mechanism is confirmed fully
+    neutralized, not just present-but-disabled-by-omission** — three
+    call sites (`map update` alias, `map.checkVersion()`, `map.
+    updateVersion()`) all correctly short-circuit through the fork's
+    `map.dsl.updateDisabled()`, which clears any pending update timer
+    and returns `false`. Matches the project's own standing rule (kill
+    self-updaters when porting), same as already confirmed for EMCO in
+    section 40.
+
+### Leak sweep
+
+All four files grepped directly for credential/password/API-key/token-
+shaped content: clean. No native trigger, alias, or key script anywhere
+in this pass's scope contains anything that looks like a secret.
+
+### Not yet resolvable from this clone
+
+- Native sounds/room pics inventory (binary, gitignored) — needs Claude
+  Code's local machine access.
+- Confirming no native-content drift has occurred since the 2026-08-23
+  extraction (i.e. that these four XML files still match whatever's
+  live in the profile's `current/*.xml` today) — same reason.
+- Item 11 above (prompt-gag toggle) needs a live in-game check, not just
+  source reading, before it's treated as confirmed rather than "likely."
+
+---
+
 ## Cross-cutting findings (pass 1 wrap-up)
 
 All 40 sections are now written. This section pulls together what

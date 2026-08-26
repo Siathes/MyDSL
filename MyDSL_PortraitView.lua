@@ -469,10 +469,10 @@ local function haveWindowCore()
 end
 
 local function getWindowEntry()
-  if not (MyDSL and MyDSL.Windows and MyDSL.Windows.windows) then return nil end
-  return MyDSL.Windows.windows[P.config.windowId]
-      or MyDSL.Windows.windows[P.config.windowName]
-      or MyDSL.Windows.windows.Portrait
+  if not (MyDSL and MyDSL.Windows and MyDSL.Windows.registry) then return nil end
+  return MyDSL.Windows.registry[P.config.windowId]
+      or MyDSL.Windows.registry[P.config.windowName]
+      or MyDSL.Windows.registry.Portrait
 end
 
 local function getWindowObject()
