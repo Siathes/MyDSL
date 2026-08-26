@@ -40,6 +40,66 @@ Desktop the same day (all top findings held up, one refinement folded
 back in — `MyDSL_DataBridge.lua`'s sync fires off 11 events total, not
 just the 3 GMCP-paired ones originally singled out).
 
+**Step 3 (module-by-module redesign pass) done 2026-08-26 by Claude
+Desktop, written up in `docs/MYDSL_1.0_MODULE_REDESIGN.md`** (all 39
+`MyDSL_*.lua` modules plus `MyDSL_Login.lua`), spot-checked by Claude
+Code against current source via direct grep before folding in below —
+every claim confirmed still real. Two categories came out of it:
+
+- [ ] **Real bugs, no decision needed, just need doing** (bug fixes
+      under the existing feature-creep-paused rule, not new scope):
+      - `MyDSL_PortraitView.lua` reads `MyDSL.Windows.windows[...]`, a
+        table that has never existed (the real one is `.registry`) —
+        confirmed still present; one-line fix (`windows` → `registry`),
+        but worth Steven confirming live first whether portrait
+        theme/dock/layout changes have in fact never applied, since
+        that's what this bug would cause.
+      - `MyDSL_DataBridge.lua`'s confirmed double-fire (`sync()` runs
+        twice per `char_data`/`room_data`/`tick`, worst case since it's
+        every combat round) and `MyDSL_LocationView.lua`'s confirmed
+        double-fire (`onRoomData()` on both raw GMCP and the mapper's
+        `onNewRoom`, no unchanged-room early return) share one root
+        cause and one fix pattern — pick one signal per section or
+        debounce to one call per real-world moment. Natural first items
+        for the interconnection pass (step 4).
+      - `MyDSL_TickSource.lua` (`T.loop()` self-reschedules at 4Hz
+        unconditionally, no visibility gate) + `MyDSL_TickView.lua`
+        (`V.render()` has no visibility check either) are the same bug
+        from both ends — fixing only one side doesn't fully solve it,
+        needs both.
+- [ ] **Real decisions needed from Steven before any code changes**:
+      - `MyDSL_ChatTriggers.lua` has zero toggle for its 20 always-active
+        chat-routing triggers, and hiding the Chat window doesn't stop
+        them gagging the main console — gagged channels currently vanish
+        with nowhere to land if Chat is hidden. Largest toggle gap found.
+      - `MyDSL_CharacterAssist.lua`'s rearm/standup fire unconditionally,
+        zero toggle, by original 2026-07-07 pre-1.0 design (Steven's
+        explicit sign-off at the time, for faster-than-typing reaction).
+        Worth Steven re-confirming that reasoning still overrides
+        Principle 2 here specifically, or adding a toggle to match
+        everything else.
+      - `MyDSL_MovementSounds.lua`'s `cfg.enabled` exists in code but no
+        alias ever sets it (confirmed, zero matches for "alias" in the
+        file) — the toggle is unreachable by any player action. Also the
+        single remaining real caller of the deprecated `MyDSL.get()`
+        Get/Set API project-wide. Small, mechanical fix once confirmed.
+      - `MyDSL.on()`'s fate — 2 real callers (`MyDSL_Leveling.lua`,
+        `MyDSL_DataLayer.lua`'s own registration) — is that a second
+        connection pattern worth keeping for just Leveling, or should it
+        be ported to the decided State-direct standard?
+      - `MyDSL_RouteHelper.lua`'s `MyDSL_History` window is fully wired
+        end-to-end but `MyDSL.Route.history()` — the only function that
+        would ever put text into it — has zero callers anywhere. Was it
+        ever populated, or is the capture side just missing?
+      - `scripts/check_text_coverage.py` has two confirmed extraction
+        blind spots (wrapper-function-built patterns in
+        `MyDSL_ChatTriggers.lua`/`MyDSL_CharacterAssist.lua`/
+        `MyDSL_Leveling.lua`; narrowed-variable `:find()`/`:match()`
+        calls slipping past the genericness filter) — documented in the
+        script's own "Scope" docstring 2026-08-26, not yet fixed. Low
+        urgency (affects the *ranking*, not the tool's core design) but
+        worth knowing before trusting its coverage number as precise.
+
 - [ ] **Real decision needed from Steven, raised by his own "this is now
       one whole project... we don't get to skip it, we need to fully
       integrate all the scripts" note (2026-08-25), cross-checked

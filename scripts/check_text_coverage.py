@@ -70,6 +70,29 @@ Scope, stated plainly rather than silently assumed:
     patterns, doesn't define new ones the game would ever need to match
     against).
 
+Known blind spots, found by Claude Desktop's 2026-08-26 spot-check
+(HANDOFF.md), confirmed against current source, not yet fixed:
+  - _find_calls() only extracts a pattern when it's an inline literal
+    at the tempRegexTrigger(/tempAlias( call site itself. A pattern
+    passed in through a variable, a loop over a table of literals, or a
+    wrapper function is invisible to it. Confirmed real, currently-live
+    misses: all 20 of MyDSL_ChatTriggers.lua's chat-routing patterns
+    (built via its own route() wrapper), the 9 spellup-outcome patterns
+    in MyDSL_CharacterAssist.lua (looped from successPatterns/
+    failPatterns), and the 4 buff-wearoff patterns in MyDSL_Leveling.lua
+    (looped from BUFF_WEAROFF). Any corpus line these already correctly
+    handle shows up in this tool's "top unmatched shapes" as a false
+    gap. Fix would be walking local functions whose call shape wraps
+    tempRegexTrigger/tempAlias, not attempted here.
+  - The genericness filter's synthetic fillers don't combine letters and
+    digits, so a :find()/:match() pattern that's actually a check on an
+    already-narrowed local variable (not a whole-line classifier -- the
+    same blind spot already documented above for :gmatch(), just not
+    yet extended to plain :match()/:find()) can survive both extraction
+    and the genericness filter and grant false "covered" credit to any
+    real corpus line shape containing a digit. One confirmed instance:
+    DSL_Generic_Mapper.xml:5009's featureName:find("%d").
+
 Run: python3 scripts/check_text_coverage.py
      python3 scripts/check_text_coverage.py --top 50       (more buckets)
      python3 scripts/check_text_coverage.py --selftest      (verify only)
