@@ -1,21 +1,23 @@
-# MyDSL 1.0 — Philosophy & Design Principles (DRAFT — pending Claude Desktop review)
+# MyDSL 1.0 — Philosophy & Design Principles
 
-**Status: draft, not yet in effect.** Written 2026-08-25 from Steven's
+**Status: CONFIRMED, 2026-08-25.** Written 2026-08-25 from Steven's
 notes across `docs/myresponses.txt` (his own annotated copy of
 `docs/OPTIMIZATION_AUDIT.md`) plus his direct chat message the same day
-kicking off the "MyDSL 1.0" redesign. Per Steven: this document, once
-confirmed, supersedes any conflicting rule in `CLAUDE.md`'s Philosophy
-section. Nothing in this doc is acted on yet — Claude Desktop reviews
-it independently first (via the usual `HANDOFF.md` "check repo" loop),
-matching the same mutual-verification pattern already used for the
-optimization audit.
+kicking off the "MyDSL 1.0" redesign, then reviewed independently by
+Claude Desktop the same day (relayed via `HANDOFF.md`/chat, per the
+usual mutual-verification loop). Both of the document's original open
+questions (the connection pattern in Principle 3, and the third-party-
+API sub-question in Principle 6) were decided during that review —
+see those sections for the resolution. This document now supersedes
+the conflicting parts of `CLAUDE.md`'s Philosophy section named in
+"What this retires" below.
 
-This is philosophy only. No code changes, no module redesigns, no
-visual/theme work happens until this document is confirmed. That
-ordering is deliberate — Steven asked for the philosophy pass to
-happen "upfront," before the visual pass or any module-by-module work,
-specifically so later work has solid ground to stand on instead of
-building against rules that are still shifting underneath it.
+Two items remain genuinely open and deliberately deferred to their own
+later passes, not blockers to proceeding: the mapper's DSL-specific
+rewrite (its own dedicated planning pass) and the unknown-line-routing
+mechanism's exact shape (deferred until the known-pattern catalog is
+further along). Everything else in this document is settled. Next:
+the visual/theme pass, per the sequencing below.
 
 ---
 
@@ -88,7 +90,7 @@ native. Concretely: every module redesign summary (the pass that comes
 after this philosophy doc) should state its on/off surface explicitly,
 not assume it.
 
-## Principle 3: One Way To Connect (open question, not yet decided)
+## Principle 3: One Way To Connect — DECIDED (2026-08-25)
 
 The audit found the codebase currently has **three parallel patterns**
 for one module to learn about another's data, used inconsistently:
@@ -101,30 +103,24 @@ for one module to learn about another's data, used inconsistently:
    reading `MyDSL.State.<section>` directly — the pattern nearly
    everything else actually uses (12+ modules read `State` directly).
 
-Steven's own note on this: *"is this good or should we adjust it
-bypassing api... fix per best practice, if we need to web search
-programming best practices or install a plugin/extension/connection
-then let's do it."* This is flagged here as a real, open architectural
-decision — not resolved in this document. The options, for Claude
-Desktop and Steven to weigh in on:
-
-- **(a) Standardize on pattern 3** (direct `State` read + event
-  handler) since it's already the dominant real pattern — delete or
-  repurpose the unused Get/Set API and `MyDSL.on()` rather than
-  enforcing adoption of something nothing uses today.
-- **(b) Standardize on pattern 1** (the Get/Set API) and migrate every
-  direct `State` read to go through it — more work, but matches the
-  original intended design and gives a real enforcement point for
-  future validation/logging.
-- **(c) Keep a deliberate two-tier split**: internal-to-DataLayer code
-  reads `State` directly (cheap, no indirection needed within the
-  layer that owns the data), but every *external* module goes through
-  Get/Set. This is closest to what a "public API surface" would look
-  like if MyDSL is meant to be extensible (see Principle 6).
-
-No default is assumed here — this is exactly the kind of "realistic,
-checkable, reproducible option" Steven asked to have confirmed between
-both AIs before it becomes a rule.
+**Decided, Steven + Claude Desktop, 2026-08-25: standardize on pattern
+3 — direct `State` reads plus event handlers.** This was originally
+framed as two separable questions (a real third-party API, and a
+smaller internal-hygiene chokepoint), but they turned out to be one
+question asked two ways: the only real justification for a formal
+Get/Set chokepoint was catching mistakes for a hypothetical outside
+module author (see Principle 6 below — that justification is gone).
+Once that's off the table, the remaining case for Get/Set — one place
+to catch typos, one place to add logging/debouncing later — is real
+but small, and comes with a genuine cost that cuts the other way:
+function-call indirection added across 12 files that render on every
+game tick/combat round works directly against the performance goal
+this whole audit was chasing. Net: standardize on the pattern already
+dominant in practice, and either delete the unused `MyDSL.get()`/
+`MyDSL.set()` or repurpose them for something narrower — not migrate
+everything onto them. `MyDSL.on()` (1 real caller, `MyDSL_Leveling.
+lua`) is left as-is for now — narrow, working, not worth disturbing
+just to enforce uniformity for its own sake.
 
 ## Principle 4: Every Line Has a Destination (the mandate, operationalized)
 
@@ -202,20 +198,20 @@ patterns (only valid in PCRE/`tempRegexTrigger`, never plain Lua
 `match`/`gsub`), assuming `table.load()` has a return value, using any
 `table.*` function removed at Lua 5.1 (`table.getn`, `table.foreach`).
 
-### Open sub-question: does MyDSL expose an API for other modules?
+### Sub-question: does MyDSL expose an API for other modules? — DECIDED (2026-08-25)
 
 Steven asked directly: *"Do we have apis others can connect to if they
-write a module, do we use api to talk between scripts?"* Direct
-answer, per the audit's own findings: today, informally and
-inconsistently — see Principle 3. There is no stable, documented,
-intentionally-designed surface for a hypothetical third-party module
-author to build against; what exists is whatever pattern each module's
-original author happened to reach for. Whether MyDSL 1.0 *should* have
-one real, documented, stable API (with the Get/Set API's original
-intent as the natural starting shape) is a genuine design decision,
-not a fact to report — flagged here for Steven/Claude Desktop to weigh
-in on alongside Principle 3, since the two questions are really one
-question asked two ways.
+write a module, do we use api to talk between scripts?"* **Decided:
+no.** Steven's own reasoning: he isn't sold on the need, and doesn't
+expect anyone besides this project to actually write an extension
+against it. A formal, documented API only earns its complexity if a
+stranger needs to build against this codebase without reading the
+source — with that use case gone, there's no real justification left,
+and it resolves Principle 3's decision above at the same time (the
+"real API" case was the only thing keeping Get/Set's chokepoint case
+alive). Today's informal, inconsistent connection pattern stays
+informal — just consolidated onto direct `State` access per Principle
+3, not formalized into a public surface nothing will ever consume.
 
 ---
 
@@ -255,10 +251,10 @@ parts that directly conflict with the Global Mandate or Principle 1:
 Per Steven's own sequencing, in order:
 
 1. **This philosophy document** — confirmed between Claude Code and
-   Claude Desktop (in progress — this is that draft).
-2. **Visual pass** — theme design, discussed and confirmed the same
-   way, informed by which modules are being kept/toggleable/redesigned
-   once step 3 exists.
+   Claude Desktop, 2026-08-25. Done.
+2. **Visual pass** (current step) — theme design, discussed and
+   confirmed the same way, informed by which modules are being
+   kept/toggleable/redesigned once step 3 exists.
 3. **Module-by-module (or module-group) redesign summaries** — for
    each module: how it should work under these principles, its
    on/off surface, real interconnections, and any new features Steven
@@ -281,21 +277,28 @@ Per Steven's own sequencing, in order:
 
 ---
 
-## Open questions needing a decision before step 3 can start
+## Remaining open questions
 
-Listed together here so nothing gets lost in the ordering above:
+Two of the original four were decided 2026-08-25 (Principle 3's
+connection pattern, and the third-party-API sub-question under
+Principle 6 — see those sections above for the resolution). What's
+still genuinely open:
 
-1. **Connection pattern** (Principle 3): standardize on direct-State-
-   access, the Get/Set API, or a deliberate two-tier split?
-2. **Third-party module API** (Principle 6): does MyDSL 1.0 commit to
-   one real, documented, stable API surface, and if so, built on which
-   answer to question 1?
-3. **Mapper rewrite scope** (Principle 1): the DSL-specific mapper
+1. **Mapper rewrite scope** (Principle 1): the DSL-specific mapper
    rewrite is real, separate, large work (7x the line count the audit
    actually scoped for this file) — needs its own dedicated planning
    pass once this philosophy is confirmed, not folded into general
    module-by-module work.
-4. **Unknown-line routing mechanism shape** (Principle 4, Part B): a
+2. **Unknown-line routing mechanism shape** (Principle 4, Part B): a
    window, a manual-flag command, a background log, or some
    combination — deferred until the known-pattern catalog (Part A) is
    further along.
+
+## Separately tracked, not blocking this document
+
+Steven found his own login password sitting in a live Mudlet trigger
+while reviewing this pass (see Principle 5). He's fixing it himself
+directly, on his own timeline (he has a specific replacement approach
+in mind) — **scheduled, with Steven as owner, not indefinitely
+deferred and not something Claude Code should treat as still open or
+pick up unprompted.**

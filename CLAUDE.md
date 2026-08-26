@@ -161,6 +161,31 @@ background job:
   don't assume something doesn't exist without checking there first.
 
 ## Philosophy (non-negotiable except where noted)
+- **MyDSL 1.0 global mandate, confirmed 2026-08-25 — supersedes
+  conflicting rules below.** Full document: `docs/
+  MYDSL_1.0_PHILOSOPHY.md`. Steven's own words: "My global goal is to
+  be able to take any line of text in DSL and know what to do with it,
+  whether it is sent to a window, it performs an action, or it passes
+  it on without editing." Concrete, confirmed consequences: (1) **no
+  more "third-party/reference-only" code** — anything actually running
+  in this profile (the Generic Mapper fork, DslColors, gameplay
+  triggers, sounds, room pics, aliases, keybinds) is this project's own
+  code now, full stop; EMCO is already fully integrated under this
+  standard (confirmed dead vendored copy, nothing further to do), the
+  Generic Mapper's still-unmodified 5,666 stock lines are the real
+  remaining case, planned as its own dedicated rewrite pass, not
+  started yet. (2) **No formal cross-module API** — decided Steven +
+  Claude Desktop 2026-08-25: nobody outside this project is expected to
+  build against MyDSL, so a documented public API isn't worth building.
+  (3) **One connection pattern** — decided the same day: standardize on
+  direct `MyDSL.State.*` reads + `registerAnonymousEventHandler`, since
+  that's already what most modules do in practice; the seldom-used
+  `MyDSL.get()`/`MyDSL.set()` Get/Set API is deprecated rather than
+  enforced (function-call indirection across every hot-path render
+  module works against this project's own performance goals). See the
+  full doc for the "every line has a known destination" architecture
+  goal (not yet designed) and the retired-vs-unaffected breakdown of
+  older rules below.
 - **The old blanket "never send automatic game commands" rule is
   retired, per Steven 2026-08-23** ("ignore the automation bad comments
   now, we have moved past that restriction. drinking and eating are
