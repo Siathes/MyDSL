@@ -1,0 +1,301 @@
+# MyDSL 1.0 — Philosophy & Design Principles (DRAFT — pending Claude Desktop review)
+
+**Status: draft, not yet in effect.** Written 2026-08-25 from Steven's
+notes across `docs/myresponses.txt` (his own annotated copy of
+`docs/OPTIMIZATION_AUDIT.md`) plus his direct chat message the same day
+kicking off the "MyDSL 1.0" redesign. Per Steven: this document, once
+confirmed, supersedes any conflicting rule in `CLAUDE.md`'s Philosophy
+section. Nothing in this doc is acted on yet — Claude Desktop reviews
+it independently first (via the usual `HANDOFF.md` "check repo" loop),
+matching the same mutual-verification pattern already used for the
+optimization audit.
+
+This is philosophy only. No code changes, no module redesigns, no
+visual/theme work happens until this document is confirmed. That
+ordering is deliberate — Steven asked for the philosophy pass to
+happen "upfront," before the visual pass or any module-by-module work,
+specifically so later work has solid ground to stand on instead of
+building against rules that are still shifting underneath it.
+
+---
+
+## The Global Mandate
+
+Steven's own words, verbatim, because this is the thing every other
+principle below serves:
+
+> My global goal is to be able to take any line of text in DSL and
+> know what to do with it, whether it is sent to a window, it performs
+> an action, or it passes it on without editing. That is the summary
+> purpose of this project and supersedes any restrictions or rules
+> from now on.
+
+Every principle below exists to make that mandate achievable. Where an
+old rule conflicts with it, the old rule loses.
+
+---
+
+## Principle 1: One Project, Full Integration
+
+**Old assumption, now retired:** code ported from PNP, EMCO, or the
+Generic Mapper base package was treated as borrowed reference material
+— read once for porting, kept separate, "not really ours," with a
+standing rule against touching some of it directly (the mapper being
+the clearest example).
+
+**New rule:** if it runs in this profile, it is this project's code.
+There is no more "third-party" category for anything actually
+executing — no exceptions for the mapper, no exceptions for anything
+else. Concretely, per Steven's own list of what that includes: "the
+mapper old code," DslColors, all gameplay triggers, sounds, room pics,
+aliases, keybinds/keys — "everything I use currently for gameplay
+minus the mudlet base install stuff."
+
+This does NOT mean rewriting everything from scratch on day one — it
+means the standing *reason* to leave something alone ("it's someone
+else's code") no longer applies. Two real, different cases the
+optimization audit already surfaced, to make this concrete:
+
+- **EMCO**: already fully resolved under the old rules, and this
+  principle doesn't change anything about it. The vendored copy
+  (`EMCOChat/emco.lua`) is genuinely dead — confirmed untouched since
+  one old commit, never `dofile()`'d. `MyDSL_Chat.lua` already fully
+  absorbed its real logic back on 2026-07-17. Nothing to do here; it's
+  the model for what "fully integrated" looks like once finished.
+- **The Generic Mapper**: the real case. 5,666 of its 6,631 lines are
+  still unmodified stock code, genuinely running on every room and
+  every line — not a dead reference copy. Steven confirmed (2026-08-25)
+  the mapper is never run standalone without the rest of MyDSL loaded,
+  which removes the one real correctness reason the fork's independent
+  GMCP parsing existed. Per Steven's direct framing: the goal isn't a
+  patch layered on someone else's package anymore — it's a mapper
+  **written specifically for DSL**, using the proven stock Generic
+  Mapper code as a design reference and a source of tested logic to
+  carry forward, not as an external dependency to keep compatible with.
+  This is real, large, separate work (see Open Questions below for how
+  it should be scoped) — not something this philosophy doc itself
+  attempts.
+
+## Principle 2: Toggleable By Default
+
+Every feature must be independently on/off so a player only runs what
+they actually want. This already holds true for most View modules
+(show/hide is universal), but it needs to hold for *everything*
+getting pulled into full integration under Principle 1 too — a native
+gameplay trigger or sound effect that gets absorbed into MyDSL's own
+code doesn't get to skip having a toggle just because it used to be
+native. Concretely: every module redesign summary (the pass that comes
+after this philosophy doc) should state its on/off surface explicitly,
+not assume it.
+
+## Principle 3: One Way To Connect (open question, not yet decided)
+
+The audit found the codebase currently has **three parallel patterns**
+for one module to learn about another's data, used inconsistently:
+
+1. `MyDSL.get()`/`MyDSL.set()` — the documented, intended API. Real
+   usage: 1 caller of `get()`, 0 callers of `set()`, project-wide.
+2. `MyDSL.on(section, callback)` — a direct Lua-callback subscription.
+   Real usage: 1 module (`MyDSL_Leveling.lua`).
+3. `registerAnonymousEventHandler("MyDSL.<section>.updated", ...)` +
+   reading `MyDSL.State.<section>` directly — the pattern nearly
+   everything else actually uses (12+ modules read `State` directly).
+
+Steven's own note on this: *"is this good or should we adjust it
+bypassing api... fix per best practice, if we need to web search
+programming best practices or install a plugin/extension/connection
+then let's do it."* This is flagged here as a real, open architectural
+decision — not resolved in this document. The options, for Claude
+Desktop and Steven to weigh in on:
+
+- **(a) Standardize on pattern 3** (direct `State` read + event
+  handler) since it's already the dominant real pattern — delete or
+  repurpose the unused Get/Set API and `MyDSL.on()` rather than
+  enforcing adoption of something nothing uses today.
+- **(b) Standardize on pattern 1** (the Get/Set API) and migrate every
+  direct `State` read to go through it — more work, but matches the
+  original intended design and gives a real enforcement point for
+  future validation/logging.
+- **(c) Keep a deliberate two-tier split**: internal-to-DataLayer code
+  reads `State` directly (cheap, no indirection needed within the
+  layer that owns the data), but every *external* module goes through
+  Get/Set. This is closest to what a "public API surface" would look
+  like if MyDSL is meant to be extensible (see Principle 6).
+
+No default is assumed here — this is exactly the kind of "realistic,
+checkable, reproducible option" Steven asked to have confirmed between
+both AIs before it becomes a rule.
+
+## Principle 4: Every Line Has a Destination (the mandate, operationalized)
+
+This is the direct mechanism for the Global Mandate above. Two parts:
+
+**Part A — catalog what's already known.** A huge amount of DSL's
+output already has a confirmed home: room names/descriptions/exit
+lines and combat lines go through `MyDSL_DataLayer*.lua`'s triggers;
+`docs/DSL_CommandRef.md` already has confirmed patterns for many
+commands; `docs/templates_by_freq.txt`/`templates_with_examples.txt`
+have a first-pass catalog of message shapes (already flagged elsewhere
+as having real gaps, so not the final word, but a real starting
+inventory). Spells and skills are the biggest known gap — Steven has
+not seen every skill/spell in-game, so the corpus can't be complete
+for those categories yet. Step one of making "unknown" a small,
+tractable category is finishing this catalog as far as the existing
+logs allow, not inventing a detection mechanism first.
+
+**Part B — build the actual routing mechanism.** For any line that
+does NOT match a cataloged pattern, the addon needs to do something
+deliberate with it instead of silently letting it fall through to the
+main console unclassified (today's default behavior, which is
+invisible — a line either matches something and gets handled, or
+nothing happens and it just sits on the main console indistinguishable
+from any other unhandled line). Steven's own framing: "design a way to
+manually move new lines of unknown text." This needs its own design
+pass once Part A's catalog is far enough along that "unknown" is
+actually a small, reviewable set rather than most of DSL's output —
+building the review mechanism before the catalog exists would just
+produce noise. Concrete shape not decided here; candidates worth
+weighing when this gets its own design session: a dedicated "Unknown"
+window that only ever shows genuinely uncataloged lines (would need a
+real classifier, not just "nothing else matched," since plenty of
+normal narrative text has no reason to be classified at all); a
+manual flag/promote command a player can run on a line they want
+looked at; or a background log file reviewed periodically rather than
+a live window. This is real, separate design work — flagged as a
+next-phase item, not resolved here.
+
+## Principle 5: Security & Hygiene Baseline
+
+One concrete, real finding folds into this philosophy as a standing
+rule rather than a one-off fix: **no credentials in native trigger/
+alias scripts, ever, live or in any tracked backup.** Steven found his
+own login password sitting in a live Mudlet trigger — real, current
+exposure, independent of the redesign timeline, and something that
+gets fixed with real care during the module pass that reaches login
+handling (folded into that pass per Steven's own call, not treated as
+urgent enough to interrupt this document). Recorded here as a
+standing rule so it can't recur elsewhere as more native content gets
+absorbed under Principle 1: any credential, password, or personally
+identifying secret must never be typed directly into a native
+trigger/alias script body. It belongs in a local, `.gitignore`d file
+read at runtime, or prompted for interactively — never committed,
+never embedded in exported/backup XML.
+
+## Principle 6: Recorded Best Practices (Mudlet/Lua)
+
+Steven asked for an explicit best-practices reference, researched and
+recorded rather than assumed, since several real bugs this project has
+already hit (the `table.load()` no-return bug, `table.getn` not
+existing in LuaJIT, alternation `|` not working in Lua patterns) are
+exactly the kind of thing a documented checklist would catch earlier.
+This section is a placeholder for that research — not yet done, listed
+here so pass 2 doesn't forget to actually do it (matching Steven's
+"do we need to web search... or install a plugin" offer). Known real
+patterns already correctly followed project-wide, worth confirming
+stay universal rather than re-deriving: the namespace guard (`MyDSL =
+MyDSL or {}` at the top of every file), safe-reload trigger/handler
+deregistration before re-registering, `table.save()`/`table.load(path,
+target)` with the explicit two-argument form. Known real anti-patterns
+already caught once, worth checking for elsewhere before this
+redesign starts touching new files: alternation via `|` in Lua string
+patterns (only valid in PCRE/`tempRegexTrigger`, never plain Lua
+`match`/`gsub`), assuming `table.load()` has a return value, using any
+`table.*` function removed at Lua 5.1 (`table.getn`, `table.foreach`).
+
+### Open sub-question: does MyDSL expose an API for other modules?
+
+Steven asked directly: *"Do we have apis others can connect to if they
+write a module, do we use api to talk between scripts?"* Direct
+answer, per the audit's own findings: today, informally and
+inconsistently — see Principle 3. There is no stable, documented,
+intentionally-designed surface for a hypothetical third-party module
+author to build against; what exists is whatever pattern each module's
+original author happened to reach for. Whether MyDSL 1.0 *should* have
+one real, documented, stable API (with the Get/Set API's original
+intent as the natural starting shape) is a genuine design decision,
+not a fact to report — flagged here for Steven/Claude Desktop to weigh
+in on alongside Principle 3, since the two questions are really one
+question asked two ways.
+
+---
+
+## What this retires from `CLAUDE.md`'s current Philosophy section
+
+Specific, named changes — not "everything is up for grabs," only the
+parts that directly conflict with the Global Mandate or Principle 1:
+
+- **"Reuse PNP/EMCO source and their command vocabulary — don't
+  reinvent"** (the section explaining the mapper/EMCO correction
+  history) — the *reuse* half stays true as a practical default (proven
+  code is still proven code, no reason to throw it away), but the
+  underlying assumption that ported code stays a separate,
+  arm's-length dependency is retired per Principle 1. Command
+  vocabulary reuse (not making players relearn commands) stays a real
+  goal independent of this change.
+- **The implicit "don't touch the mapper" caution** that's shown up
+  repeatedly in this project's own history (native-XML edits treated
+  as higher-risk, mapper fork changes made conservatively) — retired
+  specifically for the mapper's *own DSL-specific rewrite* once that
+  work is scoped (see Open Questions), not a blanket license to edit
+  native XML carelessly elsewhere. The general caution around native
+  XML edits (verify newest-by-mtime file, confirm via package rebuild,
+  etc.) stays — that's a mechanical safety practice, not a rule this
+  mandate overrides.
+- Everything else in `CLAUDE.md`'s Philosophy section (main console is
+  sacred, move text don't replace it, never manufacture fake output,
+  automate to assist not to play, percentage-based window positions,
+  the already-retired automatic-commands rule) is **unaffected** —
+  none of it conflicts with the Global Mandate, so none of it changes
+  here.
+
+---
+
+## What happens after this document is confirmed
+
+Per Steven's own sequencing, in order:
+
+1. **This philosophy document** — confirmed between Claude Code and
+   Claude Desktop (in progress — this is that draft).
+2. **Visual pass** — theme design, discussed and confirmed the same
+   way, informed by which modules are being kept/toggleable/redesigned
+   once step 3 exists.
+3. **Module-by-module (or module-group) redesign summaries** — for
+   each module: how it should work under these principles, its
+   on/off surface, real interconnections, and any new features Steven
+   flagged in `docs/myresponses.txt` (mob/item wiki windows,
+   smarter Roller options, GroupView button redesign, etc.).
+4. **Interconnection optimization pass** — using the redesign
+   summaries from step 3 to fix the real duplicate-call/double-fire
+   findings the audit already surfaced (`MyDSL_DataBridge.lua`'s
+   11-event coalescing, `MyDSL_LocationView.lua`'s double render,
+   the mapper/DataLayer duplicate GMCP parsing once Principle 1's
+   mapper rewrite is scoped), plus whichever connection pattern
+   Principle 3 settles on.
+5. **The unknown-line-routing design** (Principle 4, Part B) — once
+   Part A's known-pattern catalog is far enough along.
+6. **Then, and only then, back to each module with accuracy and
+   purpose** — the actual code changes, one module/group at a time,
+   verified the way this project always verifies: targeted revert to
+   confirm a fix is real, full test suite + `check_known_patterns.py
+   --all`, live confirmation via logs where possible.
+
+---
+
+## Open questions needing a decision before step 3 can start
+
+Listed together here so nothing gets lost in the ordering above:
+
+1. **Connection pattern** (Principle 3): standardize on direct-State-
+   access, the Get/Set API, or a deliberate two-tier split?
+2. **Third-party module API** (Principle 6): does MyDSL 1.0 commit to
+   one real, documented, stable API surface, and if so, built on which
+   answer to question 1?
+3. **Mapper rewrite scope** (Principle 1): the DSL-specific mapper
+   rewrite is real, separate, large work (7x the line count the audit
+   actually scoped for this file) — needs its own dedicated planning
+   pass once this philosophy is confirmed, not folded into general
+   module-by-module work.
+4. **Unknown-line routing mechanism shape** (Principle 4, Part B): a
+   window, a manual-flag command, a background log, or some
+   combination — deferred until the known-pattern catalog (Part A) is
+   further along.
