@@ -218,16 +218,35 @@ One concrete, real finding folds into this philosophy as a standing
 rule rather than a one-off fix: **no credentials in native trigger/
 alias scripts, ever, live or in any tracked backup.** Steven found his
 own login password sitting in a live Mudlet trigger — real, current
-exposure, independent of the redesign timeline. He's fixing this one
-himself, on his own timeline, with his own replacement approach in
-mind (see "Separately tracked, not blocking this document" below for
-the actual, current status — not a module-pass carry-over). Recorded
-here as a standing rule so it can't recur elsewhere as more native
-content gets absorbed under Principle 1: any credential, password, or
-personally identifying secret must never be typed directly into a
-native trigger/alias script body. It belongs in a local, `.gitignore`d
-file read at runtime, or prompted for interactively — never committed,
-never embedded in exported/backup XML.
+exposure, independent of the redesign timeline.
+
+**Status, corrected 2026-08-26 (previous text here said Steven was
+fixing this himself — that's no longer what happened):** Claude
+Desktop built the actual replacement — `MyDSL_Login.lua` + `test/
+test_login.lua` — and delivered both directly to Steven (Desktop's
+clone can't push here), for Claude Code to review, integrate, and
+push. Design as Desktop described it, not yet independently verified
+against the real code since it hasn't reached this repo yet: answers
+`Player name:`/`Password:` prompts without the credential ever
+touching any `MyDSL.*` table, read from a hand-created, never-committed
+local file, sent with echo suppressed. **Corpus-confirmed by Claude
+Code, 2026-08-26** (Desktop had flagged these as corpus-supported but
+not personally verified, since their own device-access request landed
+on the wrong folder): both prompt strings are exact-match consistent
+across the entire `log/` corpus, zero variants — `"Player name:"` (no
+trailing space, confirmed in every file containing it) and `"Password:
+"` (one trailing space, confirmed across all 231 files containing it).
+Not yet done: the actual `MyDSL_Login.lua`/`test/test_login.lua` files
+haven't reached this repo — Claude Code needs their real content from
+Steven directly before it can review, verify, integrate, and push.
+
+Recorded here as a standing rule so it can't recur elsewhere as more
+native content gets absorbed under Principle 1: any credential,
+password, or personally identifying secret must never be typed
+directly into a native trigger/alias script body. It belongs in a
+local, `.gitignore`d file read at runtime, or prompted for
+interactively — never committed, never embedded in exported/backup
+XML.
 
 ## Principle 6: Recorded Best Practices (Mudlet/Lua)
 
@@ -349,8 +368,12 @@ still genuinely open:
 ## Separately tracked, not blocking this document
 
 Steven found his own login password sitting in a live Mudlet trigger
-while reviewing this pass (see Principle 5). He's fixing it himself
-directly, on his own timeline (he has a specific replacement approach
-in mind) — **scheduled, with Steven as owner, not indefinitely
-deferred and not something Claude Code should treat as still open or
-pick up unprompted.**
+while reviewing this pass (see Principle 5) — **updated 2026-08-26**:
+this ended up being built by Claude Desktop rather than Steven
+himself. `MyDSL_Login.lua` + `test/test_login.lua` are written and
+delivered to Steven directly, corpus-confirmation of the two prompt
+strings is done (see Principle 5), and the remaining step is Claude
+Code getting the real file content from Steven, reviewing it, and
+integrating/pushing it into this repo — not something Claude Code
+should pick up from scratch, but also not fully closed until that
+integration actually happens.
