@@ -50,6 +50,26 @@ check("applyTheme() also appends titleBarCSS()'s QDockWidget::title coloring rul
 check("the appended rule carries real color (not just a bare background flatten)",
   css and css:find("color:", 1, true) ~= nil)
 
+-- REAL BUG found live 2026-08-26, 4th round on this feature: panelCSS()
+-- returns bare declarations with no selector (undocumented Qt syntax,
+-- confirmed via Qt's own stylesheet-syntax docs -- it happened to work
+-- for years only because it was always the ENTIRE stylesheet string).
+-- Concatenating it directly in front of titleBarCSS()'s real
+-- QDockWidget::title{} selector rule produced a string where the
+-- appended rule silently failed to apply -- Steven's own screenshot
+-- showed zero coloring anywhere despite the CSS values themselves being
+-- correct (confirmed separately by test_theme_titlebar_css.lua). Fixed
+-- by wrapping panelCSS()'s declarations in an explicit QDockWidget{}
+-- selector at this call site, matching the exact two-explicit-rule-
+-- blocks shape Mudlet's own wiki confirms works. This assertion is the
+-- one that would have caught the real bug -- the two checks above only
+-- confirmed each piece of TEXT was present somewhere in the string, not
+-- that the string was structured as valid, parseable Qt stylesheet syntax.
+check("panelCSS()'s declarations are wrapped in an explicit QDockWidget{} selector, not left bare",
+  css and css:find("QDockWidget{", 1, true) ~= nil)
+check("the QDockWidget{} block comes before the QDockWidget::title{} block, matching Mudlet's own confirmed-working wiki example shape",
+  css and (css:find("QDockWidget{", 1, true) or math.huge) < (css:find("QDockWidget::title", 1, true) or 0))
+
 if failures == 0 then
   print("ALL PASS")
   os.exit(0)

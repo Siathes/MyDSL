@@ -251,7 +251,27 @@ local function applyTheme(windowName, winObj)
     -- that remains, and each View file calls winObj:setTitle("Combat")/
     -- etc. with the real short name -- the normal documented setTitle()
     -- path, not the untested setTitle("") edge case that broke.
-    local css = MyDSL.Theme.panelCSS(windowName)
+    -- REAL BUG found live 2026-08-26 (3rd round on this feature; Steven's
+    -- screenshot showed zero coloring anywhere, not just "too dim"):
+    -- panelCSS() returns BARE declarations with no selector at all --
+    -- confirmed via Qt's own stylesheet-syntax docs that this specific
+    -- form ("declarations with no selector, applied to the widget
+    -- setStyleSheet was called on") isn't actually documented Qt syntax;
+    -- it happened to render correctly for years only because it was ALWAYS
+    -- the entire stylesheet string, never concatenated with anything else.
+    -- Appending titleBarCSS()'s real `QDockWidget::title{...}` selector
+    -- rule after those bare declarations produces a string Qt's parser
+    -- doesn't handle the way the two pieces work in isolation -- the
+    -- panelCSS() part alone (background/border/radius on the window body)
+    -- kept rendering, but the appended selector rule silently didn't.
+    -- Fixed by wrapping panelCSS()'s declarations in an explicit
+    -- QDockWidget{...} selector at this call site (NOT inside panelCSS()
+    -- itself, which stays bare -- AlterformView/TickView/LiveView all
+    -- still depend on that exact bare-declaration shape for their own
+    -- background Labels), producing the same two-explicit-rule-blocks
+    -- shape Mudlet's own wiki confirms works: "QDockWidget{...}
+    -- QDockWidget::title{...}".
+    local css = "QDockWidget{ " .. MyDSL.Theme.panelCSS(windowName) .. " }"
     if MyDSL.Theme.titleBarCSS then css = css .. " " .. MyDSL.Theme.titleBarCSS(windowName) end
     pcall(function() winObj:setStyleSheet(css) end)
   end

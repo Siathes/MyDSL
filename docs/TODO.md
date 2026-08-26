@@ -31,20 +31,30 @@ left before "feature complete" 1.0. This section stays as the detailed
 punch list; the roadmap doc is where to look first for "how close are
 we" without re-reading all of this.
 
-- [x] **Visual pass v2, third round 2026-08-26, needs Steven's live
-      confirmation** — the one-bar structural fix is confirmed genuinely
-      working (Steven's clean-reload test: all 15 windows show exactly
-      one native title, the earlier "two bars" report was a stale
-      profile, not a regression). Two more real bugs found and fixed on
-      top of that: `titleBgColor`'s alpha was too low across 4 of 5
-      presets to read as color on a real native title bar (raised
-      a=15-26 → a=90); `MyDSL_AffectsView.lua`'s actual default title
-      was still hardcoded `"-= Affects =-"` in three places the first
-      correction pass missed. Location/Portrait's dash-style titles seen
-      live are a stale saved preference, not a bug — clear with
-      `mydsl location title Location`/`mydsl portrait title Portrait`.
-      Full detail in `docs/CHANGELOG.md`. Confirm the color is now
-      actually visible and all three read consistently before closing.
+- [x] **Visual pass v2, fourth round 2026-08-26, needs Steven's live
+      confirmation — and independent Claude Desktop verification before
+      trusting this round's own read of "fixed," per Steven's explicit
+      ask.** Round 3's screenshot showed zero coloring anywhere, not
+      just "too dim" — traced to the real root cause this time via
+      Mudlet's own confirmed-working wiki example and Qt's own
+      stylesheet-syntax docs, not another guess: `panelCSS()` returns
+      bare CSS declarations with no selector (undocumented Qt syntax,
+      only ever worked because it was the entire stylesheet string on
+      its own); concatenating `titleBarCSS()`'s real
+      `QDockWidget::title{...}` rule directly after those bare
+      declarations produced a string where the appended rule silently
+      failed to apply. Fixed by wrapping panelCSS()'s declarations in
+      an explicit `QDockWidget{...}` selector at the `applyTheme()`
+      call site, matching Mudlet's own confirmed two-block shape.
+      Second, separate bug in the same round: History/PlayersNear never
+      got their real title set at all this session — `setTitle()` only
+      ever ran lazily on first routed text, and both windows sat empty
+      the whole session, so both still showed Mudlet's raw default
+      title. Fixed by creating both consoles eagerly at load. Two new
+      regression tests, both confirmed via targeted revert to actually
+      fail without their fix. Full detail in `docs/CHANGELOG.md`.
+      Round 3's `titleBgColor`/Affects-title fixes both still stand,
+      unaffected by this round's two new fixes.
 - [ ] **New, separate, not yet started: native dock-tab-group label
       styling.** Steven asked whether the small tabs shown when
       multiple windows share a dock side can also be colored to match.

@@ -364,4 +364,19 @@ MyDSL._aliases.playersNearStatus = tempAlias(
   [[MyDSL.Route.playersNearStatus()]]
 )
 
+-- REAL BUG found live 2026-08-26: getOrCreateConsole() (and therefore
+-- its setTitle(WINDOW_TITLES[...]) call) only ever ran lazily, the first
+-- time something actually routed text to History/PlayersNear. Empty at
+-- boot means it was NEVER called this whole session, so both windows
+-- kept showing Mudlet's raw default title ("User window - MyDSL -
+-- MyDSL_History") instead of the real short name from this pass -- not
+-- a coloring/formula bug like the other two found this round, just a
+-- lazy-init gap exposed by caring about title text at boot for the
+-- first time. Every other View file's ensureUI()/init() sets its title
+-- unconditionally at load; these two windows are the only ones that
+-- never did. Fixed by eagerly creating both consoles here, matching
+-- that same "ensure at boot" pattern.
+getOrCreateConsole("MyDSL_History")
+getOrCreateConsole("MyDSL_PlayersNear")
+
 debugc("[MyDSL] RouteHelper loaded.")
