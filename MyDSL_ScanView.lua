@@ -150,7 +150,9 @@ function SV.ensureUI()
   local scanWin = MyDSL.Windows.ensure(SCAN_WIN)
   -- Visual pass v2 "One Bar, Renamed and Colored" (locked spec,
   -- 2026-08-26) -- short, plain name; applyTheme() colors it.
-  if scanWin and scanWin.setTitle then pcall(function() scanWin:setTitle("Scan") end) end
+  if scanWin and scanWin.setTitle then
+    pcall(function() scanWin:setTitle(MyDSL.Windows.getTitle(SCAN_WIN, "Scan")) end)
+  end
   if not SV.ui.scanConsole then
     SV.ui.scanConsole = Geyser.MiniConsole:new({
       name      = SCAN_MC,
@@ -162,7 +164,9 @@ function SV.ensureUI()
 
   -- Ensure RightHere UserWindow and its MiniConsole exist.
   local rhWin = MyDSL.Windows.ensure(RH_WIN)
-  if rhWin and rhWin.setTitle then pcall(function() rhWin:setTitle("Right Here") end) end
+  if rhWin and rhWin.setTitle then
+    pcall(function() rhWin:setTitle(MyDSL.Windows.getTitle(RH_WIN, "Right Here")) end)
+  end
   if not SV._mc.rightHere then
     SV._mc.rightHere = Geyser.MiniConsole:new({
       name      = RH_MC,
@@ -275,6 +279,17 @@ end
 function SV.show() MyDSL.Windows.show(SCAN_WIN) end
 function SV.hide() MyDSL.Windows.hide(SCAN_WIN) end
 
+-- setTitle(title)/setRightHereTitle(title) -- real gap fix, 2026-08-26
+-- (command-parity sweep).
+function SV.setTitle(title)
+  title = tostring(title or ""):match("^%s*(.-)%s*$")
+  if title == "" then title = "Scan" end
+  MyDSL.Windows.setTitle(SCAN_WIN, title)
+  local win = MyDSL.Windows.get and MyDSL.Windows.get(SCAN_WIN)
+  if win and win.setTitle then pcall(function() win:setTitle(title) end) end
+  echo("Scan title=" .. title .. "\n")
+end
+
 function SV.setFont(size)
   size = tonumber(size)
   if not size then echo("usage: mydsl scan font <size>\n"); return end
@@ -287,6 +302,15 @@ end
 
 function SV.showRightHere() MyDSL.Windows.show(RH_WIN) end
 function SV.hideRightHere() MyDSL.Windows.hide(RH_WIN) end
+
+function SV.setRightHereTitle(title)
+  title = tostring(title or ""):match("^%s*(.-)%s*$")
+  if title == "" then title = "Right Here" end
+  MyDSL.Windows.setTitle(RH_WIN, title)
+  local win = MyDSL.Windows.get and MyDSL.Windows.get(RH_WIN)
+  if win and win.setTitle then pcall(function() win:setTitle(title) end) end
+  echo("Right Here title=" .. title .. "\n")
+end
 
 function SV.setRightHereFont(size)
   size = tonumber(size)
@@ -327,6 +351,8 @@ tempAlias("^mydsl scan hide$",
   "if MyDSL and MyDSL.ScanView then MyDSL.ScanView.hide() end")
 tempAlias("^mydsl scan font (\\d+)$",
   "if MyDSL and MyDSL.ScanView then MyDSL.ScanView.setFont(matches[2]) end")
+tempAlias("^mydsl scan title (.+)$",
+  "if MyDSL and MyDSL.ScanView then MyDSL.ScanView.setTitle(matches[2]) end")
 
 tempAlias("^mydsl righthere status$",
   "if MyDSL and MyDSL.ScanView then MyDSL.ScanView.status() end")
@@ -336,6 +362,8 @@ tempAlias("^mydsl righthere hide$",
   "if MyDSL and MyDSL.ScanView then MyDSL.ScanView.hideRightHere() end")
 tempAlias("^mydsl righthere font (\\d+)$",
   "if MyDSL and MyDSL.ScanView then MyDSL.ScanView.setRightHereFont(matches[2]) end")
+tempAlias("^mydsl righthere title (.+)$",
+  "if MyDSL and MyDSL.ScanView then MyDSL.ScanView.setRightHereTitle(matches[2]) end")
 
 -- mydsl righthere dump -- added 2026-07-08 as a one-shot live diagnostic,
 -- per repeated "still not updating" reports that static log analysis

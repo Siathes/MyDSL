@@ -229,6 +229,16 @@ function IR.hide()
   if MyDSL.Windows then MyDSL.Windows.hide(IR_WIN) end
 end
 
+-- setTitle(title) -- real gap fix, 2026-08-26 (command-parity sweep).
+function IR.setTitle(title)
+  title = tostring(title or ""):match("^%s*(.-)%s*$")
+  if title == "" then title = "Item Reference" end
+  MyDSL.Windows.setTitle(IR_WIN, title)
+  local win = MyDSL.Windows.get and MyDSL.Windows.get(IR_WIN)
+  if win and win.setTitle then pcall(function() win:setTitle(title) end) end
+  echo("Item Reference title=" .. title .. "\n")
+end
+
 function IR.status()
   decho(string.format(
     "<136,204,255>[MyDSL] Item Reference: font=%d<r>\n",
@@ -255,7 +265,9 @@ end
 function IR.ensureUI()
   local irWin = MyDSL.Windows.ensure(IR_WIN)
   -- Visual pass v2 "One Bar, Renamed and Colored" (locked spec, 2026-08-26).
-  if irWin and irWin.setTitle then pcall(function() irWin:setTitle("Item Reference") end) end
+  if irWin and irWin.setTitle then
+    pcall(function() irWin:setTitle(MyDSL.Windows.getTitle(IR_WIN, "Item Reference")) end)
+  end
   if not IR._mc.item then
     IR._mc.item = Geyser.MiniConsole:new({
       name      = IR_MC,
@@ -307,6 +319,7 @@ function IR.init()
     [[
       local name = matches[2]
       local fontSize = name:match("^font%s+(%d+)$")
+      local titleText = name:match("^title%s+(.+)$")
       local mapGround, mapTarget = name:match("^map%s+(.-)%s*=%s*(.+)$")
       if name == "hide" then
         if MyDSL and MyDSL.ItemReference then MyDSL.ItemReference.hide() end
@@ -316,6 +329,8 @@ function IR.init()
         if MyDSL and MyDSL.ItemReference then MyDSL.ItemReference.status() end
       elseif fontSize then
         if MyDSL and MyDSL.ItemReference then MyDSL.ItemReference.setFont(fontSize) end
+      elseif titleText then
+        if MyDSL and MyDSL.ItemReference then MyDSL.ItemReference.setTitle(titleText) end
       elseif mapGround then
         -- "item map <ground item text> = <inventory/equipment item name>"
         -- added 2026-07-16, the manual override for the real fraction of

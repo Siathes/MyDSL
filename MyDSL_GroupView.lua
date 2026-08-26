@@ -311,7 +311,9 @@ function GV.ensureUI()
   local groupWin = MyDSL.Windows.ensure(GROUP_WIN)
   -- Visual pass v2 "One Bar, Renamed and Colored" (locked spec,
   -- 2026-08-26) -- short, plain name; applyTheme() colors it.
-  if groupWin and groupWin.setTitle then pcall(function() groupWin:setTitle("Group") end) end
+  if groupWin and groupWin.setTitle then
+    pcall(function() groupWin:setTitle(MyDSL.Windows.getTitle(GROUP_WIN, "Group")) end)
+  end
 
   -- Create the MiniConsole only once; the _mc table persists across reloads
   -- so re-calling init() after dofile() never creates a duplicate console.
@@ -399,6 +401,16 @@ end
 function GV.show() MyDSL.Windows.show(GROUP_WIN) end
 function GV.hide() MyDSL.Windows.hide(GROUP_WIN) end
 
+-- setTitle(title) -- real gap fix, 2026-08-26 (command-parity sweep).
+function GV.setTitle(title)
+  title = tostring(title or ""):match("^%s*(.-)%s*$")
+  if title == "" then title = "Group" end
+  MyDSL.Windows.setTitle(GROUP_WIN, title)
+  local win = MyDSL.Windows.get and MyDSL.Windows.get(GROUP_WIN)
+  if win and win.setTitle then pcall(function() win:setTitle(title) end) end
+  echo("Group title=" .. title .. "\n")
+end
+
 function GV.setFont(size)
   size = tonumber(size)
   if not size then echo("usage: group font <size>\n"); return end
@@ -459,6 +471,8 @@ tempAlias("^group hide$",
   "if MyDSL and MyDSL.GroupView then MyDSL.GroupView.hide() end")
 tempAlias("^group font (\\d+)$",
   "if MyDSL and MyDSL.GroupView then MyDSL.GroupView.setFont(matches[2]) end")
+tempAlias("^group title (.+)$",
+  "if MyDSL and MyDSL.GroupView then MyDSL.GroupView.setTitle(matches[2]) end")
 
 
 ------------------------------------------------------------------------

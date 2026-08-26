@@ -241,6 +241,16 @@ function CR.hide()
   if MyDSL.Windows then MyDSL.Windows.hide(CR_WIN) end
 end
 
+-- setTitle(title) -- real gap fix, 2026-08-26 (command-parity sweep).
+function CR.setTitle(title)
+  title = tostring(title or ""):match("^%s*(.-)%s*$")
+  if title == "" then title = "Bestiary" end
+  MyDSL.Windows.setTitle(CR_WIN, title)
+  local win = MyDSL.Windows.get and MyDSL.Windows.get(CR_WIN)
+  if win and win.setTitle then pcall(function() win:setTitle(title) end) end
+  echo("Bestiary title=" .. title .. "\n")
+end
+
 -- status/rebuild/font -- added 2026-07-15, bringing Bestiary up to the
 -- same standard other windows have (show/hide already existed above,
 -- reachable via "bestiary show"/"bestiary hide").
@@ -274,7 +284,9 @@ function CR.ensureUI()
   local crWin = MyDSL.Windows.ensure(CR_WIN)
   -- Visual pass v2 "One Bar, Renamed and Colored" (locked spec,
   -- 2026-08-26) -- short, plain name; applyTheme() colors it.
-  if crWin and crWin.setTitle then pcall(function() crWin:setTitle("Bestiary") end) end
+  if crWin and crWin.setTitle then
+    pcall(function() crWin:setTitle(MyDSL.Windows.getTitle(CR_WIN, "Bestiary")) end)
+  end
   if not CR._mc.lore then
     CR._mc.lore = Geyser.MiniConsole:new({
       name      = CR_MC,
@@ -345,6 +357,7 @@ function CR.init()
     [[
       local name = matches[2]
       local fontSize = name:match("^font%s+(%d+)$")
+      local titleText = name:match("^title%s+(.+)$")
       if name == "hide" then
         if MyDSL and MyDSL.CreatureReference then MyDSL.CreatureReference.hide() end
       elseif name == "show" then
@@ -353,6 +366,8 @@ function CR.init()
         if MyDSL and MyDSL.CreatureReference then MyDSL.CreatureReference.status() end
       elseif fontSize then
         if MyDSL and MyDSL.CreatureReference then MyDSL.CreatureReference.setFont(fontSize) end
+      elseif titleText then
+        if MyDSL and MyDSL.CreatureReference then MyDSL.CreatureReference.setTitle(titleText) end
       else
         send("creaturelore " .. name, false)
         if MyDSL and MyDSL.CreatureReference then MyDSL.CreatureReference.show() end

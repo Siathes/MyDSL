@@ -228,7 +228,9 @@ function CV.init()
   -- Visual pass v2 "One Bar, Renamed and Colored" (locked spec,
   -- 2026-08-26) -- short, plain name; MyDSL_WindowRegistry.lua's
   -- applyTheme() supplies the coloring via titleBarCSS().
-  if combatWin and combatWin.setTitle then pcall(function() combatWin:setTitle("Combat") end) end
+  if combatWin and combatWin.setTitle then
+    pcall(function() combatWin:setTitle(MyDSL.Windows.getTitle(COMBAT_WIN, "Combat")) end)
+  end
   if not CV._mc.combat then
     CV._mc.combat = Geyser.MiniConsole:new({
       name      = COMBAT_MC,
@@ -323,6 +325,10 @@ CV._aliases.combatFont = tempAlias(
   "^mydsl combat font (\\d+)$",
   [[MyDSL.CombatView.setFont(matches[2])]])
 
+CV._aliases.combatTitle = tempAlias(
+  "^mydsl combat title (.+)$",
+  [[MyDSL.CombatView.setTitle(matches[2])]])
+
 -- CV.show()/hide()/toggle() -- added 2026-07-11, command-surface retrofit
 -- (docs/TODO.md "OPEN — Command-surface retrofit"). CombatView was the one
 -- module with no window-visibility function or alias at all (AffectsView/
@@ -336,6 +342,20 @@ CV._aliases.combatFont = tempAlias(
 -- visibility-tracking needed.
 function CV.show() if MyDSL.Windows then MyDSL.Windows.show(COMBAT_WIN) end end
 function CV.hide() if MyDSL.Windows then MyDSL.Windows.hide(COMBAT_WIN) end end
+
+-- setTitle(title) -- real gap fix, 2026-08-26 (command-parity sweep):
+-- Combat had no title customization, unlike most other windows.
+-- Persists via the shared MyDSL.Windows.setTitle()/getTitle() (same
+-- mechanism History/PlayersNear use) rather than a new bespoke field --
+-- Combat has no settings file of its own either.
+function CV.setTitle(title)
+  title = tostring(title or ""):match("^%s*(.-)%s*$")
+  if title == "" then title = "Combat" end
+  MyDSL.Windows.setTitle(COMBAT_WIN, title)
+  local win = MyDSL.Windows.get and MyDSL.Windows.get(COMBAT_WIN)
+  if win and win.setTitle then pcall(function() win:setTitle(title) end) end
+  echo("Combat title=" .. title .. "\n")
+end
 function CV.toggle() if MyDSL.Windows then MyDSL.Windows.toggle(COMBAT_WIN) end end
 
 CV._aliases.toggleBattle = tempAlias(

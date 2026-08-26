@@ -57,6 +57,26 @@ we" without re-reading all of this.
       pass (build against a real Mudlet instance, check nothing outside
       MyDSL's own windows changes) before attempting, not folded into
       the title-bar work above.
+- [x] **Command-parity sweep done 2026-08-26, per Steven ("i dont like
+      that these are different... match all features and functions,
+      unless it breaks something").** Removed the unnecessary standalone
+      "rebuild" command from every window (no evidence it was ever
+      needed; kept the underlying function only where Live/Tick/
+      Alterform's real "reload settings"/"layout" features depend on
+      it internally). Fixed 2 real bugs (Focus and History had no
+      dedicated show/hide command at all) and closed the title-
+      customization gap on the 11 windows that were missing it
+      (Combat/Group/Scan/Right Here/Bestiary/Item Reference/Chat/
+      History/Players Near/Focus), plus Location's missing `font`
+      command. All 17 windows now have consistent title/show-hide/font
+      parity except `MyDSL_MoonWeather.lua` (documented exception — no
+      UI surface to show a title on a Container widget with no header
+      label). Full detail in `docs/CHANGELOG.md`. **Next step, per
+      Steven's own sequencing**: build the actual feature matrix
+      document (what's there, what connects, whether it all works
+      properly) — this sweep's table was the seed, not the final
+      artifact — then the module-by-module feature pass, then
+      finalize code.
 
 **Formalized 2026-08-25 into `docs/OPTIMIZATION_AUDIT.md`** — a real,
 per-file inventory (what it does / public surface / depends-on / called-

@@ -50,6 +50,7 @@
     mydsl location fit cover|stretch|contain|fill
     mydsl location missing caption|blank
     mydsl location title <title text>
+    mydsl location font <size>
     mydsl location debug on|off
 
   Compatibility aliases:
@@ -1033,6 +1034,20 @@ function M.setFit(mode)
   M.refresh("fit")
 end
 
+-- setFont(size) -- real gap fix, 2026-08-26 (command-parity sweep):
+-- M.config.font already existed and was used for the caption's font
+-- size (see line 84's default and the caption-render call above), but
+-- nothing ever let a player actually change it -- the one window
+-- missing a font command every other window already has.
+function M.setFont(size)
+  size = tonumber(size)
+  if not size then echoR("Usage: mydsl location font <size>"); return end
+  M.config.font = size
+  M.saveProfiles()
+  echoC("Font size set to: " .. tostring(size))
+  M.refresh("font")
+end
+
 function M.setMissing(mode)
   mode = safeStr(mode)
   if mode ~= "caption" and mode ~= "blank" then
@@ -1240,6 +1255,7 @@ local function locationCommand(rest)
   if rest == "maps" then M.listMaps(); return end
   local fit = rest:match("^fit%s+(%S+)$"); if fit then M.setFit(fit); return end
   local miss = rest:match("^missing%s+(%S+)$"); if miss then M.setMissing(miss); return end
+  local fontSize = rest:match("^font%s+(%d+)$"); if fontSize then M.setFont(fontSize); return end
   local title = rest:match("^title%s+(.+)$"); if title then M.setTitle(title); return end
   local dbg = rest:match("^debug%s+(%S+)$"); if dbg then M.setDebug(dbg); return end
   echoR("Unknown command. Try: mydsl location help")

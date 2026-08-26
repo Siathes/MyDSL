@@ -2508,6 +2508,7 @@ function C.serializeSettings()
   table.insert(out, string.format("  timestampFormat = %q,\n", tostring(C.config.timestampFormat or "HH:mm:ss")))
   table.insert(out, string.format("  timestampFGColor = %q,\n", tostring(C.config.timestampFGColor or "grey")))
   table.insert(out, string.format("  timestampBGColor = %q,\n", tostring(C.config.timestampBGColor or "black")))
+  table.insert(out, string.format("  title = %q,\n", tostring(C.config.title or "Chat")))
   table.insert(out, "}\n")
   return table.concat(out)
 end
@@ -2543,6 +2544,7 @@ function C.loadSettings()
   C.config.timestampFormat = tostring(data.timestampFormat or C.config.timestampFormat or "HH:mm:ss")
   C.config.timestampFGColor = tostring(data.timestampFGColor or C.config.timestampFGColor or "grey")
   C.config.timestampBGColor = tostring(data.timestampBGColor or C.config.timestampBGColor or "black")
+  if type(data.title) == "string" and data.title ~= "" then C.config.title = data.title end
 
   C.state.settingsFile = file
   C.state.settingsLoaded = true
@@ -3006,6 +3008,18 @@ function C.clear()
   ce("clear requested")
 end
 
+-- setTitle(title) -- real gap fix, 2026-08-26 (command-parity sweep):
+-- Chat had no title customization, unlike most other windows.
+function C.setTitle(title)
+  title = tostring(title or ""):match("^%s*(.-)%s*$")
+  if title == "" then title = "Chat" end
+  C.config.title = title
+  C.saveSettings()
+  local win = getWindowObject()
+  if win and win.setTitle then pcall(function() win:setTitle(title) end) end
+  ce("title=" .. title)
+end
+
 -- Numeric size here maps to EMCO's "fontSize" verb, not its "font" verb
 -- (which takes a font *name*) -- native `emco fontSize <n>` calls the same
 -- ch:setFontSize() on this same live demonnic.chat object (MyDSL reassigns
@@ -3230,6 +3244,7 @@ function C.installAliases()
   tempAlias([[^mydsl chat hide$]], [[MyDSL.Chat.hide()]])
   tempAlias([[^mydsl chat clear$]], [[MyDSL.Chat.clear()]])
   tempAlias([[^mydsl chat font (\d+)$]], [[MyDSL.Chat.setFont(matches[2])]])
+  tempAlias([[^mydsl chat title (.+)$]], [[MyDSL.Chat.setTitle(matches[2])]])
   tempAlias([[^mydsl chat wrap (auto|on)$]], [[MyDSL.Chat.setWrap("auto")]])
   tempAlias([[^mydsl chat wrap (fixed|manual|off) (\d+)$]], [[MyDSL.Chat.setWrap("fixed", matches[3])]])
   tempAlias([[^mydsl chat wrap (\d+)$]], [[MyDSL.Chat.setWrap(matches[2])]])
