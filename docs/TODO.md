@@ -214,10 +214,16 @@ function in a 3,000-line file).
       4 (ChatTriggers per-channel gag/show + fallback) and DataBridge's
       double-fire consolidation are larger, tracked separately below —
       not folded into this closed item.
-- [ ] **`MyDSL_ChatTriggers.lua` per-channel gag/show + safety fallback**
-      — Steven's answer to the toggle gap above: "there should be a gag
-      and show for each channel and a fallback show if anything breaks
-      or turns off." Not started yet.
+- [x] **`MyDSL_ChatTriggers.lua` per-channel gag/show + safety fallback
+      done 2026-08-26** — per Steven ("there should be a gag and show
+      for each channel and a fallback show if anything breaks or turns
+      off"): `mydsl channel gag/show <Tells|Group|OOC|City|Local>` +
+      `mydsl channel status`. Turning a channel off leaves its lines on
+      the main console untouched (no routing, no gagging) — same
+      fallback the pre-existing `MyDSL.Chat.emco`-not-ready guard already
+      used for an accidental boot-timing gap, now reachable on purpose.
+      New `test_chattriggers_channel_toggle.lua`, confirmed via targeted
+      revert.
 - [ ] `scripts/check_text_coverage.py` has two confirmed extraction
       blind spots (wrapper-function-built patterns in
       `MyDSL_ChatTriggers.lua`/`MyDSL_CharacterAssist.lua`/

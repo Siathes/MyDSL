@@ -14,8 +14,33 @@
 MyDSL              = MyDSL              or {}
 MyDSL.ChatTriggers = MyDSL.ChatTriggers or {}
 
--- Kill any triggers from a previous load.
+-- Per-channel gag/show toggle, added 2026-08-26 per Steven ("there
+-- should be a gag and show for each channel and a fallback show if
+-- anything breaks or turns off") -- this file previously had ZERO way to
+-- turn off routing/gagging for any channel (docs/MYDSL_1.0_MODULE_
+-- REDESIGN.md #17). true (default, matches original behavior) = route
+-- the channel's lines to its EMCO tab and remove them from the main
+-- console; false = leave that channel's lines on the main console
+-- entirely, no routing at all -- the explicit "show" fallback. This is
+-- the same "move text, don't replace it" principle the existing
+-- MyDSL.Chat.emco-not-ready guard in route() below already applies for
+-- an accidental boot-timing gap; this makes the same fallback reachable
+-- on purpose, per channel.
+MyDSL.ChatTriggers.config = MyDSL.ChatTriggers.config or {
+  channels = {
+    Tells = true,
+    Group = true,
+    OOC   = true,
+    City  = true,
+    Local = true,
+  },
+}
+
+-- Kill any triggers/aliases from a previous load.
 MyDSL.ChatTriggers._triggers = MyDSL.ChatTriggers._triggers or {}
+MyDSL.ChatTriggers._aliases  = MyDSL.ChatTriggers._aliases  or {}
+for _, id in pairs(MyDSL.ChatTriggers._aliases) do pcall(killAlias, id) end
+MyDSL.ChatTriggers._aliases = {}
 local function deregisterTriggers()
   for _, id in pairs(MyDSL.ChatTriggers._triggers) do
     pcall(killAnonymousEventHandler, id)
@@ -59,6 +84,10 @@ local NC = "(?:[^']|(?<=\\w)'(?=\\w))"
 
 local function route(tabName, pattern, gag)
   local id = tempRegexTrigger(pattern, function()
+    -- Player-toggled fallback: if this channel is turned off, leave the
+    -- line on the main console untouched -- no routing, no gagging.
+    if MyDSL.ChatTriggers.config.channels[tabName] == false then return end
+
     -- routed tracks whether the line actually reached a chat tab --
     -- added 2026-07-17, real data-loss bug found live: MyDSL.Chat.emco is
     -- only ever created by MyDSL_Chat.lua's startup timer ladder, not
@@ -273,5 +302,45 @@ route("OOC", [[^\a?\[Newbie\]: ']])
 -- real message.
 route("OOC", [[^\a?(?:\(Imm\) )?]] .. NC .. [[+ Bloodbath:]] .. NC .. [[*']])
 route("OOC", [[^\a?]] .. NC .. [[*quests]] .. NC .. [[*']])
+
+
+------------------------------------------------------------------------
+-- PER-CHANNEL GAG/SHOW  (added 2026-08-26, see config.channels' own
+-- comment above for the full reasoning)
+------------------------------------------------------------------------
+
+local function findChannel(name)
+  name = tostring(name or ""):lower()
+  for real in pairs(MyDSL.ChatTriggers.config.channels) do
+    if real:lower() == name then return real end
+  end
+  return nil
+end
+
+function MyDSL.ChatTriggers.setChannel(name, enabled)
+  local real = findChannel(name)
+  if not real then
+    cecho("\n<red>[ChatTriggers]<reset> Unknown channel: " .. tostring(name)
+      .. ". Valid: Tells, Group, OOC, City, Local\n")
+    return
+  end
+  MyDSL.ChatTriggers.config.channels[real] = enabled == true
+  cecho("\n<cyan>[ChatTriggers]<reset> " .. real .. "="
+    .. (MyDSL.ChatTriggers.config.channels[real] and "gagged (routed to its tab)" or "shown on main console") .. "\n")
+end
+
+function MyDSL.ChatTriggers.status()
+  cecho("\n<cyan>[ChatTriggers] channel status:<reset>\n")
+  local names = {}
+  for name in pairs(MyDSL.ChatTriggers.config.channels) do names[#names + 1] = name end
+  table.sort(names)
+  for _, name in ipairs(names) do
+    cecho("  " .. name .. "=<white>" .. tostring(MyDSL.ChatTriggers.config.channels[name]) .. "<reset>\n")
+  end
+end
+
+MyDSL.ChatTriggers._aliases.channelGag    = tempAlias([[^mydsl channel gag (\w+)$]],  [[MyDSL.ChatTriggers.setChannel(matches[2], true)]])
+MyDSL.ChatTriggers._aliases.channelShow   = tempAlias([[^mydsl channel show (\w+)$]], [[MyDSL.ChatTriggers.setChannel(matches[2], false)]])
+MyDSL.ChatTriggers._aliases.channelStatus = tempAlias([[^mydsl channel status$]],     [[MyDSL.ChatTriggers.status()]])
 
 debugc("[MyDSL] ChatTriggers loaded.")
