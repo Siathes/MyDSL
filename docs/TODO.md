@@ -86,11 +86,24 @@ we" without re-reading all of this.
       `docs/CHANGELOG.md`. **This fixes future builds only — Steven
       still needs to uninstall the old `MyDSL_Full` package in Mudlet
       before installing the freshly-rebuilt one**, or the live 16-deep
-      nesting won't actually clear. **Next step, per Steven's own
-      sequencing**: build the actual feature matrix document (what's
-      there, what connects, whether it all works properly) — this
-      sweep's table was the seed, not the final artifact — then the
-      module-by-module feature pass, then finalize code.
+      nesting won't actually clear.
+- [x] **Window feature matrix built 2026-08-26** —
+      `docs/MYDSL_WINDOW_FEATURE_MATRIX.md`, one row per window's real
+      command surface (grep-confirmed against current source, not
+      carried over from the sweep's own summary), what feeds it data,
+      and open issues. Surfaced 1 new real gap in the process: `Combat`
+      has no whole-window `mydsl combat show$`/`hide$` alias at all —
+      `CV.show()`/`CV.hide()` exist but nothing calls them except
+      `toggle battle`, unlike every other window, which all have direct
+      show/hide verbs (the existing `show <flag>`/`hide <flag>` aliases
+      are a different, per-feature toggle, easy to mistake for the
+      missing one). Also carries forward 3 still-open findings from
+      `docs/MYDSL_1.0_MODULE_REDESIGN.md`, re-confirmed current this
+      session: History has no writer (`MyDSL.Route.history()` has zero
+      callers), LocationView double-fires on room entry, TickView
+      renders at full rate while hidden. **Next step, per Steven's own
+      sequencing**: the module-by-module feature pass (fix the 4 gaps
+      above plus anything else the pass turns up), then finalize code.
 
 **Formalized 2026-08-25 into `docs/OPTIMIZATION_AUDIT.md`** — a real,
 per-file inventory (what it does / public surface / depends-on / called-
