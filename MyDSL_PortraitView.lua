@@ -58,7 +58,7 @@ P.version = "PortraitView v4C4 CoverDefault"
 P.config = P.config or {}
 P.config.windowId = P.config.windowId or "Portrait"
 P.config.windowName = P.config.windowName or "MyDSL_Portrait"
-P.config.title = P.config.title or "-= Portrait =-"
+P.config.title = P.config.title or "Portrait"
 P.config.fontSize = tonumber(P.config.fontSize or 9) or 9
 P.config.debug = P.config.debug == true
 P.config.enabled = P.config.enabled ~= false

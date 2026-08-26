@@ -2604,7 +2604,10 @@ function C.ensureWindow()
       local obj = getWindowObject()
       if obj then
         C.window = obj
-        if obj.setTitle then pcall(function() obj:setTitle("-= Chat =-") end) end
+        -- Visual pass v2 "One Bar, Renamed and Colored" (locked spec,
+        -- 2026-08-26) -- short, plain name; applyTheme() (already called
+        -- unconditionally for every UserWindow) colors it via titleBarCSS().
+        if obj.setTitle then pcall(function() obj:setTitle(C.config.title) end) end
         C.state.windowReady = true
         return true
       end

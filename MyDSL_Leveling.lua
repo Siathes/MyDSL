@@ -397,11 +397,11 @@ function L.ensureUI()
     debugc("[MyDSL] Leveling: window '" .. WIN .. "' unavailable (not registered yet?) -- skipping UI.")
     return
   end
-  -- Visual pass v2 "Direction A+" (locked spec, HANDOFF.md 2026-08-26).
-  if MyDSL.Windows and MyDSL.Windows.ensureHeader then MyDSL.Windows.ensureHeader(WIN, "Leveling") end
+  -- Visual pass v2 "One Bar, Renamed and Colored" (locked spec, 2026-08-26).
+  if win.setTitle then pcall(function() win:setTitle("Leveling") end) end
   if not L._mc.log then
     L._mc.log = Geyser.MiniConsole:new({
-      name = MC, x = 0, y = "10%", width = "100%", height = "90%", scrollBar = true,
+      name = MC, x = 0, y = 0, width = "100%", height = "100%", scrollBar = true,
     }, win)
   end
   local fontSize = MyDSL.Windows and MyDSL.Windows.getFontSize(WIN, 9) or 9

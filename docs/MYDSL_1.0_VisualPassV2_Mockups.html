@@ -83,7 +83,7 @@
 <div class="wrap">
 
   <h1>MyDSL 1.0 — Visual Pass v2</h1>
-  <p class="sub">Title-bar polish + general Geyser UI refinement, built from the 5 existing theme presets. 2026-08-26, decided same day: <b>§1.5 is the build — uniform, small/discreet, window-name-only header text (no "MyDSL —" prefix).</b> Steven picked Direction A's look, then confirmed it needs to work on both Linux and Windows (ruling out Direction A's original one-line mechanism), then locked the final styling. §1, §2, §3 below stay in the doc as the reasoning trail, not as remaining options.</p>
+  <p class="sub">Title-bar polish + general Geyser UI refinement, built from the 5 existing theme presets. 2026-08-26, revised twice same day: <b>§1.6 is the build</b> — one native title bar, renamed to the window's short display name and colored, no separate header Label. §1.5 was the first build (native bar + Label together); seeing it live is what showed Steven he wanted one bar, not two. §1, §2, §3 stay in the doc as the reasoning trail, not as remaining options.</p>
 
   <div class="grounding">
     <h2><span class="num">§0</span>What the research actually found, before any mockup was drawn</h2>
@@ -161,8 +161,8 @@
 
   <!-- ================= DIRECTION 1.5 (RECOMMENDED) ================= -->
   <section>
-    <h2><span class="num">§1.5</span>Direction A+ — Quiet Chrome, Cross-Platform <span style="font-size:11px; color:#8fd68f; font-weight:normal;">(decided — this is what gets built)</span></h2>
-    <p class="lede"><b>Final spec, confirmed by Steven:</b> uniform across every window (no mixing in Direction B's bolder style anywhere), small and discreet, and the header text is <b>just the window name</b> — no "MyDSL —" prefix, since every window in this addon is already understood to be a MyDSL window. Mechanism unchanged from the proposal: the real title bar is flattened to a blank hairline sliver (kept alive purely so drag/dock still works), and a plain <code>Geyser.Label</code> — an ordinary widget, not native window chrome, so it styles the same on every OS — sits just under it carrying the quiet themed title. Same code path as §2 below, just styled quietly and named plainly.</p>
+    <h2><span class="num">§1.5</span>Direction A+ — Quiet Chrome, Cross-Platform <span style="font-size:11px; color:#e88f89; font-weight:normal;">(superseded by §1.6 — first build showed the real problem with a two-layer approach)</span></h2>
+    <p class="lede"><b>Original spec, kept for the reasoning trail, no longer the build target:</b> a flattened native sliver plus a separate quiet <code>Geyser.Label</code> underneath carrying the real title. This is what actually got built first — and the live result was the native bar's <em>text</em> never went blank (a real bug in the flatten step, not this design), so both the full default title <em>and</em> the new Label showed at once. Steven's verdict after seeing that: he doesn't want two stacked labels regardless of whether the blanking bug gets fixed — he wants one. §1.6 is that simpler answer.</p>
 
     <div class="row">
       <div class="col">
@@ -212,6 +212,55 @@
         <li><span class="tag watch">WATCH</span>Same docked-window border caveat noted in §0 — applies here too since the window body still uses the existing border/radius CSS underneath the header.</li>
       </ul>
       <div class="effort"><b>Effort:</b> same as §2's — every UserWindow needs a header Label added (currently only 3 of ~16 have one), real code in every Layer-3 view file. This is the honest cost of "Direction A's look, but actually cross-platform" — the one-line <code>panelCSS()</code> version Steven saw first doesn't survive the Windows requirement.</div>
+    </div>
+  </section>
+
+  <!-- ================= DIRECTION 1.6 (NEW FINAL) ================= -->
+  <section>
+    <h2><span class="num">§1.6</span>One Bar, Renamed and Colored <span style="font-size:11px; color:#8fd68f; font-weight:normal;">(final — this is what gets built)</span></h2>
+    <p class="lede"><b>Steven's own words after seeing the first build:</b> "<i>User window - MyDSL - MyDSL_Location</i> should be <i>Location</i>, but colored and maybe styled to look pretty, small text/titlebar as possible" — one bar, not two. No separate header Label at all: the existing native title bar keeps doing the one job a title bar does, just with the right text and the right colors. Simpler than §1.5 in every way that matters — fewer moving parts, fewer places for the same bug to hide, and it directly matches what he actually asked for once he could see it.</p>
+    <p class="lede">Mechanically this drops the Label half of §1.5 entirely and fixes the one real thing that was actually broken: pass the window's short display name into <code>setTitle()</code> — <code>"Location"</code>, <code>"Combat"</code>, <code>"History"</code> — instead of trying to blank it with <code>""</code>. <code>setTitle(realText)</code> is the normal, documented path (Geyser's own manual describes exactly this call); the empty-string case that broke was always the riskier, less-tested edge of that same function. <code>titleBarCSS()</code>'s background/border coloring stays exactly as already built — <b>Steven's own screenshots confirm it's already rendering correctly on his machine</b> (the bars in his build are visibly dark-tinted, not default OS grey), which is better real-world evidence than the docs-only "Linux-only" caveat this pass started with. Worth a quick check on a Linux machine too before calling the platform question fully closed, but this is a meaningfully more confident starting point than before.</p>
+
+    <div class="row">
+      <div class="col">
+        <div class="col-label">refined_convergence</div>
+        <div class="mwin" style="--r:8px;">
+          <div class="native-bar" style="height:22px; font-size:11px; background:rgba(255,209,102,0.059); color:rgba(255,209,102,1.0); border-bottom:1px solid rgba(33,44,48,0.784);">Combat</div>
+          <div class="body" style="background:rgba(11,16,19,0.949); color:rgba(232,230,224,1.0); border:1px solid rgba(33,44,48,0.784);">
+            <div class="line">Kien swings a longsword at the orc.</div>
+            <div class="line" style="color:rgba(143,214,122,1.0);">Kien HITS the orc! [victorious]</div>
+          </div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="col-label">terminal_purist</div>
+        <div class="mwin" style="--r:0px;">
+          <div class="native-bar" style="height:22px; font-size:11px; background:rgba(0,0,0,0.0); color:rgba(201,162,39,1.0); border-bottom:1px solid rgba(27,27,27,0.745);">Location</div>
+          <div class="body" style="background:rgba(10,10,10,1.0); color:rgba(201,201,192,1.0); border:1px solid rgba(27,27,27,0.745);">
+            <div class="line">No picture assigned yet.</div>
+          </div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="col-label">obsidian_ember</div>
+        <div class="mwin" style="--r:4px;">
+          <div class="native-bar" style="height:22px; font-size:11px; background:rgba(230,126,60,0.078); color:rgba(230,126,60,1.0); border-bottom:1px solid rgba(38,38,38,0.784);">History</div>
+          <div class="body" style="background:rgba(13,13,13,0.941); color:rgba(225,220,210,1.0); border:1px solid rgba(38,38,38,0.784);">
+            <div class="line">You have become better at holy word!</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="compliance">
+      <div class="ctitle">Constraint compliance</div>
+      <ul>
+        <li><span class="tag ok">OK</span>Main console untouched, same as every direction in this pass.</li>
+        <li><span class="tag ok">OK</span>No layout risk at all — <b>this is a net simplification</b> vs. §1.5, since it removes the Label-add + content-y-shift work entirely (Combat/History/Group/Scan/RightHere/Help/Location/etc. go back to their original y=0/100% layout, one less thing that could interact with the docked-window/console-border gotchas already documented).</li>
+        <li><span class="tag ok">OK</span>Toggleable by construction, same as every theme-layer change in this pass — off the moment the window is.</li>
+        <li><span class="tag watch">WATCH</span>Color/border rendering while docked is confirmed working on Steven's own machine (see lede) — worth one more check on Linux before treating the platform question as fully closed, but no longer an open risk on the level it was.</li>
+      </ul>
+      <div class="effort"><b>Effort: smallest of every direction in this pass, including the original one-liner.</b> Delete the Label-creation calls added in the first build, change each <code>setTitle("")</code> call to <code>setTitle("Combat")</code>/etc. (the exact short names already exist — they're the same strings that were about to go into the Label text), keep <code>titleBarCSS()</code> untouched. Less code than what's live right now, not more.</div>
     </div>
   </section>
 
@@ -326,13 +375,14 @@
   </section>
 
   <footer>
-    <h2>Final decision — build spec</h2>
+    <h2>Final decision — build spec (revised after seeing §1.5 live)</h2>
     <ul>
-      <li><b>Mechanism:</b> §1.5, not Direction A's original one-liner — confirmed both Linux and Windows need to work, and native title-bar CSS (Direction A/C as first drawn) only renders on Linux. Real title bar flattened to a blank sliver (drag/dock only, no visible chrome); a plain <code>Geyser.Label</code> underneath carries the visible title, since Labels style identically on both OSes.</li>
-      <li><b>Coverage:</b> uniform — every window gets the same treatment. No mixing in Direction B's bolder style anywhere.</li>
-      <li><b>Weight:</b> small and discreet, matching §1.5's mockups above (10.5px, low-opacity tint background, no bold/all-caps) — not Direction B's bold filled header.</li>
-      <li><b>Header text:</b> window name only — "Combat", "Affects", "Scan", etc. No "MyDSL —" prefix on any window.</li>
-      <li><b>Not part of this decision, still worth Claude Code's attention:</b> the docked-window border-styling caveat from §0/Mudlet's own PR discussion, worth a spot-check on a real docked window once this is built (unverifiable live from this read-only clone). Direction C's per-zone coloring is explicitly not being built now — dropped, not deferred, since Steven chose uniform.</li>
+      <li><b>Mechanism: §1.6, not §1.5.</b> §1.5 shipped first (native bar flattened + a separate Label underneath) — live, it showed both the native bar's default text staying visible <i>and</i> the new Label, a redundant double-title Steven doesn't want regardless of whether the blanking bug gets fixed. §1.6 drops the Label entirely: one native title bar, renamed to the window's short display name via <code>setTitle("Combat")</code> etc. (not blanked), colored via the already-working <code>titleBarCSS()</code>.</li>
+      <li><b>Coverage:</b> uniform — every window, same treatment. Still true, unchanged from before.</li>
+      <li><b>Weight:</b> as small as the OS lets a real title bar get — colored, short text, no attempt to shrink it further than that (there's no second element competing for space anymore).</li>
+      <li><b>Bar text:</b> window's short display name only — "Combat", "Location", "History", etc. Same names already chosen for §1.5's Label text, just going into <code>setTitle()</code> instead.</li>
+      <li><b>Reverted, not carried forward:</b> the header Label creation (<code>ensureHeader()</code> calls) and the content y-shift that made room for it — §1.6 needs neither, so those go back to their original layout.</li>
+      <li><b>Separate, still open:</b> the docked-window tab-label styling Steven also asked for (minimal, colored) — genuinely different mechanism (<code>setAppStyleSheet()</code>, whole-application scope, real scoping risk), not part of this title-bar fix. Full detail in <code>HANDOFF.md</code>.</li>
     </ul>
     <p style="margin-top:18px;">Full technical grounding, file/line references, and the leftover <code>titleBgColor</code> dead-key finding are also written into <code>HANDOFF.md</code>'s Claude Desktop section for Claude Code.</p>
   </footer>

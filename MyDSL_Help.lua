@@ -383,12 +383,12 @@ end
 
 function MyDSL.Help.init()
   local helpWin = MyDSL.Windows.ensure(HELP_WIN)
-  -- Visual pass v2 "Direction A+" (locked spec, HANDOFF.md 2026-08-26).
-  if MyDSL.Windows.ensureHeader then MyDSL.Windows.ensureHeader(HELP_WIN, "Help") end
+  -- Visual pass v2 "One Bar, Renamed and Colored" (locked spec, 2026-08-26).
+  if helpWin and helpWin.setTitle then pcall(function() helpWin:setTitle("Help") end) end
   if not MyDSL.Help._mc.console then
     MyDSL.Help._mc.console = Geyser.MiniConsole:new({
       name      = HELP_MC,
-      x = 0, y = "10%", width = "100%", height = "90%",
+      x = 0, y = 0, width = "100%", height = "100%",
       wrapWidth = 300,
       scrollBar = true,
     }, helpWin)

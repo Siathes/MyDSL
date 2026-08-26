@@ -844,7 +844,9 @@ function TV.init()
   -- MiniConsoles).
   local targetWin = MyDSL.Windows.ensure(TARGET_WIN)
   -- Fixed 2026-07-11, per Steven ("fix all window titles/names").
-  if targetWin and targetWin.setTitle then pcall(function() targetWin:setTitle("-= Focus =-") end) end
+  -- Visual pass v2 "One Bar, Renamed and Colored" (locked spec,
+  -- 2026-08-26) -- short, plain name; applyTheme() colors it.
+  if targetWin and targetWin.setTitle then pcall(function() targetWin:setTitle("Focus") end) end
 
   -- Layout (percent of the window): header row y=0-10%, button grid two
   -- rows y=11-20% / 21-30%, stats console y=32-100%. Button-grid height

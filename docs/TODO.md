@@ -31,6 +31,26 @@ left before "feature complete" 1.0. This section stays as the detailed
 punch list; the roadmap doc is where to look first for "how close are
 we" without re-reading all of this.
 
+- [x] **Visual pass v2 done 2026-08-26, needs Steven's live confirmation**
+      — all 15 UserWindows now have a real short display name plus
+      accent coloring on the native title bar ("One Bar, Renamed and
+      Colored," the corrected final design after the first build showed
+      two stacked title elements live). Full detail in
+      `docs/CHANGELOG.md`. This is the second live check on this exact
+      feature — confirm the fix actually looks like one clean bar per
+      window before considering it closed.
+- [ ] **New, separate, not yet started: native dock-tab-group label
+      styling.** Steven asked whether the small tabs shown when
+      multiple windows share a dock side can also be colored to match.
+      Confirmed (Mudlet's own docs/forums, Claude Desktop 2026-08-26):
+      no per-window hook exists — the only lever is
+      `setAppStyleSheet()`, whole-Mudlet-application scope, real risk
+      of bleeding into parts of Mudlet's UI outside this addon if the
+      selector isn't scoped carefully. Needs its own careful validation
+      pass (build against a real Mudlet instance, check nothing outside
+      MyDSL's own windows changes) before attempting, not folded into
+      the title-bar work above.
+
 **Formalized 2026-08-25 into `docs/OPTIMIZATION_AUDIT.md`** — a real,
 per-file inventory (what it does / public surface / depends-on / called-
 by / candidate cruft / performance flags, all grep-confirmed) for every

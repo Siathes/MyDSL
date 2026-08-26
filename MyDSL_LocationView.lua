@@ -64,7 +64,7 @@ MyDSL.Location = MyDSL.Location or {}
 local M = MyDSL.Location
 M.version = "LocationView v4C3 RoomPicCanonical"
 M.windowName = M.windowName or "MyDSL_Location"
-M.title = M.title or "-= Location =-"
+M.title = M.title or "Location"
 
 M.config = M.config or {}
 if M.config.enabled == nil then M.config.enabled = true end
@@ -269,7 +269,7 @@ function M.loadProfiles()
   M.roomMap = data.roomMap or M.roomMap or {}
   M.config.fit = data.fit or M.config.fit or "stretch"
   M.config.missing = data.missing or M.config.missing or "caption"
-  M.title = data.title or M.title or "-= Location =-"
+  M.title = data.title or M.title or "Location"
   M.config.shown = (data.shown ~= nil) and data.shown or M.config.shown
   M.config.font = tonumber(data.font or M.config.font) or M.config.font
   M.config.frame = (data.frame ~= nil) and data.frame or M.config.frame
@@ -711,18 +711,17 @@ function M.ensureUI()
 
   if not M.ui.win then return false end
 
-  -- Visual pass v2 "Direction A+" (locked spec, HANDOFF.md 2026-08-26) --
-  -- ensureHeader() blanks the native title itself, superseding the
-  -- setTitle(M.title) call this used to be.
-  if MyDSL.Windows and MyDSL.Windows.ensureHeader then
-    MyDSL.Windows.ensureHeader(M.windowName, "Location")
-  elseif M.ui.win.setTitle then
+  -- Visual pass v2 "One Bar, Renamed and Colored" (locked spec,
+  -- 2026-08-26). Location has a genuinely user-customizable title too
+  -- ("mydsl location title <text>", M.setTitle() below), same as
+  -- Portrait -- uses M.title verbatim, not a hardcoded "Location".
+  if M.ui.win.setTitle then
     pcall(function() M.ui.win:setTitle(M.title) end)
   end
 
   M.ui.image = Geyser.Label:new({
     name = M.windowName .. "_Image",
-    x = 0, y = "10%", width = "100%", height = "90%",
+    x = 0, y = 0, width = "100%", height = "100%",
   }, M.ui.win)
 
   M.ui.caption = Geyser.Label:new({

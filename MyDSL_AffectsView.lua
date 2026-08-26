@@ -71,7 +71,7 @@ local DEFAULT_CONFIG = {
 A.config = A.config or {}
 A.config.windowId = A.config.windowId or "Affects"
 A.config.windowName = A.config.windowName or "MyDSL_Affects"
-A.config.title = A.config.title or "-= Affects =-"
+A.config.title = A.config.title or "Affects"
 A.config.fontSize = tonumber(A.config.fontSize or 8) or 8
 A.config.columns = tonumber(A.config.columns or 2) or 2
 A.config.columnWidth = tonumber(A.config.columnWidth or 28) or 28
@@ -244,7 +244,7 @@ function A.resetProfileState()
   A.tracked = {}
   A.customCommands = {}
 
-  A.config.title = DEFAULT_CONFIG.title or "-= Affects =-"
+  A.config.title = DEFAULT_CONFIG.title or "Affects"
   A.config.fontSize = tonumber(DEFAULT_CONFIG.fontSize) or 8
   A.config.columns = tonumber(DEFAULT_CONFIG.columns) or 2
   A.config.columnWidth = tonumber(DEFAULT_CONFIG.columnWidth) or 28

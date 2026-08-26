@@ -33,7 +33,7 @@ to one line once it's closed, same discipline as everywhere else.
 | Pass 2 audit — 4 native XML files (mapper's stock code, DslColors, gameplay triggers, personal aliases) | Claude Desktop, re-verified + partly fixed by Claude Code | **Done** (2026-08-26) |
 | `check_text_coverage.py` build + spot-check | Claude Code built, Claude Desktop spot-checked | **Done** (2026-08-25/26), 2 known blind spots documented, not fixed |
 | Bug-fix sweep on pass-1/pass-2 findings (no-decision-needed items) | Claude Code | **Phase 1 mostly done** 2026-08-26 — 7 fixed, including 1 critical regression found along the way (see table below) |
-| Visual pass v2 — title-bar hiding, UI best-practices research, 3 mockups | Claude Desktop researched, Steven locked the spec, Claude Code building | **Foundation done** 2026-08-26; per-window header rollout (~13 files) still ahead |
+| Visual pass v2 — title-bar renamed + colored, all 15 windows | Claude Desktop researched, Steven course-corrected after seeing the first build live, Claude Code built the revision | **Done** 2026-08-26, not yet live-confirmed; native dock-tab-group styling flagged as a separate, higher-risk follow-up |
 | Step 4 — interconnection/performance pass | Not started | **Not started** |
 | Step 5 — unknown-line routing design (Principle 4 Part B) | Deferred | **Deferred**, blocked on coverage tool maturity |
 | Mapper's own DSL-specific rewrite | Deferred | **Deferred**, own dedicated pass, scope not yet sized |
@@ -169,56 +169,73 @@ TickSource/TickView pair, since all three touch the same "how much
 does one line/tick cost" question and are easier to reason about
 together than interleaved with unrelated module fixes.
 
-### Phase 3 — Visual pass v2 ("Direction A+ — Quiet Chrome, Cross-Platform")
+### Phase 3 — Visual pass v2 ("One Bar, Renamed and Colored")
 Research done by Claude Desktop 2026-08-26 (`docs/MyDSL_MudletWindowManagement.md`
-cross-checked, 3 mockup directions delivered against the real 5 presets,
-full detail in `HANDOFF.md`). **Steven picked and locked a final spec
-the same day** — not still open:
-- Native title bar flattened to a blank sliver matching the window's
-  own background (kept alive only so drag/dock still works — Qt exposes
-  no Lua-reachable way to remove it outright). Linux-only rendering,
-  confirmed via Mudlet's own manual — harmless no-op on Windows/macOS.
-- A plain `Geyser.Label` underneath carries the real visible title —
-  ordinary widget CSS, renders identically on every OS, which is the
-  actual fix for Steven's Linux+Windows requirement.
-- Uniform across every window (no mixing in the bolder "Direction B"
-  style anywhere), small/discreet (~10.5px, low-opacity tint), header
-  text is the window name only — no "MyDSL —" prefix.
+cross-checked, 3 mockup directions delivered against the real 5
+presets). **First build ("Direction A+ — Quiet Chrome, Cross-Platform":
+flatten the native bar to a blank sliver, add a separate themed
+`Geyser.Label` underneath) shipped, installed, and turned out wrong
+live** — Steven's own screenshots showed two stacked title-like
+elements, not one: the flatten step's `setTitle("")` never actually
+blanked Mudlet's native title text (an untested assumption that didn't
+hold), so the full default native title and the new Label both
+rendered at once. **Revised same day into the real final spec**,
+in Steven's own words: *"User window - MyDSL - MyDSL_Location should
+be Location, but colored and maybe styled to look pretty, small
+text/titlebar as possible"* — one bar, not two:
+- No separate header Label at all. The one native title bar keeps
+  doing the one job a title bar does.
+- `MyDSL.Theme.titleBarCSS()` now carries the accent coloring the
+  removed Label used to (text=`titleColor`, background=`titleBgColor`,
+  border=the window's own `borderColor`) via a `QDockWidget::title{}`
+  rule, appended onto `MyDSL_WindowRegistry.lua`'s existing
+  `applyTheme()` call — unchanged mechanism, corrected formula.
+- Each View file renames its window with the real short display name
+  via the normal, documented `winObj:setTitle("Combat")` — the
+  untested `setTitle("")` edge case that broke is gone entirely.
+- **Done 2026-08-26, all 12 windows from the first build reverted to
+  this simpler design** (no Label, no y-shift — a net simplification,
+  less code than the first build): Combat, History, Players Near,
+  Scan, Right Here, Group, Bestiary, Help, Item Reference, Leveling,
+  Location, Portrait. Location and Portrait both preserve their real
+  user-customizable titles (`mydsl location/portrait title <text>`),
+  unlike every other window's fixed short name. Full suite clean,
+  package rebuilt. Still not yet live-confirmed — Steven's own
+  screenshots drove this correction once, so the same check applies
+  again before calling it final.
+- **Cross-platform status**: independently corroborated via web search
+  (not just Mudlet's manual) that this is a Qt docked-vs-floating
+  distinction, not a strict per-OS rule — renders while docked
+  (confirmed on Steven's own screenshots), native OS chrome can take
+  over once floated. Worth a spot-check on a floated window and on a
+  real Windows/macOS machine before treating this as fully closed.
 
-**Done 2026-08-26**: the safe foundation — `MyDSL.Theme.titleBarCSS()`/
-`headerLabelCSS()` (exact formula confirmed against Desktop's mockup:
-text=`titleColor`, background=`titleBgColor`, border=the window's own
-`borderColor`), wired into `MyDSL_WindowRegistry.lua`'s `applyTheme()`
-for the native-bar flatten half. Two new tests, full suite clean.
+**All 15 windows done, 2026-08-26** — once the design dropped the header
+Label entirely, the 3 windows deferred from the first build (their
+deferral was always specifically about a Label needing layout space)
+turned out to need no special handling at all: `MyDSL_Chat.lua` and
+`MyDSL_TargetView.lua` just needed their existing hardcoded `setTitle()`
+calls shortened (`"Chat"`/`"Focus"`, no layout touched); `MyDSL_
+AffectsView.lua` already had a user-customizable title
+(`mydsl affects title <text>`, same as Location/Portrait) needing no
+code change beyond its default string. `MyDSL.Windows.ensure()` already
+calls `applyTheme()` — and therefore `titleBarCSS()`'s coloring —
+unconditionally for every UserWindow, so these 3 were already getting
+colored bars automatically; only the display text needed fixing.
+Location/Portrait/Affects' defaults also dropped the `"-= Name =-"`
+decoration to match the new plain-name convention, while keeping their
+real user-customization intact.
 
-**Header Label rollout: 12 of 15 done, 2026-08-26.** `MyDSL_CombatView.lua`,
-`MyDSL_RouteHelper.lua` (History + PlayersNear), `MyDSL_ScanView.lua`
-(Scan + RightHere), `MyDSL_GroupView.lua`, `MyDSL_CreatureReference.lua`,
-`MyDSL_Help.lua`, `MyDSL_ItemReference.lua`, `MyDSL_Leveling.lua`,
-`MyDSL_LocationView.lua`, `MyDSL_PortraitView.lua` (preserves its
-existing user-customizable title, unlike every other window's fixed
-name). Full suite clean, not yet live-confirmed by Steven — a real,
-visible change across 12 windows, delivered for his own look first
-per his own ask, before being called final.
-
-**3 windows deliberately deferred, real architectural reasons, not
-oversights**:
-- `MyDSL_Chat.lua` — EMCO's own internal tab-bar/console geometry
-  already owns y=0 in its parent via its own pixel-offset math.
-  Inserting a header means touching EMCO's internal layout code, not a
-  percent shift like everywhere else.
-- `MyDSL_AffectsView.lua` — writes directly into the UserWindow's own
-  raw `cecho()` target, no bounded child console exists to resize.
-  Needs converting to a MiniConsole child first, a bigger change than
-  this pass's scope.
-- `MyDSL_TargetView.lua` — already has its own custom top row (y=0-10%:
-  nameplate + MP/Clear buttons) plus a tightly-tuned action-button grid
-  with real prior live-bug history around exactly this vertical space
-  budget (docs/CHANGELOG.md, 2026-07-11). Shifting it blind risks
-  reintroducing a previously-fixed regression.
-
-Each of these 3 needs its own dedicated design pass, not a repeat of
-the mechanical percent-shift used for the other 12.
+**New, separate finding from this round — native dock-tab-group
+labels.** Steven asked whether the small tabs shown when multiple
+windows share one dock side can also be colored/styled to match. Claude
+Desktop checked Mudlet's own docs/forums directly: no per-window hook
+exists for this at all — the only real lever is `setAppStyleSheet()`,
+which is whole-Mudlet-application scope, not scoped to this addon like
+everything else in this pass. A different, higher-risk category (a
+badly-scoped selector could bleed into parts of Mudlet's UI outside
+MyDSL entirely) — tracked as its own item needing careful validation,
+not folded into the title-bar work above.
 
 ### Phase 4 — Step 5: unknown-line routing design (Principle 4 Part B)
 Still blocked on the known-pattern catalog maturing — `check_text_

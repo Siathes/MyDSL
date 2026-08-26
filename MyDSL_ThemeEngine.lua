@@ -431,59 +431,45 @@ function MyDSL.Theme.panelCSS(windowName)
   )
 end
 
--- titleBarCSS(windowName) -- MyDSL 1.0 visual pass v2 ("Direction A+ --
--- Quiet Chrome, Cross-Platform"), locked spec confirmed by Steven
--- 2026-08-26 via Claude Desktop's research (HANDOFF.md). Flattens the
--- REAL native UserWindow title bar to a blank sliver matching the
--- window's own background -- kept alive (not removed) purely so
--- drag/dock still works; Qt exposes no Lua-reachable way to remove a
--- QDockWidget's title bar outright without losing that. This is a
--- QDockWidget::title{} sub-control selector, NOT the bare declarations
--- panelCSS() above returns -- must be concatenated onto a UserWindow's
--- setStyleSheet() call, never passed to a plain Label. Confirmed two
--- ways, not just Mudlet's own Geyser manual: an independent websearch
--- against Qt's own forum/docs (2026-08-26) sharpens the real mechanism
--- -- this is a DOCKED-vs-FLOATING distinction in Qt itself, not purely
--- an OS one. ::title styling applies while a QDockWidget is docked
--- (any OS); once floated (detached to its own top-level window), the
--- OS draws native decorations and mostly ignores the stylesheet --
--- which shows up as "Linux renders it, Windows/macOS mostly don't"
--- only because MyDSL's windows are docked far more often on some
--- OS/user setups than others, not because of a hard per-OS Qt rule.
--- Either way, the real cross-platform payoff is headerLabelCSS() below
--- (an ordinary Label, unaffected by dock state or OS) -- this rule is
--- just a bonus wherever Qt happens to honor it.
+-- titleBarCSS(windowName) -- MyDSL 1.0 visual pass v2, "One Bar, Renamed
+-- and Colored" -- final locked spec, 2026-08-26, replacing an earlier
+-- "Direction A+" attempt (flatten the native bar to a blank sliver, add
+-- a SEPARATE themed Geyser.Label underneath for the real title). Live on
+-- Steven's own machine that showed two stacked title-like elements at
+-- once, not one: the flatten step's setTitle("") never actually blanked
+-- Mudlet's native title text (untested edge case, turned out not to
+-- work), so the full default native title AND the new Label both
+-- rendered. His verdict, in his own words: "User window - MyDSL -
+-- MyDSL_Location should be Location, but colored and maybe styled to
+-- look pretty, small text/titlebar as possible" -- one bar, not two.
+--
+-- This function now carries the accent coloring the removed Label used
+-- to (same formula, confirmed against the delivered mockup's rendered
+-- values for all 5 presets: text = titleColor at full alpha, background
+-- = titleBgColor at its own alpha -- the first real consumer of that
+-- previously-dead preset key -- border-bottom = the window's own
+-- borderColor) directly onto a QDockWidget::title{} sub-control
+-- selector, NOT the bare declarations panelCSS() above returns -- must
+-- be concatenated onto a UserWindow's setStyleSheet() call, never passed
+-- to a plain Label. Renaming the bar to the real short name ("Combat",
+-- "Location") is the caller's job via the normal, documented
+-- winObj:setTitle(realText) -- this function only returns the coloring.
+--
+-- Renders while a QDockWidget is docked (confirmed on Steven's own
+-- screenshots -- dark-tinted, not default OS grey); native OS chrome
+-- can take over once floated/detached, a Qt docked-vs-floating
+-- distinction (independently corroborated via Qt's own forum/docs,
+-- 2026-08-26) rather than a strict per-OS rule -- worth a spot-check on
+-- a floated window and on a real Windows/macOS machine before treating
+-- the platform question as fully closed, per Claude Desktop's own
+-- caveat, but no longer a purely-theoretical risk either.
 function MyDSL.Theme.titleBarCSS(windowName)
-  local bg = MyDSL.Theme.get(windowName, "bgColor")
-  return string.format(
-    "QDockWidget::title { background-color: %s; border: none; padding: 1px; }",
-    MyDSL.Theme.colorToCSS(bg)
-  )
-end
-
--- headerLabelCSS(windowName) -- the actual cross-platform half of the
--- same spec: styling for a plain Geyser.Label (ordinary widget CSS,
--- renders identically on every OS) sitting just under the flattened
--- native bar, carrying the window's real visible title. Formula
--- confirmed exact-match against Claude Desktop's delivered mockup HTML
--- (MyDSL_1.0_visual_pass_v2_mockups_2.html section 1.5) for all 5
--- presets: header text = titleColor (full alpha, this preset key exists
--- specifically for a title, which this finally is); header background =
--- titleBgColor (its own alpha -- this is the first real consumer of that
--- key anywhere in the codebase, confirmed dead until now via
--- HANDOFF.md); border-bottom = the window's own existing borderColor at
--- its own alpha, so the header reads as part of the same frame rather
--- than a separate box. Small and discreet per the locked spec: 10.5px
--- text, normal weight, slight letter-spacing, no "MyDSL --" prefix --
--- callers pass just the window's own display name (e.g. "Combat").
-function MyDSL.Theme.headerLabelCSS(windowName)
   local titleColor   = MyDSL.Theme.get(windowName, "titleColor")
   local titleBgColor = MyDSL.Theme.get(windowName, "titleBgColor")
   local border       = MyDSL.Theme.get(windowName, "borderColor")
   local size         = MyDSL.Theme.get(windowName, "borderSize") or 1
   return string.format(
-    "background-color: %s; color: %s; border-bottom: %dpx solid %s; " ..
-    "font-size: 10.5px; font-weight: normal; letter-spacing: 0.02em; padding: 4px 10px;",
+    "QDockWidget::title { background-color: %s; color: %s; border-bottom: %dpx solid %s; padding: 4px 10px; }",
     MyDSL.Theme.colorToCSS(titleBgColor), MyDSL.Theme.colorToCSS(titleColor),
     size, MyDSL.Theme.colorToCSS(border)
   )

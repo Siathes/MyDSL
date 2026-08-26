@@ -54,19 +54,11 @@ local FONT_SIZE_OVERRIDES = {
 -- windows previously never got a title set anywhere, so they showed
 -- Mudlet's raw default ("User window - DSL2 - MyDSL_History") instead of
 -- matching Live/Tick/Portrait/Location's "-= Name =-" convention.
+-- Visual pass v2 "One Bar, Renamed and Colored" (locked spec,
+-- 2026-08-26) -- plain window-name-only text, no "-= =-" decoration.
+-- MyDSL_WindowRegistry.lua's applyTheme() supplies the coloring via
+-- titleBarCSS().
 local WINDOW_TITLES = {
-  MyDSL_History     = "-= History =-",
-  MyDSL_PlayersNear = "-= Players Near =-",
-}
-
--- Visual pass v2 "Direction A+" header text (locked spec, HANDOFF.md
--- 2026-08-26) -- plain window-name-only, no "-= =-" decoration and no
--- "MyDSL --" prefix. Separate from WINDOW_TITLES above rather than
--- reusing it: ensureHeader() supersedes the native title text WINDOW_
--- TITLES feeds, but keeping that table (and its setTitle() call below)
--- intact means any window that somehow never gets a header still shows
--- a real title, same defense-in-depth precedent already used elsewhere.
-local HEADER_TEXT = {
   MyDSL_History     = "History",
   MyDSL_PlayersNear = "Players Near",
 }
@@ -91,9 +83,6 @@ local function getOrCreateConsole(windowName)
 
   if WINDOW_TITLES[windowName] and entry.obj.setTitle then
     pcall(function() entry.obj:setTitle(WINDOW_TITLES[windowName]) end)
-  end
-  if HEADER_TEXT[windowName] and MyDSL.Windows.ensureHeader then
-    MyDSL.Windows.ensureHeader(windowName, HEADER_TEXT[windowName])
   end
 
   local fontSize = FONT_SIZE_OVERRIDES[windowName] or 9
@@ -121,9 +110,9 @@ local function getOrCreateConsole(windowName)
   -- Target/Group, which never had one.
   local con = Geyser.MiniConsole:new({
     name   = windowName .. "_con",
-    x = 0, y = "10%",
+    x = 0, y = 0,
     width  = "100%",
-    height = "90%",
+    height = "100%",
     fontSize = fontSize,
     color = "black",
     scrollBar = false,
