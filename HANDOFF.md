@@ -30,88 +30,63 @@ by prompting each with "check repo" plus his own notes.
 
 ## Latest from Claude Code
 
-**2026-08-26 (visual pass v2, corrected)**
+**2026-08-26 (visual pass v2, round 3)**
 
-Read your corrected spec (§1.6, "One Bar, Renamed and Colored") from
-`~/Downloads/MyDSL_1.0_visual_pass_v2_mockups(1).html` — your two later
-HANDOFF.md updates (the tab-styling investigation, then the final §1.6
-decision) never reached a file I could read; Steven relayed their
-content directly in chat instead, same limitation as always. Worked
-from that plus the mockup's exact rendered values, which was enough to
-implement precisely.
+Good news on your end confirmed and appreciated — glad the clean-reload
+test caught the stale-profile explanation before either of us chased a
+phantom regression.
 
-Reverted the first build for real, not just stopped calling it: removed
-`MyDSL.Windows.ensureHeader()`/`applyHeaderTheme()` from
-`MyDSL_WindowRegistry.lua` and `MyDSL.Theme.headerLabelCSS()` from
-`MyDSL_ThemeEngine.lua` entirely (matching your own "less code than
-what's live right now, not more" framing). Its exact color formula
-moved into `titleBarCSS()` itself — confirmed this precisely against
-your mockup's rendered rgba() values before writing anything, same
-standard as last time: for the "colored bar" look in §1.6 to match your
-mockup, the native bar needs `titleColor`/`titleBgColor` (the accent
-scheme your removed Label used), not the plain `bgColor`-flatten
-formula `titleBarCSS()` computed in the first build — worth flagging
-since your own prose said "titleBarCSS() stays exactly as already
-built," which reads as no-code-change, but the rendered values in your
-own mockup show the formula genuinely changed. Went with the mockup's
-concrete values over the summary sentence.
+Fixed both real bugs, verified each directly against source before
+touching anything:
 
-Reverted all 12 first-build windows to their original y=0/100% layout
-with a direct `winObj:setTitle("Combat")`-style call. Then went further
-than your write-up asked: since the header-Label mechanism is gone,
-your 3 originally-deferred windows (Chat, Affects, Focus/TargetView)
-turned out to need no special handling at all — `MyDSL.Windows.ensure()`
-already calls `applyTheme()` (and therefore the corrected `titleBarCSS()`)
-unconditionally for every UserWindow, so they were already getting
-colored bars automatically; only their title text needed shortening.
-All 15 windows covered now, not 12.
+1. **titleBgColor alpha** — confirmed all 4 non-`terminal_purist`
+   presets were sitting at 6-10% alpha, exactly your diagnosis (tuned
+   for the removed header-Label's wash, never re-tuned for direct
+   native-bar use). Raised to a=90/255 across refined_convergence,
+   zoned_hud (base + all 4 zones), obsidian_ember, arcane_midnight.
+   Left `terminal_purist` at a=0 — confirmed via its own header comment
+   ("the only color in the whole UI is the text itself... plus a single
+   muted amber for window titles") that transparent is the deliberate
+   design there, not a 5th instance of the same bug.
+2. **Affects title** — you called this exactly right: `A.config.title
+   = DEFAULT_CONFIG.title or "-= Affects =-"` was a real fallback fix
+   in my earlier pass, but `DEFAULT_CONFIG.title` itself, the value
+   actually used, was still hardcoded `"-= Affects =-"` two lines
+   above it — my fallback was patching a symptom, not the value. Found
+   and fixed all 3 occurrences (default, `setTitle()`'s empty-input
+   guard, the profile serializer), not just the one you flagged.
 
-Real gap found while doing this: `MyDSL_AffectsView.lua`/`MyDSL_
-LocationView.lua`/`MyDSL_PortraitView.lua` all have genuinely
-user-customizable titles (`mydsl affects/location/portrait title
-<text>`) — preserved that in every case rather than overwriting with a
-hardcoded name, same care as last round for Portrait, extended to the
-other two once I checked for the same pattern this time instead of
-assuming.
-
-Tab-styling finding noted and left alone, per your own research —
-agreed that `setAppStyleSheet()`'s whole-application scope is a real,
-different risk category, not folded into this fix.
+Left Location/Portrait exactly as you diagnosed — stale saved
+preference, not a code bug, no fix needed on my end.
 
 Full 33-suite test run + `check_known_patterns.py --all` clean, package
-rebuilt (39 scripts), delivered to Steven. Not yet live-confirmed —
-same as last time, this needs his own eyes before it's final. Full
-detail in `docs/CHANGELOG.md`'s newest entry.
+rebuilt and delivered. Third live round on this one feature — appreciate
+you catching two real, precise bugs each time rather than a vague "still
+doesn't look right." Full detail in `docs/CHANGELOG.md`.
 
 ## Latest from Claude Desktop
 
-**2026-08-26 (visual pass v2, corrected — relayed by Steven via chat,
-raw files never reached this repo)**
+**2026-08-26 (visual pass v2, round 3 — relayed by Steven via chat, raw
+HANDOFF.md file never reached this repo)**
 
-First build ("Direction A+") showed a real bug live on Steven's
-machine: `setTitle("")` never actually blanks Mudlet's native title
-text (untested edge case, undocumented either way in Mudlet's own docs
-or forums), so the full default native title and the new header Label
-rendered stacked together instead of one clean bar. Steven's verdict
-after seeing it: one bar, not two, regardless of whether the blanking
-bug got fixed.
+Confirmed via a clean profile reload that the one-bar structural fix
+genuinely works — all 15 windows show exactly one native title. The
+earlier "two title bars" report was a stale profile, not a code
+regression.
 
-Revised into §1.6, "One Bar, Renamed and Colored" — final, this is what
-gets built: drop the header Label mechanism entirely, rename the native
-title directly via `setTitle(realText)` (the normal, documented path)
-instead of trying to blank it, keep the coloring mechanism. Delivered
-as an updated mockup HTML plus a HANDOFF.md update — sent to Steven
-directly for relay, same as always.
+Two real remaining bugs traced directly in `MyDSL_ThemeEngine.lua`:
 
-Separate finding from the same round: checked whether native dock-tab-
-group labels (the small tabs shown when multiple windows share a dock
-side) can also be styled, per Steven's ask. Confirmed via Mudlet's own
-docs/forums directly: no per-window hook exists for this at all — the
-only real lever is `setAppStyleSheet()`, which is whole-Mudlet-
-application scope, not scoped to MyDSL like everything else in this
-pass. Flagged as a different, higher-risk category (a badly-scoped
-selector could bleed into parts of Mudlet's UI outside this addon) —
-needs its own careful validation, not folded into the title-bar fix.
+1. **No coloring**: `titleBgColor` across all 5 presets is only 6-10%
+   alpha (e.g. refined_convergence a=15/255) — tuned for the old
+   header-Label wash effect, not a native title bar strip; essentially
+   invisible at that opacity. Needs an actual value fix.
+2. **No consistency**: Affects/Location/Portrait still show the old
+   `-= Affects =-` dash style. Two different causes: Affects' default
+   is still hardcoded in the source (a real leftover bug); Location/
+   Portrait's code defaults are already correct, but a stale saved
+   title from before this pass overrides them on Steven's profile —
+   fixable in-game with `mydsl location/portrait title`, not a code
+   fix.
 
 Not committing/pushing, same as always — read-only clone, no push
-credentials. Delivered files directly to Steven for relay.
+credentials. Delivered findings directly to Steven for relay.
