@@ -36,12 +36,12 @@ of `CHANGELOG.md` — one line change per row, not a running history.
 | Affects | `mydsl affects` | Y | Y | Y | `wrap`/`columns`/`width`, `respell`/`spellup` (+ bare `respell`/`spellup` aliases), `cast`/`recast`, `command <verb> <text>`/`command clear`, `timer mode`, `track`/`untrack`/`tracked`/`reset tracked`/`clear tracked`/`seed tracked`, `sync`, `reload profile`, `save` | Raw GMCP + State-adjacent, own save file |
 | Alterform | `mydsl alterform` | Y | Y | Y | `sound on\|off`, `toggle alterform`, `reload settings` (internal `rebuild()`, no public alias) | Cross-View read of Affects' `getRemaining()` |
 | Chat | `mydsl chat` (+ legacy `emco` verbs) | Y | Y | Y | `wrap auto\|fixed <n>`, `timestamp on\|off` + `format`, `revive`, `echo`/`test`, full legacy `emco addtab/remtab/gag/ungag/gaglist/notify/unnotify/blink/blankLine/color/fontSize/timestamp/save/load/show/hide/title` set (see `CLAUDE.md`'s EMCO-alias correction) | `MyDSL.Chat.emco` read by ChatTriggers; routes chat-channel lines |
-| Combat | `mydsl combat` | **Partial — see Known gaps** | Y | Y | `mode raw\|condensed\|gag`, `clear`, `history`, `gag`/`ungag`, `show <flag>`/`hide <flag>` (per-feature, not whole-window), `toggle battle` | `config` read by `MyDSL_DataLayer_Combat.lua` — View owns the gag/show policy |
+| Combat | `mydsl combat` | Y (whole-window `show$`/`hide$` added 2026-08-26 — see Gaps found and fixed) | Y | Y | `mode raw\|condensed\|gag`, `clear`, `history`, `gag`/`ungag`, `show <flag>`/`hide <flag>` (per-feature, not whole-window), `toggle battle` | `config` read by `MyDSL_DataLayer_Combat.lua` — View owns the gag/show policy |
 | Group | `group` (no `mydsl` prefix) | Y | Y | Y | `gag`/`ungag`, `quickset <a> <b>` / `quickset reset`, `status` | State-direct + reads TargetView's shared `actions` table |
-| History | `mydsl history` | Y | Y | Y | `status` | `MyDSL.Windows.*` via RouteHelper — **`MyDSL.Route.history()` has zero callers anywhere** (open, see Known gaps) |
+| History | `mydsl history` | Y | Y | Y | `status` | `MyDSL.Windows.*` via RouteHelper. Fed by dozens of native `MyDSL_GameplayTriggers` (quests, sailing, spell wear-off, notifications, combat-round sounds) calling `MyDSL.Route.history()` with **zero arguments by design** — `MyDSL.Route.to()`'s else-branch (`selectCurrentLine()`/`getCurrentLine()`/`appendBuffer()`) is the standard Mudlet idiom for "route the line that just triggered," confirmed real and working via direct grep of the live MyDSL profile's native trigger scripts (not visible from a `.lua`-file-only grep — the mistake the first pass of this matrix made, see git history of this file) |
 | Players Near | `mydsl playersnear` | Y | Y | Y | `status` | RouteHelper |
 | Live | `mydsl live` | Y | Y | Y (+ `titlefont`/`barfont`/`infofont`/`terrainfont`, each independently sized) | `layout` (cycles via internal `rebuild()`), `reload settings`, `refresh`, `save` | `MyDSL.State.*` + `MyDSL.DB.*` + cross-View call into LocationView's `roomData()` |
-| Location | `mydsl location` | Y | Y | Y | `dir [path]`, `probe [name]`, `name <char>`, `set <path>`, `map <ground>=<target>`/`unmap`/`maps`, `fit`, `missing caption\|blank`, `debug`, `refresh`, `status`/`dump`/`info` | Raw `gmcp.room_data` (**registered on both `gmcp.room_data` and `onNewRoom` for the same event, no unchanged-room early return — open double-fire bug, see Known gaps**) |
+| Location | `mydsl location` | Y | Y | Y | `dir [path]`, `probe [name]`, `name <char>`, `set <path>`, `map <ground>=<target>`/`unmap`/`maps`, `fit`, `missing caption\|blank`, `debug`, `refresh`, `status`/`dump`/`info` | Raw `gmcp.room_data` + mapper's `onNewRoom` (double-fire on room entry fixed 2026-08-26 — see Gaps found and fixed) |
 | Portrait | `mydsl portrait` (+ legacy `charpic` wrappers) | Y | Y | Y | `set <path>`/`clear`, `frame on\|off`, `fit`, `dir [path]`, `name <char>`, `probe [char]`, `missing caption\|blank`, `refresh`/`dump`/`help` | `MyDSL.Windows.registry` (the `.windows` typo from the pre-2026-08 audit is **already fixed** — confirmed current, commit `0da92de`) |
 | Right Here (Scan) | `mydsl righthere` | Y | Y | Y | `dump` | Same DataLayer_ScanLook feed as Scan, tight intentional Layer-1→Layer-3 coupling |
 | Scan | `mydsl scan` (+ bare `scan gag/ungag`) | Y | Y | Y | `gag`/`ungag` | `MyDSL.State` + DataLayer_ScanLook writes directly into the console (deliberate exception, not drift) |
@@ -71,48 +71,50 @@ other window (all of which have a dockable title bar). It does have
 
 ---
 
-## Known gaps surfaced while building this matrix (grep-confirmed 2026-08-26, not yet fixed)
+## Corrected finding (2026-08-26, same day)
 
-These are carried forward from `docs/MYDSL_1.0_MODULE_REDESIGN.md`'s
-findings, re-checked against current source while building this table
-(some redesign-doc findings turned out to already be fixed — see the
-Portrait and Chat rows above — these three were re-confirmed **still
-present**):
+`docs/MYDSL_1.0_MODULE_REDESIGN.md`'s "History has no writer" finding,
+carried into this matrix's first draft, was **wrong** — it was based on
+grepping only git-tracked `.lua` files, which entirely misses the
+native `MyDSL_GameplayTriggers` layer (hand-authored in Mudlet's Trigger
+editor, not a `.lua` file at all). Direct inspection of the live MyDSL
+profile's native trigger scripts found dozens of real, working callers.
+Corrected in the master table above. This is exactly why the module
+feature pass (checking real cross-layer connections, not just one
+content layer) was needed — a `.lua`-only audit would have missed this
+the same way this matrix's first draft did.
 
-1. **History window has no writer.** `MyDSL_History` is fully wired
-   (registry, layout slot, theme, help text, full show/hide/title/status
-   surface) but `MyDSL.Route.history()` — the only function that would
-   ever put text into it — has zero callers anywhere in the codebase.
-   Needs a decision from Steven: was History ever meant to receive a
-   specific category of text (sailing/quests/atmosphere lines were the
-   original guess), or should the capture be scoped as new work now.
-2. **LocationView double-fires on room entry.** `M.onRoomData` is
-   registered on both `gmcp.room_data` and the mapper's `onNewRoom`
-   event for the same room-entry moment (`MyDSL_LocationView.lua:1230-
-   1232`), with no unchanged-room early return — confirmed still
-   present this session. Each entry costs a duplicate image-lookup/
-   render; smaller blast radius than the (already-fixed) DataBridge bug
-   but the same root cause.
-3. **TickView renders at full rate while hidden.** `V.render()` has no
-   visibility check and redraws at TickSource's 4Hz regardless of
-   `hide()` having been called; also carries two independently-
-   persisted visibility flags (`V.config.shown` vs. the WindowRegistry's
-   own `.visible`) that aren't unified. `hide()` stops the *display*,
-   not the *cost* — needs both this file and TickSource touched to fix
-   properly (per the redesign doc's own note).
-4. **Combat has no whole-window `show`/`hide` alias — new finding, not
-   in the redesign doc.** `CV.show()`/`CV.hide()` (`MyDSL_CombatView.lua:
-   343-344`) exist and correctly call `MyDSL.Windows.show/hide`, but the
-   only alias wired to whole-window visibility is `toggle battle`
-   (`CV.toggle()`) — there is no `mydsl combat show$`/`hide$` to show or
-   hide it directly, unlike every other window in the table above. The
-   only `show`/`hide` aliases that DO exist (`mydsl combat show
-   <flag>`/`hide <flag>`) toggle a per-feature `config.show_<flag>`
-   entry, not the window itself — genuinely different feature, easy to
-   mistake for the missing one at a glance. Real, mechanical parity gap:
-   add `mydsl combat show$`/`hide$` aliases calling the already-existing
-   `CV.show()`/`CV.hide()` functions, same as every other window has.
+## Gaps found and fixed in the module-by-module feature pass (2026-08-26)
 
-None of these four are fixed by this matrix pass — they're the real
-input to the next step (module-by-module feature pass), not resolved
-here.
+These were carried forward from `docs/MYDSL_1.0_MODULE_REDESIGN.md`'s
+findings, re-checked against current source while building this table.
+One redesign-doc finding turned out to already be fixed *earlier the
+same session* (TickView's render-while-hidden gate + registry/local
+visibility-flag unification — commit `0a302bb`, with its own test
+`test/test_tickview_hidden_render_gate.lua`) — another instance of a
+stale finding surviving past its own fix, same class of mistake as the
+History correction above; not re-fixed here, just confirmed current and
+struck from this list.
+
+1. **LocationView double-fired on room entry — fixed.**
+   `M.onRoomData()` was registered on both `gmcp.room_data` and the
+   mapper's `onNewRoom` for the same room-entry moment, with no
+   unchanged-room early return, plus a confirmed-dead `gmcp.Room.Info`
+   registration (DSL never sends that generic-GMCP-client form). Fixed:
+   removed the dead registration, added an unchanged-room guard to
+   `onRoomData()` (manual paths — `dir`/`fit`/`font`/`missing`/`map`/
+   `set`/`refresh` — all call `M.refresh()`/`M.render()` directly and
+   are unaffected). New test `test/test_locationview_double_fire.lua`,
+   confirmed meaningful via targeted-revert mutation.
+2. **Combat had no whole-window `show`/`hide` alias — fixed, new
+   finding, not in the redesign doc.** `CV.show()`/`CV.hide()` existed
+   and correctly called `MyDSL.Windows.show/hide`, but the only alias
+   wired to whole-window visibility was `toggle battle`; the `mydsl
+   combat show <flag>`/`hide <flag>` aliases that DO exist toggle a
+   different, per-feature `config.show_<flag>` entry. Fixed: added
+   `mydsl combat show$`/`hide$` aliases calling the existing functions,
+   matching every other window. New test
+   `test/test_combatview_show_hide.lua`.
+
+Full 41-suite Lua test run + Python packaging test + `check_known_patterns.py --all`
+clean after these fixes — see `docs/CHANGELOG.md`'s 2026-08-26 entries.

@@ -362,6 +362,21 @@ CV._aliases.toggleBattle = tempAlias(
   "^toggle battle$",
   [[if MyDSL and MyDSL.CombatView then MyDSL.CombatView.toggle() end]])
 
+-- mydsl combat show/hide -- real gap fix, 2026-08-26 (window feature-matrix
+-- pass, docs/MYDSL_WINDOW_FEATURE_MATRIX.md). CV.show()/hide() have existed
+-- since the 2026-07-11 command-surface retrofit but only "toggle battle"
+-- was ever wired to them -- there was no direct show/hide alias, unlike
+-- every other window. The "mydsl combat show <flag>"/"hide <flag>" aliases
+-- below toggle a per-feature config.show_<flag> entry, a different,
+-- genuinely unrelated feature -- these two are whole-window visibility.
+CV._aliases.combatShowWindow = tempAlias(
+  "^mydsl combat show$",
+  [[if MyDSL and MyDSL.CombatView then MyDSL.CombatView.show() end]])
+
+CV._aliases.combatHideWindow = tempAlias(
+  "^mydsl combat hide$",
+  [[if MyDSL and MyDSL.CombatView then MyDSL.CombatView.hide() end]])
+
 CV._aliases.combatClear = tempAlias(
   "^mydsl combat clear$",
   [[if MyDSL and MyDSL.State and MyDSL.State.combat then

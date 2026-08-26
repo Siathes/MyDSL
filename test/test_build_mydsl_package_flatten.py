@@ -1,19 +1,26 @@
 #!/usr/bin/env python3
 """
 Real bug found live 2026-08-26 (see docs/MUDLET_PACKAGING_REFERENCE.md):
-repeated MyDSL_Full.mpackage reinstalls without uninstalling the old copy
-first left the live MyDSL profile's KeyGroup 16 levels deep in nested
+Steven's live MyDSL profile's KeyGroup ended up nested many levels deep in
 "MyDSL_Full" wrapper copies -- confirmed directly against a screenshot of
-Mudlet's own Key editor, then measured precisely (max depth 16) against
-the live profile's current/autosave.xml.
+Mudlet's own Key editor, then measured precisely against the live profile's
+current/autosave.xml. First diagnosed as a reinstall-without-uninstall
+accumulation; the REAL root cause (confirmed directly against Mudlet's own
+XMLimport.cpp source the same day, after the first fix alone didn't stop a
+fresh nesting from appearing) is that Mudlet's own importer ALWAYS wraps a
+package's top-level content in a synthetic folder named after the package
+on every single install -- so a package whose OWN exported XML also wraps
+its content in a group of that SAME name doubles up on every install,
+reinstalled-cleanly-or-not.
 
-Tests flatten_self_nested_wrapper() against synthetic fixtures (not the
-live profile itself, which Steven may clean up by hand -- a test that
-depended on the corrupted state still existing would break the moment
-it's fixed) covering: the real corrupted shape, an uncorrupted single
-wrapper (must be a no-op), and a wrapper with genuinely multiple real
-children (must also be a no-op, since "more than one real child" is not
-the corruption pattern).
+Tests both fixes against synthetic fixtures (not the live profile itself,
+which Steven may clean up by hand -- a test that depended on the corrupted
+state still existing would break the moment it's fixed):
+  - flatten_self_nested_wrapper() -- the real corrupted shape, an
+    uncorrupted single wrapper (no-op), a wrapper with genuinely multiple
+    real children (no-op).
+  - unwrap_own_package_name_layer() -- strips the outer same-named wrapper
+    down to its real content children, the actual packaging-format fix.
 
 Run: python3 test/test_build_mydsl_package_flatten.py
 """
@@ -88,6 +95,35 @@ check("a wrapper with genuinely multiple real children is left alone",
 content_children3 = [c for c in flattened3 if c.tag == "KeyGroup"]
 check("both real children survive untouched",
       len(content_children3) == 2)
+
+# ---- unwrap_own_package_name_layer(): the actual packaging-format fix ----
+
+wrapper_with_one_real_child = make_key_group(
+    "MyDSL_Full", "MyDSL_Full",
+    make_key_group("Movement", "MyDSL_Full", make_leaf_key("move north"))
+)
+elem4 = ET.fromstring(wrapper_with_one_real_child)
+unwrapped = b.unwrap_own_package_name_layer(elem4, "KeyGroup", "Key", "MyDSL_Full")
+check("unwraps a single-real-child wrapper down to that child directly",
+      len(unwrapped) == 1 and b.find_child(unwrapped[0], "name").text == "Movement")
+
+elem5 = ET.fromstring(multi)
+unwrapped5 = b.unwrap_own_package_name_layer(elem5, "KeyGroup", "Key", "MyDSL_Full")
+check("unwraps a multi-real-child wrapper down to all its children, in order",
+      [b.find_child(c, "name").text for c in unwrapped5] == ["Movement", "Open Doors"])
+
+try:
+    b.unwrap_own_package_name_layer(elem5, "KeyGroup", "Key", "SomeOtherName")
+    check("raises if the wrapper's own name doesn't match what was asked for", False)
+except SystemExit:
+    check("raises if the wrapper's own name doesn't match what was asked for", True)
+
+empty_wrapper = ET.fromstring(make_key_group("MyDSL_Full", "MyDSL_Full"))
+try:
+    b.unwrap_own_package_name_layer(empty_wrapper, "KeyGroup", "Key", "MyDSL_Full")
+    check("raises rather than silently emitting an empty package for a childless wrapper", False)
+except SystemExit:
+    check("raises rather than silently emitting an empty package for a childless wrapper", True)
 
 if failures == 0:
     print("ALL PASS")

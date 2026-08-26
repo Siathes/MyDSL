@@ -244,7 +244,38 @@ def flatten_self_nested_wrapper(elem, tag, name):
             )
 
 
-def get_native_key_group(native_source):
+def unwrap_own_package_name_layer(elem, tag, leaf_tag, name):
+    """Real packaging-format bug found live 2026-08-26 (see
+    docs/MUDLET_PACKAGING_REFERENCE.md), confirmed directly against Mudlet's
+    own source (XMLimport::importPackage()): on EVERY install, Mudlet wraps
+    a package's top-level content in its OWN synthetic folder named after
+    the package (the archive's filename, sanitized -- "MyDSL_Full" for us).
+    That happens unconditionally, every single install, for every object
+    type (Key/Script/Trigger/Alias/Timer/Action alike).
+
+    Our own build was ALSO wrapping its exported content in an outer group
+    literally named "MyDSL_Full" -- so every install stacked a second,
+    redundant same-named layer on top of Mudlet's own. Given `elem` (the
+    outer, already content-flattened wrapper named `name`), return its real
+    children directly so Mudlet's synthetic wrapper is the ONLY "MyDSL_Full"
+    folder that ever exists, however many times this gets reinstalled."""
+    nm = find_child(elem, "name")
+    if nm is None or nm.text != name:
+        raise SystemExit(
+            f"unwrap_own_package_name_layer(): expected a '{name}' {tag} wrapper, "
+            f"got '{nm.text if nm is not None else None}' -- inspect by hand."
+        )
+    content_tags = {tag, leaf_tag} if leaf_tag else {tag}
+    children = [c for c in elem if c.tag in content_tags]
+    if not children:
+        raise SystemExit(
+            f"unwrap_own_package_name_layer(): '{name}' {tag} has no real "
+            "content children -- inspect by hand."
+        )
+    return children
+
+
+def get_native_key_groups(native_source):
     tree = ET.parse(native_source)
     kp = find_child(tree.getroot(), "KeyPackage")
     if kp is None:
@@ -259,7 +290,7 @@ def get_native_key_group(native_source):
     if flattened is not group:
         print(f"NOTE: flattened a self-nested '{NATIVE_KEY_PACKAGE_NAME}' KeyGroup "
               "wrapper down to its real content -- see docs/MUDLET_PACKAGING_REFERENCE.md.")
-    return flattened
+    return unwrap_own_package_name_layer(flattened, "KeyGroup", "Key", NATIVE_KEY_PACKAGE_NAME)
 
 
 def build_script_element_xml(name, raw_lua_text):
@@ -352,9 +383,9 @@ def main():
     print(f"native-only scripts confirmed: {sorted(extra_names)}")
 
     trigger_groups = get_native_trigger_groups(native_source)
-    key_group = get_native_key_group(native_source)
+    key_groups = get_native_key_groups(native_source)
     print(f"native trigger groups found: {[find_child(g, 'name').text for g in trigger_groups]}")
-    print(f"native key group found: {find_child(key_group, 'name').text}")
+    print(f"native key groups found: {[find_child(g, 'name').text for g in key_groups]}")
 
     # ---- Assemble ScriptPackage --------------------------------------
     # A dofile() entry whose target file no longer exists is a stale
@@ -379,34 +410,35 @@ def main():
     for name in sorted(extra_names):
         script_blocks.append(build_script_element_xml(name, native_only[name]))
 
+    # No outer "MyDSL_Full"-named ScriptGroup wrapper -- see
+    # docs/MUDLET_PACKAGING_REFERENCE.md. Mudlet's own importer already
+    # wraps top-level package content in a synthetic folder named after the
+    # package on every install; wrapping it again here in a group of the
+    # SAME name is exactly what stacked a second "MyDSL_Full" layer on
+    # every single install. Bare top-level <Script> elements are a real,
+    # importer-accepted shape (confirmed in XMLimport::readScriptPackage()).
     script_package_xml = (
         "  <ScriptPackage>\n"
-        "    <ScriptGroup isActive=\"yes\" isFolder=\"yes\">\n"
-        "      <name>MyDSL_Full</name>\n"
-        "      <script></script>\n"
-        "      <packageName></packageName>\n"
-        "      <eventHandlerList></eventHandlerList>\n"
         + "".join(script_blocks) +
-        "    </ScriptGroup>\n"
         "  </ScriptPackage>\n"
     )
 
     # ---- Assemble TriggerPackage --------------------------------------
+    # Same fix as ScriptPackage above -- no outer "MyDSL_Full"-named
+    # TriggerGroup wrapper. The real native trigger groups (DslColors v1.0
+    # Triggers, MyDSL_GameplayTriggers) go in directly as top-level content.
     trigger_inner = "".join(elem_to_xml(g) for g in trigger_groups)
     trigger_package_xml = (
         "  <TriggerPackage>\n"
-        "    <TriggerGroup isActive=\"yes\" isFolder=\"yes\">\n"
-        "      <name>MyDSL_Full</name>\n"
-        "      <script></script>\n"
-        "      <packageName>MyDSL_Full</packageName>\n"
-        "      <eventHandlerList></eventHandlerList>\n"
         + trigger_inner +
-        "    </TriggerGroup>\n"
         "  </TriggerPackage>\n"
     )
 
     # ---- Assemble KeyPackage --------------------------------------
-    key_package_xml = "  <KeyPackage>\n" + elem_to_xml(key_group) + "  </KeyPackage>\n"
+    # Same fix again -- no outer "MyDSL_Full"-named KeyGroup wrapper. The
+    # real native key groups (Movement, Open Doors, ...) go in directly.
+    key_inner = "".join(elem_to_xml(g) for g in key_groups)
+    key_package_xml = "  <KeyPackage>\n" + key_inner + "  </KeyPackage>\n"
 
     full_xml = (
         '<?xml version="1.0" encoding="UTF-8"?>\n'
@@ -425,8 +457,18 @@ def main():
     ET.parse(tmp_xml_path)
     print("XML well-formed: OK")
 
+    # config.lua manifest -- optional per Mudlet's own source
+    # (Host::installPackage() falls back to sanitizePackageName(fileName)
+    # when it's absent, which already resolves to "MyDSL_Full" for us) but
+    # added anyway per Steven's own ask for the package to declare its
+    # identity explicitly rather than rely on the archive's filename never
+    # changing. Confirmed format directly in Host::getPackageConfig(): a
+    # sandboxed Lua chunk exposing one global, `mpackage`.
+    config_lua = 'mpackage = "MyDSL_Full"\n'
+
     with zipfile.ZipFile(args.out, "w", zipfile.ZIP_DEFLATED) as zf:
         zf.write(tmp_xml_path, arcname="MyDSL_Full.xml")
+        zf.writestr("config.lua", config_lua)
     os.remove(tmp_xml_path)
 
     print(f"Wrote {args.out}")

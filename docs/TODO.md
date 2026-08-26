@@ -72,38 +72,41 @@ we" without re-reading all of this.
       parity except `MyDSL_MoonWeather.lua` (documented exception — no
       UI surface to show a title on a Container widget with no header
       label). Full detail in `docs/CHANGELOG.md`.
-- [x] **Packaging bug fixed 2026-08-26, per Steven's screenshot of a
-      16-deep nested `MyDSL_Full` KeyGroup chain in the Key Bindings
-      editor.** Root cause confirmed directly against Mudlet's own C++
-      source: reinstalling `MyDSL_Full.mpackage` without uninstalling
-      the previous copy first lets the importer nest new content under
-      whatever's already there. Documented in new
-      `docs/MUDLET_PACKAGING_REFERENCE.md` (read before every package
-      build/delivery — referenced from `CLAUDE.md`); `build_mydsl_
-      package.py` now self-heals via `flatten_self_nested_wrapper()`,
-      verified against the real corrupted live file and a new
-      `test/test_build_mydsl_package_flatten.py`. Full detail in
-      `docs/CHANGELOG.md`. **This fixes future builds only — Steven
-      still needs to uninstall the old `MyDSL_Full` package in Mudlet
-      before installing the freshly-rebuilt one**, or the live 16-deep
-      nesting won't actually clear.
-- [x] **Window feature matrix built 2026-08-26** —
-      `docs/MYDSL_WINDOW_FEATURE_MATRIX.md`, one row per window's real
-      command surface (grep-confirmed against current source, not
-      carried over from the sweep's own summary), what feeds it data,
-      and open issues. Surfaced 1 new real gap in the process: `Combat`
-      has no whole-window `mydsl combat show$`/`hide$` alias at all —
-      `CV.show()`/`CV.hide()` exist but nothing calls them except
-      `toggle battle`, unlike every other window, which all have direct
-      show/hide verbs (the existing `show <flag>`/`hide <flag>` aliases
-      are a different, per-feature toggle, easy to mistake for the
-      missing one). Also carries forward 3 still-open findings from
-      `docs/MYDSL_1.0_MODULE_REDESIGN.md`, re-confirmed current this
-      session: History has no writer (`MyDSL.Route.history()` has zero
-      callers), LocationView double-fires on room entry, TickView
-      renders at full rate while hidden. **Next step, per Steven's own
-      sequencing**: the module-by-module feature pass (fix the 4 gaps
-      above plus anything else the pass turns up), then finalize code.
+- [x] **Packaging bug — actually fixed 2026-08-26, per Steven's
+      screenshot of a deeply nested `MyDSL_Full` KeyGroup chain in the
+      Key Bindings editor.** First pass (uninstall-first discipline +
+      read-side flatten) didn't stop a fresh nesting level appearing on
+      the very next install — Steven correctly called it: "this is not
+      a bug in mudlet this is the way you format the package." Real
+      root cause, confirmed directly against `XMLimport.cpp`: Mudlet's
+      own importer ALWAYS wraps a package's top-level content in a
+      synthetic folder named after the package, on every single
+      install — and `build_mydsl_package.py` was ALSO wrapping its own
+      exported content in an outer group of that SAME name, so every
+      install stacked a redundant layer regardless of uninstall
+      discipline. Fixed by stripping that outer wrapper
+      (`unwrap_own_package_name_layer()`) plus adding a `config.lua`
+      manifest — the "zip with a description file" Steven correctly
+      expected. `docs/MUDLET_PACKAGING_REFERENCE.md` rewritten with the
+      corrected mechanism. Rebuilt package directly inspected: zero
+      top-level `MyDSL_Full`-named groups anywhere in the XML. Full
+      detail in `docs/CHANGELOG.md`. **Steven still needs to uninstall
+      the old `MyDSL_Full` package in Mudlet before installing this
+      corrected build** for the already-nested live content to clear.
+- [x] **Window feature matrix built + module-by-module feature pass
+      completed, 2026-08-26.** `docs/MYDSL_WINDOW_FEATURE_MATRIX.md`,
+      one row per window's real command surface, grep-confirmed against
+      current source. Steven corrected one finding directly: "History
+      has no writer" was wrong — dozens of native `MyDSL_GameplayTriggers`
+      (invisible to a `.lua`-file-only grep) call `MyDSL.Route.history()`
+      by design. Fixed the 2 real gaps found: `MyDSL_LocationView.lua`
+      double-fired on room entry (removed a dead `gmcp.Room.Info`
+      handler, added an unchanged-room guard); `MyDSL_CombatView.lua`
+      had no whole-window `show`/`hide` alias (only `toggle battle`
+      reached it). A third finding (TickView render-while-hidden) turned
+      out already fixed earlier the same session — matrix corrected
+      rather than re-fixed. Full detail in `docs/CHANGELOG.md`. **Next
+      step, per Steven's own sequencing**: finalize code.
 
 **Formalized 2026-08-25 into `docs/OPTIMIZATION_AUDIT.md`** — a real,
 per-file inventory (what it does / public surface / depends-on / called-

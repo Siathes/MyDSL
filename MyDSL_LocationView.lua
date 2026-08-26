@@ -1208,8 +1208,21 @@ function M.help()
 end
 
 
+-- Real double-fire bug fixed 2026-08-26 (window feature-matrix pass,
+-- docs/MYDSL_WINDOW_FEATURE_MATRIX.md): this was registered on BOTH
+-- "gmcp.room_data" AND the mapper's "onNewRoom" for the same room-entry
+-- moment, with no unchanged-room check, so a single real room change
+-- could trigger two full refreshes (each paying a real image-lookup and,
+-- for contain/stretch fit modes, an image-size I/O call). Manual paths
+-- (mydsl location dir/fit/font/missing/map/set/refresh, all of which call
+-- M.refresh()/M.render() directly, not through this handler) are
+-- unaffected by this guard -- it only short-circuits the GMCP/mapper
+-- event path when the room genuinely hasn't changed since last render.
 function M.onRoomData()
-  if M.config.enabled then M.refresh("gmcp.room_data") end
+  if not M.config.enabled then return end
+  local room = M.currentRoomName()
+  if room and room == M.currentRoom then return end
+  M.refresh("gmcp.room_data")
 end
 
 -- Re-apply background/border colors when the active theme switches.
@@ -1228,7 +1241,11 @@ function M.installEvents()
   if M.handlersInstalled then return end
   if registerAnonymousEventHandler then
     M.h1 = registerAnonymousEventHandler("gmcp.room_data", "MyDSL.Location.onRoomData")
-    M.h2 = registerAnonymousEventHandler("gmcp.Room.Info", "MyDSL.Location.onRoomData")
+    -- "gmcp.Room.Info" removed 2026-08-26 -- confirmed dead, DSL never
+    -- sends that capitalized generic-GMCP-client form (docs/
+    -- MYDSL_1.0_MODULE_REDESIGN.md #37, docs/OPTIMIZATION_AUDIT.md); it
+    -- was also part of the double-fire bug fixed the same day in
+    -- M.onRoomData() above.
     M.h3 = registerAnonymousEventHandler("onNewRoom", "MyDSL.Location.onRoomData")
     M.h4 = registerAnonymousEventHandler("MyDSL.theme.changed", "MyDSL.Location.onThemeChanged")
   end

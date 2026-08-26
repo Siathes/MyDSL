@@ -64,9 +64,10 @@ MyDSL.Help.modules = {
     summary = "Live per-swing damage feed plus a fight summary on death/flee/rescue.",
     commands = {
       { cmd = "toggle battle", desc = "Show/hide the Combat window.", example = "toggle battle" },
+      { cmd = "mydsl combat show / mydsl combat hide", desc = "Show/hide the whole Combat window (also: toggle battle).", example = "mydsl combat hide" },
       { cmd = "mydsl combat mode <raw|condensed|gag>", desc = "Switch main-console combat verbosity in one step.", example = "mydsl combat mode condensed" },
       { cmd = "mydsl combat gag / mydsl combat ungag", desc = "Suppress/restore combat text on the main console.", example = "mydsl combat gag" },
-      { cmd = "mydsl combat show <flag> / mydsl combat hide <flag>", desc = "Toggle one display flag (e.g. damage, miss).", example = "mydsl combat hide miss" },
+      { cmd = "mydsl combat show <flag> / mydsl combat hide <flag>", desc = "Toggle one display flag (e.g. damage, miss), not the window itself.", example = "mydsl combat hide miss" },
       { cmd = "mydsl combat clear", desc = "Wipe current combat state/history.", example = "mydsl combat clear" },
       { cmd = "mydsl combat history", desc = "Reprint stored fight-summary snapshots.", example = "mydsl combat history" },
       { cmd = "mydsl combat font <n>", desc = "Set the window's font size.", example = "mydsl combat font 9" },
