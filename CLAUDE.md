@@ -42,7 +42,24 @@ only hold what git history and the code can't already tell you.** That's:
   grep-confirmed, not assumed), plus Steven's own per-file notes once he's
   reviewed a section. Unlike `TODO.md`, this one doesn't get pruned as it
   resolves — it's a standing reference for how each module's actual shape
-  compares to its intent, kept as long as the audit stays active.
+  compares to its intent, kept as long as the audit stays active. Extended
+  2026-08-26 with a second pass (sections 41-44) covering the native XML
+  content (mapper's stock code, DslColors, gameplay triggers, personal
+  aliases) pass 1 explicitly scoped out.
+- `docs/MYDSL_1.0_MODULE_REDESIGN.md` — the module-by-module pass
+  (step 3 of the 1.0 sequencing, done 2026-08-26): for every audited
+  module, its Toggle/Connection/Verdict against the philosophy doc's
+  principles. Built strictly from the audit's own findings, not
+  re-derived — read this before `OPTIMIZATION_AUDIT.md` when the
+  question is "does this module comply with 1.0," not "what does this
+  module do."
+- `docs/MYDSL_1.0_ROADMAP.md` — the persistent execution plan added
+  2026-08-26: where the whole 1.0 effort stands right now, a per-module
+  status table across all 44 audited units, and the phase order for the
+  work still left before "feature complete" can be declared. Read this
+  first when picking the 1.0 effort back up — it says what to do next
+  without re-deriving it from the audit/redesign docs each time. Update
+  it as phases close; don't let it silently go stale.
 - The actual `.lua` files — how something currently works. Always read
   these directly; there is no separate spec describing them anymore.
 - `notes_utf8.txt` (profile root) — Steven's informal scratch/question

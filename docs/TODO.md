@@ -25,6 +25,12 @@ review it like its a new project"). This is an explicit go-ahead — not
 scope creep — for a dedicated audit phase, separate from and in addition
 to the per-item live confirmations below.
 
+**See `docs/MYDSL_1.0_ROADMAP.md` for the big picture** — a per-module
+status table across all 44 audited units and the phase order for what's
+left before "feature complete" 1.0. This section stays as the detailed
+punch list; the roadmap doc is where to look first for "how close are
+we" without re-reading all of this.
+
 **Formalized 2026-08-25 into `docs/OPTIMIZATION_AUDIT.md`** — a real,
 per-file inventory (what it does / public surface / depends-on / called-
 by / candidate cruft / performance flags, all grep-confirmed) for every
