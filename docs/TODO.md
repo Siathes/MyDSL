@@ -176,20 +176,29 @@ function in a 3,000-line file).
       (high confidence, not independently verified against Mudlet's own
       GMCP dispatch source or a live test). Left as low-priority cosmetic
       cleanup, not a correctness fix.
-- [ ] **Real bugs, no decision needed, just need doing** (bug fixes
-      under the existing feature-creep-paused rule, not new scope):
-      - `MyDSL_DataBridge.lua`'s confirmed double-fire (`sync()` runs
-        twice per `char_data`/`room_data`/`tick`, worst case since it's
-        every combat round) and `MyDSL_LocationView.lua`'s confirmed
-        double-fire (`onRoomData()` on both raw GMCP and the mapper's
-        `onNewRoom`, no unchanged-room early return) share one root
-        cause and one fix pattern — pick one signal per section or
-        debounce to one call per real-world moment. Natural first items
-        for the interconnection pass (step 4).
-      - Project-wide "how many always-active regex/event registrations
-        does one incoming line pay for" count (combat's 24, chat-
-        triggers' 20, the mapper's `onNewLine` hook, plus whatever
-        else) — no single file's section can answer this on its own.
+- [x] **`MyDSL_DataBridge.lua`'s double-fire fixed 2026-08-26**, per
+      Steven ("fix databridge and consolidate calls like that"). 3 of
+      its 11 `registerAnonymousEventHandler` registrations were raw-GMCP
+      + DataLayer-re-raised pairs for the same real-world moment
+      (`gmcp.char_data`+`MyDSL.char.updated`, same for room/tick) —
+      `sync()` ran twice per update, worst case every combat round.
+      Coalesced via a zero-delay `tempTimer` debounce: any number of
+      same-burst fires schedule exactly one deferred `sync()` call, no
+      added real-world latency. `MyDSL_LocationView.lua`'s matching
+      double-fire was already fixed separately (an unchanged-room guard
+      inside `onRoomData()` itself, see above). Swept every other module
+      with 3+ `registerAnonymousEventHandler` calls
+      (CombatView/CreatureReference/GroupView/Leveling/ScanView/
+      TargetView/WindowRegistry/DataLayer) for the same
+      "multiple registrations pointing at one handler for the same real
+      event" shape — none found; every other registration is for a
+      genuinely distinct event/purpose. New `test_databridge_debounce.lua`,
+      confirmed meaningful via targeted-revert mutation.
+      Project-wide "how many always-active regex/event registrations
+      does one incoming line pay for" count (combat's 24, chat-
+      triggers' 20, the mapper's `onNewLine` hook, plus whatever
+      else) is a separate, larger question — no single file's section
+      can answer this on its own, not attempted here.
 - [x] **Decisions from Steven, 2026-08-26, 5 of 6 resolved** ("1 remove
       api. 2 port if it doesnt break anything 3. yes add toggle 4.yes...
       5. make it toggle just in case. 6. check the code/triggers..."):

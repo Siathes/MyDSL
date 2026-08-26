@@ -243,8 +243,30 @@ end
 -- EVENT HANDLERS  — sync whenever any upstream data changes
 ------------------------------------------------------------------------
 
+-- Confirmed real double-fire, 2026-08-26 (docs/MYDSL_1.0_MODULE_REDESIGN.md
+-- #9, the audit's own top-priority finding): 3 of these 11 registrations
+-- are raw-GMCP/DataLayer-re-raised PAIRS for the exact same real-world
+-- moment (gmcp.char_data + MyDSL.char.updated; gmcp.room_data +
+-- MyDSL.room.updated; gmcp.tick + MyDSL.tick.updated) -- sync() ran twice
+-- per char/room/tick update, worst case every combat round. Coalesced to
+-- one call per moment via a zero-delay tempTimer: any number of onAny()
+-- fires within the same synchronous burst (same real event, whichever
+-- registrations happen to fire for it) sets the pending flag once and
+-- schedules exactly one deferred sync() on the next tick; a fire that
+-- arrives after that already runs, unrelated to this batch, correctly
+-- schedules its own new one. Zero added latency from a human's
+-- perspective -- tempTimer(0, ...) still runs before the next real-time
+-- moment, just after the current call stack (all of this burst's nested
+-- raiseEvent()s) has fully unwound.
+MyDSL.DB._syncScheduled = MyDSL.DB._syncScheduled or false
+
 local function onAny()
-  pcall(MyDSL.DB.sync)
+  if MyDSL.DB._syncScheduled then return end
+  MyDSL.DB._syncScheduled = true
+  tempTimer(0, function()
+    MyDSL.DB._syncScheduled = false
+    pcall(MyDSL.DB.sync)
+  end)
 end
 
 MyDSL.DB._handlers.char     = registerAnonymousEventHandler("MyDSL.char.updated",    onAny)
