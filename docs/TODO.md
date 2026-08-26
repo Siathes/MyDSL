@@ -84,6 +84,37 @@ just the 3 GMCP-paired ones originally singled out).
         of regression if rushed. Scope this as its own task once pass-2
         cleanup queue is otherwise in motion, not squeezed in alongside
         smaller per-file fixes.
+- [x] **In-game theme customization — fixed 2026-08-25, needs live
+      confirmation.** Per Steven, during the visual pass ("i wan to be
+      able to customize the theme in the ui not the website"). Closes a
+      real, long-standing gap: `MyDSL_ThemeEngine.lua`'s own Section 6
+      comment has said "Themes are user-creatable named presets" since
+      2026-07-11, but no mechanism to actually create one ever existed
+      — only switching between the 5 hardcoded presets was possible.
+      New commands, all consistent with the existing `theme override`
+      syntax rather than inventing a second one: `theme new <name>`
+      (clones the active preset into a real, editable, persisted custom
+      one and switches to it), `theme edit <key> <r,g,b>` (changes one
+      key on the active preset, refuses on a built-in with a message
+      pointing at `theme new`), `theme delete <name>` (built-ins
+      protected), `theme preview [name]` (real color swatches via
+      Mudlet's own `<r,g,b>` decho tag, not just numbers). `theme list`
+      now marks which entries are custom. Custom presets persist
+      alongside `active`/`overrides` in the existing
+      `MyDSL_theme_settings.lua` file — no new save file. Real
+      load-order bug caught and fixed while building this: the saved
+      `active` value was being checked against `MyDSL.Theme.presets`
+      BEFORE custom presets got merged into that table on load, so a
+      saved active theme that was itself a custom one would silently
+      revert to the hardcoded default on every single reload — reordered
+      the merge to happen first; confirmed via a targeted revert that a
+      real regression test fails without the fix. `MyDSL_Help.lua`'s
+      theme entry updated to match (also closed a pre-existing drift:
+      `theme override` had no help entry at all before this pass, not
+      just the 4 new commands). 34 new assertions in `test/
+      test_theme_customization.lua` (first-ever test coverage for
+      `MyDSL_ThemeEngine.lua`), all 26 test suites + `check_known_
+      patterns.py --all` re-run clean.
 - [ ] **Real verification-integrity gap found via an independent Claude
       Desktop review, 2026-08-23 — partially closed, partially still
       open.** Three test files cited BY NAME across multiple

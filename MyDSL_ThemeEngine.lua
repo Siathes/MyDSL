@@ -244,6 +244,18 @@ MyDSL.Theme.windowZone = MyDSL.Theme.windowZone or {
 
 MyDSL.Theme.overrides = MyDSL.Theme.overrides or {}
 
+-- Player-created named presets, added 2026-08-25 -- closes a real gap
+-- between Section 6's own long-standing comment ("Themes are user-
+-- creatable named presets") and the actual implementation, which only
+-- ever supported switching between the 5 hardcoded ones below. Kept in
+-- a separate table from MyDSL.Theme.presets (which stays purely
+-- source-defined, read-only) so a custom preset can never collide with
+-- or overwrite a built-in on load -- merged into `presets` (and
+-- `presetOrder`) in loadActive() below, so every existing read path
+-- (get()/setTheme()/list()) needs zero changes to treat a custom
+-- preset identically to a built-in one.
+MyDSL.Theme.customPresets = MyDSL.Theme.customPresets or {}
+
 
 ------------------------------------------------------------------------
 -- SECTION 6: ACTIVE THEME + PERSISTENCE
@@ -271,14 +283,32 @@ function MyDSL.Theme.loadActive()
   f:close()
   local loaded = {}
   local ok = pcall(table.load, THEME_FILE(), loaded)
-  if ok and type(loaded.active) == "string"
+  if not ok then return end
+
+  -- Custom presets merged in FIRST, before the active-theme restore
+  -- check below -- otherwise a saved active theme that happens to be a
+  -- custom one would fail the MyDSL.Theme.presets[loaded.active] check
+  -- (not merged in yet) and silently fall back to the hardcoded
+  -- default on every single reload. Added 2026-08-25 alongside
+  -- theme new/edit/delete/preview.
+  if type(loaded.customPresets) == "table" then
+    MyDSL.Theme.customPresets = loaded.customPresets
+    for name, preset in pairs(MyDSL.Theme.customPresets) do
+      MyDSL.Theme.presets[name] = preset
+      if not table.contains(MyDSL.Theme.presetOrder, name) then
+        table.insert(MyDSL.Theme.presetOrder, name)
+      end
+    end
+  end
+
+  if type(loaded.active) == "string"
      and MyDSL.Theme.presets[loaded.active] then
     MyDSL.Theme.active = loaded.active
   end
   -- Per-window overrides -- added 2026-08-23 alongside the "theme override"
   -- alias below. Same file as `active` since both are profile-level,
   -- non-character-bound theme state.
-  if ok and type(loaded.overrides) == "table" then
+  if type(loaded.overrides) == "table" then
     MyDSL.Theme.overrides = loaded.overrides
   end
 end
@@ -287,6 +317,7 @@ function MyDSL.Theme.saveActive()
   local ok = pcall(table.save, THEME_FILE(), {
     active = MyDSL.Theme.active,
     overrides = MyDSL.Theme.overrides,
+    customPresets = MyDSL.Theme.customPresets,
   })
   if not ok then
     debugc("[MyDSL] ThemeEngine: failed to save theme settings to " .. THEME_FILE())
@@ -451,14 +482,143 @@ end
 
 
 ------------------------------------------------------------------------
--- SECTION 11: "theme" ALIAS — list / set / show / override
+-- SECTION 10.5: CUSTOM PRESET MANAGEMENT
+------------------------------------------------------------------------
+-- newCustom/setCustomKey/deleteCustom/previewText -- added 2026-08-25
+-- per Steven ("i wan to be able to customize the theme in the ui").
+-- Deliberately in-Mudlet, command-driven (no color-picker widget exists
+-- in Mudlet's own Lua API), matching this file's existing "theme
+-- override" alias's r,g,b syntax rather than inventing a second one.
+
+-- newCustom(name) -- clones the ACTIVE preset's full key set into a new
+-- custom preset and switches to it immediately, so "theme edit" always
+-- has a complete starting point rather than a half-empty table missing
+-- keys get()'s fallback chain would otherwise have to cover silently.
+-- Refuses to collide with any existing name, built-in or custom --
+-- 'theme delete <name>' first to reuse one.
+function MyDSL.Theme.newCustom(name)
+  if not name or name == "" then return false, "name required" end
+  if MyDSL.Theme.presets[name] then
+    return false, "'" .. name .. "' already exists -- pick a different name or 'theme delete " .. name .. "' first"
+  end
+  local base = MyDSL.Theme.presets[MyDSL.Theme.active] or MyDSL.Theme.defaults
+  local clone = table.deepcopy and table.deepcopy(base)
+  if not clone then
+    -- Manual fallback -- every value here is either a plain scalar or a
+    -- flat {r,g,b,a} table, so one level of copying is sufficient; this
+    -- only exists in case table.deepcopy() isn't present on some Mudlet
+    -- version (confirmed real and used unconditionally by EMCOChat's
+    -- own vendored demontools.lua, but defended here anyway rather than
+    -- assumed, same caution as DSL_Generic_Mapper.xml's own usage of it).
+    clone = {}
+    for k, v in pairs(base) do
+      if type(v) == "table" then
+        local t = {}
+        for k2, v2 in pairs(v) do t[k2] = v2 end
+        clone[k] = t
+      else
+        clone[k] = v
+      end
+    end
+  end
+  MyDSL.Theme.customPresets[name] = clone
+  MyDSL.Theme.presets[name] = clone
+  table.insert(MyDSL.Theme.presetOrder, name)
+  MyDSL.Theme.active = name
+  MyDSL.Theme.saveActive()
+  raiseEvent("MyDSL.theme.changed", name)
+  return true
+end
+
+-- setCustomKey(key, value) -- edits ONE key on the CURRENTLY ACTIVE
+-- preset, only if it's a player-created custom one. Built-in presets
+-- are read-only by design (Lua source, not disk-loaded) -- editing one
+-- in memory would be silently lost on the next reload (nothing
+-- persists it), a confusing outcome if allowed; 'theme new <name>'
+-- first makes a real, editable, persisted copy instead.
+function MyDSL.Theme.setCustomKey(key, value)
+  local name = MyDSL.Theme.active
+  if not MyDSL.Theme.customPresets[name] then
+    return false, "'" .. name .. "' is a built-in theme, not a custom one -- 'theme new <name>' first"
+  end
+  if MyDSL.Theme.defaults[key] == nil then
+    return false, "unknown theme key '" .. tostring(key) .. "'"
+  end
+  -- customPresets[name] and presets[name] are the SAME table
+  -- (newCustom() assigns both to the identical clone), so this one
+  -- write is already visible through presets[name] too.
+  MyDSL.Theme.customPresets[name][key] = value
+  MyDSL.Theme.saveActive()
+  raiseEvent("MyDSL.theme.changed", name)
+  return true
+end
+
+-- deleteCustom(name) -- refuses to delete a built-in (checked via
+-- customPresets, not presets, so this can never be tricked by a name
+-- collision -- built-ins are never in customPresets). Falls back to the
+-- hardcoded default if the deleted theme was the active one.
+function MyDSL.Theme.deleteCustom(name)
+  if not MyDSL.Theme.customPresets[name] then
+    return false, "'" .. tostring(name) .. "' isn't a custom theme (built-ins can't be deleted)"
+  end
+  MyDSL.Theme.customPresets[name] = nil
+  MyDSL.Theme.presets[name] = nil
+  for i, n in ipairs(MyDSL.Theme.presetOrder) do
+    if n == name then table.remove(MyDSL.Theme.presetOrder, i); break end
+  end
+  if MyDSL.Theme.active == name then
+    MyDSL.Theme.active = "refined_convergence"
+  end
+  MyDSL.Theme.saveActive()
+  raiseEvent("MyDSL.theme.changed", MyDSL.Theme.active)
+  return true
+end
+
+-- previewText(name) -- real in-Mudlet visual feedback for a theme's
+-- actual colors, using Mudlet's own decho "<r,g,b>" tag to render real
+-- swatches rather than just printing numbers -- this is the actual
+-- "customize in the UI" loop: pick a color, preview it, see it for
+-- real, adjust. Defaults to the active theme.
+function MyDSL.Theme.previewText(name)
+  name = name or MyDSL.Theme.active
+  local preset = MyDSL.Theme.presets[name]
+  if not preset then return nil, "unknown theme '" .. tostring(name) .. "'" end
+  local order = {
+    "titleColor", "textColor", "borderColor", "highlightColor",
+    "dimColor", "warnColor", "goodColor", "bgColor",
+  }
+  local lines = {}
+  for _, key in ipairs(order) do
+    local v = preset[key] or MyDSL.Theme.defaults[key]
+    if type(v) == "table" and v.r then
+      lines[#lines + 1] = string.format(
+        "<%d,%d,%d>\226\150\136\226\150\136\226\150\136<r> %-14s (%d,%d,%d)",
+        v.r, v.g, v.b, key, v.r, v.g, v.b
+      )
+    end
+  end
+  return table.concat(lines, "\n")
+end
+
+
+------------------------------------------------------------------------
+-- SECTION 11: "theme" ALIAS — list / set / show / override / customize
 ------------------------------------------------------------------------
 -- theme            -> shows the active theme name
--- theme list        -> lists all available preset names
+-- theme list        -> lists all available preset names (built-in + custom)
 -- theme set <name>  -> switches the active preset
 -- Bare "theme" verb confirmed to have zero collision with real DSL
 -- vocabulary (grepped DSL_Helpfiles/, 2026-07-11) -- safe per this
 -- session's command-surface convention (see docs/TODO.md / CHANGELOG.md).
+--
+-- theme new <name>          -> clone the active preset into a new,
+--   editable custom preset and switch to it (see SECTION 10.5)
+-- theme edit <key> <value>  -> change one key on the active preset, only
+--   if it's a custom one (same <value> syntax as 'theme override' below)
+-- theme delete <name>       -> delete a custom preset (built-ins can't
+--   be deleted)
+-- theme preview [name]      -> real color swatches for a theme's keys
+--   (defaults to the active theme)
 --
 -- theme override <window> <key> <value>  -> per-window escape hatch, wins
 --   over the active preset for that one window (get()'s precedence,
@@ -496,7 +656,8 @@ if not MyDSL.Theme._aliasesInstalled then
     cecho("\n<gold>[MyDSL] Available themes:\n")
     for _, name in ipairs(MyDSL.Theme.list()) do
       local marker = (name == MyDSL.Theme.active) and " <-- active" or ""
-      cecho("<white>  " .. name .. marker .. "\n")
+      local tag = MyDSL.Theme.customPresets[name] and " (custom)" or ""
+      cecho("<white>  " .. name .. tag .. marker .. "\n")
     end
   end)
 
@@ -507,6 +668,63 @@ if not MyDSL.Theme._aliasesInstalled then
     else
       cecho("\n<firebrick>[MyDSL] Unknown theme '" .. tostring(name) .. "'. Try 'theme list'.\n")
     end
+  end)
+
+  tempAlias("^theme new (.+)$", function()
+    local name = matches[2]
+    local ok, err = MyDSL.Theme.newCustom(name)
+    if ok then
+      cecho("\n<green>[MyDSL] Created and switched to custom theme '" .. name
+        .. "'. Try 'theme edit <key> <r,g,b>' or 'theme preview'.\n")
+    else
+      cecho("\n<firebrick>[MyDSL] " .. err .. "\n")
+    end
+  end)
+
+  tempAlias("^theme edit (\\S+) (.+)$", function()
+    local key, raw = matches[2], matches[3]
+    if MyDSL.Theme.defaults[key] == nil then
+      cecho("\n<firebrick>[MyDSL] Unknown theme key '" .. key .. "'.\n")
+      return
+    end
+    local value, err = parseOverrideValue(key, raw)
+    if not value then
+      cecho("\n<firebrick>[MyDSL] " .. err .. "\n")
+      return
+    end
+    local ok, err2 = MyDSL.Theme.setCustomKey(key, value)
+    if ok then
+      cecho("\n<green>[MyDSL] '" .. MyDSL.Theme.active .. "' " .. key .. " updated. 'theme preview' to see it.\n")
+    else
+      cecho("\n<firebrick>[MyDSL] " .. err2 .. "\n")
+    end
+  end)
+
+  tempAlias("^theme delete (.+)$", function()
+    local name = matches[2]
+    local ok, err = MyDSL.Theme.deleteCustom(name)
+    if ok then
+      cecho("\n<green>[MyDSL] Deleted custom theme '" .. name .. "'.\n")
+    else
+      cecho("\n<firebrick>[MyDSL] " .. err .. "\n")
+    end
+  end)
+
+  tempAlias("^theme preview$", function()
+    local text = MyDSL.Theme.previewText()
+    cecho("\n<gold>[MyDSL] Preview of '" .. MyDSL.Theme.active .. "':\n")
+    decho(text .. "\n")
+  end)
+
+  tempAlias("^theme preview (.+)$", function()
+    local name = matches[2]
+    local text, err = MyDSL.Theme.previewText(name)
+    if not text then
+      cecho("\n<firebrick>[MyDSL] " .. err .. "\n")
+      return
+    end
+    cecho("\n<gold>[MyDSL] Preview of '" .. name .. "':\n")
+    decho(text .. "\n")
   end)
 
   tempAlias("^theme override (\\S+) clear$", function()
@@ -559,7 +777,8 @@ if not MyDSL.Theme._aliasesInstalled then
 
   tempAlias("^theme$", function()
     cecho("\n<gold>[MyDSL] Active theme: <white>" .. MyDSL.Theme.active
-      .. "<gold> (try 'theme list', 'theme set <name>', or 'theme override <window> <key> <value>')\n")
+      .. "<gold> (try 'theme list', 'theme set <name>', 'theme new <name>', "
+      .. "'theme edit <key> <r,g,b>', 'theme preview', or 'theme override <window> <key> <value>')\n")
   end)
 
   MyDSL.Theme._aliasesInstalled = true

@@ -148,6 +148,12 @@ table.n_keys = table.n_keys or function(t)
   for _ in pairs(t) do n = n + 1 end
   return n
 end
+table.deepcopy = table.deepcopy or function(t)
+  if type(t) ~= "table" then return t end
+  local out = {}
+  for k, v in pairs(t) do out[k] = table.deepcopy(v) end
+  return out
+end
 
 -- lfs (Lua File System) -- real module usually isn't loaded here; stub it.
 _G.lfs = _G.lfs or { mkdir = function() return true end, attributes = function() return nil end }
