@@ -260,11 +260,12 @@ end
 
 function IR.ensureUI()
   local irWin = MyDSL.Windows.ensure(IR_WIN)
-  if irWin and irWin.setTitle then pcall(function() irWin:setTitle("-= Item Reference =-") end) end
+  -- Visual pass v2 "Direction A+" (locked spec, HANDOFF.md 2026-08-26).
+  if MyDSL.Windows.ensureHeader then MyDSL.Windows.ensureHeader(IR_WIN, "Item Reference") end
   if not IR._mc.item then
     IR._mc.item = Geyser.MiniConsole:new({
       name      = IR_MC,
-      x = 0, y = 0, width = "100%", height = "100%",
+      x = 0, y = "10%", width = "100%", height = "90%",
       scrollBar = true,
     }, irWin)
   end

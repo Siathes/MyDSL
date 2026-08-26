@@ -402,8 +402,12 @@ function P.setTitle(title)
   end
   P.config.title = title
   P.save()
-  if P.window and P.window.setTitle then pcall(function() P.window:setTitle(title) end) end
-  if P.window and P.window.setWindowTitle then pcall(function() P.window:setWindowTitle(title) end) end
+  if MyDSL.Windows and MyDSL.Windows.ensureHeader then
+    MyDSL.Windows.ensureHeader(P.config.windowName, title)
+  else
+    if P.window and P.window.setTitle then pcall(function() P.window:setTitle(title) end) end
+    if P.window and P.window.setWindowTitle then pcall(function() P.window:setWindowTitle(title) end) end
+  end
   return P.refresh("title")
 end
 
@@ -520,8 +524,18 @@ function P.ensureWindow()
     P.state.windowReady = true
   end
 
-  if P.window and P.window.setTitle then pcall(function() P.window:setTitle(P.config.title) end) end
-  if P.window and P.window.setWindowTitle then pcall(function() P.window:setWindowTitle(P.config.title) end) end
+  -- Visual pass v2 "Direction A+" (locked spec, HANDOFF.md 2026-08-26).
+  -- Portrait is the one window with a genuinely user-customizable title
+  -- ("mydsl portrait title <text>", P.setTitle() below) -- ensureHeader()
+  -- gets P.config.title verbatim (whatever Steven set, not a hardcoded
+  -- "Portrait") specifically to preserve that existing feature, not the
+  -- plain window-name-only text every other window uses.
+  if MyDSL.Windows and MyDSL.Windows.ensureHeader then
+    MyDSL.Windows.ensureHeader(P.config.windowName, P.config.title)
+  else
+    if P.window and P.window.setTitle then pcall(function() P.window:setTitle(P.config.title) end) end
+    if P.window and P.window.setWindowTitle then pcall(function() P.window:setWindowTitle(P.config.title) end) end
+  end
 
   local parent = getWindowObject() or P.window
 
@@ -534,9 +548,9 @@ function P.ensureWindow()
       return Geyser.Label:new({
         name = "MyDSL_Portrait_ImageLabel",
         x = 0,
-        y = 0,
+        y = "10%",
         width = "100%",
-        height = "100%",
+        height = "90%",
       }, parent)
     end)
     if ok and lbl then

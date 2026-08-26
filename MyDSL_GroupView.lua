@@ -309,15 +309,16 @@ end
 
 function GV.ensureUI()
   local groupWin = MyDSL.Windows.ensure(GROUP_WIN)
-  -- Fixed 2026-07-11, per Steven ("fix all window titles/names").
-  if groupWin and groupWin.setTitle then pcall(function() groupWin:setTitle("-= Group =-") end) end
+  -- Visual pass v2 "Direction A+" (locked spec, HANDOFF.md 2026-08-26) --
+  -- supersedes the 2026-07-11 native-title fix.
+  if MyDSL.Windows.ensureHeader then MyDSL.Windows.ensureHeader(GROUP_WIN, "Group") end
 
   -- Create the MiniConsole only once; the _mc table persists across reloads
   -- so re-calling init() after dofile() never creates a duplicate console.
   if not GV._mc.group then
     GV._mc.group = Geyser.MiniConsole:new({
       name      = GROUP_MC,
-      x = 0, y = 0, width = "100%", height = "100%",
+      x = 0, y = "10%", width = "100%", height = "90%",
       wrapWidth = 300,
       scrollBar = false,
     }, groupWin)

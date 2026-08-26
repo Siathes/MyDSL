@@ -231,6 +231,8 @@ end
 -- parent UserWindow's stylesheet) -- see MyDSL.Theme.styleConsole(),
 -- called from each Layer 3 view file's init().
 
+local applyHeaderTheme -- forward-declared, defined below applyTheme
+
 local function applyTheme(windowName, winObj)
   if not winObj then return end
   if not (MyDSL.Theme and MyDSL.Theme.panelCSS) then return end
@@ -239,8 +241,9 @@ local function applyTheme(windowName, winObj)
     -- Visual pass v2, "Direction A+" (locked spec, HANDOFF.md 2026-08-26):
     -- panelCSS's bare declarations theme the window's own frame; appending
     -- titleBarCSS's QDockWidget::title{} rule flattens the REAL native
-    -- title bar to match (Linux-only rendering, confirmed via Mudlet's own
-    -- Geyser manual -- harmless no-op elsewhere). This half alone changes
+    -- title bar to match (renders while docked, any OS; native OS chrome
+    -- takes over once floated -- see MyDSL_ThemeEngine.lua's titleBarCSS()
+    -- for the full Qt-forum-corroborated explanation). This half alone changes
     -- no layout and touches no other file -- the cross-platform half (a
     -- themed header Label under the flattened bar) is a separate, larger
     -- per-window rollout, tracked in docs/MYDSL_1.0_ROADMAP.md.
@@ -250,6 +253,68 @@ local function applyTheme(windowName, winObj)
   end
   -- Container-type windows (MoonWeather) have no setStyleSheet of their
   -- own; they theme their own child Label directly and are not touched here.
+  applyHeaderTheme(windowName)
+end
+
+-- applyHeaderTheme(windowName) -- visual pass v2, "Direction A+" (locked
+-- spec, HANDOFF.md 2026-08-26). Re-styles an already-built header Label
+-- (see ensureHeader() below) on creation and on every theme switch,
+-- same lifecycle as applyTheme() above. A no-op for any window that
+-- hasn't called ensureHeader() yet -- entry.header only exists once it
+-- has, so this is safe to call unconditionally from applyTheme().
+applyHeaderTheme = function(windowName)
+  local entry = MyDSL.Windows.registry[windowName]
+  if not (entry and entry.header) then return end
+  if not (MyDSL.Theme and MyDSL.Theme.headerLabelCSS) then return end
+  pcall(function() entry.header:setStyleSheet(MyDSL.Theme.headerLabelCSS(windowName)) end)
+  pcall(function() entry.header:echo(entry.headerText or "") end)
+end
+
+-- ensureHeader(windowName, headerText) -- visual pass v2, "Direction A+
+-- -- Quiet Chrome, Cross-Platform" (locked spec, HANDOFF.md 2026-08-26).
+-- Centralized here rather than hand-built per View file (the honest
+-- "every UserWindow needs a header Label added" cost Claude Desktop's
+-- research flagged) so the 15 windows that don't already have one
+-- (only MyDSL_LiveView.lua/MyDSL_TickView.lua build their own) share
+-- one implementation instead of 15 near-identical ones.
+--
+-- headerText is plain text only, per the locked spec -- just the
+-- window's own display name ("Combat", "Scan"), never a "MyDSL --"
+-- prefix (every window here is already understood to be a MyDSL
+-- window). Callers already have this exact string sitting in their own
+-- setTitle("-= Name =-") call -- pass the same name, stripped of that
+-- decoration, rather than inventing new copy.
+--
+-- Blanks the window's native title text unconditionally (independent
+-- of the pre-existing "mydsl layout titles on|off" preference) -- once
+-- a header Label exists, the native OS title text sitting above the
+-- flattened bar would just be redundant/ugly, on any OS. That
+-- pre-existing toggle is untouched and still fully functional for any
+-- window that never calls this function.
+function MyDSL.Windows.ensureHeader(windowName, headerText)
+  local entry = MyDSL.Windows.registry[windowName]
+  if not entry or entry.type ~= "UserWindow" or not entry.obj then return nil end
+  if entry.header then
+    entry.headerText = headerText
+    applyHeaderTheme(windowName)
+    return entry.header
+  end
+  if not Geyser or not Geyser.Label then return nil end
+
+  local ok, header = pcall(function()
+    return Geyser.Label:new({
+      name = windowName .. "_Header",
+      x = 0, y = 0, width = "100%", height = "10%",
+    }, entry.obj)
+  end)
+  if not ok or not header then return nil end
+
+  entry.header     = header
+  entry.headerText = headerText
+  applyHeaderTheme(windowName)
+  pcall(function() entry.obj:setTitle("") end)
+
+  return header
 end
 
 ------------------------------------------------------------------------

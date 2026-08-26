@@ -277,12 +277,13 @@ end
 -- recreate the console without duplicating the whole setup.
 function CR.ensureUI()
   local crWin = MyDSL.Windows.ensure(CR_WIN)
-  -- Fixed 2026-07-11, per Steven ("fix all window titles/names").
-  if crWin and crWin.setTitle then pcall(function() crWin:setTitle("-= Bestiary =-") end) end
+  -- Visual pass v2 "Direction A+" (locked spec, HANDOFF.md 2026-08-26) --
+  -- supersedes the 2026-07-11 native-title fix.
+  if MyDSL.Windows.ensureHeader then MyDSL.Windows.ensureHeader(CR_WIN, "Bestiary") end
   if not CR._mc.lore then
     CR._mc.lore = Geyser.MiniConsole:new({
       name      = CR_MC,
-      x = 0, y = 0, width = "100%", height = "100%",
+      x = 0, y = "10%", width = "100%", height = "90%",
       scrollBar = true,
     }, crWin)
   end

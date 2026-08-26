@@ -191,16 +191,34 @@ text=`titleColor`, background=`titleBgColor`, border=the window's own
 `borderColor`), wired into `MyDSL_WindowRegistry.lua`'s `applyTheme()`
 for the native-bar flatten half. Two new tests, full suite clean.
 
-**Still open — the real remaining cost**: the header Label itself needs
-adding to the ~13 UserWindows that don't already build their own (only
-`MyDSL_LiveView.lua`/`MyDSL_TickView.lua`/`MyDSL_AlterformView.lua` do).
-This is genuine per-file layout work — each window's existing content
-needs to shift down to make room, not just a theme-layer change — so
-it's paced as its own rollout rather than done in one blind pass across
-every file. Do it window-by-window, same verification standard as
-everything else (targeted revert, test, `check_known_patterns.py
---all`), starting with a simple window to confirm the pattern before
-repeating it 12 more times.
+**Header Label rollout: 12 of 15 done, 2026-08-26.** `MyDSL_CombatView.lua`,
+`MyDSL_RouteHelper.lua` (History + PlayersNear), `MyDSL_ScanView.lua`
+(Scan + RightHere), `MyDSL_GroupView.lua`, `MyDSL_CreatureReference.lua`,
+`MyDSL_Help.lua`, `MyDSL_ItemReference.lua`, `MyDSL_Leveling.lua`,
+`MyDSL_LocationView.lua`, `MyDSL_PortraitView.lua` (preserves its
+existing user-customizable title, unlike every other window's fixed
+name). Full suite clean, not yet live-confirmed by Steven — a real,
+visible change across 12 windows, delivered for his own look first
+per his own ask, before being called final.
+
+**3 windows deliberately deferred, real architectural reasons, not
+oversights**:
+- `MyDSL_Chat.lua` — EMCO's own internal tab-bar/console geometry
+  already owns y=0 in its parent via its own pixel-offset math.
+  Inserting a header means touching EMCO's internal layout code, not a
+  percent shift like everywhere else.
+- `MyDSL_AffectsView.lua` — writes directly into the UserWindow's own
+  raw `cecho()` target, no bounded child console exists to resize.
+  Needs converting to a MiniConsole child first, a bigger change than
+  this pass's scope.
+- `MyDSL_TargetView.lua` — already has its own custom top row (y=0-10%:
+  nameplate + MP/Clear buttons) plus a tightly-tuned action-button grid
+  with real prior live-bug history around exactly this vertical space
+  budget (docs/CHANGELOG.md, 2026-07-11). Shifting it blind risks
+  reintroducing a previously-fixed regression.
+
+Each of these 3 needs its own dedicated design pass, not a repeat of
+the mechanical percent-shift used for the other 12.
 
 ### Phase 4 — Step 5: unknown-line routing design (Principle 4 Part B)
 Still blocked on the known-pattern catalog maturing — `check_text_

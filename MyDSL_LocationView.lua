@@ -711,13 +711,18 @@ function M.ensureUI()
 
   if not M.ui.win then return false end
 
-  if M.ui.win.setTitle then
+  -- Visual pass v2 "Direction A+" (locked spec, HANDOFF.md 2026-08-26) --
+  -- ensureHeader() blanks the native title itself, superseding the
+  -- setTitle(M.title) call this used to be.
+  if MyDSL.Windows and MyDSL.Windows.ensureHeader then
+    MyDSL.Windows.ensureHeader(M.windowName, "Location")
+  elseif M.ui.win.setTitle then
     pcall(function() M.ui.win:setTitle(M.title) end)
   end
 
   M.ui.image = Geyser.Label:new({
     name = M.windowName .. "_Image",
-    x = 0, y = 0, width = "100%", height = "100%",
+    x = 0, y = "10%", width = "100%", height = "90%",
   }, M.ui.win)
 
   M.ui.caption = Geyser.Label:new({

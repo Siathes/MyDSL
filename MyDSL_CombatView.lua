@@ -225,16 +225,16 @@ function CV.init()
   loadConfig()
 
   local combatWin = MyDSL.Windows.ensure(COMBAT_WIN)
-  -- Fixed 2026-07-11, per Steven ("fix all window titles/names") --
-  -- windows created via MyDSL.Windows.ensure() never got a human-readable
-  -- title set anywhere, so this showed Mudlet's raw default ("User window
-  -- - DSL2 - MyDSL_Combat") instead of matching Live/Tick/Portrait/
-  -- Location's "-= Name =-" convention.
-  if combatWin and combatWin.setTitle then pcall(function() combatWin:setTitle("-= Combat =-") end) end
+  -- Visual pass v2 "Direction A+" (locked spec, HANDOFF.md 2026-08-26):
+  -- the native title text this setTitle() call used to show is now
+  -- superseded by ensureHeader()'s own themed header Label immediately
+  -- below (which blanks the native title itself) -- kept the old
+  -- 2026-07-11 fix's history in this comment rather than deleting it.
+  if MyDSL.Windows.ensureHeader then MyDSL.Windows.ensureHeader(COMBAT_WIN, "Combat") end
   if not CV._mc.combat then
     CV._mc.combat = Geyser.MiniConsole:new({
       name      = COMBAT_MC,
-      x = 0, y = 0, width = "100%", height = "100%",
+      x = 0, y = "10%", width = "100%", height = "90%",
       wrapWidth = 400,
       fontSize  = CV.config.fontSize,
       -- scrollBar=false, fixed 2026-07-11 per Steven ("combat window has

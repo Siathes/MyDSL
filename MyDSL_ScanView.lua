@@ -148,12 +148,14 @@ function SV.ensureUI()
   -- Ensure Scan UserWindow and its MiniConsole exist.
   -- Stored in SV.ui.scanConsole so DataLayer can call appendBuffer on it.
   local scanWin = MyDSL.Windows.ensure(SCAN_WIN)
-  -- Fixed 2026-07-11, per Steven ("fix all window titles/names").
-  if scanWin and scanWin.setTitle then pcall(function() scanWin:setTitle("-= Scan =-") end) end
+  -- Visual pass v2 "Direction A+" (locked spec, HANDOFF.md 2026-08-26) --
+  -- supersedes the 2026-07-11 native-title fix; ensureHeader() blanks
+  -- the native title itself once its own header Label exists.
+  if MyDSL.Windows.ensureHeader then MyDSL.Windows.ensureHeader(SCAN_WIN, "Scan") end
   if not SV.ui.scanConsole then
     SV.ui.scanConsole = Geyser.MiniConsole:new({
       name      = SCAN_MC,
-      x = 0, y = 0, width = "100%", height = "100%",
+      x = 0, y = "10%", width = "100%", height = "90%",
       wrapWidth = 300,
       scrollBar = false,
     }, scanWin)
@@ -161,12 +163,11 @@ function SV.ensureUI()
 
   -- Ensure RightHere UserWindow and its MiniConsole exist.
   local rhWin = MyDSL.Windows.ensure(RH_WIN)
-  -- Fixed 2026-07-11, per Steven ("fix all window titles/names").
-  if rhWin and rhWin.setTitle then pcall(function() rhWin:setTitle("-= Right Here =-") end) end
+  if MyDSL.Windows.ensureHeader then MyDSL.Windows.ensureHeader(RH_WIN, "Right Here") end
   if not SV._mc.rightHere then
     SV._mc.rightHere = Geyser.MiniConsole:new({
       name      = RH_MC,
-      x = 0, y = 0, width = "100%", height = "100%",
+      x = 0, y = "10%", width = "100%", height = "90%",
       wrapWidth = 300,
       scrollBar = false,
     }, rhWin)

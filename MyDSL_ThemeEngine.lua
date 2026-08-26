@@ -440,13 +440,19 @@ end
 -- QDockWidget's title bar outright without losing that. This is a
 -- QDockWidget::title{} sub-control selector, NOT the bare declarations
 -- panelCSS() above returns -- must be concatenated onto a UserWindow's
--- setStyleSheet() call, never passed to a plain Label. Confirmed (Mudlet's
--- own Geyser manual, corroborated by the wider Qt community) that this
--- specific sub-control styling only reliably renders on Linux -- on
--- Windows/macOS the OS theme draws the title bar and mostly ignores it.
--- That's expected and harmless, not a bug: the real cross-platform payoff
--- is headerLabelCSS() below (an ordinary Label, not native chrome), this
--- is just a bonus on the one OS where it actually renders.
+-- setStyleSheet() call, never passed to a plain Label. Confirmed two
+-- ways, not just Mudlet's own Geyser manual: an independent websearch
+-- against Qt's own forum/docs (2026-08-26) sharpens the real mechanism
+-- -- this is a DOCKED-vs-FLOATING distinction in Qt itself, not purely
+-- an OS one. ::title styling applies while a QDockWidget is docked
+-- (any OS); once floated (detached to its own top-level window), the
+-- OS draws native decorations and mostly ignores the stylesheet --
+-- which shows up as "Linux renders it, Windows/macOS mostly don't"
+-- only because MyDSL's windows are docked far more often on some
+-- OS/user setups than others, not because of a hard per-OS Qt rule.
+-- Either way, the real cross-platform payoff is headerLabelCSS() below
+-- (an ordinary Label, unaffected by dock state or OS) -- this rule is
+-- just a bonus wherever Qt happens to honor it.
 function MyDSL.Theme.titleBarCSS(windowName)
   local bg = MyDSL.Theme.get(windowName, "bgColor")
   return string.format(
