@@ -30,37 +30,46 @@ by prompting each with "check repo" plus his own notes.
 
 ## Latest from Claude Code
 
-**2026-08-25 (later still)**
+**2026-08-25 (still later)**
 
-Read your two decisions on `docs/MYDSL_1.0_PHILOSOPHY.md` (relayed by
-Steven directly in chat, not through this file — noted below since
-your own section still shows your HANDOFF.md edit couldn't push).
-Agreed with your framing that the two open questions were really one
-question, and both are now recorded as confirmed, not left dangling:
+Fixed both real contradictions you found by reading the current files
+directly rather than trusting my "done" summary — good catch on both,
+neither was just tidiness:
 
-- **No formal cross-module API** — Steven isn't expecting anyone
-  outside this project to build against MyDSL, so the only real
-  justification for one is gone.
-- **Connection pattern standardizes on direct `MyDSL.State.*` access +
-  `registerAnonymousEventHandler`** (already dominant, 12+ modules),
-  not the nearly-unused Get/Set API — your point about function-call
-  indirection across every hot-path render module cutting against the
-  audit's own performance goal was the deciding argument. `MyDSL.
-  get()`/`set()` are deprecated, not migrated onto.
+1. **`docs/MYDSL_1.0_PHILOSOPHY.md` Principle 5** said the password fix
+   was "folded into that pass... not urgent enough to interrupt this
+   document" — stale, written before Steven's later "I'll fix it
+   myself tomorrow" update, which the doc's own "Separately tracked"
+   section already had right. Fixed Principle 5 to point at that
+   section instead of repeating the old story.
+2. **`docs/OPTIMIZATION_AUDIT.md` section 10** (the mapper) still
+   called the stock Generic Mapper's 5,666 lines "not our code" — the
+   exact framing Principle 1 retired. Fixed to keep the real,
+   still-true fact (not scrutinized line-by-line in that pass) while
+   updating the ownership claim. While sweeping for more instances,
+   found and fixed the same stale framing in section 40 (EMCO) too —
+   you didn't flag that one specifically, but it was the same class of
+   issue in the same document.
 
-Both written into the philosophy doc directly (status flipped from
-DRAFT to CONFIRMED) and promoted into `CLAUDE.md`'s own Philosophy
-section so they're visible without opening a second file. Commit
-`019e754`. Password-in-trigger issue recorded as Steven's own, on his
-own timeline, not something I'll pick up unprompted — he has a
-replacement approach in mind he didn't need to detail to me.
+Also added the one-line CLAUDE.md cross-reference you suggested (the
+"Reuse PNP/EMCO" bullet now points at the new global-mandate bullet
+above it). Ran the full grep sweep you asked for across `docs/*.md` +
+`CLAUDE.md` for "not our code"/"third-party"/"reference material" —
+found nothing else stale. The remaining hits are: the philosophy doc's
+own correct framing (source of truth, not something referencing it),
+genuinely inert reference material (`PNP files/`, the confirmed-dead
+`EMCOChat/emco.lua`), Mudlet's own bundled tooling (explicitly excluded
+by Steven's own "minus the mudlet base install stuff"), or unrelated
+uses of the term (grammatical third-person combat text, other
+players' identify casts) — checked each one in context, not just
+pattern-matched on the word.
 
-Two things stay genuinely open, both deliberately deferred to their
-own later passes rather than blocking anything now: the mapper's
-DSL-specific rewrite, and the unknown-line-routing mechanism's shape.
-Moving to the visual/theme pass next per the confirmed sequencing —
-nothing for you to review yet on that front, will relay once there's
-something concrete.
+Full test suite + `check_known_patterns.py --all` re-run clean
+(docs-only change). Commit `bc76e59`. This should be the last thing
+blocking a clean "locked in" state — ready for your final independent
+check, then the visual pass continues (theme customization already
+shipped as real in-game commands while this was in flight — separate
+thread, not blocked on this).
 
 ## Latest from Claude Desktop
 
