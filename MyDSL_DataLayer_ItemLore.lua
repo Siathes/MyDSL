@@ -444,7 +444,7 @@ function MyDSL.endEquip()
     pcall(killTrigger, MyDSL._triggers.equipBody)
     MyDSL._triggers.equipBody = nil
   end
-  update("equipment", { slots = equipBlock })
+  MyDSL.update("equipment", { slots = equipBlock })
   equipBlock = {}
 end
 
@@ -466,7 +466,7 @@ end
 -- equipment, this must NOT touch MyDSL.State.equipment (that table
 -- specifically drives CharacterAssist's rearm/spellup decisions about
 -- YOUR OWN gear -- someone else's equipment has nothing to do with
--- that), so there's no begin/end block to assemble or an `update()` to
+-- that), so there's no begin/end block to assemble or an `MyDSL.update()` to
 -- call, just the same per-line hover technique parseEquipLine() already
 -- uses, reused directly rather than duplicated with a different shape.
 function MyDSL.beginOthersEquip(name)
@@ -605,7 +605,7 @@ function MyDSL.endInventory()
     pcall(killTrigger, MyDSL._triggers.inventoryBody)
     MyDSL._triggers.inventoryBody = nil
   end
-  update("inventory", { items = inventoryBlock })
+  MyDSL.update("inventory", { items = inventoryBlock })
 end
 
 

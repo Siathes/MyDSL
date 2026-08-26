@@ -598,10 +598,24 @@ function MyDSL.set(section, field, value)
   MyDSL.emit(section)
 end
 
--- Internal bulk writer.  Merges a table of fields into a section,
--- stamps last_updated once, emits once, then mirrors into per-character
--- Data so the next save() captures it.  Never called from outside this file.
-local function update(section, fields)
+-- Bulk writer.  Merges a table of fields into a section, stamps
+-- last_updated once, emits once, then mirrors into per-character Data so
+-- the next save() captures it.
+--
+-- Promoted from a file-local helper to MyDSL.update() 2026-08-26 --
+-- real bug found via the MyDSL 1.0 roadmap's PromptVitals test-coverage
+-- item: the 2026-08-25 DataLayer split-by-domain refactor moved every
+-- CALL SITE of this function out into MyDSL_DataLayer_PromptVitals.lua
+-- and MyDSL_DataLayer_ItemLore.lua (13 sites total) while this
+-- definition stayed `local` here -- since a Lua `local` never crosses a
+-- separate dofile()'d chunk, every one of those 13 call sites has been
+-- throwing "attempt to call global 'update' (a nil value)" since the
+-- split landed, silently breaking score/flags/lunar/time/weather/who/
+-- group/improve/posn/wimpy/vitality (PromptVitals) and equipment/
+-- inventory (ItemLore) capture entirely. `local update = MyDSL.update`
+-- right below keeps every pre-existing bare `update(...)` call already
+-- in this file working unchanged.
+function MyDSL.update(section, fields)
   local s = MyDSL.State[section]
   if not s then return end
   for k, v in pairs(fields) do s[k] = v end
@@ -617,6 +631,7 @@ local function update(section, fields)
     d.last_updated = now()
   end
 end
+local update = MyDSL.update
 
 
 ------------------------------------------------------------------------

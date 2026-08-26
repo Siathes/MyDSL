@@ -66,6 +66,39 @@ coverage existed for `createInWindow()` before or after, flagged
 separately below rather than adding a heavy new harness for one
 function in a 3,000-line file).
 
+- [x] **CRITICAL, fixed 2026-08-26 — found while adding the test
+      coverage this section used to ask for on `MyDSL_DataLayer_
+      PromptVitals.lua`**: the 2026-08-25 DataLayer split-by-domain
+      refactor left every state-writing function in that file AND
+      `MyDSL_DataLayer_ItemLore.lua` silently crashing (`update()`/
+      `now()` calls broken across a `dofile()` boundary — a `local`
+      never crosses a separately loaded file). Practical impact: score/
+      flags/lunar/time/weather/who/group/improve/position/wimpy/dragon-
+      vitality and equipment/inventory capture were all non-functional
+      for the entire day between the split landing and this fix. Full
+      detail in `docs/CHANGELOG.md`; two new regression tests
+      (`test/test_promptvitals_update_wiring.lua`,
+      `test/test_itemlore_update_wiring.lua`) close the coverage gap
+      that let this ship unnoticed. **Needs Steven's live confirmation**
+      that these all resume updating normally now — this was a real
+      full-day outage, worth him knowing about directly, not just a
+      quiet doc note.
+- [x] **Fixed 2026-08-26**: `MyDSL_TickView.lua`'s `V.render()` now
+      skips its work while hidden (new test,
+      `test/test_tickview_hidden_render_gate.lua`) — resolves the
+      "TickSource+TickView, same bug from both ends" finding on the
+      side that mattered (confirmed TickView is the only remaining
+      consumer of TickSource's 4Hz event; TickSource's own loop cadence
+      deliberately left untouched to avoid drifting the shared tick-
+      countdown accuracy every other listener reads).
+- [x] **Investigated and ruled out 2026-08-26**: `MyDSL_AffectsView.lua`'s
+      suspected GMCP double-fire — not a real double-count. 2 of its 6
+      `onGmcpEvent()` registrations are for event names nothing in this
+      codebase ever raises (dead), the 3 real ones map to 3 genuinely
+      distinct DSL message types, and the 6th is very likely also dead
+      (high confidence, not independently verified against Mudlet's own
+      GMCP dispatch source or a live test). Left as low-priority cosmetic
+      cleanup, not a correctness fix.
 - [ ] **Real bugs, no decision needed, just need doing** (bug fixes
       under the existing feature-creep-paused rule, not new scope):
       - `MyDSL_DataBridge.lua`'s confirmed double-fire (`sync()` runs
@@ -76,11 +109,10 @@ function in a 3,000-line file).
         cause and one fix pattern — pick one signal per section or
         debounce to one call per real-world moment. Natural first items
         for the interconnection pass (step 4).
-      - `MyDSL_TickSource.lua` (`T.loop()` self-reschedules at 4Hz
-        unconditionally, no visibility gate) + `MyDSL_TickView.lua`
-        (`V.render()` has no visibility check either) are the same bug
-        from both ends — fixing only one side doesn't fully solve it,
-        needs both.
+      - Project-wide "how many always-active regex/event registrations
+        does one incoming line pay for" count (combat's 24, chat-
+        triggers' 20, the mapper's `onNewLine` hook, plus whatever
+        else) — no single file's section can answer this on its own.
 - [ ] **Real decisions needed from Steven before any code changes**:
       - `MyDSL_ChatTriggers.lua` has zero toggle for its 20 always-active
         chat-routing triggers, and hiding the Chat window doesn't stop

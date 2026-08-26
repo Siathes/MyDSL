@@ -38,6 +38,16 @@ MyDSL = MyDSL or {}
 
 local function trim(s) return s and s:match("^%s*(.-)%s*$") or "" end
 
+-- Own local copy, same convention as trim() above -- MyDSL_DataLayer.lua
+-- has its own equally-trivial `local function now()`, but a Lua `local`
+-- never crosses a separately dofile()'d chunk. Real bug found 2026-08-26:
+-- parsePromptLine() below (the highest-frequency trigger in the addon)
+-- called this file's nonexistent global `now()` on every single prompt
+-- line, throwing instead of stamping last_updated -- same root cause as
+-- the MyDSL.update() promotion above it in docs/CHANGELOG.md's entry,
+-- just a second, distinct call site that doesn't route through update().
+local function now() return os.time() end
+
 ------------------------------------------------------------------------
 -- 9a  SCORE
 ------------------------------------------------------------------------
@@ -275,7 +285,7 @@ function MyDSL.endScore()
   for k, v in pairs(scoreBlock) do
     if k ~= "lines" and k ~= "_saw_sep" and k ~= "_saw_profession" then fields[k] = v end
   end
-  update("score", fields)
+  MyDSL.update("score", fields)
   scoreBlock = nil
   MyDSL.save()
 end
@@ -321,7 +331,7 @@ function MyDSL.endFlags()
   for _, canon in ipairs(KNOWN_FLAGS) do
     fields[canon] = flagsBlock[canon] == true
   end
-  update("flags", fields)
+  MyDSL.update("flags", fields)
   flagsBlock = {}
   MyDSL.save()
 end
@@ -391,7 +401,7 @@ function MyDSL.parseLunarLine(line)
 end
 
 function MyDSL.endLunar()
-  update("lunar", {
+  MyDSL.update("lunar", {
     red       = lunarBlock.red   or {},
     white     = lunarBlock.white or {},
     black     = lunarBlock.black or {},
@@ -415,7 +425,7 @@ function MyDSL.parseTimeLine(line)
   local hour, min, ampm, day_name, day_num, month =
     line:match("It is (%d+):(%d+)[^,]-(%a+), Day of ([^,]+), (%d+)%a+ the Month of ([^%.]+)")
   if hour then
-    update("time", {
+    MyDSL.update("time", {
       hour     = tonumber(hour),
       minute   = tonumber(min) or 0,
       ampm     = ampm,
@@ -505,7 +515,7 @@ function MyDSL.parseWeatherLine(line)
   -- alone covers the common case with no extra trigger needed.
   local windClause = MyDSL.extractWindClause(desc)
   if windClause then fields.windDescription = windClause end
-  update("weather", fields)
+  MyDSL.update("weather", fields)
 end
 
 ------------------------------------------------------------------------
@@ -592,7 +602,7 @@ function MyDSL.parseWhoLine(line)
 end
 
 function MyDSL.endWho()
-  update("who", { players = whoBlock, count = #whoBlock })
+  MyDSL.update("who", { players = whoBlock, count = #whoBlock })
   whoBlock = {}
 end
 
@@ -657,7 +667,7 @@ function MyDSL.endGroup()
     pcall(killTrigger, MyDSL._triggers.groupBody)
     MyDSL._triggers.groupBody = nil
   end
-  update("group", { members = groupBlock, count = #groupBlock })
+  MyDSL.update("group", { members = groupBlock, count = #groupBlock })
   groupBlock = {}
 end
 
@@ -673,7 +683,7 @@ function MyDSL.parseImproveLine(line)
     skill, pct = line:match("You feel yourself getting better at (.+)%. %((%d+)%%%)")
   end
   if skill then
-    update("improve", { skill = trim(skill), percent = tonumber(pct) })
+    MyDSL.update("improve", { skill = trim(skill), percent = tonumber(pct) })
   end
 end
 
@@ -692,7 +702,7 @@ function MyDSL.parseImproveStatusLine(line)
   local skill, pct, mins = line:match(
     "^You are currently improving (.-) %((%d+)%%%)%. %((%d+) online minutes to improvement%)%.?$")
   if skill then
-    update("improve", { skill = trim(skill), percent = tonumber(pct), remaining = tonumber(mins) })
+    MyDSL.update("improve", { skill = trim(skill), percent = tonumber(pct), remaining = tonumber(mins) })
   end
 end
 
@@ -849,7 +859,7 @@ MyDSL._triggers.weatherWindContinuation = tempRegexTrigger(
   function()
     local ln = getCurrentLine()
     local clause = MyDSL.extractWindClause and MyDSL.extractWindClause(ln)
-    if clause then update("weather", { windDescription = clause }) end
+    if clause then MyDSL.update("weather", { windDescription = clause }) end
   end
 )
 
@@ -916,7 +926,7 @@ local function setPosn(textImpliedValue)
   if char.is_flying and value ~= "Flying" then
     value = "Flying"
   end
-  update("char", { posn = value })
+  MyDSL.update("char", { posn = value })
 end
 
 MyDSL._triggers.posnStandUp      = tempRegexTrigger([[^You stand up\.$]],                              function() setPosn("Standing") end)
@@ -957,7 +967,7 @@ MyDSL._triggers.wimpySet = tempRegexTrigger(
   [[^Wimpy set to (\d+) hit points\.$]],
   function()
     local n = tonumber(matches[2])
-    if n then update("char", { wimpy = n }) end
+    if n then MyDSL.update("char", { wimpy = n }) end
   end
 )
 
@@ -977,7 +987,7 @@ MyDSL._triggers.wimpySet = tempRegexTrigger(
 -- at all for dragon characters (confirmed no "Vit:" field anywhere in
 -- non-dragon corpus samples), so this naturally never fires/populates
 -- for anyone else -- no race check needed. Character-bound via
--- update("char", ...), same persistence as posn/wimpy, since Steven
+-- MyDSL.update("char", ...), same persistence as posn/wimpy, since Steven
 -- noted this can only really be confirmed by watching it live (changes
 -- on a PK death), not re-testable on demand -- stale-but-persisted beats
 -- blank between sessions.
@@ -985,7 +995,7 @@ MyDSL._triggers.vitalitySet = tempRegexTrigger(
   [[Vit:\s*(\d+)\s*$]],
   function()
     local n = tonumber(matches[2])
-    if n then update("char", { vitality = n }) end
+    if n then MyDSL.update("char", { vitality = n }) end
   end
 )
 

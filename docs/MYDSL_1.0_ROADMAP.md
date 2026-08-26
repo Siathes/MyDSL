@@ -32,7 +32,7 @@ to one line once it's closed, same discipline as everywhere else.
 | Step 3 — module-by-module redesign write-up | Claude Desktop | **Done** (2026-08-26) |
 | Pass 2 audit — 4 native XML files (mapper's stock code, DslColors, gameplay triggers, personal aliases) | Claude Desktop, re-verified + partly fixed by Claude Code | **Done** (2026-08-26) |
 | `check_text_coverage.py` build + spot-check | Claude Code built, Claude Desktop spot-checked | **Done** (2026-08-25/26), 2 known blind spots documented, not fixed |
-| Bug-fix sweep on pass-1/pass-2 findings (no-decision-needed items) | Claude Code | **In progress** — 4 of ~7 fixed 2026-08-26 (see table below) |
+| Bug-fix sweep on pass-1/pass-2 findings (no-decision-needed items) | Claude Code | **Phase 1 mostly done** 2026-08-26 — 7 fixed, including 1 critical regression found along the way (see table below) |
 | Visual pass v2 — title-bar hiding, UI best-practices research, 3 mockups | Claude Desktop (assigned below) | **Not started** |
 | Step 4 — interconnection/performance pass | Not started | **Not started** |
 | Step 5 — unknown-line routing design (Principle 4 Part B) | Deferred | **Deferred**, blocked on coverage tool maturity |
@@ -56,8 +56,8 @@ any code changes — 🔭 out of scope for now (own future pass).
 | 2 | `MyDSL_DataLayer_CreatureLore.lua` | ✅ | |
 | 3 | `MyDSL_DataLayer_Combat.lua` | ✅ | 24 always-on triggers — folds into the project-wide trigger-count question |
 | 4 | `MyDSL_DataLayer_ScanLook.lua` | ✅ | |
-| 5 | `MyDSL_DataLayer_ItemLore.lua` | ✅ | |
-| 6 | `MyDSL_DataLayer_PromptVitals.lua` | ⚠️ | highest-frequency trigger in the addon, zero test coverage |
+| 5 | `MyDSL_DataLayer_ItemLore.lua` | 🔧 | **critical**: `endEquip()`/`endInventory()` were silently crashing, same root cause as #6 — fixed 2026-08-26 |
+| 6 | `MyDSL_DataLayer_PromptVitals.lua` | 🔧 | **critical**: every capture function in this file was silently crashing (`update()`/`now()` calls broken by the 2026-08-25 split, fixed 2026-08-26) — see CHANGELOG |
 | 7 | `MyDSL_RawCapture.lua` | ✅ | reference example for Principle 2 |
 | 8 | `MyDSL_TickSource.lua` | ⚠️ | 4Hz with no visibility gate — pairs with #26 |
 | 9 | `MyDSL_DataBridge.lua` | ⚠️ | confirmed double-fire, 11 registrations onto one `sync()` — step 4's #1 priority |
@@ -76,7 +76,7 @@ any code changes — 🔭 out of scope for now (own future pass).
 | 22 | `MyDSL_ScanView.lua` | ✅ | |
 | 23 | `MyDSL_CombatView.lua` | ✅ | |
 | 25 | `MyDSL_GroupView.lua` | ✅ | |
-| 26 | `MyDSL_TickView.lua` | ⚠️ | no visibility-gated render — pairs with #8 |
+| 26 | `MyDSL_TickView.lua` | 🔧 | no visibility-gated render — fixed 2026-08-26, new test |
 | 27 | `MyDSL_CharacterAssist.lua` | ❓ | rearm/standup fire with zero toggle, pre-1.0 design — re-confirm or add toggle |
 | 28 | `MyDSL_LayoutEngine.lua` | ✅ | dead handler-deregistration scaffolding, cosmetic |
 | 29 | `MyDSL_Help.lua` | ✅ | drift-risk vs. live alias tree, not urgent |
@@ -100,9 +100,23 @@ any code changes — 🔭 out of scope for now (own future pass).
 (Data files excluded from numbering, same as the audit itself:
 `MyDSL_state.lua`, `MyDSL_theme_settings.lua`, `MyDSL_windowfonts.lua`.)
 
-**Scoreboard**: 24 compliant, 4 fixed this session, 5 real bugs still
-open with no decision needed, 9 waiting on a decision from Steven, 2
-explicitly deferred to their own future pass.
+**Scoreboard**: 22 compliant, 7 fixed this session (2 of them critical —
+see below), 3 real bugs still open with no decision needed, 9 waiting on
+a decision from Steven, 2 explicitly deferred to their own future pass.
+
+**Critical finding, 2026-08-26**: while adding the test coverage Phase 1
+called for on `MyDSL_DataLayer_PromptVitals.lua`, found that the
+2026-08-25 DataLayer split-by-domain refactor left every one of that
+file's and `MyDSL_DataLayer_ItemLore.lua`'s state-writing functions
+silently crashing (`update()`/`now()` calls broken across a `dofile()`
+boundary — full detail in `docs/CHANGELOG.md`). This meant
+score/flags/lunar/time/weather/who/group/improve/position/wimpy/dragon-
+vitality and equipment/inventory capture were all non-functional for
+the entire day between the split landing and this fix. Fixed and
+covered by two new regression tests. This is the single most important
+thing this roadmap has caught so far — worth remembering as the reason
+Phase 1's "add missing test coverage" items matter even when nothing
+looked obviously broken.
 
 ---
 
@@ -116,15 +130,34 @@ questions. Answer them whenever, in any order; each unblocks exactly
 one module's fix.
 
 ### Phase 1 — Finish the no-decision-needed bug sweep (⚠️ rows)
-5 left: `MyDSL_DataLayer_PromptVitals.lua` (add test coverage for the
-highest-frequency trigger in the addon), `MyDSL_AffectsView.lua`
-(confirm or rule out the GMCP double-fire), plus the 3 that are really
-one project-wide question (`MyDSL_TickSource.lua` + `MyDSL_TickView.lua`'s
-shared 4Hz gate, and the "how many always-on registrations does one
-line pay for" count neither pass could answer on its own). Claude
-Code's to pick up directly, same standard as this session's sweep
-(targeted-revert verification, full suite, `check_known_patterns.py
---all`).
+**Mostly done 2026-08-26.** `MyDSL_DataLayer_PromptVitals.lua`'s test
+coverage turned up the critical `update()`/`now()` regression above —
+fixed, tested. `MyDSL_TickSource.lua`/`MyDSL_TickView.lua`'s shared 4Hz
+gate — fixed on the render side (TickView skips its work while hidden;
+TickSource's own loop cadence deliberately left alone, see the
+CHANGELOG entry for why). `MyDSL_AffectsView.lua`'s suspected GMCP
+double-fire — investigated and ruled out with high confidence: 2 of its
+6 `onGmcpEvent()` registrations are for bare event names nothing in
+this codebase ever raises (confirmed dead, harmless), and the 3 real
+`gmcp.`-prefixed registrations map to 3 genuinely distinct DSL message
+types (full resync vs. two different deltas), not the same packet
+counted twice — the 6th (`gmcp.affect_data.affects`) is very likely
+also dead, since `MyDSL_DataLayer.lua`'s own real consumer of this
+packet only ever reads `.affects` as a nested field of the `gmcp.
+affect_data` event payload, never as its own event name; not deleted
+outright since this rests on Mudlet's internal GMCP-to-event dispatch
+behavior, which wasn't independently verified against Mudlet's own
+source or a live test — low-priority cosmetic cleanup, not a
+correctness bug either way.
+
+Left in this phase: the one item that's a genuine project-wide
+question, not a single-module fix — **how many always-active regex/
+event registrations does a single incoming line pay for, added up
+across the whole addon** (combat's 24, chat-triggers' 20, the mapper's
+`onNewLine` hook, plus whatever else). No single file's audit section
+can answer this; needs a dedicated project-wide count. Worth doing if
+Steven is still seeing lag after Phase 2's fixes land, not necessarily
+before.
 
 ### Phase 2 — Step 4: interconnection/performance pass
 The two confirmed double-fires (`MyDSL_DataBridge.lua`'s 11-registration

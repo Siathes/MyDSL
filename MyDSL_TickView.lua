@@ -286,8 +286,27 @@ function V.applyFont()
   V.ui.detail:setStyleSheet(styleText(math.max(7, V.config.font - 1), "#9ba7ad", "normal"))
 end
 
+-- Audit finding (docs/OPTIMIZATION_AUDIT.md cross-cutting #4, 2026-08-23):
+-- render() used to redo the full setStyleSheet/echo/move/resize sequence
+-- on every "MyDSL.Timers.Updated" pulse (4Hz, TickSource's fast cadence --
+-- confirmed 2026-08-26 to be the ONLY remaining consumer of that event;
+-- MyDSL_AffectsView.lua/MyDSL_LiveView.lua both already switched to the
+-- 1Hz "MyDSL.Timers.Slow" event since neither needs sub-second precision)
+-- even while fully hidden. TickSource's own loop/timer overhead is left
+-- alone -- it's cheap arithmetic plus a raiseEvent with no listener when
+-- nothing needs it, and slowing it would drift MyDSL.DB.tick's countdown
+-- accuracy for every OTHER listener that reads it, not just this window.
+-- The real cost was always this render work, not the pulse itself.
+local function isRenderVisible()
+  local entry = MyDSL.Windows and MyDSL.Windows.registry and MyDSL.Windows.registry["MyDSL_Tick"]
+  local shown = entry and entry.visible
+  if shown == nil then shown = V.config.shown end
+  return shown == true
+end
+
 function V.render(reason)
   if not V.ensureUI() then return end
+  if not isRenderVisible() then return end
 
   local t = tickData()
   local rem = tonumber(t.remaining)
