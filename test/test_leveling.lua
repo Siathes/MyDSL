@@ -73,8 +73,15 @@ L.setMobEnabled("gahboom", "all", true)
 
 ------------------------------------------------------------------------
 -- 3. Scan-event-driven mob recognition (no duplicate trigger chain --
---    reuses MyDSL.on("scan", ...) fed by MyDSL_DataLayer.lua's own
---    scan.rightHere capture)
+--    reuses MyDSL_DataLayer.lua's own scan.rightHere capture). Ported
+--    2026-08-26 off the deprecated MyDSL.on() API to
+--    registerAnonymousEventHandler("MyDSL.scan.updated",
+--    "MyDSL.Leveling.onScanUpdated") -- mudlet_mock.lua's raiseEvent()
+--    doesn't actually invoke named handlers (no real Mudlet event
+--    dispatcher to test against), so MyDSL.emit("scan") is still called
+--    here for realism (confirms it doesn't error) but onScanUpdated()
+--    itself is called directly right after, matching what Mudlet's real
+--    event system would do automatically in production.
 ------------------------------------------------------------------------
 L.session.state = "active"
 L.session.areaKey = "gahboom"
@@ -90,6 +97,7 @@ MyDSL.State.scan.rightHere = {
   fixture_entry   = { raw = "A pile of rubble lies here.", is_mob = false, key = "pile of rubble" },
 }
 MyDSL.emit("scan")
+MyDSL.Leveling.onScanUpdated()
 
 check("scan event no longer awaiting room (consumed)", L.session.awaitingRoom == false)
 check("a kill command was sent for a recognized enabled mob", (function()
@@ -294,17 +302,20 @@ MyDSL.State.char = MyDSL.State.char or {}
 MyDSL.State.char.hp = 100
 MyDSL.State.char.max_hp = 1000
 MyDSL.emit("char")
+MyDSL.Leveling.onCharUpdated()  -- see the scan-event comment above: mudlet_mock's raiseEvent() doesn't dispatch, so call directly
 check("HP safety net stops the session when HP% drops below threshold", L.session.state == "stopped")
 
 L.session.state = "active"
 MyDSL.State.char.hp = 900
 MyDSL.State.char.max_hp = 1000
 MyDSL.emit("char")
+MyDSL.Leveling.onCharUpdated()  -- see the scan-event comment above: mudlet_mock's raiseEvent() doesn't dispatch, so call directly
 check("HP safety net leaves a healthy session running", L.session.state == "active")
 
 L.session.hpThreshold = 0
 MyDSL.State.char.hp = 10
 MyDSL.emit("char")
+MyDSL.Leveling.onCharUpdated()  -- see the scan-event comment above: mudlet_mock's raiseEvent() doesn't dispatch, so call directly
 check("HP safety net does nothing when disabled (threshold 0)", L.session.state == "active")
 
 ------------------------------------------------------------------------
@@ -331,6 +342,7 @@ MyDSL.State.scan.rightHere = {
   instruct_entry = { raw = "(Golden Aura) A gnome philosophy instructor is here.", is_mob = true, key = "gnome philosophy instructor" },
 }
 MyDSL.emit("scan")
+MyDSL.Leveling.onScanUpdated()
 
 check("an aura-tagged mob line still engages (real 'philosophy' transcript replay)", (function()
   for _, cmd in ipairs(_G.__sentCommands) do

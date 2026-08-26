@@ -190,38 +190,42 @@ function in a 3,000-line file).
         does one incoming line pay for" count (combat's 24, chat-
         triggers' 20, the mapper's `onNewLine` hook, plus whatever
         else) — no single file's section can answer this on its own.
-- [ ] **Real decisions needed from Steven before any code changes**:
-      - `MyDSL_ChatTriggers.lua` has zero toggle for its 20 always-active
-        chat-routing triggers, and hiding the Chat window doesn't stop
-        them gagging the main console — gagged channels currently vanish
-        with nowhere to land if Chat is hidden. Largest toggle gap found.
-      - `MyDSL_CharacterAssist.lua`'s rearm/standup fire unconditionally,
-        zero toggle, by original 2026-07-07 pre-1.0 design (Steven's
-        explicit sign-off at the time, for faster-than-typing reaction).
-        Worth Steven re-confirming that reasoning still overrides
-        Principle 2 here specifically, or adding a toggle to match
-        everything else.
-      - `MyDSL_MovementSounds.lua`'s `cfg.enabled` exists in code but no
-        alias ever sets it (confirmed, zero matches for "alias" in the
-        file) — the toggle is unreachable by any player action. Also the
-        single remaining real caller of the deprecated `MyDSL.get()`
-        Get/Set API project-wide. Small, mechanical fix once confirmed.
-      - `MyDSL.on()`'s fate — 2 real callers (`MyDSL_Leveling.lua`,
-        `MyDSL_DataLayer.lua`'s own registration) — is that a second
-        connection pattern worth keeping for just Leveling, or should it
-        be ported to the decided State-direct standard?
-      - `MyDSL_RouteHelper.lua`'s `MyDSL_History` window is fully wired
-        end-to-end but `MyDSL.Route.history()` — the only function that
-        would ever put text into it — has zero callers anywhere. Was it
-        ever populated, or is the capture side just missing?
-      - `scripts/check_text_coverage.py` has two confirmed extraction
-        blind spots (wrapper-function-built patterns in
-        `MyDSL_ChatTriggers.lua`/`MyDSL_CharacterAssist.lua`/
-        `MyDSL_Leveling.lua`; narrowed-variable `:find()`/`:match()`
-        calls slipping past the genericness filter) — documented in the
-        script's own "Scope" docstring 2026-08-26, not yet fixed. Low
-        urgency (affects the *ranking*, not the tool's core design) but
-        worth knowing before trusting its coverage number as precise.
+- [x] **Decisions from Steven, 2026-08-26, 5 of 6 resolved** ("1 remove
+      api. 2 port if it doesnt break anything 3. yes add toggle 4.yes...
+      5. make it toggle just in case. 6. check the code/triggers..."):
+      1. Get/Set API (`MyDSL.get()`/`MyDSL.set()`) removed from
+         `MyDSL_DataLayer.lua` entirely; `MyDSL_MovementSounds.lua` (its
+         one real caller) now reads `MyDSL.State` directly.
+      2. `MyDSL.on()` removed too — ported `MyDSL_Leveling.lua`'s 2
+         callers (`scan`/`char`) to `registerAnonymousEventHandler(...)`,
+         matching `MyDSL_CharacterAssist.lua`'s existing pattern; also
+         removed the now-fully-superseded `onceDataLayerReady()` retry
+         wrapper (`registerAnonymousEventHandler` needs no such guard —
+         it resolves the named target at event-fire time, not
+         registration time).
+      3. `MyDSL_MovementSounds.lua` now has a reachable toggle:
+         `mydsl movesound on/off/toggle/status`.
+      5. `MyDSL_CharacterAssist.lua`'s rearm/standup auto-trigger half
+         now has `mydsl charassist auto on/off/toggle` — the manual
+         `rearm` alias is deliberately unaffected by this flag.
+      6. Confirmed via direct inspection of the live MyDSL profile's 114
+         native aliases: no `(autowhere)` alias exists anywhere (Steven's
+         recollection was right, already gone) — no code change needed.
+      4 (ChatTriggers per-channel gag/show + fallback) and DataBridge's
+      double-fire consolidation are larger, tracked separately below —
+      not folded into this closed item.
+- [ ] **`MyDSL_ChatTriggers.lua` per-channel gag/show + safety fallback**
+      — Steven's answer to the toggle gap above: "there should be a gag
+      and show for each channel and a fallback show if anything breaks
+      or turns off." Not started yet.
+- [ ] `scripts/check_text_coverage.py` has two confirmed extraction
+      blind spots (wrapper-function-built patterns in
+      `MyDSL_ChatTriggers.lua`/`MyDSL_CharacterAssist.lua`/
+      `MyDSL_Leveling.lua`; narrowed-variable `:find()`/`:match()`
+      calls slipping past the genericness filter) — documented in the
+      script's own "Scope" docstring 2026-08-26, not yet fixed. Low
+      urgency (affects the *ranking*, not the tool's core design) but
+      worth knowing before trusting its coverage number as precise.
 
 **Step 2 (native-content second audit pass) done 2026-08-26 by Claude
 Desktop**, sections 41-44 + a "Cross-cutting findings (pass 2 wrap-up)"

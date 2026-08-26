@@ -3,8 +3,12 @@
 -- =============================================================================
 -- Zero display logic. Never sends commands to the game.
 -- All data lives under MyDSL.State[section] and MyDSL.Data[charName][section].
--- Other modules receive updates via raiseEvent("MyDSL.<section>.updated")
--- or by registering a Lua callback with MyDSL.on(section, fn).
+-- Other modules receive updates via registerAnonymousEventHandler("MyDSL.
+-- <section>.updated", "Some.Named.Function") and read MyDSL.State[section]
+-- directly -- the decided 1.0 standard (docs/MYDSL_1.0_PHILOSOPHY.md,
+-- Principle 3). The old MyDSL.on(section, fn) direct-Lua-callback API was
+-- removed 2026-08-26, per Steven ("remove api") -- see MyDSL.emit()'s own
+-- comment below.
 -- =============================================================================
 
 
@@ -483,9 +487,6 @@ MyDSL.State.combat = MyDSL.State.combat or {
 -- logged-in character has completely separate saved state.
 MyDSL.Data = MyDSL.Data or {}
 
--- Lua callback listeners registered by display modules via MyDSL.on().
-MyDSL.listeners = MyDSL.listeners or {}
-
 -- Numeric handler IDs from registerAnonymousEventHandler, kept so we
 -- can kill them cleanly when the script reloads.
 MyDSL._handlers = MyDSL._handlers or {}
@@ -552,51 +553,35 @@ end
 ------------------------------------------------------------------------
 -- SECTION 5: EVENT BUS
 ------------------------------------------------------------------------
--- Display modules register with MyDSL.on(); the data layer calls
--- MyDSL.emit() internally.  We also raiseEvent() so Mudlet triggers
--- and other scripts can listen without needing a Lua reference here.
-
-function MyDSL.on(section, callback)
-  MyDSL.listeners[section] = MyDSL.listeners[section] or {}
-  MyDSL.listeners[section][#MyDSL.listeners[section] + 1] = callback
-end
+-- Display/feature modules listen via registerAnonymousEventHandler
+-- ("MyDSL.<section>.updated", "Some.Named.Function") and read
+-- MyDSL.State[section] directly inside that handler -- the decided 1.0
+-- standard (docs/MYDSL_1.0_PHILOSOPHY.md, Principle 3).
+--
+-- The old MyDSL.on(section, callback) direct-Lua-callback API (an
+-- in-memory listener list, dispatched synchronously from inside this
+-- same function) was removed 2026-08-26, per Steven ("remove api") --
+-- docs/MYDSL_1.0_MODULE_REDESIGN.md #1 confirmed MyDSL_MovementSounds.lua
+-- was the only real caller of the paired Get/Set API, and MyDSL_Leveling
+-- .lua (the only real MyDSL.on() caller) was ported to the standard
+-- registerAnonymousEventHandler pattern in the same pass.
 
 function MyDSL.emit(section)
   -- Mudlet event — any trigger or script can hear "MyDSL.char.updated" etc.
   raiseEvent("MyDSL." .. section .. ".updated", MyDSL.State[section])
-  -- Direct Lua callbacks registered via MyDSL.on()
-  local cbs = MyDSL.listeners[section]
-  if not cbs then return end
-  for _, cb in ipairs(cbs) do
-    local ok, err = pcall(cb, MyDSL.State[section])
-    if not ok then
-      debugc("[MyDSL] listener error (" .. section .. "): " .. tostring(err))
-    end
-  end
 end
 
 
 ------------------------------------------------------------------------
--- SECTION 6: GET / SET API
+-- SECTION 6: BULK STATE WRITER
 ------------------------------------------------------------------------
--- All external modules use these instead of reading State directly.
--- MyDSL.get("char", "hp")         -- returns hp value or nil
--- MyDSL.get("char")               -- returns the whole char section
--- MyDSL.set("char", "hp", 1500)   -- writes one field and emits
-
-function MyDSL.get(section, field)
-  local s = MyDSL.State[section]
-  if not s then return nil end
-  return field ~= nil and s[field] or s
-end
-
-function MyDSL.set(section, field, value)
-  local s = MyDSL.State[section]
-  if not s then return end
-  s[field] = value
-  s.last_updated = now()
-  MyDSL.emit(section)
-end
+-- MyDSL.get()/MyDSL.set() (the old Get/Set indirection API) removed
+-- 2026-08-26 per Steven ("remove api") -- docs/MYDSL_1.0_MODULE_REDESIGN.md
+-- #1 confirmed MyDSL_MovementSounds.lua was the only real caller
+-- project-wide (ported to read MyDSL.State directly, same lookup this
+-- API always did with one extra indirection); every other module
+-- already read/wrote MyDSL.State directly, the decided 1.0 standard
+-- (docs/MYDSL_1.0_PHILOSOPHY.md, Principle 3).
 
 -- Bulk writer.  Merges a table of fields into a section, stamps
 -- last_updated once, emits once, then mirrors into per-character Data so

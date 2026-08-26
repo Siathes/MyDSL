@@ -138,6 +138,7 @@ MyDSL.Help.modules = {
       { cmd = "stop spellup", desc = "Abort the running spellup loop.", example = "stop spellup" },
       { cmd = "resume spellup", desc = "Resume a paused spellup loop.", example = "resume spellup" },
       { cmd = "ignore <bless|fireproof> <item>", desc = "Skip one item during spellup.", example = "ignore bless shield" },
+      { cmd = "mydsl charassist auto on|off|toggle", desc = "Enable/disable auto-rearm-on-disarm and auto-standup-on-knockdown (the manual 'rearm' alias above is unaffected).", example = "mydsl charassist auto off" },
     },
   },
   { key = "roller", title = "Roller", category = "Vitals & Combat", window = nil,
@@ -146,6 +147,15 @@ MyDSL.Help.modules = {
       { cmd = "set goal <n>", desc = "Set the target stat total (default 241).", example = "set goal 250" },
       { cmd = "roll stats", desc = "Print min/max/avg/stdev across every roll seen this session.", example = "roll stats" },
       { cmd = "reset roll", desc = "Clear roll statistics.", example = "reset roll" },
+    },
+  },
+  { key = "movesound", title = "Movement Sounds", category = "Vitals & Combat", window = nil,
+    summary = "Plays a walk/ride/fly/swim sound on movement, based on riding/flying state and room sector.",
+    commands = {
+      { cmd = "mydsl movesound on", desc = "Enable movement sounds.", example = "mydsl movesound on" },
+      { cmd = "mydsl movesound off", desc = "Disable movement sounds.", example = "mydsl movesound off" },
+      { cmd = "mydsl movesound toggle", desc = "Flip the current setting.", example = "mydsl movesound toggle" },
+      { cmd = "mydsl movesound status", desc = "Show enabled state, current mode, and the data it's read from.", example = "mydsl movesound status" },
     },
   },
 

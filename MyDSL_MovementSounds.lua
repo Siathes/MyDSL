@@ -49,9 +49,13 @@ local function truthy(v)
 end
 
 local function dataGet(section, field)
-  -- Preferred source: your MyDSL DataLayer API.
-  if MyDSL and MyDSL.get then
-    local v = MyDSL.get(section, field)
+  -- Preferred source: MyDSL.State directly. Was the deprecated
+  -- MyDSL.get()/MyDSL.set() API's one remaining real caller project-wide
+  -- (docs/MYDSL_1.0_MODULE_REDESIGN.md #1) -- removed 2026-08-26 per
+  -- Steven ("remove api"); MyDSL.get(section, field) was always exactly
+  -- this same lookup, just through an extra indirection.
+  if MyDSL and MyDSL.State and MyDSL.State[section] then
+    local v = MyDSL.State[section][field]
     if v ~= nil then return v end
   end
 
@@ -196,10 +200,29 @@ function MyDSL.MoveSound.status()
   local sector = dataGet("room", "sector")
 
   cecho("\n<cyan>[MoveSound]")
-  cecho(" mode=<white>" .. MyDSL.MoveSound.mode())
+  cecho(" enabled=<white>" .. tostring(MyDSL.MoveSound.config.enabled))
+  cecho(" <cyan>mode=<white>" .. MyDSL.MoveSound.mode())
   cecho(" <cyan>riding=<white>" .. tostring(dataGet("char", "is_riding")))
   cecho(" <cyan>flying=<white>" .. tostring(dataGet("char", "is_flying")))
   cecho(" <cyan>sector=<white>" .. tostring(sector) .. "\n")
 end
+
+-- setEnabled()/toggle() -- real gap fix, 2026-08-26, per Steven ("yes add
+-- toggle"): config.enabled was checked at the top of play() but nothing
+-- anywhere ever let a player actually set it false -- confirmed zero
+-- aliases in this whole file (docs/MYDSL_1.0_MODULE_REDESIGN.md #14).
+function MyDSL.MoveSound.setEnabled(enabled)
+  MyDSL.MoveSound.config.enabled = enabled == true
+  cecho("\n<cyan>[MoveSound]<reset> enabled=" .. tostring(MyDSL.MoveSound.config.enabled) .. "\n")
+end
+
+function MyDSL.MoveSound.toggle()
+  MyDSL.MoveSound.setEnabled(not MyDSL.MoveSound.config.enabled)
+end
+
+tempAlias([[^mydsl movesound on$]],     [[MyDSL.MoveSound.setEnabled(true)]])
+tempAlias([[^mydsl movesound off$]],    [[MyDSL.MoveSound.setEnabled(false)]])
+tempAlias([[^mydsl movesound toggle$]], [[MyDSL.MoveSound.toggle()]])
+tempAlias([[^mydsl movesound status$]], [[MyDSL.MoveSound.status()]])
 
 cecho("\n<green>[MyDSL] Movement sounds loaded.\n")

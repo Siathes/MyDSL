@@ -27,8 +27,16 @@ MyDSL.CharacterAssist  = MyDSL.CharacterAssist  or {}
 local CA = MyDSL.CharacterAssist
 
 CA.config = CA.config or {
-  tilde      = true,   -- send "~" (clear queue) before rearm/standup, matches PNP
-  auto_wimpy = true,   -- restore wimpy after a spellup run, matches PNP
+  tilde        = true,   -- send "~" (clear queue) before rearm/standup, matches PNP
+  auto_wimpy   = true,   -- restore wimpy after a spellup run, matches PNP
+  -- Gates ONLY the passive disarm/knockdown triggers below (auto-rearm,
+  -- auto-standup) -- never the always-available manual "rearm" alias,
+  -- which stays an explicit player action regardless of this flag.
+  -- Added 2026-08-26 per Steven ("make it toggle just in case") --
+  -- docs/MYDSL_1.0_MODULE_REDESIGN.md #27 flagged these as the one
+  -- always-on-with-no-toggle case left after the 1.0 mandate. Default
+  -- true preserves the original 2026-07-07 sign-off behavior unchanged.
+  auto_recover = true,
 }
 
 CA._triggers = CA._triggers or {}
@@ -386,19 +394,19 @@ end
 -- MUD text), the comma is likely a PNP-source typo -- made optional
 -- rather than guessing one way, same tolerant-of-both approach already
 -- used for the Roller bracket-format ambiguity.
-CA._triggers.disarm1 = tempRegexTrigger([[^.+ DISARMS you and sends your weapon flying!]], function() MyDSL.CharacterAssist.rearm("combat") end)
-CA._triggers.disarm2 = tempRegexTrigger([[^.+ grabs your weapon,? and sends it flying!]], function() MyDSL.CharacterAssist.rearm("combat") end)
-CA._triggers.disarm3 = tempRegexTrigger([[^.+ controls your weapon,? and sends it flying!]], function() MyDSL.CharacterAssist.rearm("combat") end)
-CA._triggers.shieldDisarm1 = tempRegexTrigger([[^.+ knocked loose from their hands by .*]], function() MyDSL.CharacterAssist.rearmShield("combat") end)
-CA._triggers.shieldDisarm2 = tempRegexTrigger([[^.+ sends your shield flying with a powerful kick!]], function() MyDSL.CharacterAssist.rearmShield("combat") end)
-CA._triggers.shieldDisarm3 = tempRegexTrigger([[^.+ swings \w+ weapon viciously at your shield and sends it flying!]], function() MyDSL.CharacterAssist.rearmShield("combat") end)
+CA._triggers.disarm1 = tempRegexTrigger([[^.+ DISARMS you and sends your weapon flying!]], function() if CA.config.auto_recover then MyDSL.CharacterAssist.rearm("combat") end end)
+CA._triggers.disarm2 = tempRegexTrigger([[^.+ grabs your weapon,? and sends it flying!]], function() if CA.config.auto_recover then MyDSL.CharacterAssist.rearm("combat") end end)
+CA._triggers.disarm3 = tempRegexTrigger([[^.+ controls your weapon,? and sends it flying!]], function() if CA.config.auto_recover then MyDSL.CharacterAssist.rearm("combat") end end)
+CA._triggers.shieldDisarm1 = tempRegexTrigger([[^.+ knocked loose from their hands by .*]], function() if CA.config.auto_recover then MyDSL.CharacterAssist.rearmShield("combat") end end)
+CA._triggers.shieldDisarm2 = tempRegexTrigger([[^.+ sends your shield flying with a powerful kick!]], function() if CA.config.auto_recover then MyDSL.CharacterAssist.rearmShield("combat") end end)
+CA._triggers.shieldDisarm3 = tempRegexTrigger([[^.+ swings \w+ weapon viciously at your shield and sends it flying!]], function() if CA.config.auto_recover then MyDSL.CharacterAssist.rearmShield("combat") end end)
 
 -- Light tracking, feeds the vision check above.
 CA._triggers.holdLight = tempRegexTrigger([[^You light (.*) and hold it.$]], function() CA._haveLight = true end)
 CA._triggers.lightOut = tempRegexTrigger([[^[\w\s]+ flickers and goes out.$]], function() CA._haveLight = false end)
 
 -- Standup
-CA._triggers.knockdown = tempRegexTrigger([[^.+ knocking you senseless.$]], function() MyDSL.CharacterAssist.standup() end)
+CA._triggers.knockdown = tempRegexTrigger([[^.+ knocking you senseless.$]], function() if CA.config.auto_recover then MyDSL.CharacterAssist.standup() end end)
 -- Second, distinct knockdown form -- found 2026-07-08, per Steven ("stand
 -- does not work with character assist after being knocked down"): real
 -- text confirmed from logs is "<actor> bumps into you causing you to lose
@@ -408,7 +416,27 @@ CA._triggers.knockdown = tempRegexTrigger([[^.+ knocking you senseless.$]], func
 -- is almost certainly ambiguous with deliberately typing "sit" to rest
 -- (standard DIKU/ROM convention), which must never be auto-stood back up;
 -- the bump line is unambiguously involuntary.
-CA._triggers.knockdownBump = tempRegexTrigger([[^.+ bumps into you causing you to lose your balance.$]], function() MyDSL.CharacterAssist.standup() end)
+CA._triggers.knockdownBump = tempRegexTrigger([[^.+ bumps into you causing you to lose your balance.$]], function() if CA.config.auto_recover then MyDSL.CharacterAssist.standup() end end)
+
+-- setAutoRecover()/toggleAutoRecover() -- see CA.config.auto_recover's
+-- own comment above. Only gates the 8 passive triggers above (checked
+-- inline, so disabling is genuinely zero-cost on the Lua side even
+-- though the trigger match itself still runs -- matching this project's
+-- decided minimum bar; a full disableTrigger()-based version would also
+-- skip the regex match itself but isn't needed for a "just in case"
+-- safety toggle on a rare event).
+function CA.setAutoRecover(enabled)
+  CA.config.auto_recover = enabled == true
+  cecho("\n<cyan>[CharacterAssist]<reset> auto_recover=" .. tostring(CA.config.auto_recover) .. "\n")
+end
+
+function CA.toggleAutoRecover()
+  CA.setAutoRecover(not CA.config.auto_recover)
+end
+
+CA._aliases.autoRecoverOn     = tempAlias([[^mydsl charassist auto on$]],     [[MyDSL.CharacterAssist.setAutoRecover(true)]])
+CA._aliases.autoRecoverOff    = tempAlias([[^mydsl charassist auto off$]],    [[MyDSL.CharacterAssist.setAutoRecover(false)]])
+CA._aliases.autoRecoverToggle = tempAlias([[^mydsl charassist auto toggle$]], [[MyDSL.CharacterAssist.toggleAutoRecover()]])
 
 -- Spellup outcome triggers -- disabled by default, only enabled for the
 -- duration of an active spellup run (see startSpellup()/stop() above).
