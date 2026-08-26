@@ -31,14 +31,20 @@ left before "feature complete" 1.0. This section stays as the detailed
 punch list; the roadmap doc is where to look first for "how close are
 we" without re-reading all of this.
 
-- [x] **Visual pass v2 done 2026-08-26, needs Steven's live confirmation**
-      — all 15 UserWindows now have a real short display name plus
-      accent coloring on the native title bar ("One Bar, Renamed and
-      Colored," the corrected final design after the first build showed
-      two stacked title elements live). Full detail in
-      `docs/CHANGELOG.md`. This is the second live check on this exact
-      feature — confirm the fix actually looks like one clean bar per
-      window before considering it closed.
+- [x] **Visual pass v2, third round 2026-08-26, needs Steven's live
+      confirmation** — the one-bar structural fix is confirmed genuinely
+      working (Steven's clean-reload test: all 15 windows show exactly
+      one native title, the earlier "two bars" report was a stale
+      profile, not a regression). Two more real bugs found and fixed on
+      top of that: `titleBgColor`'s alpha was too low across 4 of 5
+      presets to read as color on a real native title bar (raised
+      a=15-26 → a=90); `MyDSL_AffectsView.lua`'s actual default title
+      was still hardcoded `"-= Affects =-"` in three places the first
+      correction pass missed. Location/Portrait's dash-style titles seen
+      live are a stale saved preference, not a bug — clear with
+      `mydsl location title Location`/`mydsl portrait title Portrait`.
+      Full detail in `docs/CHANGELOG.md`. Confirm the color is now
+      actually visible and all three read consistently before closing.
 - [ ] **New, separate, not yet started: native dock-tab-group label
       styling.** Steven asked whether the small tabs shown when
       multiple windows share a dock side can also be colored to match.

@@ -35,7 +35,12 @@ local function contains(haystack, needle)
   return haystack:find(needle, 1, true) ~= nil
 end
 
--- ---- refined_convergence: titleColor/titleBgColor = 255,209,102 (a=255/15) ----
+-- ---- refined_convergence: titleColor/titleBgColor = 255,209,102 (a=255/90) ----
+-- titleBgColor alpha raised 2026-08-26 (was a=15, ~6%, invisible on a
+-- real native title bar per Steven's own screenshots) -- see
+-- MyDSL_ThemeEngine.lua's comment on refined_convergence's titleBgColor
+-- for the full root-cause writeup (tuned for a since-removed header
+-- Label's wash effect, never re-tuned for direct native-bar use).
 
 MyDSL.Theme.setTheme("refined_convergence")
 
@@ -44,30 +49,31 @@ check("titleBarCSS uses a QDockWidget::title selector, not bare declarations",
   contains(titleBar, "QDockWidget::title"))
 check("titleBarCSS text color is titleColor at full alpha (255,209,102)",
   contains(titleBar, "color: rgba(255,209,102,1.00)"))
-check("titleBarCSS background is titleBgColor at its own alpha (255,209,102 @ 15/255)",
-  contains(titleBar, "background-color: rgba(255,209,102,0.06)"))
+check("titleBarCSS background is titleBgColor at its own, now-visible alpha (255,209,102 @ 90/255)",
+  contains(titleBar, "background-color: rgba(255,209,102,0.35)"))
 check("titleBarCSS border-bottom uses the window's own borderColor (33,44,48 @ 200/255)",
   contains(titleBar, "rgba(33,44,48,0.78)"))
 
--- ---- terminal_purist: titleBgColor is fully transparent (0,0,0,0) ----------
+-- ---- terminal_purist: titleBgColor is fully transparent (0,0,0,0), --------
+-- ---- DELIBERATELY, per this preset's own minimalist design ----------------
 
 MyDSL.Theme.setTheme("terminal_purist")
 
 local titleBar2 = MyDSL.Theme.titleBarCSS("MyDSL_Affects")
 check("titleBarCSS text color for terminal_purist is its titleColor (201,162,39)",
   contains(titleBar2, "color: rgba(201,162,39,1.00)"))
-check("titleBarCSS background for terminal_purist is fully transparent (titleBgColor a=0)",
+check("titleBarCSS background for terminal_purist is fully transparent (titleBgColor a=0, intentional)",
   contains(titleBar2, "background-color: rgba(0,0,0,0.00)"))
 
--- ---- obsidian_ember: titleBgColor = 230,126,60 @ 20/255 --------------------
+-- ---- obsidian_ember: titleBgColor = 230,126,60 @ 90/255 --------------------
 
 MyDSL.Theme.setTheme("obsidian_ember")
 
 local titleBar3 = MyDSL.Theme.titleBarCSS("MyDSL_Scan")
 check("titleBarCSS text color for obsidian_ember is its titleColor (230,126,60)",
   contains(titleBar3, "color: rgba(230,126,60,1.00)"))
-check("titleBarCSS background for obsidian_ember is titleBgColor (230,126,60 @ 20/255)",
-  contains(titleBar3, "background-color: rgba(230,126,60,0.08)"))
+check("titleBarCSS background for obsidian_ember is titleBgColor, now-visible (230,126,60 @ 90/255)",
+  contains(titleBar3, "background-color: rgba(230,126,60,0.35)"))
 
 -- ---- headerLabelCSS is gone -- one bar, not two ----------------------------
 

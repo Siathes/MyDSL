@@ -55,7 +55,7 @@ A.version = "AffectsView v4C16 QuietBoot"
 local DEFAULT_CONFIG = {
   windowId = "Affects",
   windowName = "MyDSL_Affects",
-  title = "-= Affects =-",
+  title = "Affects",
   fontSize = 8,
   columns = 2,
   columnWidth = 28,
@@ -198,7 +198,7 @@ local function serializeProfile()
   table.insert(out, string.format("  savedAt = %q,\n", os.date("%Y-%m-%d %H:%M:%S")))
 
   table.insert(out, "  settings = {\n")
-  table.insert(out, string.format("    title = %q,\n", tostring(A.config.title or "-= Affects =-")))
+  table.insert(out, string.format("    title = %q,\n", tostring(A.config.title or "Affects")))
   table.insert(out, string.format("    fontSize = %d,\n", tonumber(A.config.fontSize) or 8))
   table.insert(out, string.format("    columns = %d,\n", tonumber(A.config.columns) or 2))
   table.insert(out, string.format("    columnWidth = %d,\n", tonumber(A.config.columnWidth) or 28))
@@ -981,7 +981,7 @@ function A.clear() A.clearList(); A.display(); A.save() end
 -- passed it anyway.
 function A.setTitle(title, silent)
   title = trim(title or "")
-  if title == "" then title = "-= Affects =-" end
+  if title == "" then title = "Affects" end
 
   local changed = A.config.title ~= title
   A.config.title = title

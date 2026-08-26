@@ -87,7 +87,16 @@ MyDSL.Theme.presets = MyDSL.Theme.presets or {
     borderSize     = 1,
     radius         = 8,
     titleColor     = { r = 255, g = 209, b = 102, a = 255 },
-    titleBgColor   = { r = 255, g = 209, b = 102, a =  15 },
+    -- titleBgColor alpha raised 2026-08-26 (was a=15, ~6%) -- real bug
+    -- found live by Claude Desktop after the visual-pass-v2 rename+color
+    -- fix shipped with no visible color: this value was tuned for the
+    -- first build's SEPARATE header-Label wash effect (a full extra
+    -- widget layered under a mostly-transparent overlay reads fine at low
+    -- alpha), never re-tuned once that Label was dropped and this same
+    -- value got reused directly as a native QDockWidget::title{}
+    -- background -- which needs meaningfully more opacity to read as
+    -- "colored" at all against Qt's own title-bar rendering.
+    titleBgColor   = { r = 255, g = 209, b = 102, a =  90 },
     highlightColor = { r = 255, g = 209, b = 102, a = 255 },
     dimColor       = { r = 139, g = 150, b = 155, a = 255 },
     warnColor      = { r = 226, g = 102, b =  95, a = 255 },
@@ -107,6 +116,12 @@ MyDSL.Theme.presets = MyDSL.Theme.presets or {
     borderSize     = 1,
     radius         = 0,
     titleColor     = { r = 201, g = 162, b =  39, a = 255 },
+    -- Deliberately left fully transparent (a=0), NOT the same bug as the
+    -- other 4 presets' titleBgColor -- this preset's own design comment
+    -- above says "the only color in the whole UI is the text itself...
+    -- plus a single muted amber for window titles," so its native title
+    -- bar correctly shows colored TEXT on a transparent background, no
+    -- background wash at all. Confirmed intentional, not re-tuned.
     titleBgColor   = { r =   0, g =   0, b =   0, a =   0 },
     highlightColor = { r = 255, g = 255, b =  85, a = 255 },
     dimColor       = { r = 110, g = 110, b = 102, a = 255 },
@@ -127,7 +142,7 @@ MyDSL.Theme.presets = MyDSL.Theme.presets or {
     borderSize     = 1,
     radius         = 10,
     titleColor     = { r = 127, g = 214, b = 204, a = 255 },
-    titleBgColor   = { r =  72, g = 184, b = 174, a =  26 },
+    titleBgColor   = { r =  72, g = 184, b = 174, a =  90 }, -- alpha raised 2026-08-26, see refined_convergence's comment above
     highlightColor = { r = 240, g = 198, b = 116, a = 255 },
     dimColor       = { r = 136, g = 144, b = 160, a = 255 },
     warnColor      = { r = 239, g = 138, b = 137, a = 255 },
@@ -140,22 +155,22 @@ MyDSL.Theme.presets = MyDSL.Theme.presets or {
       combat    = {
         borderColor  = { r = 130, g =  58, b =  57, a = 195 },
         titleColor   = { r = 239, g = 138, b = 137, a = 255 },
-        titleBgColor = { r = 217, g =  96, b =  95, a =  26 },
+        titleBgColor = { r = 217, g =  96, b =  95, a =  90 },
       },
       status    = {
         borderColor  = { r =  43, g = 110, b = 104, a = 195 },
         titleColor   = { r = 127, g = 214, b = 204, a = 255 },
-        titleBgColor = { r =  72, g = 184, b = 174, a =  26 },
+        titleBgColor = { r =  72, g = 184, b = 174, a =  90 },
       },
       reference = {
         borderColor  = { r =  93, g =  76, b = 134, a = 195 },
         titleColor   = { r = 188, g = 170, b = 240, a = 255 },
-        titleBgColor = { r = 155, g = 127, b = 224, a =  26 },
+        titleBgColor = { r = 155, g = 127, b = 224, a =  90 },
       },
       social    = {
         borderColor  = { r =  64, g = 124, b =  76, a = 195 },
         titleColor   = { r = 140, g = 224, b = 156, a = 255 },
-        titleBgColor = { r = 107, g = 207, b = 127, a =  26 },
+        titleBgColor = { r = 107, g = 207, b = 127, a =  90 },
       },
     },
   },
@@ -174,7 +189,7 @@ MyDSL.Theme.presets = MyDSL.Theme.presets or {
     borderSize     = 1,
     radius         = 4,
     titleColor     = { r = 230, g = 126, b =  60, a = 255 },
-    titleBgColor   = { r = 230, g = 126, b =  60, a =  20 },
+    titleBgColor   = { r = 230, g = 126, b =  60, a =  90 }, -- alpha raised 2026-08-26, see refined_convergence's comment above
     highlightColor = { r = 230, g = 126, b =  60, a = 255 },
     dimColor       = { r = 120, g = 115, b = 108, a = 255 },
     warnColor      = { r = 214, g =  69, b =  65, a = 255 },
@@ -194,7 +209,7 @@ MyDSL.Theme.presets = MyDSL.Theme.presets or {
     borderSize     = 1,
     radius         = 8,
     titleColor     = { r = 185, g = 150, b = 235, a = 255 },
-    titleBgColor   = { r =  90, g =  70, b = 140, a =  25 },
+    titleBgColor   = { r =  90, g =  70, b = 140, a =  90 }, -- alpha raised 2026-08-26, see refined_convergence's comment above
     highlightColor = { r = 200, g = 160, b = 255, a = 255 },
     dimColor       = { r = 130, g = 120, b = 150, a = 255 },
     warnColor      = { r = 230, g =  90, b = 110, a = 255 },
