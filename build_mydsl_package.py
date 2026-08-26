@@ -198,6 +198,52 @@ def get_native_trigger_groups(native_source):
     return [found[name] for name in sorted(found)]
 
 
+def flatten_self_nested_wrapper(elem, tag, name):
+    """Real bug found live 2026-08-26 (see docs/MUDLET_PACKAGING_REFERENCE.md):
+    repeatedly reinstalling MyDSL_Full.mpackage without uninstalling the old
+    copy first causes Mudlet's own XML importer (confirmed directly against
+    Mudlet's source, XMLimport.cpp -- it has zero name-based dedup on import)
+    to nest a fresh same-named wrapper INSIDE the previous one every time.
+    Found 16 levels deep for the KeyGroup specifically in the live profile.
+
+    `elem` is the OUTERMOST matched group. If it has exactly one child, that
+    child is itself a `tag` element named `name`, descend into it -- repeat
+    until reaching a level that either has real content (0, 2+ children, or
+    a child that isn't just another same-named wrapper) or genuinely has
+    nothing left. Returns the innermost REAL group, so a build always emits
+    exactly one clean wrapper regardless of how corrupted the live snapshot
+    already is -- self-healing, not just a one-time manual cleanup."""
+    # A real KeyGroup/ScriptGroup/TriggerGroup element always carries several
+    # metadata child tags (name, packageName, script, command, keyCode,
+    # keyModifier, eventHandlerList, ...) alongside its actual content --
+    # only the content tags (the group tag itself, plus its matching leaf
+    # item tag) count towards "how many real sub-items does this hold."
+    leaf_tag = {"KeyGroup": "Key", "ScriptGroup": "Script", "TriggerGroup": "Trigger"}.get(tag)
+    content_tags = {tag, leaf_tag} if leaf_tag else {tag}
+
+    seen = 0
+    while True:
+        content_children = [c for c in elem if c.tag in content_tags]
+        if len(content_children) != 1:
+            return elem
+        only = content_children[0]
+        if only.tag != tag:
+            return elem
+        nm = find_child(only, "name")
+        if nm is None or nm.text != name:
+            return elem
+        elem = only
+        seen += 1
+        if seen > 100:
+            # Sanity backstop -- a real profile should never nest this deep;
+            # something else is wrong if this trips, don't loop forever.
+            raise SystemExit(
+                f"flatten_self_nested_wrapper(): unwrapped {seen} levels of "
+                f"'{name}' {tag} without finding real content -- stopping "
+                "rather than looping forever. Inspect the native source by hand."
+            )
+
+
 def get_native_key_group(native_source):
     tree = ET.parse(native_source)
     kp = find_child(tree.getroot(), "KeyPackage")
@@ -209,7 +255,11 @@ def get_native_key_group(native_source):
         raise SystemExit(
             f"{native_source}: no KeyGroup with packageName={NATIVE_KEY_PACKAGE_NAME} found."
         )
-    return group
+    flattened = flatten_self_nested_wrapper(group, "KeyGroup", NATIVE_KEY_PACKAGE_NAME)
+    if flattened is not group:
+        print(f"NOTE: flattened a self-nested '{NATIVE_KEY_PACKAGE_NAME}' KeyGroup "
+              "wrapper down to its real content -- see docs/MUDLET_PACKAGING_REFERENCE.md.")
+    return flattened
 
 
 def build_script_element_xml(name, raw_lua_text):

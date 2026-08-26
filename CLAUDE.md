@@ -60,6 +60,14 @@ only hold what git history and the code can't already tell you.** That's:
   first when picking the 1.0 effort back up — it says what to do next
   without re-deriving it from the audit/redesign docs each time. Update
   it as phases close; don't let it silently go stale.
+- `docs/MUDLET_PACKAGING_REFERENCE.md` — Mudlet's confirmed packaging
+  behavior (read directly from its C++ source, not guessed) plus the one
+  governing rule this project failed to apply to its own delivery
+  workflow: **uninstall the old `MyDSL_Full` package before installing a
+  new one, every time** — reinstalling on top silently nests content
+  (confirmed live 2026-08-26: Keys had accumulated 16 levels of
+  self-nested wrapper folders). **Read this before every
+  `build_mydsl_package.py` run and every package delivery to Steven.**
 - The actual `.lua` files — how something currently works. Always read
   these directly; there is no separate spec describing them anymore.
 - `notes_utf8.txt` (profile root) — Steven's informal scratch/question
@@ -88,6 +96,11 @@ only hold what git history and the code can't already tell you.** That's:
    other side's section, act on anything real, and overwrite your own
    section with what you did — this file is a mailbox, not a log; don't
    let it grow the way `docs/TODO.md` twice had to be pruned for.
+6. Read `docs/MUDLET_PACKAGING_REFERENCE.md` before running
+   `build_mydsl_package.py` or delivering a package to Steven — every
+   time, not just when something looks wrong (added 2026-08-26 after the
+   16-deep KeyGroup nesting incident; this is Steven's own explicit ask
+   for "somewhere you read every time you make a package").
 
 ### Housekeeping routine (adopted 2026-08-23)
 No durable cron/scheduled-agent mechanism fits this project well — cloud

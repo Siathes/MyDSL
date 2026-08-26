@@ -71,12 +71,26 @@ we" without re-reading all of this.
       command. All 17 windows now have consistent title/show-hide/font
       parity except `MyDSL_MoonWeather.lua` (documented exception — no
       UI surface to show a title on a Container widget with no header
-      label). Full detail in `docs/CHANGELOG.md`. **Next step, per
-      Steven's own sequencing**: build the actual feature matrix
-      document (what's there, what connects, whether it all works
-      properly) — this sweep's table was the seed, not the final
-      artifact — then the module-by-module feature pass, then
-      finalize code.
+      label). Full detail in `docs/CHANGELOG.md`.
+- [x] **Packaging bug fixed 2026-08-26, per Steven's screenshot of a
+      16-deep nested `MyDSL_Full` KeyGroup chain in the Key Bindings
+      editor.** Root cause confirmed directly against Mudlet's own C++
+      source: reinstalling `MyDSL_Full.mpackage` without uninstalling
+      the previous copy first lets the importer nest new content under
+      whatever's already there. Documented in new
+      `docs/MUDLET_PACKAGING_REFERENCE.md` (read before every package
+      build/delivery — referenced from `CLAUDE.md`); `build_mydsl_
+      package.py` now self-heals via `flatten_self_nested_wrapper()`,
+      verified against the real corrupted live file and a new
+      `test/test_build_mydsl_package_flatten.py`. Full detail in
+      `docs/CHANGELOG.md`. **This fixes future builds only — Steven
+      still needs to uninstall the old `MyDSL_Full` package in Mudlet
+      before installing the freshly-rebuilt one**, or the live 16-deep
+      nesting won't actually clear. **Next step, per Steven's own
+      sequencing**: build the actual feature matrix document (what's
+      there, what connects, whether it all works properly) — this
+      sweep's table was the seed, not the final artifact — then the
+      module-by-module feature pass, then finalize code.
 
 **Formalized 2026-08-25 into `docs/OPTIMIZATION_AUDIT.md`** — a real,
 per-file inventory (what it does / public surface / depends-on / called-
