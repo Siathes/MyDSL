@@ -1115,6 +1115,11 @@ function L.hide(save)
   if save ~= false then L.saveSettings() end
 end
 
+-- Internal-only as of 2026-08-26 (command-parity sweep) -- the
+-- standalone "mydsl live rebuild" alias was removed (no evidence it
+-- was ever needed on its own), but "mydsl live reload settings" and
+-- "mydsl live layout" genuinely need this to apply a freshly-loaded
+-- font/layout change to the live UI, so the function itself stays.
 function L.rebuild()
   if L.ui and L.ui.win then pcall(function() L.ui.win:hide() end) end
   L.ui = {}
@@ -1288,7 +1293,6 @@ function L.installAliases()
   tempAlias([[^mydsl live status$]], [[MyDSL.LiveView.status()]])
   tempAlias([[^mydsl live show$]], [[MyDSL.LiveView.show()]])
   tempAlias([[^mydsl live hide$]], [[MyDSL.LiveView.hide()]])
-  tempAlias([[^mydsl live rebuild$]], [[MyDSL.LiveView.rebuild()]])
   tempAlias([[^mydsl live refresh$]], [[MyDSL.LiveView.render("manual")]])
   tempAlias([[^mydsl live save$]], [[MyDSL.LiveView.saveSettings(); MyDSL.LiveView.status()]])
   tempAlias([[^mydsl live reload settings$]], [[MyDSL.LiveView.loadSettings(); MyDSL.LiveView.rebuild(); MyDSL.LiveView.status()]])

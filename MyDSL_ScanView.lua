@@ -275,13 +275,6 @@ end
 function SV.show() MyDSL.Windows.show(SCAN_WIN) end
 function SV.hide() MyDSL.Windows.hide(SCAN_WIN) end
 
-function SV.rebuild()
-  if SV.ui.scanConsole then pcall(function() SV.ui.scanConsole:hide() end) end
-  SV.ui.scanConsole = nil
-  SV.ensureUI()
-  SV.render()
-end
-
 function SV.setFont(size)
   size = tonumber(size)
   if not size then echo("usage: mydsl scan font <size>\n"); return end
@@ -294,13 +287,6 @@ end
 
 function SV.showRightHere() MyDSL.Windows.show(RH_WIN) end
 function SV.hideRightHere() MyDSL.Windows.hide(RH_WIN) end
-
-function SV.rebuildRightHere()
-  if SV._mc.rightHere then pcall(function() SV._mc.rightHere:hide() end) end
-  SV._mc.rightHere = nil
-  SV.ensureUI()
-  SV.render()
-end
 
 function SV.setRightHereFont(size)
   size = tonumber(size)
@@ -328,17 +314,17 @@ tempAlias("^scan gag$",
 tempAlias("^scan ungag$",
   "if MyDSL and MyDSL.ScanView then MyDSL.ScanView.setGag(false) end")
 
--- status/show/hide/rebuild/font -- kept under the "mydsl" prefix (not
--- bare "scan ...") since bare "scan" is real DSL vocabulary and these
--- aren't part of the 2026-07-11 command-surface retrofit's scope.
+-- status/show/hide/font -- kept under the "mydsl" prefix (not bare
+-- "scan ...") since bare "scan" is real DSL vocabulary and these aren't
+-- part of the 2026-07-11 command-surface retrofit's scope. "rebuild"
+-- removed 2026-08-26 (command-parity sweep) -- no evidence it was ever
+-- needed, and show/hide/status/font already cover every real use.
 tempAlias("^mydsl scan status$",
   "if MyDSL and MyDSL.ScanView then MyDSL.ScanView.status() end")
 tempAlias("^mydsl scan show$",
   "if MyDSL and MyDSL.ScanView then MyDSL.ScanView.show() end")
 tempAlias("^mydsl scan hide$",
   "if MyDSL and MyDSL.ScanView then MyDSL.ScanView.hide() end")
-tempAlias("^mydsl scan rebuild$",
-  "if MyDSL and MyDSL.ScanView then MyDSL.ScanView.rebuild() end")
 tempAlias("^mydsl scan font (\\d+)$",
   "if MyDSL and MyDSL.ScanView then MyDSL.ScanView.setFont(matches[2]) end")
 
@@ -348,8 +334,6 @@ tempAlias("^mydsl righthere show$",
   "if MyDSL and MyDSL.ScanView then MyDSL.ScanView.showRightHere() end")
 tempAlias("^mydsl righthere hide$",
   "if MyDSL and MyDSL.ScanView then MyDSL.ScanView.hideRightHere() end")
-tempAlias("^mydsl righthere rebuild$",
-  "if MyDSL and MyDSL.ScanView then MyDSL.ScanView.rebuildRightHere() end")
 tempAlias("^mydsl righthere font (\\d+)$",
   "if MyDSL and MyDSL.ScanView then MyDSL.ScanView.setRightHereFont(matches[2]) end")
 

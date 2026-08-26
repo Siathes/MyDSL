@@ -38,7 +38,6 @@
     mydsl location show
     mydsl location hide
     mydsl location refresh
-    mydsl location rebuild
     mydsl location dir
     mydsl location dir <absolute/path>
     mydsl location probe
@@ -1178,7 +1177,7 @@ function M.help()
 <cyan>[MyDSL.Location commands]<reset>
   mydsl location status|dump
   mydsl location info
-  mydsl location show|hide|refresh|rebuild|reset
+  mydsl location show|hide|refresh
   mydsl location dir [absolute/path]
   mydsl location probe [room name]
   mydsl location name <room name>
@@ -1193,12 +1192,6 @@ function M.help()
 ]])
 end
 
-function M.rebuild()
-  if M.ui and M.ui.win then pcall(function() M.ui.win:hide() end) end
-  M.ui = nil
-  M.ensureUI()
-  M.refresh("rebuild")
-end
 
 function M.onRoomData()
   if M.config.enabled then M.refresh("gmcp.room_data") end
@@ -1235,7 +1228,6 @@ local function locationCommand(rest)
   if rest == "show" then M.show(); M.refresh("show"); return end
   if rest == "hide" then M.hide(); return end
   if rest == "refresh" then M.refresh("manual"); return end
-  if rest == "rebuild" or rest == "reset" then M.rebuild(); return end
   if rest == "dir" then M.setDir(); return end
   local dir = rest:match("^dir%s+(.+)$"); if dir then M.setDir(dir); return end
   if rest == "probe" then M.probe(); return end

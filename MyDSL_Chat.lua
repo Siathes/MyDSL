@@ -3023,9 +3023,6 @@ function C.setFont(size)
   if not C.state or C.state.userCommand == true then ce("font=" .. tostring(size)) end
 end
 
-function C.rebuild()
-  C.createInWindow()
-end
 
 
 function C.echoTest(tab, msg)
@@ -3238,7 +3235,6 @@ function C.installAliases()
   tempAlias([[^mydsl chat wrap (\d+)$]], [[MyDSL.Chat.setWrap(matches[2])]])
   tempAlias([[^mydsl chat timestamp (on|off)$]], [[MyDSL.Chat.setTimestamp(matches[2])]])
   tempAlias([[^mydsl chat timestamp format (.+)$]], [[MyDSL.Chat.setTimestampFormat(matches[2])]])
-  tempAlias([[^mydsl chat rebuild$]], [[MyDSL.Chat.rebuild()]])
   tempAlias([[^mydsl chat revive$]], [[MyDSL.Chat.revive("alias")]])
   tempAlias([[^mydsl chat echo (\S+)\s+(.+)$]], [[MyDSL.Chat.echoTest(matches[2], matches[3])]])
   tempAlias([[^mydsl chat echo$]], [[MyDSL.Chat.echoTest("OOC", "EMCO direct echo test.")]])

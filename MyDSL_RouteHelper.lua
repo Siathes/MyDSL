@@ -82,7 +82,11 @@ local function getOrCreateConsole(windowName)
   if entry.console then return entry.console end
 
   if WINDOW_TITLES[windowName] and entry.obj.setTitle then
-    pcall(function() entry.obj:setTitle(WINDOW_TITLES[windowName]) end)
+    -- getTitle() falls back to WINDOW_TITLES' own default when nothing's
+    -- been customized yet -- see "mydsl history/playersnear title <text>"
+    -- below (2026-08-26, command-parity sweep).
+    local title = (MyDSL.Windows.getTitle and MyDSL.Windows.getTitle(windowName, WINDOW_TITLES[windowName])) or WINDOW_TITLES[windowName]
+    pcall(function() entry.obj:setTitle(title) end)
   end
 
   local fontSize = FONT_SIZE_OVERRIDES[windowName] or 9
@@ -238,6 +242,35 @@ end
 function MyDSL.Route.history(line)   MyDSL.Route.to("MyDSL_History",     line) end
 function MyDSL.Route.players(line)   MyDSL.Route.to("MyDSL_PlayersNear", line) end
 
+-- showHistory()/hideHistory() -- real bug found 2026-08-26 (command-
+-- parity sweep): History was one of only 2 windows in the whole addon
+-- with no dedicated way to hide it at all (PlayersNear already has
+-- showPlayersNear()/hidePlayersNear() below).
+function MyDSL.Route.showHistory() MyDSL.Windows.show("MyDSL_History") end
+function MyDSL.Route.hideHistory() MyDSL.Windows.hide("MyDSL_History") end
+
+-- setTitle(windowName, defaultTitle, title) -- shared setter for both
+-- History and PlayersNear, added 2026-08-26 (command-parity sweep, real
+-- gap: neither had title customization, unlike every other window).
+-- Persists via MyDSL.Windows.setTitle()/getTitle() (WindowRegistry) --
+-- these two windows have no settings file of their own to add one to.
+local function setRoutedTitle(windowName, defaultTitle, title)
+  title = tostring(title or ""):match("^%s*(.-)%s*$")
+  if title == "" then title = defaultTitle end
+  MyDSL.Windows.setTitle(windowName, title)
+  local entry = MyDSL.Windows.registry[windowName]
+  if entry and entry.obj and entry.obj.setTitle then
+    pcall(function() entry.obj:setTitle(title) end)
+  end
+  echo(windowName .. " title=" .. title .. "\n")
+end
+
+-- Thin MyDSL.Route.* wrappers -- native alias scripts are separate Lua
+-- chunks with no closure access to this file's locals (same reason
+-- every other module exposes a MyDSL.* wrapper for its alias targets).
+function MyDSL.Route.setHistoryTitle(title) setRoutedTitle("MyDSL_History", "History", title) end
+function MyDSL.Route.setPlayersNearTitle(title) setRoutedTitle("MyDSL_PlayersNear", "Players Near", title) end
+
 -- MyDSL.Route.setHistoryFont(size) + "mydsl history font <n>" -- added
 -- 2026-07-06. Every other routed/module window has its own "mydsl <name>
 -- font <n>" alias (chat/live/tickview all confirmed); History only had a
@@ -266,6 +299,24 @@ if MyDSL._aliases.historyFont then pcall(killAlias, MyDSL._aliases.historyFont) 
 MyDSL._aliases.historyFont = tempAlias(
   "^mydsl history font (\\d+)$",
   [[MyDSL.Route.setHistoryFont(matches[2])]]
+)
+
+-- show/hide/title -- real gap fix, 2026-08-26 (command-parity sweep):
+-- History had no dedicated way to hide it, and no title customization.
+if MyDSL._aliases.historyShow then pcall(killAlias, MyDSL._aliases.historyShow) end
+MyDSL._aliases.historyShow = tempAlias(
+  "^mydsl history show$",
+  [[MyDSL.Route.showHistory()]]
+)
+if MyDSL._aliases.historyHide then pcall(killAlias, MyDSL._aliases.historyHide) end
+MyDSL._aliases.historyHide = tempAlias(
+  "^mydsl history hide$",
+  [[MyDSL.Route.hideHistory()]]
+)
+if MyDSL._aliases.historyTitle then pcall(killAlias, MyDSL._aliases.historyTitle) end
+MyDSL._aliases.historyTitle = tempAlias(
+  "^mydsl history title (.+)$",
+  [[MyDSL.Route.setHistoryTitle(matches[2])]]
 )
 
 -- MyDSL.Route.historyStatus() + "mydsl history status" -- added
@@ -362,6 +413,11 @@ MyDSL._aliases.playersNearFont = tempAlias(
 MyDSL._aliases.playersNearStatus = tempAlias(
   "^mydsl playersnear status$",
   [[MyDSL.Route.playersNearStatus()]]
+)
+-- title -- real gap fix, 2026-08-26 (command-parity sweep).
+MyDSL._aliases.playersNearTitle = tempAlias(
+  "^mydsl playersnear title (.+)$",
+  [[MyDSL.Route.setPlayersNearTitle(matches[2])]]
 )
 
 -- REAL BUG found live 2026-08-26: getOrCreateConsole() (and therefore

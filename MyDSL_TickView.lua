@@ -394,6 +394,11 @@ function V.toggle()
   if shown then V.hide() else V.show() end
 end
 
+-- Internal-only as of 2026-08-26 (command-parity sweep) -- the standalone
+-- "mydsl tickview rebuild" alias was removed (no evidence it was ever
+-- needed on its own), but "mydsl tickview reload settings" genuinely
+-- needs this to apply a freshly-loaded font/config to the live UI, so
+-- the function itself stays.
 function V.rebuild()
   if V.ui and V.ui.win then pcall(function() V.ui.win:hide() end) end
   V.ui = {}
@@ -478,7 +483,6 @@ function V.installAliases()
   tempAlias([[^mydsl tickview show$]], [[MyDSL.TickView.show()]])
   tempAlias([[^mydsl tickview hide$]], [[MyDSL.TickView.hide()]])
   tempAlias([[^toggle ticktimer$]], [[if MyDSL and MyDSL.TickView then MyDSL.TickView.toggle() end]])
-  tempAlias([[^mydsl tickview rebuild$]], [[MyDSL.TickView.rebuild()]])
   tempAlias([[^mydsl tickview font (\d+)$]], [[MyDSL.TickView.setFont(matches[2])]])
   tempAlias([[^mydsl tickview mode (compact|full)$]], [[MyDSL.TickView.setMode(matches[2])]])
   tempAlias([[^mydsl tickview title (.+)$]], [[MyDSL.TickView.setTitle(matches[2])]])

@@ -251,13 +251,6 @@ function CR.status()
   ))
 end
 
-function CR.rebuild()
-  if CR._mc.lore then pcall(function() CR._mc.lore:hide() end) end
-  CR._mc.lore = nil
-  CR.ensureUI()
-  CR.render(nil)
-end
-
 function CR.setFont(size)
   size = tonumber(size)
   if not size then echo("usage: bestiary font <size>\n"); return end
@@ -273,8 +266,10 @@ end
 -- init()  —  safe to re-call on reload
 ------------------------------------------------------------------------
 
--- ensureUI() -- extracted from init() 2026-07-15 so rebuild() can
--- recreate the console without duplicating the whole setup.
+-- ensureUI() -- extracted from init() 2026-07-15 so it could be re-run
+-- without duplicating the whole setup (previously also used by a
+-- rebuild() command, removed 2026-08-26 -- command-parity sweep, no
+-- evidence it was ever needed).
 function CR.ensureUI()
   local crWin = MyDSL.Windows.ensure(CR_WIN)
   -- Visual pass v2 "One Bar, Renamed and Colored" (locked spec,
@@ -356,8 +351,6 @@ function CR.init()
         if MyDSL and MyDSL.CreatureReference then MyDSL.CreatureReference.show() end
       elseif name == "status" then
         if MyDSL and MyDSL.CreatureReference then MyDSL.CreatureReference.status() end
-      elseif name == "rebuild" then
-        if MyDSL and MyDSL.CreatureReference then MyDSL.CreatureReference.rebuild() end
       elseif fontSize then
         if MyDSL and MyDSL.CreatureReference then MyDSL.CreatureReference.setFont(fontSize) end
       else

@@ -794,6 +794,58 @@ function MyDSL.Windows.setFontSize(windowName, size)
   MyDSL.Windows.saveFontSizes()
 end
 
+-- Shared title-text persistence -- added 2026-08-26 (command-parity
+-- sweep, real gap: MyDSL_History/MyDSL_PlayersNear had no title
+-- customization at all, and no settings file of their own to add one
+-- to). Same shape as fontSizes/FONT_FILE above rather than yet another
+-- bespoke per-window settings file -- every other window with a custom
+-- title (Live/Tick/Alterform/Affects/Portrait/Location) still persists
+-- its own separately; this is specifically for windows that don't
+-- already have their own settings file, not a forced migration of those.
+local function TITLE_FILE()
+  return getMudletHomeDir() .. "/MyDSL_windowtitles.lua"
+end
+
+MyDSL.Windows.titles = MyDSL.Windows.titles or {}
+
+function MyDSL.Windows.loadTitles()
+  local f = io.open(TITLE_FILE(), "r")
+  if not f then return end
+  f:close()
+  local loaded = {}
+  local ok = pcall(table.load, TITLE_FILE(), loaded)
+  if ok and next(loaded) then
+    MyDSL.Windows.titles = loaded
+  else
+    debugc("[MyDSL] WindowRegistry: title file exists but failed to load")
+  end
+end
+
+function MyDSL.Windows.saveTitles()
+  local ok = pcall(table.save, TITLE_FILE(), MyDSL.Windows.titles)
+  if not ok then
+    debugc("[MyDSL] WindowRegistry: failed to save titles to " .. TITLE_FILE())
+  end
+  return ok
+end
+
+-- getTitle(windowName, default) -- returns the persisted title, or
+-- `default` if this window has never had one saved.
+function MyDSL.Windows.getTitle(windowName, default)
+  return MyDSL.Windows.titles[windowName] or default
+end
+
+-- setTitle(windowName, title) -- updates the in-memory table AND
+-- persists immediately, same as setFontSize(). Does NOT touch any live
+-- widget -- callers still own applying the title to their own window
+-- object, this only owns remembering the value.
+function MyDSL.Windows.setTitle(windowName, title)
+  MyDSL.Windows.titles[windowName] = title
+  MyDSL.Windows.saveTitles()
+end
+
+MyDSL.Windows.loadTitles()
+
 -- enableAdaptiveWrap(consoleObj) -- shared wrap-enable step, extracted
 -- 2026-07-18 after a /ultrareview found the same enableAutoWrap()-after-
 -- setFontSize()-plus-guard sequence hand-copied into MyDSL_ItemReference.lua,

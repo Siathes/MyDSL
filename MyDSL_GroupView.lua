@@ -399,13 +399,6 @@ end
 function GV.show() MyDSL.Windows.show(GROUP_WIN) end
 function GV.hide() MyDSL.Windows.hide(GROUP_WIN) end
 
-function GV.rebuild()
-  if GV._mc.group then pcall(function() GV._mc.group:hide() end) end
-  GV._mc.group = nil
-  GV.ensureUI()
-  GV.render()
-end
-
 function GV.setFont(size)
   size = tonumber(size)
   if not size then echo("usage: group font <size>\n"); return end
@@ -453,17 +446,17 @@ tempAlias("^group quickset reset$",
     echo("Group quick buttons reset to defaults.\n")
   end]])
 
--- status/show/hide/rebuild/font -- same naming convention as the
--- retrofitted commands above (bare "group ..."), consistent since none
--- of these collide with real DSL vocabulary either.
+-- status/show/hide/font -- same naming convention as the retrofitted
+-- commands above (bare "group ..."), consistent since none of these
+-- collide with real DSL vocabulary either. "rebuild" removed 2026-08-26
+-- (command-parity sweep) -- no evidence it was ever needed, and
+-- show/hide/status/font already cover every real use.
 tempAlias("^group status$",
   "if MyDSL and MyDSL.GroupView then MyDSL.GroupView.status() end")
 tempAlias("^group show$",
   "if MyDSL and MyDSL.GroupView then MyDSL.GroupView.show() end")
 tempAlias("^group hide$",
   "if MyDSL and MyDSL.GroupView then MyDSL.GroupView.hide() end")
-tempAlias("^group rebuild$",
-  "if MyDSL and MyDSL.GroupView then MyDSL.GroupView.rebuild() end")
 tempAlias("^group font (\\d+)$",
   "if MyDSL and MyDSL.GroupView then MyDSL.GroupView.setFont(matches[2]) end")
 

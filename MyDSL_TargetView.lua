@@ -46,6 +46,9 @@ TV.config = TV.config or {
   player_buttons = { "murder", "glance", "rescue", "look", "heal", "flee" },
 }
 TV.config.custom_actions = TV.config.custom_actions or {}
+-- title -- added 2026-08-26 (command-parity sweep, real gap: Focus was
+-- one of 11 windows with no way to customize its title).
+TV.config.title = TV.config.title or "Focus"
 -- fontSize -- moved 2026-07-11 to MyDSL.Windows' shared, PROFILE-level
 -- (not character-bound) font-size store, per Steven ("the fonts should
 -- be saving like theme or window manager whatever tracks that... per
@@ -400,6 +403,9 @@ local function loadConfig()
     if type(data.custom_actions) == "table" then
       TV.config.custom_actions = data.custom_actions
     end
+    if type(data.title) == "string" and data.title ~= "" then
+      TV.config.title = data.title
+    end
   end
   applyCustomActions()
 end
@@ -409,6 +415,7 @@ local function saveConfig()
     mob_buttons    = TV.config.mob_buttons,
     player_buttons = TV.config.player_buttons,
     custom_actions = TV.config.custom_actions,
+    title          = TV.config.title,
   })
 end
 
@@ -845,8 +852,9 @@ function TV.init()
   local targetWin = MyDSL.Windows.ensure(TARGET_WIN)
   -- Fixed 2026-07-11, per Steven ("fix all window titles/names").
   -- Visual pass v2 "One Bar, Renamed and Colored" (locked spec,
-  -- 2026-08-26) -- short, plain name; applyTheme() colors it.
-  if targetWin and targetWin.setTitle then pcall(function() targetWin:setTitle("Focus") end) end
+  -- 2026-08-26) -- applyTheme() colors it; text set again below, after
+  -- loadConfig() runs, in case a saved custom title exists.
+  if targetWin and targetWin.setTitle then pcall(function() targetWin:setTitle(TV.config.title) end) end
 
   -- Layout (percent of the window): header row y=0-10%, button grid two
   -- rows y=11-20% / 21-30%, stats console y=32-100%. Button-grid height
@@ -1271,9 +1279,33 @@ function TV.init()
     [[if MyDSL and MyDSL.TargetView and MyDSL.TargetView.setFont then MyDSL.TargetView.setFont(matches[2]) end]]
   )
 
+  -- "focus show/hide/title" -- real gap found 2026-08-26 (command-
+  -- parity sweep across every window's standard controls): Focus was
+  -- the only window with no way to hide it via any dedicated command at
+  -- all. Same _focusReserved guard as status/font above.
+  TV._focusReserved.show = true
+  TV._aliases.targetShow = tempAlias(
+    "^focus show$",
+    [[if MyDSL and MyDSL.TargetView and MyDSL.TargetView.show then MyDSL.TargetView.show() end]]
+  )
+  TV._focusReserved.hide = true
+  TV._aliases.targetHide = tempAlias(
+    "^focus hide$",
+    [[if MyDSL and MyDSL.TargetView and MyDSL.TargetView.hide then MyDSL.TargetView.hide() end]]
+  )
+  TV._focusReserved.title = true
+  TV._aliases.targetTitle = tempAlias(
+    "^focus title (.+)$",
+    [[if MyDSL and MyDSL.TargetView and MyDSL.TargetView.setTitle then MyDSL.TargetView.setTitle(matches[2]) end]]
+  )
+
   -- Load button-set config from disk (may override defaults). fontSize
   -- is no longer loaded here -- see TV.config.fontSize's own comment.
   loadConfig()
+
+  -- Re-apply the title in case loadConfig() just loaded a saved custom
+  -- one, different from the default already set above.
+  if targetWin and targetWin.setTitle then pcall(function() targetWin:setTitle(TV.config.title) end) end
 
   -- Initial render.
   TV.render()
@@ -1301,6 +1333,28 @@ function TV.setFont(size)
   -- so just calling setFontSize() on a console doesn't touch them.
   TV.render()
   echo("Target font=" .. tostring(size) .. "\n")
+end
+
+-- show()/hide()/setTitle() -- added 2026-08-26 (command-parity sweep,
+-- real gap: Focus had no way to hide it or customize its title via any
+-- dedicated command). Same pattern as every other window (CombatView's
+-- CV.show/hide, AlterformView's F.setTitle).
+function TV.show()
+  if MyDSL.Windows then MyDSL.Windows.show(TARGET_WIN) end
+end
+
+function TV.hide()
+  if MyDSL.Windows then MyDSL.Windows.hide(TARGET_WIN) end
+end
+
+function TV.setTitle(title)
+  title = tostring(title or ""):match("^%s*(.-)%s*$")
+  if title == "" then title = "Focus" end
+  TV.config.title = title
+  local win = MyDSL.Windows and MyDSL.Windows.get and MyDSL.Windows.get(TARGET_WIN)
+  if win and win.setTitle then pcall(function() win:setTitle(title) end) end
+  saveConfig()
+  echo("Focus title=" .. title .. "\n")
 end
 
 function TV.status()

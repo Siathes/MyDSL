@@ -28,7 +28,6 @@
     mydsl portrait show
     mydsl portrait hide
     mydsl portrait refresh
-    mydsl portrait rebuild
     mydsl portrait set <absolute-or-profile-relative-path>
     mydsl portrait clear
     mydsl portrait font <size>
@@ -842,14 +841,6 @@ function P.hide()
   return true
 end
 
-function P.rebuild()
-  pcall(function() if P.label and P.label.hide then P.label:hide() end end)
-  pcall(function() if P.caption and P.caption.hide then P.caption:hide() end end)
-  P.label = nil
-  P.caption = nil
-  P.window = getWindowObject() or P.window
-  return P.refresh("rebuild")
-end
 
 function P.reset()
   for key, id in pairs(P.handlers or {}) do
@@ -934,7 +925,6 @@ function P.installAliases()
   installAlias("show", [[^mydsl portrait show$]], function() P.show() end)
   installAlias("hide", [[^mydsl portrait hide$]], function() P.hide(); ce("hidden") end)
   installAlias("refresh", [[^mydsl portrait refresh$]], function() P.refresh("manual") end)
-  installAlias("rebuild", [[^mydsl portrait rebuild$]], function() P.rebuild(); ce("rebuilt") end)
   installAlias("set", [[^mydsl portrait set\s+(.+)$]], function() P.setPath(matches[2]) end)
   installAlias("clear", [[^mydsl portrait clear$]], function() P.clearPath(); ce("cleared portrait path for " .. tostring(P.getCharName())) end)
   installAlias("font", [[^mydsl portrait font\s+(\d+)$]], function() P.setFont(matches[2]) end)
@@ -948,7 +938,7 @@ function P.installAliases()
   installAlias("title", [[^mydsl portrait title\s+(.+)$]], function() P.setTitle(matches[2]) end)
   installAlias("dump", [[^mydsl portrait dump$]], function() P.dump() end)
   installAlias("help", [[^mydsl portrait(?: help)?$]], function()
-    ce("commands: status | show | hide | refresh | rebuild | set <path> | clear | font <size> | frame on|off | fit stretch|contain|cover (contain maps to cover) | dir [path] | name <character> | probe [character] | missing caption|blank | title <text>")
+    ce("commands: status | show | hide | refresh | set <path> | clear | font <size> | frame on|off | fit stretch|contain|cover (contain maps to cover) | dir [path] | name <character> | probe [character] | missing caption|blank | title <text>")
   end)
 
   -- CharPic compatibility wrappers from the old script. These intentionally

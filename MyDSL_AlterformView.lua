@@ -471,6 +471,11 @@ function F.toggle()
   if shown then F.hide() else F.show() end
 end
 
+-- Internal-only as of 2026-08-26 (command-parity sweep) -- the
+-- standalone "mydsl alterform rebuild" alias was removed (no evidence
+-- it was ever needed on its own), but "mydsl alterform reload settings"
+-- genuinely needs this to apply a freshly-loaded font/config to the
+-- live UI, so the function itself stays.
 function F.rebuild()
   if F.ui and F.ui.win then pcall(function() F.ui.win:hide() end) end
   F.ui = {}
@@ -552,7 +557,6 @@ function F.installAliases()
   tempAlias([[^mydsl alterform show$]], [[MyDSL.AlterformView.show()]])
   tempAlias([[^mydsl alterform hide$]], [[MyDSL.AlterformView.hide()]])
   tempAlias([[^toggle alterform$]], [[if MyDSL and MyDSL.AlterformView then MyDSL.AlterformView.toggle() end]])
-  tempAlias([[^mydsl alterform rebuild$]], [[MyDSL.AlterformView.rebuild()]])
   tempAlias([[^mydsl alterform font (\d+)$]], [[MyDSL.AlterformView.setFont(matches[2])]])
   tempAlias([[^mydsl alterform title (.+)$]], [[MyDSL.AlterformView.setTitle(matches[2])]])
   tempAlias([[^mydsl alterform sound (on|off)$]], [[MyDSL.AlterformView.setSoundEnabled(matches[2] == "on")]])

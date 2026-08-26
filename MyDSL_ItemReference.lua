@@ -236,12 +236,6 @@ function IR.status()
   ))
 end
 
-function IR.rebuild()
-  if IR._mc.item then pcall(function() IR._mc.item:hide() end) end
-  IR._mc.item = nil
-  IR.ensureUI()
-  IR.render(nil)
-end
 
 function IR.setFont(size)
   size = tonumber(size)
@@ -320,8 +314,6 @@ function IR.init()
         if MyDSL and MyDSL.ItemReference then MyDSL.ItemReference.show() end
       elseif name == "status" then
         if MyDSL and MyDSL.ItemReference then MyDSL.ItemReference.status() end
-      elseif name == "rebuild" then
-        if MyDSL and MyDSL.ItemReference then MyDSL.ItemReference.rebuild() end
       elseif fontSize then
         if MyDSL and MyDSL.ItemReference then MyDSL.ItemReference.setFont(fontSize) end
       elseif mapGround then

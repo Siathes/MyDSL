@@ -77,7 +77,6 @@ MyDSL.Help.modules = {
     commands = {
       { cmd = "mydsl live show / mydsl live hide", desc = "Show/hide the bar.", example = "mydsl live show" },
       { cmd = "mydsl live status", desc = "Report current config/state.", example = "mydsl live status" },
-      { cmd = "mydsl live rebuild", desc = "Recreate the window from scratch.", example = "mydsl live rebuild" },
       { cmd = "mydsl live refresh", desc = "Force a redraw.", example = "mydsl live refresh" },
       { cmd = "mydsl live save / mydsl live reload settings", desc = "Persist or reload settings from disk.", example = "mydsl live save" },
       { cmd = "mydsl live font|titlefont|barfont|infofont|terrainfont <n>", desc = "Resize a specific text element.", example = "mydsl live barfont 9" },
@@ -90,7 +89,7 @@ MyDSL.Help.modules = {
       .. "('tickview' = the window, 'tick' = the averaging engine underneath it.)",
     commands = {
       { cmd = "toggle ticktimer", desc = "Show/hide the Tick window.", example = "toggle ticktimer" },
-      { cmd = "mydsl tickview status / save / reload settings / show / hide / rebuild", desc = "Standard window controls.", example = "mydsl tickview show" },
+      { cmd = "mydsl tickview status / save / reload settings / show / hide", desc = "Standard window controls.", example = "mydsl tickview show" },
       { cmd = "mydsl tickview font <n>", desc = "Set the window's font size.", example = "mydsl tickview font 9" },
       { cmd = "mydsl tickview mode <compact|full>", desc = "Switch the window's layout.", example = "mydsl tickview mode compact" },
       { cmd = "mydsl tickview title <text>", desc = "Set the window's title text.", example = "mydsl tickview title Tick" },
@@ -105,7 +104,7 @@ MyDSL.Help.modules = {
     summary = "Countdown timer for the alterform (shapeshift) affect, paired with Tick.",
     commands = {
       { cmd = "toggle alterform", desc = "Show/hide the Alterform window.", example = "toggle alterform" },
-      { cmd = "mydsl alterform status / save / reload settings / show / hide / rebuild", desc = "Standard window controls.", example = "mydsl alterform show" },
+      { cmd = "mydsl alterform status / save / reload settings / show / hide", desc = "Standard window controls.", example = "mydsl alterform show" },
       { cmd = "mydsl alterform font <n>", desc = "Set the window's font size.", example = "mydsl alterform font 9" },
       { cmd = "mydsl alterform title <text>", desc = "Set the window's title text.", example = "mydsl alterform title Alterform" },
       { cmd = "mydsl alterform sound <on|off>", desc = "Toggle the warning sound at 10 cycles left and the danger sound at 5 (same thresholds the window's own color already uses). Sound files are optional -- drop your own into Sounds/ as alterform_warning.mp3/alterform_danger.mp3; silently skipped if missing.", example = "mydsl alterform sound off" },
@@ -168,7 +167,7 @@ MyDSL.Help.modules = {
       { cmd = "group gag / group ungag", desc = "Suppress/restore raw group-report text on the main console.", example = "group gag" },
       { cmd = "group quickset <a1> <a2>", desc = "Set the 2 group-panel quick-action buttons.", example = "group quickset heal rescue" },
       { cmd = "group quickset reset", desc = "Reset quick buttons to defaults (heal, rescue).", example = "group quickset reset" },
-      { cmd = "group status / group show / group hide / group rebuild", desc = "Standard window controls.", example = "group show" },
+      { cmd = "group status / group show / group hide", desc = "Standard window controls.", example = "group show" },
       { cmd = "group font <n>", desc = "Set the window's font size.", example = "group font 8" },
     },
   },
@@ -176,7 +175,7 @@ MyDSL.Help.modules = {
     summary = "Passive display of nearby entities from the `scan` command; never sends commands.",
     commands = {
       { cmd = "scan gag / scan ungag", desc = "Suppress/restore raw scan text on the main console.", example = "scan gag" },
-      { cmd = "mydsl scan status / show / hide / rebuild", desc = "Standard window controls.", example = "mydsl scan show" },
+      { cmd = "mydsl scan status / show / hide", desc = "Standard window controls.", example = "mydsl scan show" },
       { cmd = "mydsl scan font <n>", desc = "Set the window's font size.", example = "mydsl scan font 9" },
     },
   },
@@ -184,7 +183,7 @@ MyDSL.Help.modules = {
     summary = "Passive display of entities in your current room (from `look`/`scan`), clickable to set target.",
     commands = {
       { cmd = "mydsl righthere dump", desc = "Diagnostic: dump the raw RightHere state table to the main console.", example = "mydsl righthere dump" },
-      { cmd = "mydsl righthere status / show / hide / rebuild", desc = "Standard window controls.", example = "mydsl righthere show" },
+      { cmd = "mydsl righthere status / show / hide", desc = "Standard window controls.", example = "mydsl righthere show" },
       { cmd = "mydsl righthere font <n>", desc = "Set the window's font size.", example = "mydsl righthere font 9" },
     },
   },
@@ -192,7 +191,7 @@ MyDSL.Help.modules = {
     summary = "Displays a stored creature-lore record; shared across characters, auto-shows on new lore.",
     commands = {
       { cmd = "bestiary <name>", desc = "Look up a creature (sends `creaturelore <name>`) and show the window.", example = "bestiary orc" },
-      { cmd = "bestiary show / bestiary hide / bestiary status / bestiary rebuild", desc = "Standard window controls.", example = "bestiary show" },
+      { cmd = "bestiary show / bestiary hide / bestiary status", desc = "Standard window controls.", example = "bestiary show" },
       { cmd = "bestiary font <n>", desc = "Set the window's font size.", example = "bestiary font 9" },
       { cmd = "mydsl creaturelore import", desc = "One-time bulk import of the shatteredarchive.com bestiary scrape into the lore database.", example = "mydsl creaturelore import" },
     },
@@ -201,7 +200,7 @@ MyDSL.Help.modules = {
     summary = "Displays a stored item-stats record from identify/lore captures; shared across characters, auto-shows on new data.",
     commands = {
       { cmd = "item <name>", desc = "Look up an item (sends `identify <name>`) and show the window.", example = "item mace" },
-      { cmd = "item show / item hide / item status / item rebuild", desc = "Standard window controls.", example = "item show" },
+      { cmd = "item show / item hide / item status", desc = "Standard window controls.", example = "item show" },
       { cmd = "item font <n>", desc = "Set the window's font size.", example = "item font 9" },
       { cmd = "mydsl itemlore import", desc = "One-time bulk import of the shatteredarchive.com item-database scrape into the item DB.", example = "mydsl itemlore import" },
       { cmd = "(hover on equipped items)", desc = "Equipped items in the main console's `eq` output show a hover tooltip with quick stats and a click to open Item Reference -- the original text is never altered.", example = "eq" },
@@ -218,7 +217,7 @@ MyDSL.Help.modules = {
       { cmd = "mydsl chat font <n>", desc = "Set chat text size.", example = "mydsl chat font 10" },
       { cmd = "mydsl chat wrap <auto|on> / wrap <fixed|manual|off> <n> / wrap <n>", desc = "Control word-wrap width.", example = "mydsl chat wrap auto" },
       { cmd = "mydsl chat timestamp <on|off> / timestamp format <text>", desc = "Toggle/format timestamps.", example = "mydsl chat timestamp on" },
-      { cmd = "mydsl chat rebuild / revive", desc = "Recreate the chat window, or recover it if the underlying EMCO object died.", example = "mydsl chat revive" },
+      { cmd = "mydsl chat revive", desc = "Recover the chat window if the underlying EMCO object died.", example = "mydsl chat revive" },
       { cmd = "mydsl chat echo [tab] <text> / test [tab] <text>", desc = "Diagnostic: echo a test line into a tab.", example = "mydsl chat test OOC hello" },
     },
   },
@@ -240,7 +239,7 @@ MyDSL.Help.modules = {
   { key = "portrait", title = "Portrait", category = "Display & Reference", window = "MyDSL_Portrait",
     summary = "Displays a character portrait image, auto-looked-up by character name.",
     commands = {
-      { cmd = "mydsl portrait status / show / hide / refresh / rebuild", desc = "Standard window controls.", example = "mydsl portrait show" },
+      { cmd = "mydsl portrait status / show / hide / refresh", desc = "Standard window controls.", example = "mydsl portrait show" },
       { cmd = "mydsl portrait set <path> / clear", desc = "Force an explicit image, or clear the override.", example = "mydsl portrait set portraits/kien.png" },
       { cmd = "mydsl portrait font <n> / frame <on|off> / fit <stretch|contain|cover|fill>", desc = "Display tuning.", example = "mydsl portrait fit stretch" },
       { cmd = "mydsl portrait dir [path]", desc = "Show or set the portrait image directory.", example = "mydsl portrait dir" },
@@ -257,7 +256,7 @@ MyDSL.Help.modules = {
       { cmd = "mydsl location / mydsl loc / roompic / locpic", desc = "Any of these four names work identically; bare form shows status/help.", example = "roompic show" },
       { cmd = "status / dump", desc = "Show current status.", example = "mydsl location status" },
       { cmd = "info", desc = "Show full room detail: name, area, terrain, exits, description, assigned picture.", example = "mydsl location info" },
-      { cmd = "show / hide / refresh / rebuild / reset", desc = "Standard window controls.", example = "mydsl location show" },
+      { cmd = "show / hide / refresh", desc = "Standard window controls.", example = "mydsl location show" },
       { cmd = "dir [path]", desc = "Show or set the room-picture directory.", example = "mydsl location dir" },
       { cmd = "probe [name]", desc = "Diagnose why a lookup isn't finding an image.", example = "mydsl location probe" },
       { cmd = "name <name>", desc = "Load a specific room's picture by name.", example = "mydsl location name Arkane Square" },
