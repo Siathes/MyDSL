@@ -156,6 +156,22 @@ just the 3 GMCP-paired ones originally singled out).
       `docs/MYDSL_1.0_PHILOSOPHY.md`'s Principle 4 Part A rewritten to
       describe this computed approach (and its real, honest result)
       instead of the hand-written-taxonomy plan it originally described.
+- [x] **Login-trigger plaintext-password issue (Principle 5) — fixed
+      2026-08-26, needs live confirmation.** `MyDSL_Login.lua` + `test/
+      test_login.lua`, built by Claude Desktop without ever viewing the
+      original insecure trigger or Steven's real password (a rebuild of
+      the described behavior, not a port), delivered to Steven directly
+      since their clone can't push, integrated by Claude Code. Full
+      design + verification detail in `docs/CHANGELOG.md`'s 2026-08-26
+      entry — independently re-verified with 3 of Claude Code's own
+      targeted-revert mutations, not just trusted on Claude Desktop's
+      own report. Two real gaps closed during integration that Claude
+      Desktop's clone had no way to catch (no repo write access):
+      `.gitignore` didn't actually cover the real credential filename
+      (the existing bare `login` entry is stale, predates this, matches
+      nothing), and the `dofile()` wiring into `current/*.xml` — done
+      directly this time, not left as a manual GUI step. Package
+      rebuilds clean at 39 scripts.
 - [ ] **Real verification-integrity gap found via an independent Claude
       Desktop review, 2026-08-23 — partially closed, partially still
       open.** Three test files cited BY NAME across multiple

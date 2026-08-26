@@ -18,7 +18,15 @@ profile.ini
 url
 
 # Connection credentials (auto-login password)
+# The bare "login" entry below predates MyDSL_Login.lua (2026-08-26) --
+# a full-repo grep found nothing that ever reads/writes a file by that
+# literal name, so it looks like a planned-but-never-built earlier
+# attempt at this same feature. Left as-is (harmless, doesn't collide
+# with anything real) rather than removed, but it does NOT cover the
+# real credential filename MyDSL_Login.lua actually uses -- that gets
+# its own explicit entry below so this doesn't rely on the stale one.
 login
+MyDSL_login_credentials.lua
 
 # AdjustableContainer position-state cache — auto-generated per window name,
 # not source (confirmed 2026-07-05: contents are just x/y/width/height/hidden
