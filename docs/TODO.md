@@ -115,6 +115,47 @@ just the 3 GMCP-paired ones originally singled out).
       test_theme_customization.lua` (first-ever test coverage for
       `MyDSL_ThemeEngine.lua`), all 26 test suites + `check_known_
       patterns.py --all` re-run clean.
+- [x] **Computed text-coverage tool built and run for real — replaces
+      Principle 4 Part A's original hand-written-taxonomy plan,
+      2026-08-25.** `scripts/check_text_coverage.py`, full detail in
+      `docs/CHANGELOG.md`'s entry (including 4 real methodology bugs
+      found and fixed while building it, 3 caught by its own required
+      self-test before ever touching the corpus). Real findings from
+      the first full run (786 files, 1,319,263 lines, 98.1% raw
+      coverage — not the headline number, see the tool's own docstring):
+      - **The entire login/character-creation flow is completely
+        uncaptured** ("Password:" 6,073×, "Player name:" 298×, the
+        welcome banner, account-menu prompts) — directly relevant to
+        the login-trigger password fix Steven is already doing himself;
+        worth him knowing this exists as real, quantified context, not
+        picked up as a new task.
+      - **One real, isolated actionable gap**: `"Reconnecting your
+        master account due to LD"` (90×) — a disconnect/reconnect
+        notification nothing currently handles. Small, real, undecided
+        whether it's worth building anything for — flagged, not acted
+        on.
+      - Room titles/descriptions appearing bare in the unmatched set
+        are a **tool methodology limit, not a capture gap**: DSL2's own
+        room capture works by looking backward from the `[Exits: ...]`
+        line, not by forward-matching the title line itself, so there's
+        genuinely no pattern for a static-extraction tool to find here
+        — the real capture mechanism already handles this correctly.
+      - Mudlet's own native map-audit diagnostic output (`=== Area
+        issues ===`, box-drawing borders) is correctly out of scope —
+        client tooling output, not DSL game text.
+      - **The already-assumed spell/skill gap was checked, not assumed
+        — and did NOT hold up**: 0 of the top 40 unmatched shapes by
+        frequency are spell/skill-related (24 of 1,475 total distinct
+        shapes are, just none frequent). Recorded honestly as a result
+        that contradicts the prior assumption rather than adjusted to
+        match it. The underlying hypothesis (not every skill/spell has
+        been logged yet) may still be true — this run's corpus may
+        simply not contain enough real instances to surface at high
+        frequency — but it's now an open question pending more corpus,
+        not something to keep building against as settled fact.
+      `docs/MYDSL_1.0_PHILOSOPHY.md`'s Principle 4 Part A rewritten to
+      describe this computed approach (and its real, honest result)
+      instead of the hand-written-taxonomy plan it originally described.
 - [ ] **Real verification-integrity gap found via an independent Claude
       Desktop review, 2026-08-23 — partially closed, partially still
       open.** Three test files cited BY NAME across multiple

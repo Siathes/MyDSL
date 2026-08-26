@@ -126,18 +126,70 @@ just to enforce uniformity for its own sake.
 
 This is the direct mechanism for the Global Mandate above. Two parts:
 
-**Part A — catalog what's already known.** A huge amount of DSL's
-output already has a confirmed home: room names/descriptions/exit
-lines and combat lines go through `MyDSL_DataLayer*.lua`'s triggers;
-`docs/DSL_CommandRef.md` already has confirmed patterns for many
-commands; `docs/templates_by_freq.txt`/`templates_with_examples.txt`
-have a first-pass catalog of message shapes (already flagged elsewhere
-as having real gaps, so not the final word, but a real starting
-inventory). Spells and skills are the biggest known gap — Steven has
-not seen every skill/spell in-game, so the corpus can't be complete
-for those categories yet. Step one of making "unknown" a small,
-tractable category is finishing this catalog as far as the existing
-logs allow, not inventing a detection mechanism first.
+**Part A — computed coverage, not a hand-written taxonomy (revised
+2026-08-25).** The original plan here was a hand-maintained catalog of
+known message shapes. Replaced after research into how real log-parsing
+tools solve this exact problem (Grok, Fluentd, Drain) — all of them
+lean toward a computed, self-updating coverage check over a
+hand-written document, for the same reason this project's own
+`docs/DSL_CommandRef.md` exists instead of a prose contract: a
+hand-written list drifts the moment the real code changes and nothing
+re-checks it. MyDSL has a real advantage those general-purpose tools
+don't: almost all of its text-classification logic already exists as
+literal patterns in the source itself (every `tempRegexTrigger`/
+`tempAlias` PCRE pattern, every native Mudlet Trigger's regex, and the
+internal `:match()`/`:find()` Lua-pattern calls that classify a line
+once already inside a begin/end capture block) — there's real source
+to extract from, not just game text to catalog from scratch.
+
+Built as `scripts/check_text_coverage.py`, same spirit as
+`scripts/check_known_patterns.py`: extracts every real pattern
+currently in use straight from source (extraction, not paraphrase —
+same technique already proven in `test/test_mapper_gmcp_and_
+doorverb.lua`), runs them against the real `log/` corpus using the
+actual engine each dialect really runs on (`perl` for PCRE, `luajit`
+for Lua patterns — conflating the two would silently misreport
+coverage, since this project has hit real bugs from that exact
+confusion before), and reports which **unmatched line shapes repeat
+most often** rather than a bare match percentage (which would never
+hit 100% and shouldn't — plenty of narrative text has no reason to be
+classified at all). A repeating unmatched shape is a real gap; a
+one-off unmatched line is probably just narrative.
+
+Building this caught 3 real methodology bugs before it ever touched
+the real corpus, all found by the tool's own required self-test (one
+known-covered line, one known-uncovered line, checked before trusting
+any output): patterns built via runtime string concatenation
+(`"%f[%a]" .. word .. "%f[%A]"`) were being mis-extracted as just their
+first literal fragment; `string.find(s, pattern, init, true)`'s trailing
+`true` makes the whole call a literal substring search, not a pattern
+match, and was being misclassified as one; and `:gmatch()` calls
+(which tokenize an already-known string, not classify a whole
+incoming line) were inflating coverage with fragments like `"%a+"`
+that trivially "match" almost anything. All three are documented in
+the script itself, not just fixed silently.
+
+**Checked the already-flagged expected gap rather than assuming it —
+and it did NOT hold up (2026-08-25 first real run, see `docs/
+CHANGELOG.md`'s entry for the actual numbers).** Spells/skills are
+NOT disproportionately represented in the high-frequency unmatched
+set: 0 of the top 40 unmatched shapes are spell/skill-related. This
+is recorded plainly as a real result that contradicts the prior
+assumption, not adjusted to match it — exactly the kind of thing this
+computed approach exists to catch that a hand-written taxonomy
+wouldn't have. The real top unmatched shapes turned out to be the
+entire login/character-creation flow (directly relevant to the
+password-in-trigger fix already in progress), room titles/descriptions
+that this tool's static-pattern-extraction methodology genuinely can't
+see (DSL2's own room capture works by looking backward from the
+`[Exits: ...]` line, not by forward-matching the title — a real
+methodology limit, not a capture gap), and Mudlet's own native
+map-audit diagnostic output (correctly out of scope, not game text).
+The spell/skill gap itself may still be real — this run's corpus
+simply may not contain enough real spell/skill lines to surface it at
+high frequency, which is itself consistent with "not every skill/spell
+has been logged yet" — but that's now a stated hypothesis pending more
+corpus, not a confirmed finding to build against.
 
 **Part B — build the actual routing mechanism.** For any line that
 does NOT match a cataloged pattern, the addon needs to do something

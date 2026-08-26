@@ -92,3 +92,7 @@ DSL_Generic_Mapper.mpackage
 # Python build tooling (build_mydsl_package.py) -- cache, not source
 __pycache__/
 *.pyc
+
+# scripts/check_text_coverage.py's working files -- multi-MB extracted
+# corpus text + pattern lists, regenerated on every run, not source
+.text_coverage_scratch/
