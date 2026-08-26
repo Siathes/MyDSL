@@ -33,7 +33,7 @@ to one line once it's closed, same discipline as everywhere else.
 | Pass 2 audit — 4 native XML files (mapper's stock code, DslColors, gameplay triggers, personal aliases) | Claude Desktop, re-verified + partly fixed by Claude Code | **Done** (2026-08-26) |
 | `check_text_coverage.py` build + spot-check | Claude Code built, Claude Desktop spot-checked | **Done** (2026-08-25/26), 2 known blind spots documented, not fixed |
 | Bug-fix sweep on pass-1/pass-2 findings (no-decision-needed items) | Claude Code | **Phase 1 mostly done** 2026-08-26 — 7 fixed, including 1 critical regression found along the way (see table below) |
-| Visual pass v2 — title-bar renamed + colored, all 15 windows | Claude Desktop researched, Steven course-corrected after seeing the first build live, Claude Code built the revision | **Done** 2026-08-26, not yet live-confirmed; native dock-tab-group styling flagged as a separate, higher-risk follow-up |
+| Visual pass v2 — title-bar renamed + colored, all 15 windows | Claude Desktop researched, Steven course-corrected after seeing the first build live (twice), Claude Code built the revisions | **Confirmed working live** 2026-08-26 (Steven's own screenshot); only remaining step is 3 in-game commands for the persisted Affects/Location/Portrait titles, not a code fix. Native dock-tab-group styling flagged as a separate, higher-risk follow-up |
 | Step 4 — interconnection/performance pass | Not started | **Not started** |
 | Step 5 — unknown-line routing design (Principle 4 Part B) | Deferred | **Deferred**, blocked on coverage tool maturity |
 | Mapper's own DSL-specific rewrite | Deferred | **Deferred**, own dedicated pass, scope not yet sized |

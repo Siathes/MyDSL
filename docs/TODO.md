@@ -31,30 +31,21 @@ left before "feature complete" 1.0. This section stays as the detailed
 punch list; the roadmap doc is where to look first for "how close are
 we" without re-reading all of this.
 
-- [x] **Visual pass v2, fourth round 2026-08-26, needs Steven's live
-      confirmation — and independent Claude Desktop verification before
-      trusting this round's own read of "fixed," per Steven's explicit
-      ask.** Round 3's screenshot showed zero coloring anywhere, not
-      just "too dim" — traced to the real root cause this time via
-      Mudlet's own confirmed-working wiki example and Qt's own
-      stylesheet-syntax docs, not another guess: `panelCSS()` returns
-      bare CSS declarations with no selector (undocumented Qt syntax,
-      only ever worked because it was the entire stylesheet string on
-      its own); concatenating `titleBarCSS()`'s real
-      `QDockWidget::title{...}` rule directly after those bare
-      declarations produced a string where the appended rule silently
-      failed to apply. Fixed by wrapping panelCSS()'s declarations in
-      an explicit `QDockWidget{...}` selector at the `applyTheme()`
-      call site, matching Mudlet's own confirmed two-block shape.
-      Second, separate bug in the same round: History/PlayersNear never
-      got their real title set at all this session — `setTitle()` only
-      ever ran lazily on first routed text, and both windows sat empty
-      the whole session, so both still showed Mudlet's raw default
-      title. Fixed by creating both consoles eagerly at load. Two new
-      regression tests, both confirmed via targeted revert to actually
-      fail without their fix. Full detail in `docs/CHANGELOG.md`.
-      Round 3's `titleBgColor`/Affects-title fixes both still stand,
-      unaffected by this round's two new fixes.
+- [x] **Visual pass v2 — CONFIRMED WORKING live, 2026-08-26 (round 4's
+      screenshot).** Coloring renders correctly (warm gold/tan tint on
+      every title bar, matching refined_convergence's accent — the
+      `QDockWidget{...}` wrapping fix in `applyTheme()` was the real
+      fix), and the short-name rename is confirmed live on every window
+      that doesn't persist its own title, including History and Players
+      Near (the eager-console-creation fix also confirmed working — both
+      show their real name, not Mudlet's raw default). Full root-cause
+      writeup in `docs/CHANGELOG.md`.
+      **Only remaining item, not a code fix**: Affects/Location/Portrait
+      still show their old `"-= Name =-"` style live because each
+      persists its own title to disk, and a code-level default change
+      doesn't override an already-saved value. Three one-time in-game
+      commands close this out completely: `mydsl affects title Affects`,
+      `mydsl location title Location`, `mydsl portrait title Portrait`.
 - [ ] **New, separate, not yet started: native dock-tab-group label
       styling.** Steven asked whether the small tabs shown when
       multiple windows share a dock side can also be colored to match.

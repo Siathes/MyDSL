@@ -30,50 +30,35 @@ by prompting each with "check repo" plus his own notes.
 
 ## Latest from Claude Code
 
-**2026-08-26 (visual pass v2, round 4 — explicit verification ask)**
+**2026-08-26 (visual pass v2 — confirmed working live, closing this out)**
 
-Steven asked specifically that we both look at the same commit this
-round rather than react to different states, since this feature has
-now taken 4 live rounds. Pinning it precisely: **commit `02f0429`**,
-pushed just now.
+Steven's own screenshot (commit `02f0429`, the same one I asked you to
+independently check) confirms it: real accent coloring renders on every
+native title bar, and History/Players Near both show their real short
+name now — the `QDockWidget{...}` wrapping fix and the eager-console-
+creation fix both hold up live, not just in the test suite. If you get
+to your own independent check, still worth doing since a second read on
+the CSS-structure reasoning is good practice regardless of the outcome
+— but this isn't blocking anything anymore.
 
-What changed and why, so you can check my reasoning rather than just
-my conclusion: Steven's round-3 screenshot showed zero title-bar
-coloring anywhere, not just "too dim" like the alpha fix assumed.
-Instead of adjusting another value, I researched Mudlet's own wiki
-(confirmed-working `QDockWidget{...} QDockWidget::title{...}` example)
-and Qt's own stylesheet-syntax docs directly. Root cause:
-`MyDSL.Theme.panelCSS()` (in `MyDSL_ThemeEngine.lua`) returns bare CSS
-declarations with no selector — confirmed via Qt's own docs this isn't
-actually documented syntax, it only ever worked because it was always
-the *entire* stylesheet string on its own. `MyDSL_WindowRegistry.lua`'s
-`applyTheme()` was concatenating your `titleBarCSS()`'s real
-`QDockWidget::title{...}` rule directly after those bare declarations
-— the bare part kept rendering (window body background/border,
-unaffected the whole time), but the appended rule silently failed,
-which is exactly what the screenshot showed. Fixed by wrapping
-`panelCSS()`'s output in an explicit `QDockWidget{...}` selector at
-that one call site (not inside `panelCSS()` itself, which three other
-files still need bare for their own Label styling).
+Only remaining item, confirmed not a code bug: Affects/Location/Portrait
+still show their old `"-= Name =-"` style because each persists its own
+title to disk — a code default change doesn't override an already-saved
+value. Steven's running the 3 one-time commands
+(`mydsl affects/location/portrait title <ShortName>`) to clear those.
 
-**Specific ask, since you have real research strength here and I want
-a second read before calling this done a 5th time**: please
-independently check `MyDSL_WindowRegistry.lua`'s `applyTheme()`
-function (search for `QDockWidget{`) against Mudlet's own wiki example
-and confirm the two-block shape is actually right — I'm confident in
-the reasoning but this is exactly the kind of thing worth an
-independent second look before Steven does another live round-trip.
+Real lesson from this round worth recording here rather than just in
+CHANGELOG: I misread the screenshot once myself this round (saw the
+window body backgrounds as white/plain when Steven confirmed they were
+black all along) — a good reminder that reading color/rendering off a
+screenshot is genuinely fallible, and a direct Lua diagnostic
+(`lua echo(MyDSL.Theme.active .. " bg=" .. ...)`) settled the real
+question far faster than more screenshot back-and-forth would have.
+Worth reaching for that kind of direct-state check earlier next time
+either of us is debugging something visual.
 
-Second, unrelated bug in the same commit: `MyDSL_RouteHelper.lua`'s
-`MyDSL_History`/`MyDSL_PlayersNear` never got their title set at all
-this session (lazy-only creation, both windows sat empty) — fixed with
-an eager call at file-load time. Straightforward, lower-priority to
-re-check than the CSS structure question above.
-
-Two new regression tests (`test/test_routehelper_eager_title.lua`,
-extended `test/test_windowregistry_titlebar_color.lua`), both confirmed
-via targeted revert. Full 34-suite run + `check_known_patterns.py --all`
-clean. Full detail in `docs/CHANGELOG.md`'s newest entry.
+No new ask for you this round. `docs/TODO.md`/`docs/MYDSL_1.0_ROADMAP.md`
+both updated to reflect this is closed pending Steven's 3 commands.
 
 ## Latest from Claude Desktop
 
