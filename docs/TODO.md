@@ -108,6 +108,57 @@ we" without re-reading all of this.
       rather than re-fixed. Full detail in `docs/CHANGELOG.md`. **Next
       step, per Steven's own sequencing**: finalize code.
 
+- [ ] **Triaged 2026-08-27 from `docs/myresponses.txt`** (Steven's own
+      "Pass 2" notes, written directly into a personal copy of
+      `docs/OPTIMIZATION_AUDIT.md`, 2026-08-25 — cross-checked against
+      the 2 days of work since; most of the 46 notes turned out already
+      resolved or already tracked elsewhere, see `docs/CHANGELOG.md`'s
+      2026-08-27 entry for the full reconciliation). Genuinely still
+      open, bounded items only — the bigger design asks (mapper
+      full-rewrite, mob-diary wiki window, spell/skill alias shortcuts,
+      project-wide alias-dedup sweep) are tracked instead under "OPEN —
+      Design ideas, not yet scoped" below, not here:
+      - `MyDSL_RawCapture.lua`'s `mydsl rawlog` diagnostic — Steven:
+        "this can be removed as it doesn't sound like it's needed." The
+        audit itself already questioned whether it's still wanted since
+        the concern it was built to catch doesn't apply to DSL2. Needs
+        a scoping check (whole file vs. just this one diagnostic) before
+        removing.
+      - `MyDSL_Roller.lua` — verify the pre-port native trigger is
+        actually gone, not just documented as fixed (audit says
+        "confirmed fixes" already; Steven asked for a direct check
+        anyway).
+      - `MyDSL.save()`/`table.load()` naming ambiguity (`MyDSL_
+        DataLayer.lua`) — 9 modules call something by that name; only 2
+        (`MyDSL_CreatureLore.lua`, `MyDSL_AffectsView.lua`) got
+        disambiguated in the module-redesign pass. 7 unconfirmed:
+        `MyDSL_CombatView.lua`, `MyDSL_GroupView.lua`, `MyDSL_
+        LayoutEngine.lua`, `MyDSL_TargetView.lua`, `MyDSL_PromptView.lua`,
+        `MyDSL_WindowRegistry.lua`, `MyDSL_ThemeEngine.lua`. Steven also
+        asked for this explained back to him plainly once confirmed, not
+        just fixed silently.
+      - `MyDSL_ThemeEngine.lua` — Steven asked to discuss design/theme
+        options "to make it user friendly." `99c370d`'s new/edit/delete/
+        preview theme customization landed ~80 min after this note was
+        written — likely already answers it; worth a direct confirm
+        with Steven rather than assuming closed.
+      - `MyDSL_ChatTriggers.lua` — Steven's note asks specifically
+        whether it captures ALL chat channels, broader than the
+        per-channel gag/show already shipped 2026-08-26. Needs a real
+        coverage check (compare against `scripts/check_text_coverage.py`
+        results for chat-shaped unmatched lines), not assumed complete.
+      - `MyDSL_ItemLore.lua` — Steven is unsure the ground-item-tracking
+        feature is worth building as designed; needs a design
+        conversation, not a code change, before anything here moves.
+      - `MyDSL_GroupView.lua` — real selectable/dropdown quick-action
+        buttons instead of the current setup. Design discussion, not
+        scoped.
+      - `MyDSL_CharacterAssist.lua` — Steven: "we plan on just
+        consolidating these issues?" — needs him to say which issues he
+        means before this is actionable.
+      - `MyDSL_Help.lua` — Steven: "this needs a lot of work, design
+        philosophy discussion." Not scoped.
+
 **Formalized 2026-08-25 into `docs/OPTIMIZATION_AUDIT.md`** — a real,
 per-file inventory (what it does / public surface / depends-on / called-
 by / candidate cruft / performance flags, all grep-confirmed) for every
@@ -2211,6 +2262,44 @@ machine.
       philosophy has so far meant zero outbound calls), and whether the
       referenced Achaea Mudlet calendar package is worth checking for a
       reusable pattern before building fresh.
+- [ ] **Mapper — full DSL-specific rewrite, not a patch.** Steven, from
+      `docs/myresponses.txt` (2026-08-25): wants the Generic Mapper fork
+      rebuilt specifically for DSL rather than patched on top of the
+      stock package, with new/requested features designed in and the
+      current stock code kept only as design reference — same treatment
+      EMCO already got. **Distinct from the already-approved, narrower
+      item above** ("merge the mapper's GMCP handling into DataLayer" —
+      Steven's own 2026-08-25 green light on standalone use, tracked
+      separately) — that's a dedup optimization; this is a from-scratch
+      redesign. Real scoping conversation needed before this becomes
+      actionable — no size estimate exists yet for what "full rewrite"
+      actually covers.
+- [ ] **CreatureLore "mob diary" wiki window.** Steven, from
+      `docs/myresponses.txt`: a themed, pretty window showing everything
+      `creaturelore` has captured about a mob — stats, every location/
+      area seen, possible map rooms, a manually-added picture (same
+      pattern as room pics). Should also populate TargetView's stats.
+      New feature, not scoped — needs a design discussion (window
+      layout, how "locations seen" gets recorded, picture-assignment
+      workflow) before any code.
+- [ ] **Extend the creaturelore/identify alias-shortcut pattern to
+      spells/skills/other commands.** Steven, from `docs/myresponses.txt`:
+      the actual ask here isn't new — `bestiary <name>`/`item <name>`
+      (send `creaturelore`/`identify` + show the window) have existed
+      since 2026-07-11. What's new is extending that same "type a short
+      command, it fires the real game command and shows the result"
+      pattern to spells/skills or other game commands Steven names.
+      Needs him to name real candidates before this is scoped.
+- [ ] **Project-wide alias-dedup + namespace-guard sweep.** Steven, from
+      `docs/myresponses.txt`'s general notes: minimize/remove aliases
+      that exist only because of spelling-mistake variants or duplicate
+      helper names (his example: a `creaturelore`/`creaturelores`-style
+      near-duplicate). The namespace-guard *standard* is already
+      documented (`docs/MYDSL_1.0_PHILOSOPHY.md`), but whether every file
+      actually follows it hasn't been swept. Real grep-driven audit
+      task, not yet started — distinct from the module-redesign pass,
+      which checked Toggle/Connection/Verdict per module, not alias-name
+      duplication specifically.
 - [ ] **State-scoped sound toggle — deliberately NOT built as a standalone
       abstraction, 2026-08-24.** No concrete state/sound pairing was ever
       named for this on its own — building generic infrastructure with
