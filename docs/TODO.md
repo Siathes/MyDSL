@@ -91,17 +91,6 @@ DEFERRED gets started without an explicit go-ahead.
         dslcolor" — this module has grown organically with little
         written explanation of its own data model; worth a real doc pass
         once the above lands.
-- [ ] **Help.lua — redesign to auto-derive from the live alias tree.**
-      Currently 595 lines, hand-maintained, and confirmed drifting out of
-      sync with the real command surface whenever a module changes (its
-      own header admits this). Steven: "this has fallen behind, look at
-      best practice for help... and let's get it cleaned and completed,
-      with the ability to add features going forward. Auto-derive sounds
-      good." Scope: research what auto-deriving help content from alias
-      registration would actually look like (may mean annotating
-      `tempAlias` calls with a description/example at registration time
-      instead of a fully separate static table), then rebuild against
-      that pattern.
 - [ ] **`MyDSL_Full.mpackage` — real from-scratch install test.** The
       2026-08-26 packaging-format fix itself is solid and tested, but
       chat self-containment, `Sounds.zip`/`RoomPics.zip` placement, and
@@ -317,6 +306,32 @@ work actually starts.)*
 ---
 
 ## DECISIONS RECORDED
+- **Help.lua "auto-derive" — built a drift checker, not a 189-call-site
+  rewrite, 2026-08-29.** Steven's own suggested direction ("auto-derive
+  sounds good") could have meant annotating every one of the ~189 real
+  `tempAlias()` calls across ~20 files with description/example metadata
+  at registration time — judged too large/invasive to do blind in one
+  pass with no live-testing ability, especially since `MyDSL_Help.lua`'s
+  hand-written prose is already better than a bare pattern string would
+  auto-generate. What "fallen behind" actually meant in practice was
+  DRIFT (a real alias with no matching help entry), so built
+  `scripts/check_help_coverage.py` instead — same shape as
+  `check_known_patterns.py`, reuses `check_text_coverage.py`'s existing
+  `tempAlias()`-literal extractor, flags any real alias whose keyword
+  prefix doesn't appear anywhere in `MyDSL_Help.lua`. First real run
+  found 19 genuinely undocumented commands, confirmed by direct grep
+  (zero `emco`/`login` mentions in `MyDSL_Help.lua`): all 17 ported-EMCO
+  `emco *` sub-commands (`MyDSL_Chat.lua`) and both `mydsl login`
+  commands (`MyDSL_Login.lua`, the 2026-08-26 secure-autologin module —
+  had never gotten a help entry at all). Both gaps fixed the same day;
+  re-running the checker now reports zero drift. Test:
+  `test/test_check_help_coverage.py`, confirmed meaningful via targeted
+  revert (git-stashing the `MyDSL_Help.lua` additions reproduces exactly
+  the original 19-item report). Known blind spot, stated in the script's
+  own docstring: aliases registered through a wrapper function (e.g.
+  `MyDSL_ChatTriggers.lua`'s `route()`) rather than a direct
+  `tempAlias()` call are invisible to this scan. Worth wiring into the
+  periodic housekeeping sweep alongside `check_known_patterns.py --all`.
 - **ChatTriggers coverage audit — confirmed solid, 2026-08-29.** Cross-
   checked all 5 tabs' patterns against `DSL_Helpfiles/channels.txt`'s
   authoritative channel list and the real `log/` corpus (1.3M lines).
