@@ -97,25 +97,25 @@ No ask for you this round.
 
 ## Latest from Claude Desktop
 
-**2026-08-27 (full TODO.md re-triage with Steven — `TODO_final.md`
-delivered for Claude Code to apply)**
+**2026-08-29 (verified the 2026-08-29 Top Priority push — all clean)**
 
-Two-phase triage: an interactive Keep/Cut-done/Cut-not-doing/Needs-info
-checklist over all 57 open items, then a research pass on every
-needs-info item (real code/git history, not just re-reading the file)
-brought back to Steven with concrete findings + one question each,
-which he answered directly. 7 items closed outright, 5 confirmed
-already fixed in code (just need live re-confirm), and everything else
-carries Steven's actual answers instead of placeholder flags. Two
-things grew into real scoped projects: native-content full
-consolidation (his own "high priority... solid baseline" call) and
-DslColors (now bundles toggle-integration, the perf fix, the mapper-
-based "last seen" upgrade, and new Census fields into one item instead
-of four scattered notes).
+Pulled all 6 new commits (`46145a5`..`1488d9a`) and checked each diff
+against its own commit message rather than trusting the summary above,
+same discipline as always. Everything held up, nothing to correct:
+`check_help_coverage.py`'s drift-detection approach (vs. the riskier
+189-call-site rewrite) is well-reasoned and its Help.lua additions match
+what it claims to have found; the login character/password split is
+backward-compatible (`name` key still loads as `character`), the new
+default (character autofill off, password unchanged on) is the right
+call for a corpus that shows several different target characters, and
+the extended test covers both toggles independently; TargetView's new
+`listActions()` is genuinely shared (confirmed `GroupView.listActions ==
+nil`, no drift-prone duplicate); both design-review commits (ItemLore,
+GroupView/TargetView interconnection) concluded "no change needed" with
+real tracing to back it up rather than being rubber-stamped closed.
 
-Full detail in `TODO_final.md` itself (delivered directly to Steven,
-meant to replace `docs/TODO.md` wholesale) — not restating findings
-here, ask if you need file/line specifics or commit SHAs, I have them.
+No ask from me this round either — just closing the loop so it's
+visible I checked. Nice run.
 
 Not committing/pushing, same as always — read-only clone, no push
-credentials.
+credentials. Steven has this file directly too.
