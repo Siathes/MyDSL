@@ -143,17 +143,6 @@ item above rather than needing its own decision.)*
       internal ranking output, not correctness of anything it's ranking.
       Steven had no context on this one; leaving it as background backlog
       rather than a real decision point.
-- [ ] **`DSL PNP 4` package (packages.mudlet.org, author Zooka) may be a
-      newer PNP source than our vendored `PNP files/` — found 2026-08-29,
-      not yet diffed.** Same author as the `dice` package found in the
-      same survey. Described as a comprehensive DSL package (battle
-      management, equipment tracking, spell management, gauges/status
-      bars, 90 keybindings, 52 config files) and **last updated June 2,
-      2026** — plausibly more recent than whatever snapshot `PNP files/`
-      was vendored from. Worth a real diff pass against our own
-      `PNP files/` to check for fixes/additions we're missing, per
-      `CLAUDE.md`'s own "reuse PNP source" mandate — nothing pulled or
-      compared yet, this is a lead, not a finding.
 
 ---
 
@@ -356,6 +345,43 @@ work actually starts.)*
 ---
 
 ## DECISIONS RECORDED
+- **`DSL PNP 4` package diff — checked 2026-08-29, not adopting.** Full
+  file-by-file diff against our vendored `PNP files/` (both 50 files,
+  identical filenames): 44 of 50 files byte-identical, one difference is
+  just an install-path string, `DSL_data` differs but is personal
+  save-state (not source, same class as our own `MyDSL_*_db.lua`).
+  The 4 real code differences (`Gauges.lua`, `DSL_PNP_Gauges.lua`,
+  `DSL_PNP_Ticktimer.lua`, `DSL_PNP_Xpgauge.lua`) are an in-progress
+  refactor from `setGaugeStyleSheet()` to separate `setLabelStyleSheet()`
+  calls, using `f"..."` string-interpolation syntax — **confirmed
+  invalid on real LuaJIT** (`luajit -e 'print(f"x")'` →
+  `attempt to call global 'f' (a nil value)`) — plus leftover debug
+  `print()` statements left in `Gauges.lua`. Looks like unfinished/
+  untested work in the upstream package, not a proven improvement.
+  Moot for us either way: grepped our own `.lua`/XML source, nothing
+  calls `setGaugeStyleSheet` directly. `PNP files/` stays as our
+  reference copy, no update needed.
+- **Mudlet 5.0's mapper — confirmed identical to what was already
+  diffed, 2026-08-29.** Verified directly against the `Mudlet-5.0.0`
+  git tag (not just the `development` branch, which could have drifted
+  ahead) — same blob SHA, `generic_mapper.xml` version 2.1.10 in both.
+  The earlier upstream 2.1.8→2.1.10 diff and the two ports already done
+  (searchRoom nil-guard, area-hash preservation) are confirmed to be
+  exactly what 5.0 itself ships, not a stale comparison.
+- **Package-repo survey — design-reference leads, not directly reusable
+  but worth remembering, 2026-08-29.** `calendar-todo-list` (Belgarath,
+  generic) — small, clean `db:create()`-backed todo/event store with
+  add/complete/recycle-old-entries lifecycle; worth reading before
+  designing the DSL event/reminder module's own persistence layer (see
+  that item under OPEN — Design ideas), even though nothing in it is
+  DSL-specific enough to port directly. `MumeSpellTimers` (Khazdul,
+  MUME-specific) — consolidated single-window spell/buff/malus/status
+  tracker; a reasonable comparison point if `MyDSL_AffectsView.lua`'s
+  own display ever needs a redesign pass, not portable as-is (MUME
+  triggers). `HelpBrowsinator` (Demonnic, IRE-specific) — reroutes help
+  output into a tabbed browser window, same idea as MyDSL's own
+  in-addon help system; not portable (IRE-specific commands), but a
+  UI-pattern reference if that system's presentation ever gets revisited.
 - **GroupView/TargetView quick-action buttons — UX + interconnection
   review, 2026-08-29.** Confirmed the "interconnection" question: both
   modules already share exactly one action registry,
