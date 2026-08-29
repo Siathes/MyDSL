@@ -65,11 +65,18 @@ the script itself). Confirmed by reading function bodies, not names:
   needs testing whether it's reachable through our fork's current UI
   before assuming a build is needed.
 - **`slot_setImage()` is a confirmed empty stub** (`{}`, wired to no menu
-  action anywhere) and `dlgRoomProperties.cpp` (770 lines) has zero
-  image/picture handling anywhere — color only. **Mudlet's native mapper
-  has no working background-image feature at all.** Directly relevant to
-  the "pictures and editing backgrounds" interest — there is no native
-  feature to wait for or hook into; any such feature is MyDSL's own build,
+  action anywhere) — re-verified 2026-08-29 after Claude Desktop
+  flagged being unable to confirm it (their fetch tool couldn't pull all
+  of `T2DMap.cpp`): local file's blob SHA matches GitHub's real blob
+  exactly (not a truncated fetch), and a whole-repository GitHub code
+  search for `slot_setImage` returns exactly 2 hits total, anywhere in
+  Mudlet's codebase — the header declaration (`T2DMap.h:354`) and the
+  empty definition (`T2DMap.cpp:4941`), nothing else. `dlgRoomProperties.cpp`
+  (770 lines) has zero image/picture handling anywhere — color only.
+  **Mudlet's native mapper has no working background-image feature at
+  all.** Directly relevant to the "pictures and editing backgrounds"
+  interest — there is no native feature to wait for or hook into; any
+  such feature is MyDSL's own build,
   same as `MyDSL_PortraitView.lua`/`MyDSL_LocationView.lua` already are.
 - **`slot_exportAreaToImage()` is real and working** — exports the
   rendered map area to a PNG/JPG/BMP/TIFF file via a save dialog. A
