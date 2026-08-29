@@ -48,7 +48,11 @@ profile once, use it for native-content work, the mpackage install test,
 and the Mudlet 5.0 retest, instead of standing one up three separate
 times. `scripts/run_all_tests.sh` (adopted 2026-08-29 from Steven's
 Downloads — see CLAUDE.md housekeeping) is what the runbook's before/after
-diff leans on; confirmed working (52/52 passing) ahead of that session.
+diff leans on; confirmed working ahead of that session (54/54 passing as
+of the mapper upstream-sync work, same date). **Also now covers** whether
+Mudlet 4.22's real native mapper features (Configure Areas dialog, exit
+locking, label-color handling) are reachable — same version-upgrade
+question, folded in per Steven 2026-08-29 rather than a separate check.
 
 - [ ] **Native-content full consolidation — Steven's own words: "this is a
       high priority to get back to a solid baseline of everything in the
@@ -254,6 +258,26 @@ one at a time:
       map-editing commands; alternate/angled exit lines; and the
       labels-don't-move bug (still needs Steven's own live repro — no
       cause found in Mudlet's public issue tracker).
+      **Upstream sync done 2026-08-29** (diffed upstream generic_mapper.xml
+      2.1.8, our fork's baseline, directly against current 2.1.10 to
+      isolate real changes from our own DSL-specific noise — only 3 total):
+      download-path relocation (irrelevant, our updater is permanently
+      disabled); `searchRoom()` nil-guard in `map.echoPath` (ported, real
+      bug, was latent on our pinned 4.20.1 — see `docs/CHANGELOG.md`);
+      area-export room-hash preservation (ported per Steven's confirm he
+      uses area export/import — see `docs/CHANGELOG.md`). Both new,
+      tested. **The "recent mapper update" Steven had in mind is almost
+      certainly Mudlet 4.22 (July 2026), not the script** — an explicitly
+      mapper-focused native-client release (Configure Areas GUI dialog,
+      exit-locking via Set Exits GUI, room-label-color handling changes
+      that may bear on the labels-don't-move bug below). None of that is
+      in `generic_mapper.xml`; it's built into the Mudlet client itself,
+      and we're pinned to 4.20.1 (see DECISIONS RECORDED's Mudlet-version
+      entry). **Folded into the already-planned combined live session**
+      (native-content consolidation + mpackage install test + Mudlet 5.0
+      dock/resize retest) per Steven 2026-08-29 — that session's
+      Mudlet-version-upgrade question now also answers whether 4.22's
+      real mapper features are reachable.
 - [ ] **CreatureLore "mob diary" wiki window** — deferred; may fold into a
       larger DSL knowledgebase project alongside the Layer-4-remainder
       idea (see below).
