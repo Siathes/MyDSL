@@ -5221,12 +5221,20 @@ end
 
 function map.echoPath(from, to)
   assert(tonumber(from) and tonumber(to), "map.echoPath: both from and to have to be room IDs")
+  -- Ported from upstream generic_mapper.xml 2.1.9 (PR #9467, 2026-07-25):
+  -- searchRoom() for a missing roomID now returns nil+message instead of a
+  -- truthy error string on newer Mudlet versions -- harmless on our pinned
+  -- 4.20.1 today (that C++ behavior change hasn't shipped for us yet), but
+  -- string.upper(nil) would hard-crash the moment it does. Fixing
+  -- proactively rather than waiting for the crash.
+  local from_name = searchRoom(from) or "room " .. from
+  local to_name = searchRoom(to) or "room " .. to
   if getPath(from, to) then
     map.echo(
       "&lt;white&gt;Directions from &lt;yellow&gt;" ..
-      string.upper(searchRoom(from)) ..
+      string.upper(from_name) ..
       " &lt;white&gt;to &lt;yellow&gt;" ..
-      string.upper(searchRoom(to)) ..
+      string.upper(to_name) ..
       "&lt;white&gt;:"
     )
     map.echo(table.concat(speedWalkDir, ", "))
@@ -5234,9 +5242,9 @@ function map.echoPath(from, to)
   else
     map.echo(
       "&lt;white&gt;I can't find a way from &lt;yellow&gt;" ..
-      string.upper(searchRoom(from)) ..
+      string.upper(from_name) ..
       " &lt;white&gt;to &lt;yellow&gt;" ..
-      string.upper(searchRoom(to)) ..
+      string.upper(to_name) ..
       "&lt;white&gt;"
     )
   end
