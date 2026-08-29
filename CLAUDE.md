@@ -33,6 +33,18 @@ only hold what git history and the code can't already tell you.** That's:
   append-only history, prune it.
 - `docs/CHANGELOG.md` — one line per real change, append-only. This one
   doesn't decay — each line is a historical fact that never needs updating.
+- `docs/LESSONS_LEARNED.md` — added 2026-08-29: durable process/judgment
+  lessons that aren't a code pattern (those go in
+  `scripts/check_known_patterns.py` instead, since a mechanical check
+  enforces itself) and aren't about DSL/Mudlet's own external behavior
+  (those go in `docs/DSL_CommandRef.md` or
+  `docs/MUDLET_PACKAGING_REFERENCE.md`). One entry per lesson: what went
+  wrong or was confirmed, why, and the rule going forward. Organized by
+  topic, not chronology — like `TODO.md`, prune an entry once it's fully
+  absorbed into a hook, a CLAUDE.md rule, or is otherwise no longer
+  something a fresh session needs telling. `CHANGELOG.md` already has the
+  permanent chronological record; this file is the distilled "don't repeat
+  this" reference, not a second copy of it.
 - `docs/DSL_CommandRef.md` — confirmed regex/output patterns for DSL
   itself. High-value because it's about an external, stable system (DSL's
   text doesn't change), not our own code (which does).
@@ -75,6 +87,9 @@ only hold what git history and the code can't already tell you.** That's:
 
 ## IMPORTANT — Read before touching any file
 1. Read `docs/TODO.md` first, every session — the current punch list.
+   Skim `docs/LESSONS_LEARNED.md` too (added 2026-08-29) — short, so this
+   costs little, and it's exactly the durable judgment-call mistakes a
+   fresh session would otherwise repeat.
 2. Read the actual `.lua` file for any module being edited — there is no
    separate contract/spec anymore; the code is the only source of truth for
    how something currently works.
@@ -146,6 +161,21 @@ background job:
   other check in this file; this is the one that catches it.
 
 ## Reference material — cross-check against these before reinventing anything
+- **Before writing new functionality (added 2026-08-29), check in order:
+  (1) does an already-audited `MyDSL_*.lua` module already do this —
+  `docs/OPTIMIZATION_AUDIT.md` is a full grep-confirmed inventory, check
+  it before assuming something doesn't exist; (2) did PNP/EMCO already
+  solve it — see the PNP/reuse bullet below; (3) does Mudlet's own Lua
+  API already cover it — check `wiki.mudlet.org` (Manual + Lua API docs,
+  already WebFetch-allowlisted) before hand-rolling something Mudlet
+  ships natively (timers, regex triggers, Geyser layout primitives,
+  `yajl`/`utf8` libs, etc.); (4) has the wider Mudlet package community
+  already built this — a search of `forums.mudlet.org` / `mudlet.org`
+  (also allowlisted) or the Shattered Archive monorepo
+  (`~/Downloads/Shattered-Archive-release-dev.zip`, not yet fully
+  audited) can save a rebuild.** This isn't a hook — "does something
+  like this already exist" needs judgment, not a grep rule — so it's a
+  step to actually take, not a box to check reflexively.
 - `PNP files/` (this directory) — full PNP source, 46 files. When PNP already
   solved something (a trigger pattern, a flag mapping, a condition list),
   read the actual `.lua` file and copy the tested pattern; don't re-derive it
@@ -324,6 +354,12 @@ themes are user-creatable named presets, shared across all characters.
 - Run the in-game smoke test alias (`mydsl test` if it exists, otherwise
   manually verify in Mudlet) before considering a fix complete
 - Do not mark a TODO item done until Steven has confirmed it in-game
+- **Use Plan Mode before any architectural or multi-file change** (added
+  2026-08-29) — anything on the scale of a MyDSL 1.0 redesign pass, a
+  cross-module interconnection fix, or touching 3+ files for one change.
+  Skip it for a single-file bug fix or a doc update; those don't need a
+  reviewable plan first. This is a habit, not a hook — nothing enforces
+  it mechanically, so apply judgment rather than ceremony for every edit.
 - **Known-bad-pattern check (added 2026-07-21)**: `scripts/check_known_patterns.py`
   encodes real historical bugs (cecho `</color>` closing tags instead of
   `<reset>`, `table.load()` missing its second argument, etc.) as grep
