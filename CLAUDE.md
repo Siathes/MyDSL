@@ -65,6 +65,15 @@ only hold what git history and the code can't already tell you.** That's:
   re-derived — read this before `OPTIMIZATION_AUDIT.md` when the
   question is "does this module comply with 1.0," not "what does this
   module do."
+- `docs/MAPPER_REDESIGN.md` — added 2026-08-29: `DSL_Generic_Mapper.xml`'s
+  architecture findings (upstream sync, native Mudlet C++ source read
+  directly, a package-ecosystem survey, and a direct comparison against
+  other games' mapper implementations) plus a concrete design
+  recommendation. Read this before touching the mapper — it settles
+  whether the current fork-and-interleave approach is right (mostly:
+  keep the native engine and GMCP-heuristic matching, DSL sends no room
+  vnum so no better option exists; but stop interleaving DSL logic into
+  a modified copy of stock, split it into its own file instead).
 - `docs/MYDSL_1.0_ROADMAP.md` — the persistent execution plan added
   2026-08-26: where the whole 1.0 effort stands right now, a per-module
   status table across all 44 audited units, and the phase order for the

@@ -247,126 +247,23 @@ one at a time:
       needs: what counts as an "event" (manual vs. scraped from the DSL
       wiki's calendar/holidays), and whether the Achaea Mudlet calendar
       package on GitHub is worth checking for a reusable pattern.
-- [ ] **Mapper — consolidated design discussion.** Steven: "this is part
-      of a larger mapper discussion, consolidate with other mapper
-      topics and do a scan of all the files and prepare for a design
-      discussion." Covers, as one conversation: the full DSL-specific
-      rewrite (vs. patching the stock Generic Mapper fork); the GMCP-
-      parsing merge into DataLayer (approved in principle, not started —
-      touches ~8 call sites in the live 6,631-line native file, needs a
-      real rollback/testing plan); the toggleable button bar for
-      map-editing commands; alternate/angled exit lines; and the
-      labels-don't-move bug (still needs Steven's own live repro — no
-      cause found in Mudlet's public issue tracker).
-      **Upstream sync done 2026-08-29** (diffed upstream generic_mapper.xml
-      2.1.8, our fork's baseline, directly against current 2.1.10 to
-      isolate real changes from our own DSL-specific noise — only 3 total):
-      download-path relocation (irrelevant, our updater is permanently
-      disabled); `searchRoom()` nil-guard in `map.echoPath` (ported, real
-      bug, was latent on our pinned 4.20.1 — see `docs/CHANGELOG.md`);
-      area-export room-hash preservation (ported per Steven's confirm he
-      uses area export/import — see `docs/CHANGELOG.md`). Both new,
-      tested. **The "recent mapper update" Steven had in mind is almost
-      certainly Mudlet 4.22 (July 2026), not the script** — an explicitly
-      mapper-focused native-client release (Configure Areas GUI dialog,
-      exit-locking via Set Exits GUI, room-label-color handling changes
-      that may bear on the labels-don't-move bug below). None of that is
-      in `generic_mapper.xml`; it's built into the Mudlet client itself,
-      and we're pinned to 4.20.1 (see DECISIONS RECORDED's Mudlet-version
-      entry). **Folded into the already-planned combined live session**
-      (native-content consolidation + mpackage install test + Mudlet 5.0
-      dock/resize retest) per Steven 2026-08-29 — that session's
-      Mudlet-version-upgrade question now also answers whether 4.22's
-      real mapper features are reachable.
-      **Alternate-mapper package survey done 2026-08-29** (7 other
-      "mapper"-named packages found on packages.mudlet.org; 4 opened and
-      read directly — `mapaddons-safe-delete`, `shattered-isles-mapper`,
-      `simple-mapper`, `PetriaMapper`; `BatMap`/`Ansalon_Mudlet_Mapper`/
-      `cmud-map-importer` not opened, mostly image/map-data-heavy or off-
-      topic, flagged not prioritized rather than dismissed). Two real
-      candidates for the design session, both currently unused by us
-      (grep-confirmed):
-      - **`addMapEvent`/`mapAddOnEvent` — Mudlet's built-in right-click
-        map-context-menu API, registered nowhere in our fork.**
-        `mapaddons-safe-delete` uses it for two clean, portable tools:
-        safe room delete (converts orphaned incoming exits to stubs
-        instead of leaving dangling connections — **none of our 3
-        `deleteRoom()` call sites do this today**) and a Z-level shift
-        for the current map selection. Mudlet 5.0's own release notes
-        add "map menus can be matched against their map events" as a new
-        capability on the same API. This may be a lower-effort path to
-        the already-open "toggleable button bar for map-editing
-        commands" item above than building a custom Geyser bar from
-        scratch — worth raising first in the design session.
-      - **A room-creation undo stack** (`simple-mapper`'s
-        `simpleMapper.undo()` — pop-and-delete the last auto-created
-        room while walking) — real, modest quality-of-life idea, neither
-        stock `generic_mapper` nor our fork has one today.
-      `shattered-isles-mapper` confirmed as the same "alias/trigger layer
-      on top of stock `generic_mapper`" pattern we already use for a
-      different MUD — validates the approach, nothing DSL-relevant found
-      in its own content. `PetriaMapper` (small, from-scratch, Spanish-
-      language) — skimmed, nothing notable.
-      **Native mapper C++ source read directly 2026-08-29** (fetched
-      `T2DMap.cpp`/`dlgMapper.cpp`/`dlgRoomProperties.cpp`/
-      `dlgRoomExits.cpp` from the real `Mudlet-5.0.0` git tag — this is
-      the actual engine source, not release-note prose, correcting the
-      earlier pass which relied on release notes for everything except
-      `generic_mapper.xml` itself). Full right-click-menu inventory,
-      every native `T2DMap::slot_*` confirmed real by reading the
-      function body, not just its name:
-      - **`slot_shiftUp/Down/Left/Right/Zup/Zdown` already exist
-        natively** — the `mapaddons-safe-delete` Z-shift feature flagged
-        above is redundant, Mudlet's own mapper already does this.
-        Drop that half of the earlier candidate; the safe-delete half
-        still stands (native `deleteRoom` has no orphaned-exit handling).
-      - **`slot_customLineProperties`/`slot_customLineAddPoint`/
-        `slot_moveCustomLineLastPointToTargetRoom`/
-        `slot_undoCustomLineLastPoint`/`slot_doneCustomLine`/
-        `slot_deleteCustomExitLine` — Mudlet's mapper already has native
-        multi-point custom exit lines.** Directly answers the "alternate/
-        angled exit lines" open item above — this may already be a
-        solved problem natively, just needs testing whether it's
-        reachable through our fork's UI/right-click menu as-is, before
-        assuming any DSL-side code is needed.
-      - **`slot_setImage()` is a confirmed empty stub (`{}`), wired to no
-        menu action anywhere in the file.** `dlgRoomProperties.cpp`
-        (770 lines) confirmed to have zero image/picture handling —
-        color only (border/symbol). **Mudlet's native mapper has no
-        working per-room or per-area background-image feature at all**,
-        as of 5.0.0 — relevant directly to Steven's "pictures and editing
-        backgrounds" interest: this has to stay MyDSL's own construction,
-        there's no native feature to hook into or wait for.
-      - **`slot_exportAreaToImage()` is real and working** — exports the
-        rendered map area to a PNG/JPG/BMP/TIFF file via a save dialog.
-        A genuine native "picture" feature already available, distinct
-        from room backgrounds (this is a one-way map screenshot).
-      - **`populateUserContextMenus()`/`slot_userAction()` confirms
-        `addMapEvent` is the real, fully-supported native mechanism**
-        (not a Lua-side workaround) — it builds real `QMenu`/`QAction`
-        entries from `mpMap->mUserMenus`/`mUserActions` and routes clicks
-        back to the `mapAddOnEvent` Lua event. Validates the earlier
-        `mapaddons-safe-delete` candidate at the C++ level.
-      **BatMap opened properly 2026-08-29** (re-checked per Steven's ask,
-      previously skipped for size) — not a rival mapper, a separate
-      Geyser-only "world map" window (`Geyser.UserWindow` + one
-      `Geyser.Label`) with a CSS `background-image` stylesheet, panned by
-      shifting `padding-top`/`padding-left` based on player x/y
-      coordinates, with a small fixed pointer `Geyser.Label` overlaid on
-      top. **Cross-checked against our own code: this is the same
-      technique `MyDSL_PortraitView.lua`/`MyDSL_LocationView.lua` already
-      use** (CSS `border-image`/`background-image`, chosen specifically
-      to avoid the native `setBackgroundImage()` bug — both already
-      documented, already-resolved design decisions, not open bugs).
-      BatMap validates the approach already in use rather than
-      introducing something new. The one genuinely different piece:
-      BatMap's *panning-over-a-large-image-with-a-position-marker*
-      technique is a different shape than our current one-static-image-
-      per-room pattern — worth keeping in mind as a reference if a future
-      "editing backgrounds" feature turns out to mean an area-level
-      decorative backdrop rather than more per-room pictures; not
-      something to build now, just the right pattern to reach for later
-      given the native mapper (confirmed above) has nothing to offer here.
+- [ ] **Mapper — consolidated design + redesign, findings written up
+      2026-08-29, decisions not yet made.** Full research (upstream sync,
+      native Mudlet C++ source, package-ecosystem survey, and a direct
+      architecture comparison against other games' mapper
+      implementations) plus a concrete design recommendation now live in
+      `docs/MAPPER_REDESIGN.md` — read that instead of re-deriving any of
+      it. Short version: keep native `TMap` and GMCP-heuristic room
+      matching (DSL sends no room vnum, confirmed no alternative exists);
+      the real fix is splitting DSL-specific logic out of the modified
+      stock-script copy into its own file (Mudlet's own wiki documents
+      this as the difference between a sync-safe extension and what we
+      currently do); integrate MyDSL's suite into the native right-click
+      menu via `addMapEvent` (confirmed real, not a workaround); test
+      native multi-point custom exit lines before building anything for
+      the angled-exits want (may already be solved). 4 open questions for
+      the design session listed at that doc's end, including
+      standalone-package feasibility.
 - [ ] **CreatureLore "mob diary" wiki window** — deferred; may fold into a
       larger DSL knowledgebase project alongside the Layer-4-remainder
       idea (see below).
