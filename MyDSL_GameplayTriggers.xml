@@ -320,9 +320,9 @@ send("sac corpse")</script>
 					<colorTriggerBgColor>#000000</colorTriggerBgColor>
 					<regexCodeList />
 					<regexCodePropertyList />
-					<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="yes" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 						<name>Dragon Roar</name>
-						<script />
+						<script>playSoundFile(getMudletHomeDir() .. "/Sounds/Dragon_roar.mp3")</script>
 						<triggerType>0</triggerType>
 						<conditonLineDelta>0</conditonLineDelta>
 						<mStayOpen>0</mStayOpen>
@@ -330,7 +330,7 @@ send("sac corpse")</script>
 						<packageName />
 						<mFgColor>#ff0000</mFgColor>
 						<mBgColor>#ffff00</mBgColor>
-						<mSoundFile>/home/owner/Desktop/Mudlet/mudlet-data/profiles/DSL2/Sounds/Dragon_roar.mp3</mSoundFile>
+						<mSoundFile />
 						<colorTriggerFgColor>#000000</colorTriggerFgColor>
 						<colorTriggerBgColor>#000000</colorTriggerBgColor>
 						<regexCodeList>
@@ -340,9 +340,9 @@ send("sac corpse")</script>
 							<integer>0</integer>
 						</regexCodePropertyList>
 					</Trigger>
-					<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="yes" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 						<name>Dragon Spread wings and fly</name>
-						<script />
+						<script>playSoundFile(getMudletHomeDir() .. "/Sounds/characterspreadwings.mp3")</script>
 						<triggerType>0</triggerType>
 						<conditonLineDelta>0</conditonLineDelta>
 						<mStayOpen>0</mStayOpen>
@@ -350,7 +350,7 @@ send("sac corpse")</script>
 						<packageName />
 						<mFgColor>#ff0000</mFgColor>
 						<mBgColor>#ffff00</mBgColor>
-						<mSoundFile>/home/owner/Desktop/Mudlet/mudlet-data/profiles/DSL2/Sounds/characterspreadwings.mp3</mSoundFile>
+						<mSoundFile />
 						<colorTriggerFgColor>#000000</colorTriggerFgColor>
 						<colorTriggerBgColor>#000000</colorTriggerBgColor>
 						<regexCodeList>
@@ -360,9 +360,9 @@ send("sac corpse")</script>
 							<integer>0</integer>
 						</regexCodePropertyList>
 					</Trigger>
-					<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="yes" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 						<name>Dragon Landing</name>
-						<script />
+						<script>playSoundFile(getMudletHomeDir() .. "/Sounds/dragonlanding.mp3")</script>
 						<triggerType>0</triggerType>
 						<conditonLineDelta>0</conditonLineDelta>
 						<mStayOpen>0</mStayOpen>
@@ -370,7 +370,7 @@ send("sac corpse")</script>
 						<packageName />
 						<mFgColor>#ff0000</mFgColor>
 						<mBgColor>#ffff00</mBgColor>
-						<mSoundFile>/home/owner/Desktop/Mudlet/mudlet-data/profiles/DSL2/Sounds/dragonlanding.mp3</mSoundFile>
+						<mSoundFile />
 						<colorTriggerFgColor>#000000</colorTriggerFgColor>
 						<colorTriggerBgColor>#000000</colorTriggerBgColor>
 						<regexCodeList>
@@ -380,9 +380,9 @@ send("sac corpse")</script>
 							<integer>0</integer>
 						</regexCodePropertyList>
 					</Trigger>
-					<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="yes" isFilterTrigger="no" isSoundTrigger="yes" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="yes" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 						<name>Alterform</name>
-						<script />
+						<script>playSoundFile(getMudletHomeDir() .. "/Sounds/CharacterAlterform.mp3")</script>
 						<triggerType>0</triggerType>
 						<conditonLineDelta>0</conditonLineDelta>
 						<mStayOpen>0</mStayOpen>
@@ -390,7 +390,7 @@ send("sac corpse")</script>
 						<packageName />
 						<mFgColor>#005500</mFgColor>
 						<mBgColor>#ffffff</mBgColor>
-						<mSoundFile>/home/owner/Desktop/Mudlet/mudlet-data/profiles/DSL2/Sounds/CharacterAlterform.mp3</mSoundFile>
+						<mSoundFile />
 						<colorTriggerFgColor>#000000</colorTriggerFgColor>
 						<colorTriggerBgColor>#000000</colorTriggerBgColor>
 						<regexCodeList>
@@ -418,9 +418,9 @@ send("sac corpse")</script>
 					<colorTriggerBgColor>#000000</colorTriggerBgColor>
 					<regexCodeList />
 					<regexCodePropertyList />
-					<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="yes" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 						<name>The sharp cries of gulls wheel overhead as they ride the coastal winds.</name>
-						<script />
+						<script>playSoundFile(getMudletHomeDir() .. "/Sounds/Atmosphere_Seagulls.mp3")</script>
 						<triggerType>0</triggerType>
 						<conditonLineDelta>0</conditonLineDelta>
 						<mStayOpen>0</mStayOpen>
@@ -428,7 +428,7 @@ send("sac corpse")</script>
 						<packageName />
 						<mFgColor>#ff0000</mFgColor>
 						<mBgColor>#ffff00</mBgColor>
-						<mSoundFile>/home/owner/Desktop/Mudlet/mudlet-data/profiles/MyDSL/Sounds/Atmosphere_Seagulls.mp3</mSoundFile>
+						<mSoundFile />
 						<colorTriggerFgColor>#000000</colorTriggerFgColor>
 						<colorTriggerBgColor>#000000</colorTriggerBgColor>
 						<regexCodeList>
@@ -489,9 +489,9 @@ send("sac corpse")</script>
 								<integer>0</integer>
 							</regexCodePropertyList>
 						</Trigger>
-						<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="yes" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+						<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 							<name>With a playful bark,</name>
-							<script />
+							<script>playSoundFile(getMudletHomeDir() .. "/Sounds/dog bark.mp3")</script>
 							<triggerType>0</triggerType>
 							<conditonLineDelta>0</conditonLineDelta>
 							<mStayOpen>0</mStayOpen>
@@ -499,7 +499,7 @@ send("sac corpse")</script>
 							<packageName />
 							<mFgColor>#ff0000</mFgColor>
 							<mBgColor>#ffff00</mBgColor>
-							<mSoundFile>/home/owner/Desktop/Mudlet/mudlet-data/profiles/MyDSL/Sounds/dog bark.mp3</mSoundFile>
+							<mSoundFile />
 							<colorTriggerFgColor>#000000</colorTriggerFgColor>
 							<colorTriggerBgColor>#000000</colorTriggerBgColor>
 							<regexCodeList>
@@ -509,9 +509,9 @@ send("sac corpse")</script>
 								<integer>0</integer>
 							</regexCodePropertyList>
 						</Trigger>
-						<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="yes" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+						<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 							<name>draws near to nuzzle gently at your hand.</name>
-							<script />
+							<script>playSoundFile(getMudletHomeDir() .. "/Sounds/dog panting.mp3")</script>
 							<triggerType>0</triggerType>
 							<conditonLineDelta>0</conditonLineDelta>
 							<mStayOpen>0</mStayOpen>
@@ -519,7 +519,7 @@ send("sac corpse")</script>
 							<packageName />
 							<mFgColor>#ff0000</mFgColor>
 							<mBgColor>#ffff00</mBgColor>
-							<mSoundFile>/home/owner/Desktop/Mudlet/mudlet-data/profiles/MyDSL/Sounds/dog panting.mp3</mSoundFile>
+							<mSoundFile />
 							<colorTriggerFgColor>#000000</colorTriggerFgColor>
 							<colorTriggerBgColor>#000000</colorTriggerBgColor>
 							<regexCodeList>
@@ -587,9 +587,10 @@ deleteLine()</script>
 							<integer>1</integer>
 						</regexCodePropertyList>
 					</Trigger>
-					<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="yes" isFilterTrigger="no" isSoundTrigger="yes" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="yes" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 						<name>You Drink from..</name>
-						<script>--MyDSL.Route.history()
+						<script>playSoundFile(getMudletHomeDir() .. "/Sounds/Atmosphere_Drinking.wav")
+--MyDSL.Route.history()
 </script>
 						<triggerType>0</triggerType>
 						<conditonLineDelta>0</conditonLineDelta>
@@ -598,7 +599,7 @@ deleteLine()</script>
 						<packageName />
 						<mFgColor>#0055ff</mFgColor>
 						<mBgColor>#000000</mBgColor>
-						<mSoundFile>/home/owner/Desktop/Mudlet/mudlet-data/profiles/MyDSL/Sounds/Atmosphere_Drinking.wav</mSoundFile>
+						<mSoundFile />
 						<colorTriggerFgColor>#000000</colorTriggerFgColor>
 						<colorTriggerBgColor>#000000</colorTriggerBgColor>
 						<regexCodeList>
@@ -2497,9 +2498,9 @@ raiseEvent("onRandomMove")
 					<colorTriggerBgColor>#000000</colorTriggerBgColor>
 					<regexCodeList />
 					<regexCodePropertyList />
-					<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="yes" isFilterTrigger="no" isSoundTrigger="yes" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="yes" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 						<name>The gentle patter of waves brushing against the shore surrounds you.</name>
-						<script />
+						<script>playSoundFile(getMudletHomeDir() .. "/Sounds/Waves.mp3")</script>
 						<triggerType>0</triggerType>
 						<conditonLineDelta>0</conditonLineDelta>
 						<mStayOpen>0</mStayOpen>
@@ -2507,7 +2508,7 @@ raiseEvent("onRandomMove")
 						<packageName />
 						<mFgColor>#00aaff</mFgColor>
 						<mBgColor>#000000</mBgColor>
-						<mSoundFile>/home/owner/Desktop/Mudlet/mudlet-data/profiles/MyDSL/Sounds/Waves.mp3</mSoundFile>
+						<mSoundFile />
 						<colorTriggerFgColor>#000000</colorTriggerFgColor>
 						<colorTriggerBgColor>#000000</colorTriggerBgColor>
 						<regexCodeList>
@@ -2519,9 +2520,9 @@ raiseEvent("onRandomMove")
 							<integer>0</integer>
 						</regexCodePropertyList>
 					</Trigger>
-					<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="yes" isFilterTrigger="no" isSoundTrigger="yes" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="yes" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 						<name>Waves gently break as they reach the shore</name>
-						<script />
+						<script>playSoundFile(getMudletHomeDir() .. "/Sounds/Waves_splash.mp3")</script>
 						<triggerType>0</triggerType>
 						<conditonLineDelta>0</conditonLineDelta>
 						<mStayOpen>0</mStayOpen>
@@ -2529,7 +2530,7 @@ raiseEvent("onRandomMove")
 						<packageName />
 						<mFgColor>#0055ff</mFgColor>
 						<mBgColor>#000000</mBgColor>
-						<mSoundFile>/home/owner/Desktop/Mudlet/mudlet-data/profiles/MyDSL/Sounds/Waves_splash.mp3</mSoundFile>
+						<mSoundFile />
 						<colorTriggerFgColor>#000000</colorTriggerFgColor>
 						<colorTriggerBgColor>#000000</colorTriggerBgColor>
 						<regexCodeList>
@@ -2767,9 +2768,9 @@ send("roar")</script>
 					<colorTriggerBgColor>#000000</colorTriggerBgColor>
 					<regexCodeList />
 					<regexCodePropertyList />
-					<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="yes" isFilterTrigger="no" isSoundTrigger="yes" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="yes" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 						<name>Welcome message</name>
-						<script />
+						<script>playSoundFile(getMudletHomeDir() .. "/Sounds/WELCOME.WAV")</script>
 						<triggerType>0</triggerType>
 						<conditonLineDelta>0</conditonLineDelta>
 						<mStayOpen>0</mStayOpen>
@@ -2777,7 +2778,7 @@ send("roar")</script>
 						<packageName />
 						<mFgColor>transparent</mFgColor>
 						<mBgColor>#aa710d</mBgColor>
-						<mSoundFile>/home/owner/Desktop/Mudlet/mudlet-data/profiles/MyDSL/Sounds/WELCOME.WAV</mSoundFile>
+						<mSoundFile />
 						<colorTriggerFgColor>#000000</colorTriggerFgColor>
 						<colorTriggerBgColor>#000000</colorTriggerBgColor>
 						<regexCodeList>
@@ -3631,9 +3632,10 @@ MyDSL.Route.history()</script>
 								<integer>0</integer>
 							</regexCodePropertyList>
 						</Trigger>
-						<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="yes" isFilterTrigger="no" isSoundTrigger="yes" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+						<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="yes" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 							<name>Charge</name>
-							<script>cecho("\n&lt;yellow&gt;&lt;&lt;&lt;======== &lt;red&gt;You Charge &lt;yellow&gt;===========&gt;&gt;&gt;\n")
+							<script>playSoundFile(getMudletHomeDir() .. "/Sounds/charge.mp3")
+cecho("\n&lt;yellow&gt;&lt;&lt;&lt;======== &lt;red&gt;You Charge &lt;yellow&gt;===========&gt;&gt;&gt;\n")
 </script>
 							<triggerType>0</triggerType>
 							<conditonLineDelta>0</conditonLineDelta>
@@ -3642,7 +3644,7 @@ MyDSL.Route.history()</script>
 							<packageName />
 							<mFgColor>#ffff00</mFgColor>
 							<mBgColor>#000000</mBgColor>
-							<mSoundFile>/home/owner/Desktop/Mudlet/mudlet-data/profiles/MyDSL/Sounds/charge.mp3</mSoundFile>
+							<mSoundFile />
 							<colorTriggerFgColor>#000000</colorTriggerFgColor>
 							<colorTriggerBgColor>#000000</colorTriggerBgColor>
 							<regexCodeList>
@@ -4369,9 +4371,10 @@ MyDSL.Route.history()</script>
 				<colorTriggerBgColor>#000000</colorTriggerBgColor>
 				<regexCodeList />
 				<regexCodePropertyList />
-				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="yes" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 					<name>Broadcasts</name>
-					<script>MyDSL.Route.history()</script>
+					<script>playSoundFile(getMudletHomeDir() .. "/Sounds/Notifications_Important.mp3")
+MyDSL.Route.history()</script>
 					<triggerType>0</triggerType>
 					<conditonLineDelta>0</conditonLineDelta>
 					<mStayOpen>0</mStayOpen>
@@ -4379,7 +4382,7 @@ MyDSL.Route.history()</script>
 					<packageName />
 					<mFgColor>#ffffff</mFgColor>
 					<mBgColor>#222222</mBgColor>
-					<mSoundFile>/home/owner/Desktop/Mudlet/mudlet-data/profiles/MyDSL/Sounds/Notifications_Important.mp3</mSoundFile>
+					<mSoundFile />
 					<colorTriggerFgColor>#000000</colorTriggerFgColor>
 					<colorTriggerBgColor>#000000</colorTriggerBgColor>
 					<regexCodeList>
@@ -4389,9 +4392,10 @@ MyDSL.Route.history()</script>
 						<integer>1</integer>
 					</regexCodePropertyList>
 				</Trigger>
-				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="yes" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 					<name>Toasts/History Captures</name>
-					<script>MyDSL.Route.history()
+					<script>playSoundFile(getMudletHomeDir() .. "/Sounds/Notifications_Toasts.mp3")
+MyDSL.Route.history()
 --deleteLine()
 </script>
 					<triggerType>0</triggerType>
@@ -4401,7 +4405,7 @@ MyDSL.Route.history()</script>
 					<packageName />
 					<mFgColor>#ff0000</mFgColor>
 					<mBgColor>#ffff00</mBgColor>
-					<mSoundFile>/home/owner/Desktop/Mudlet/mudlet-data/profiles/MyDSL/Sounds/Notifications_Toasts.mp3</mSoundFile>
+					<mSoundFile />
 					<colorTriggerFgColor>#000000</colorTriggerFgColor>
 					<colorTriggerBgColor>#000000</colorTriggerBgColor>
 					<regexCodeList>
@@ -4696,9 +4700,10 @@ MyDSL.Route.history()</script>
 						<integer>0</integer>
 					</regexCodePropertyList>
 				</Trigger>
-				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="yes" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 					<name>peers at you.</name>
-					<script>MyDSL.Route.history()</script>
+					<script>playSoundFile(getMudletHomeDir() .. "/Sounds/imms.mp3")
+MyDSL.Route.history()</script>
 					<triggerType>0</triggerType>
 					<conditonLineDelta>0</conditonLineDelta>
 					<mStayOpen>0</mStayOpen>
@@ -4706,7 +4711,7 @@ MyDSL.Route.history()</script>
 					<packageName />
 					<mFgColor>#ff0000</mFgColor>
 					<mBgColor>#ffff00</mBgColor>
-					<mSoundFile>/home/owner/Desktop/Mudlet/mudlet-data/profiles/MyDSL/Sounds/imms.mp3</mSoundFile>
+					<mSoundFile />
 					<colorTriggerFgColor>#000000</colorTriggerFgColor>
 					<colorTriggerBgColor>#000000</colorTriggerBgColor>
 					<regexCodeList>
@@ -4724,9 +4729,10 @@ MyDSL.Route.history()</script>
 						<integer>0</integer>
 					</regexCodePropertyList>
 				</Trigger>
-				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="yes" isFilterTrigger="no" isSoundTrigger="yes" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="yes" isColorizerTrigger="yes" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 					<name>Trumpet Sounds and History</name>
-					<script>MyDSL.Route.history()</script>
+					<script>playSoundFile(getMudletHomeDir() .. "/Sounds/tublurdeath.mp3")
+MyDSL.Route.history()</script>
 					<triggerType>0</triggerType>
 					<conditonLineDelta>0</conditonLineDelta>
 					<mStayOpen>0</mStayOpen>
@@ -4734,7 +4740,7 @@ MyDSL.Route.history()</script>
 					<packageName />
 					<mFgColor>#aaaaff</mFgColor>
 					<mBgColor>#0b1013</mBgColor>
-					<mSoundFile>/home/owner/Desktop/Mudlet/mudlet-data/profiles/MyDSL/Sounds/tublurdeath.mp3</mSoundFile>
+					<mSoundFile />
 					<colorTriggerFgColor>#000000</colorTriggerFgColor>
 					<colorTriggerBgColor>#000000</colorTriggerBgColor>
 					<regexCodeList>
@@ -4975,9 +4981,9 @@ deleteLine()
 						<integer>0</integer>
 					</regexCodePropertyList>
 				</Trigger>
-				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="yes" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 					<name>essence fades away into the ether...</name>
-					<script />
+					<script>playSoundFile(getMudletHomeDir() .. "/Sounds/Notification_Giant_Death.mp3")</script>
 					<triggerType>0</triggerType>
 					<conditonLineDelta>0</conditonLineDelta>
 					<mStayOpen>0</mStayOpen>
@@ -4985,7 +4991,7 @@ deleteLine()
 					<packageName />
 					<mFgColor>#ff0000</mFgColor>
 					<mBgColor>#ffff00</mBgColor>
-					<mSoundFile>/home/owner/Desktop/Mudlet/mudlet-data/profiles/MyDSL/Sounds/Notification_Giant_Death.mp3</mSoundFile>
+					<mSoundFile />
 					<colorTriggerFgColor>#000000</colorTriggerFgColor>
 					<colorTriggerBgColor>#000000</colorTriggerBgColor>
 					<regexCodeList>
@@ -5030,9 +5036,9 @@ deleteLine()
 					<colorTriggerBgColor>#000000</colorTriggerBgColor>
 					<regexCodeList />
 					<regexCodePropertyList />
-					<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="yes" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 						<name>Clan Gossip</name>
-						<script />
+						<script>playSoundFile(getMudletHomeDir() .. "/Sounds/Notification_Chat_Clan_Gossip.mp3")</script>
 						<triggerType>0</triggerType>
 						<conditonLineDelta>0</conditonLineDelta>
 						<mStayOpen>0</mStayOpen>
@@ -5040,7 +5046,7 @@ deleteLine()
 						<packageName />
 						<mFgColor>#ff0000</mFgColor>
 						<mBgColor>#ffff00</mBgColor>
-						<mSoundFile>/home/owner/Desktop/Mudlet/mudlet-data/profiles/MyDSL/Sounds/Notification_Chat_Clan_Gossip.mp3</mSoundFile>
+						<mSoundFile />
 						<colorTriggerFgColor>#000000</colorTriggerFgColor>
 						<colorTriggerBgColor>#000000</colorTriggerBgColor>
 						<regexCodeList>
@@ -5050,9 +5056,9 @@ deleteLine()
 							<integer>0</integer>
 						</regexCodePropertyList>
 					</Trigger>
-					<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="yes" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 						<name>Auctions</name>
-						<script />
+						<script>playSoundFile(getMudletHomeDir() .. "/Sounds/Notifications_Merchant_List.mp3")</script>
 						<triggerType>0</triggerType>
 						<conditonLineDelta>0</conditonLineDelta>
 						<mStayOpen>0</mStayOpen>
@@ -5060,7 +5066,7 @@ deleteLine()
 						<packageName />
 						<mFgColor>#ff0000</mFgColor>
 						<mBgColor>#ffff00</mBgColor>
-						<mSoundFile>/home/owner/Desktop/Mudlet/mudlet-data/profiles/MyDSL/Sounds/Notifications_Merchant_List.mp3</mSoundFile>
+						<mSoundFile />
 						<colorTriggerFgColor>#000000</colorTriggerFgColor>
 						<colorTriggerBgColor>#000000</colorTriggerBgColor>
 						<regexCodeList>
@@ -5070,9 +5076,9 @@ deleteLine()
 							<integer>0</integer>
 						</regexCodePropertyList>
 					</Trigger>
-					<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="yes" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 						<name>Gossip</name>
-						<script />
+						<script>playSoundFile(getMudletHomeDir() .. "/Sounds/Notifications_Chat_Gossip.mp3")</script>
 						<triggerType>0</triggerType>
 						<conditonLineDelta>0</conditonLineDelta>
 						<mStayOpen>0</mStayOpen>
@@ -5080,7 +5086,7 @@ deleteLine()
 						<packageName />
 						<mFgColor>#ff0000</mFgColor>
 						<mBgColor>#ffff00</mBgColor>
-						<mSoundFile>/home/owner/Desktop/Mudlet/mudlet-data/profiles/MyDSL/Sounds/Notifications_Chat_Gossip.mp3</mSoundFile>
+						<mSoundFile />
 						<colorTriggerFgColor>#000000</colorTriggerFgColor>
 						<colorTriggerBgColor>#000000</colorTriggerBgColor>
 						<regexCodeList>
@@ -5090,9 +5096,9 @@ deleteLine()
 							<integer>0</integer>
 						</regexCodePropertyList>
 					</Trigger>
-					<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="yes" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 						<name>Kingdom</name>
-						<script />
+						<script>playSoundFile(getMudletHomeDir() .. "/Sounds/Notifications_Chat_Kingdom.mp3")</script>
 						<triggerType>0</triggerType>
 						<conditonLineDelta>0</conditonLineDelta>
 						<mStayOpen>0</mStayOpen>
@@ -5100,7 +5106,7 @@ deleteLine()
 						<packageName />
 						<mFgColor>#ff0000</mFgColor>
 						<mBgColor>#ffff00</mBgColor>
-						<mSoundFile>/home/owner/Desktop/Mudlet/mudlet-data/profiles/MyDSL/Sounds/Notifications_Chat_Kingdom.mp3</mSoundFile>
+						<mSoundFile />
 						<colorTriggerFgColor>#000000</colorTriggerFgColor>
 						<colorTriggerBgColor>#000000</colorTriggerBgColor>
 						<regexCodeList>
@@ -5110,9 +5116,9 @@ deleteLine()
 							<integer>0</integer>
 						</regexCodePropertyList>
 					</Trigger>
-					<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="yes" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 						<name>Tells</name>
-						<script />
+						<script>playSoundFile(getMudletHomeDir() .. "/Sounds/Notifications_Chat_Tells.mp3")</script>
 						<triggerType>0</triggerType>
 						<conditonLineDelta>0</conditonLineDelta>
 						<mStayOpen>0</mStayOpen>
@@ -5120,7 +5126,7 @@ deleteLine()
 						<packageName />
 						<mFgColor>#ff0000</mFgColor>
 						<mBgColor>#ffff00</mBgColor>
-						<mSoundFile>/home/owner/Desktop/Mudlet/mudlet-data/profiles/MyDSL/Sounds/Notifications_Chat_Tells.mp3</mSoundFile>
+						<mSoundFile />
 						<colorTriggerFgColor>#000000</colorTriggerFgColor>
 						<colorTriggerBgColor>#000000</colorTriggerBgColor>
 						<regexCodeList>
@@ -5130,9 +5136,9 @@ deleteLine()
 							<integer>0</integer>
 						</regexCodePropertyList>
 					</Trigger>
-					<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="yes" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 						<name>Group Tell</name>
-						<script />
+						<script>playSoundFile(getMudletHomeDir() .. "/Sounds/Notifications_Chat_Group_Tell.mp3")</script>
 						<triggerType>0</triggerType>
 						<conditonLineDelta>0</conditonLineDelta>
 						<mStayOpen>0</mStayOpen>
@@ -5140,7 +5146,7 @@ deleteLine()
 						<packageName />
 						<mFgColor>#ff0000</mFgColor>
 						<mBgColor>#ffff00</mBgColor>
-						<mSoundFile>/home/owner/Desktop/Mudlet/mudlet-data/profiles/MyDSL/Sounds/Notifications_Chat_Group_Tell.mp3</mSoundFile>
+						<mSoundFile />
 						<colorTriggerFgColor>#000000</colorTriggerFgColor>
 						<colorTriggerBgColor>#000000</colorTriggerBgColor>
 						<regexCodeList>
@@ -7420,9 +7426,9 @@ MyDSL.Route.history()</script>
 					<colorTriggerBgColor>#000000</colorTriggerBgColor>
 					<regexCodeList />
 					<regexCodePropertyList />
-					<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="yes" isFilterTrigger="no" isSoundTrigger="yes" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="yes" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 						<name>Steady Rain</name>
-						<script />
+						<script>playSoundFile(getMudletHomeDir() .. "/Sounds/Weather_Rain_Steady.mp3")</script>
 						<triggerType>0</triggerType>
 						<conditonLineDelta>0</conditonLineDelta>
 						<mStayOpen>0</mStayOpen>
@@ -7430,7 +7436,7 @@ MyDSL.Route.history()</script>
 						<packageName />
 						<mFgColor>#55aaff</mFgColor>
 						<mBgColor>#000000</mBgColor>
-						<mSoundFile>/home/owner/Desktop/Mudlet/mudlet-data/profiles/MyDSL/Sounds/Weather_Rain_Steady.mp3</mSoundFile>
+						<mSoundFile />
 						<colorTriggerFgColor>#000000</colorTriggerFgColor>
 						<colorTriggerBgColor>#000000</colorTriggerBgColor>
 						<regexCodeList>
@@ -7444,9 +7450,9 @@ MyDSL.Route.history()</script>
 							<integer>0</integer>
 						</regexCodePropertyList>
 					</Trigger>
-					<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="yes" isFilterTrigger="no" isSoundTrigger="yes" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="yes" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 						<name>Lightning arcs across the night sky</name>
-						<script />
+						<script>playSoundFile(getMudletHomeDir() .. "/Sounds/Weather_Lightning_Strike.mp3")</script>
 						<triggerType>0</triggerType>
 						<conditonLineDelta>0</conditonLineDelta>
 						<mStayOpen>0</mStayOpen>
@@ -7454,7 +7460,7 @@ MyDSL.Route.history()</script>
 						<packageName />
 						<mFgColor>#ffff00</mFgColor>
 						<mBgColor>#000000</mBgColor>
-						<mSoundFile>/home/owner/Desktop/Mudlet/mudlet-data/profiles/MyDSL/Sounds/Weather_Lightning_Strike.mp3</mSoundFile>
+						<mSoundFile />
 						<colorTriggerFgColor>#000000</colorTriggerFgColor>
 						<colorTriggerBgColor>#000000</colorTriggerBgColor>
 						<regexCodeList>
@@ -7490,9 +7496,9 @@ MyDSL.Route.history()</script>
 					<colorTriggerBgColor>#000000</colorTriggerBgColor>
 					<regexCodeList />
 					<regexCodePropertyList />
-					<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="yes" isFilterTrigger="no" isSoundTrigger="yes" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="yes" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 						<name>cold gentle breeze blows</name>
-						<script />
+						<script>playSoundFile(getMudletHomeDir() .. "/Sounds/Weather_Breeze_Cold.mp3")</script>
 						<triggerType>0</triggerType>
 						<conditonLineDelta>0</conditonLineDelta>
 						<mStayOpen>0</mStayOpen>
@@ -7500,7 +7506,7 @@ MyDSL.Route.history()</script>
 						<packageName />
 						<mFgColor>#305f8f</mFgColor>
 						<mBgColor>#000000</mBgColor>
-						<mSoundFile>/home/owner/Desktop/Mudlet/mudlet-data/profiles/MyDSL/Sounds/Weather_Breeze_Cold.mp3</mSoundFile>
+						<mSoundFile />
 						<colorTriggerFgColor>#000000</colorTriggerFgColor>
 						<colorTriggerBgColor>#000000</colorTriggerBgColor>
 						<regexCodeList>
@@ -7510,9 +7516,9 @@ MyDSL.Route.history()</script>
 							<integer>0</integer>
 						</regexCodePropertyList>
 					</Trigger>
-					<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="yes" isFilterTrigger="no" isSoundTrigger="yes" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="yes" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 						<name>temperate gentle breeze blows</name>
-						<script />
+						<script>playSoundFile(getMudletHomeDir() .. "/Sounds/Weather_Breeze.mp3")</script>
 						<triggerType>0</triggerType>
 						<conditonLineDelta>0</conditonLineDelta>
 						<mStayOpen>0</mStayOpen>
@@ -7520,7 +7526,7 @@ MyDSL.Route.history()</script>
 						<packageName />
 						<mFgColor>#00aa7f</mFgColor>
 						<mBgColor>#000000</mBgColor>
-						<mSoundFile>/home/owner/Desktop/Mudlet/mudlet-data/profiles/MyDSL/Sounds/Weather_Breeze.mp3</mSoundFile>
+						<mSoundFile />
 						<colorTriggerFgColor>#000000</colorTriggerFgColor>
 						<colorTriggerBgColor>#000000</colorTriggerBgColor>
 						<regexCodeList>
@@ -7530,9 +7536,9 @@ MyDSL.Route.history()</script>
 							<integer>0</integer>
 						</regexCodePropertyList>
 					</Trigger>
-					<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="yes" isFilterTrigger="no" isSoundTrigger="yes" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="yes" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 						<name>warm gentle breeze blows</name>
-						<script />
+						<script>playSoundFile(getMudletHomeDir() .. "/Sounds/Weather_Breeze.mp3")</script>
 						<triggerType>0</triggerType>
 						<conditonLineDelta>0</conditonLineDelta>
 						<mStayOpen>0</mStayOpen>
@@ -7540,7 +7546,7 @@ MyDSL.Route.history()</script>
 						<packageName />
 						<mFgColor>#55aaff</mFgColor>
 						<mBgColor>#000000</mBgColor>
-						<mSoundFile>/home/owner/Desktop/Mudlet/mudlet-data/profiles/MyDSL/Sounds/Weather_Breeze.mp3</mSoundFile>
+						<mSoundFile />
 						<colorTriggerFgColor>#000000</colorTriggerFgColor>
 						<colorTriggerBgColor>#000000</colorTriggerBgColor>
 						<regexCodeList>
@@ -7568,9 +7574,9 @@ MyDSL.Route.history()</script>
 					<colorTriggerBgColor>#000000</colorTriggerBgColor>
 					<regexCodeList />
 					<regexCodePropertyList />
-					<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="yes" isFilterTrigger="no" isSoundTrigger="yes" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="yes" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 						<name>temperate moderate wind blows</name>
-						<script />
+						<script>playSoundFile(getMudletHomeDir() .. "/Sounds/Weather_Wind_Moderate.mp3")</script>
 						<triggerType>0</triggerType>
 						<conditonLineDelta>0</conditonLineDelta>
 						<mStayOpen>0</mStayOpen>
@@ -7578,7 +7584,7 @@ MyDSL.Route.history()</script>
 						<packageName />
 						<mFgColor>#55aaff</mFgColor>
 						<mBgColor>#000000</mBgColor>
-						<mSoundFile>/home/owner/Desktop/Mudlet/mudlet-data/profiles/MyDSL/Sounds/Weather_Wind_Moderate.mp3</mSoundFile>
+						<mSoundFile />
 						<colorTriggerFgColor>#000000</colorTriggerFgColor>
 						<colorTriggerBgColor>#000000</colorTriggerBgColor>
 						<regexCodeList>
@@ -7608,9 +7614,9 @@ MyDSL.Route.history()</script>
 					<colorTriggerBgColor>#000000</colorTriggerBgColor>
 					<regexCodeList />
 					<regexCodePropertyList />
-					<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="yes" isFilterTrigger="no" isSoundTrigger="yes" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="yes" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 						<name>Snow falls steadily</name>
-						<script />
+						<script>playSoundFile(getMudletHomeDir() .. "/Sounds/Weather_Snow.mp3")</script>
 						<triggerType>0</triggerType>
 						<conditonLineDelta>0</conditonLineDelta>
 						<mStayOpen>0</mStayOpen>
@@ -7618,7 +7624,7 @@ MyDSL.Route.history()</script>
 						<packageName />
 						<mFgColor>#55aaff</mFgColor>
 						<mBgColor>#000000</mBgColor>
-						<mSoundFile>/home/owner/Desktop/Mudlet/mudlet-data/profiles/MyDSL/Sounds/Weather_Snow.mp3</mSoundFile>
+						<mSoundFile />
 						<colorTriggerFgColor>#000000</colorTriggerFgColor>
 						<colorTriggerBgColor>#000000</colorTriggerBgColor>
 						<regexCodeList>

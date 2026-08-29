@@ -46,7 +46,16 @@ DEFERRED gets started without an explicit go-ahead.
       keybinds, scripts, all of it — minus Mudlet's own default content,
       not just Scripts/Triggers/Keys like today (currently zero
       `AliasPackage` handling exists at all; `MyDSL_PersonalAliases.xml`'s
-      29 aliases never make it into a build). (2) `scripts/
+      29 aliases never make it into a build). **New same-class gap found
+      2026-08-29** while fixing hardcoded sound paths: a bare native
+      `Trigger` named "Nature Growth" (plus siblings "Do you want color?
+      (Y/N)"/"return from void") sits directly under `<TriggerPackage>`
+      with an empty `<packageName>` — never inside `MyDSL_GameplayTriggers`
+      or any other tracked group, so it's invisible to every existing
+      backup/build mechanism the same way the 29 personal aliases were.
+      Its own hardcoded sound path was fixed live regardless (harmless),
+      but the packaging gap itself is exactly this item's problem, not
+      solved here. (2) `scripts/
       check_known_patterns.py` needs to extend past `.lua`-only scanning to
       cover the native XML files too, per the same principle — "you should
       know everything that is happening in the code and mudlet." (3)
@@ -104,13 +113,6 @@ DEFERRED gets started without an explicit go-ahead.
         dslcolor" — this module has grown organically with little
         written explanation of its own data model; worth a real doc pass
         once the above lands.
-- [ ] **30 hardcoded native sound paths — fix all of them.** `MyDSL_
-      GameplayTriggers.xml` has 30 `<mSoundFile>` entries hardcoding
-      `/home/owner/Desktop/Mudlet/mudlet-data/profiles/DSL2/Sounds/...`
-      (inconsistently split between `DSL2/Sounds/` and `MyDSL/Sounds/`
-      subpaths — even a same-machine profile rename could break some but
-      not all today). Steven: "fix all them" — convert each to
-      `playSoundFile(getMudletHomeDir() .. "/Sounds/...")`.
 - [ ] **Help.lua — redesign to auto-derive from the live alias tree.**
       Currently 595 lines, hand-maintained, and confirmed drifting out of
       sync with the real command surface whenever a module changes (its
