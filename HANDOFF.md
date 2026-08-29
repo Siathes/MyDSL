@@ -30,37 +30,70 @@ by prompting each with "check repo" plus his own notes.
 
 ## Latest from Claude Code
 
-**2026-08-27 (applied `TODO_final.md` as the new `docs/TODO.md` — closing this out)**
+**2026-08-29 (worked every self-contained Top Priority item; two design
+reviews found and fixed real bugs, not just doc passes)**
 
-Read `TODO_final.md` in full and spot-checked the concrete "already
-fixed"/"confirmed gone" claims against current source before adopting
-wholesale, rather than trusting the summary: the Roller pre-port native
-trigger is genuinely gone from tracked native XML; `MyDSL_ScanView.lua`'s
-duplicate-mob-count fix, `MyDSL_CharacterAssist.lua`'s bare `setspell`
-alias, and `MyDSL_LocationView.lua`'s `stripQuotes()` all exist exactly
-as described; the `MyDSL.save()`/`table.load()` naming worry checked out
-clean across all 7 flagged files. All accurate — nothing to correct.
+Since the 2026-08-27 entry below, worked through every `TODO_final.md`
+Top Priority item that didn't need Steven's own GUI/live action or your
+involvement. Full detail is in `docs/CHANGELOG.md`'s 2026-08-29 entries
+(several); the short version:
 
-One item needed real code action, not just a doc swap: `mydsl rawlog`
-was listed as "removing" but the file was still there, so I actually
-deleted `MyDSL_RawCapture.lua` (confirmed zero dependents via repo-wide
-grep first), its `dofile()` entry, its `TEST_MODULES` entry, and its
-help line. Since the live MyDSL profile's own native snapshot still has
-the old script installed until the next uninstall+reinstall cycle,
-added a `RETIRED_SCRIPTS` set to `build_mydsl_package.py` so it doesn't
-silently re-enter a build just because it's still lingering there —
-verified against the real live snapshot, package now builds clean at 38
-scripts with a NOTE instead of erroring.
+- **30 hardcoded native sound-trigger paths** (+ 1 newly-found bare
+  "Nature Growth" trigger with an empty `packageName`, same invisible-
+  to-backups class as the 29 personal aliases you already know about)
+  converted to portable `playSoundFile(getMudletHomeDir() ...)`, applied
+  identically to the tracked backup and the live profile's native XML.
+- **ChatTriggers coverage + default gag-state**: audited all 5 tabs
+  against the real corpus + `DSL_Helpfiles/channels.txt`; fixed one real
+  inconsistency (Local's whisper wasn't gagged like its say/yell/shout
+  siblings). 4 named channels have zero real corpus examples — confirmed
+  not fixable, not fixed.
+- **DslColors**: added a real master `dslcolor on|off` toggle (only
+  `echo on|off`, i.e. notification verbosity, existed before) and fixed
+  a confirmed perf bug (`dslBoundedFind()` re-lowercased the same line
+  up to ~803x). Census/player-profile-fields/documentation — the bigger
+  half of this item — still open, deliberately not attempted blind
+  (140K-char, zero-test-coverage native script; needs real mapper-
+  integration design work).
+- **Help.lua drift**: built `scripts/check_help_coverage.py` instead of
+  the riskier "annotate all 189 tempAlias() call sites" rebuild — it
+  found 19 real undocumented commands (all `emco *`, both `mydsl login
+  *`), now fixed and documented, checker reports zero drift.
+- **Login flow — real bug found via corpus, not just review.** Re-derived
+  the actual login sequence from `log/` instead of trusting the module's
+  own header: "Password:" (master account) and "Player name:" (which
+  character to play) are NOT a matched pair, several steps apart. The
+  module was auto-sending one hardcoded character name at every "Player
+  name:" prompt — wrong whenever it doesn't match that session's actual
+  target character (Steven's own corpus shows him logging into several
+  different ones). Presented Steven 4 fix options; he picked "split
+  toggle, character autofill off by default." Implemented: `mydsl login
+  on|off` = password only (unchanged default), new independent `mydsl
+  login character on|off` (default off), credentials field renamed
+  `name`→`character` with backward-compat fallback.
+- **ItemLore + ground-item capture design review**: traced all 4 files
+  involved end to end — concluded it's already mature and correctly
+  designed, no changes needed. Worth knowing since it was flagged
+  "needs review" without a specific complaint — closed as reviewed-and-
+  fine rather than left open indefinitely.
+- **GroupView/TargetView button UX + interconnection review**: confirmed
+  the two modules already correctly share one action registry (not a
+  gap). Added `focus actions`/`group actions` so a player can discover
+  valid action keys before assigning a button — previously undiscoverable
+  without reading source. A full clickable button-picker UI is a
+  separate, bigger project, not attempted.
 
-Applied `TODO_final.md` as `docs/TODO.md` as-is otherwise (it was
-already well-organized and Steven's answers are baked directly into
-each item). Full 46-suite Lua test run + `check_known_patterns.py --all`
-clean throughout. Full detail: `docs/CHANGELOG.md`'s 2026-08-27 entries.
+Every fix above has a test confirmed via targeted revert (temporarily
+break the fix, confirm the test catches it, restore) — same discipline
+as everything else in this repo. Full Lua suite +
+`check_known_patterns.py --all` clean throughout.
 
-No new ask for you this round — this closes the TODO re-triage loop.
-Next up, per the new file's own Top Priority section: native-content
-full consolidation, ChatTriggers coverage+default-gag redesign, and the
-DslColors integration project, whenever Steven wants to start one.
+Still open, Top Priority, all genuinely needing Steven (not you):
+native-content full consolidation (GUI/profile-management work) and the
+`MyDSL_Full.mpackage` from-scratch install test (needs him physically
+installing) — planned as one bundled live session next, not started.
+
+No ask for you this round.
 
 ## Latest from Claude Desktop
 
