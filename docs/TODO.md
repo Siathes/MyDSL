@@ -143,6 +143,17 @@ item above rather than needing its own decision.)*
       internal ranking output, not correctness of anything it's ranking.
       Steven had no context on this one; leaving it as background backlog
       rather than a real decision point.
+- [ ] **`DSL PNP 4` package (packages.mudlet.org, author Zooka) may be a
+      newer PNP source than our vendored `PNP files/` — found 2026-08-29,
+      not yet diffed.** Same author as the `dice` package found in the
+      same survey. Described as a comprehensive DSL package (battle
+      management, equipment tracking, spell management, gauges/status
+      bars, 90 keybindings, 52 config files) and **last updated June 2,
+      2026** — plausibly more recent than whatever snapshot `PNP files/`
+      was vendored from. Worth a real diff pass against our own
+      `PNP files/` to check for fixes/additions we're missing, per
+      `CLAUDE.md`'s own "reuse PNP source" mandate — nothing pulled or
+      compared yet, this is a lead, not a finding.
 
 ---
 
@@ -286,15 +297,22 @@ one at a time:
       discussion" (still no named candidate commands).
 - [ ] **Project-wide alias-dedup + namespace-guard sweep — approved, go
       ahead.** Real grep-driven audit, not started.
-- [ ] **Quest-tracking mechanic.** Steven approved building this as a
-      pop-up widget similar to the Moon/Weather widgets, using an old
-      incomplete DSL questing script as a starting reference. New research
-      step added this pass: "combine and check across profiles for the
-      autoquest script, we've had a couple" — check the sibling Mudlet
-      profiles (`../PNP1`, `../PNP2`, `../DSL1`, etc. — see `CLAUDE.md`'s
-      reference list) for existing autoquest scripts before designing from
-      scratch. Same underlying blocker either way: zero real corpus text
-      for quest start/expire/timer messages has been captured yet.
+- [ ] **Quest-tracking mechanic — corpus blocker resolved 2026-08-29.**
+      Steven approved building this as a pop-up widget similar to the
+      Moon/Weather widgets. A Mudlet package-repository survey found
+      `diku-prompt-handler` (Yetzederixx, DSL-specific, updated Feb 2025)
+      with real, tested quest trigger patterns — quest-cooldown-cleared,
+      quest-completed, the accept-gate (hour/half-hour timer grant), and
+      the personal/gather-quest cycles variant. Ported into
+      `docs/DSL_CommandRef.md`'s new QUESTING section, explicitly marked
+      as externally-sourced and NOT YET cross-verified against our own
+      `log/` corpus — confirm the first time one actually fires in a real
+      session before treating it as settled. Still not built: the actual
+      widget (design + `MyDSL_*.lua` module), and the sibling-profile
+      autoquest-script check Steven separately asked for ("combine and
+      check across profiles... we've had a couple" — `../PNP1`, `../PNP2`,
+      `../DSL1`, etc.) hasn't been done yet, may turn up a second source
+      to cross-check the ported patterns against.
 - [ ] **Roller — comparison stats + reconnect timer.** The timer-widget
       half is ready to scope directly: `MyDSL_AlterformView.lua` is a
       ready-made template (standalone Geyser countdown window, sound
@@ -460,6 +478,25 @@ work actually starts.)*
   planned test profile is the natural place) before considering an
   upgrade off 4.20.1 — see
   `~/Downloads/mudlet_upgrade_assessment.md` for the full writeup.**
+  **2026-08-29 research (not a retest, doesn't resolve the question):**
+  Mudlet 5.0's own release notes give measured numbers for the Geyser
+  rewrite — -47.2% per layout move, -53.8% per layout resize — a
+  positive but non-conclusive signal, since it confirms the layout
+  engine was rewritten, not that this specific bug is gone. No
+  deprecated/removed APIs found anywhere in 5.0 that MyDSL's code
+  depends on (checked against `Geyser.*`, `registerAnonymousEventHandler`,
+  `tempRegexTrigger`, GMCP handling, `table.load`/`table.save` — all
+  clean), so staying on 4.20.1 indefinitely if the retest comes back bad
+  carries no forced-migration risk either way. Also found several
+  genuinely useful new APIs worth adopting once/if the upgrade happens
+  (not before — no reason to write code against an engine we're not
+  running): `getWindowGeometry()`/`windowVisible()` (could simplify the
+  10 `MyDSL_windowstate_<Name>.lua` files' hand-tracked visibility/
+  position state), `remainingNamedTimer()` (worth a look for
+  `MyDSL_AffectsView.lua`'s affect-expiry countdowns), and a named fix
+  for `setBackgroundImage()`'s "unreliable in Mudlet 4.20.1" comment
+  already sitting in `MyDSL_LocationView.lua:22` — worth a direct
+  retest of that specific comment once on a testable newer version.
 - Most settings are character-bound; **window layout is the one
   deliberate exception** (per-profile, not per-character).
 - Themes: user-creatable named presets, shared across all characters.

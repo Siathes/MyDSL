@@ -713,6 +713,36 @@ Spell: detect invis      : modifies none by 0 for 32 cycles, (16 hours)
 
 ---
 
+## QUESTING (added 2026-08-29 — sourced externally, NOT yet cross-verified
+## against our own `log/` corpus)
+
+**Provenance, stated plainly since this breaks the file's own "populated
+from actual in-game captures" norm**: this project has zero real quest
+corpus text of its own (`docs/TODO.md`'s quest-tracking item has been
+blocked on this for a while). These patterns come from `diku-prompt-handler`,
+a DSL-specific Mudlet package by Yetzederixx
+(`packages.mudlet.org/packages/diku-prompt-handler`, created 2011, updated
+Feb 2025) — a real, working, DSL-targeted trigger set, inspected directly
+(`.mpackage` downloaded and unzipped, not taken from its description).
+Treat as a strong starting point, not a substitute for confirming against
+our own `log/` the first time any of this actually fires in a real
+session — mark `[x]` here only after that happens, per this file's own
+checkbox convention above.
+
+- `You can now quest again.` — cooldown-cleared notice.
+- `you have completed` (substring) — quest-completed notice; the package
+  sets a 10-tick "next quest" cooldown off this.
+- Quest-accept gate, multiline (`You ask` ... `for a quest.` bracket the
+  actual grant line):
+  - `^The .* says 'You have (\d+) hours to complete this quest.'$` —
+    timer = 2×hours (in ticks, package's own convention)
+  - `^The .* says 'You have (\d+) 1/2 hours to complete this quest.'$` —
+    timer = 2×hours + 1
+- `You aren't currently on a quest.` — no-active-quest gate.
+- Personal/gather-quest variant: `^There are (\d+) cycles` — timer = cycles.
+
+---
+
 ## COMBAT (confirmed patterns — added 2026-07-05, gap this file had all session)
 
 *Full 2026-07-05 combat-hardening pass produced all of this; it was never
