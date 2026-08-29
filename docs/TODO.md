@@ -1,15 +1,34 @@
 # DSL Observer UI — TODO
 *A current punch list only — resolved/historical items live in `CHANGELOG.md`
-and git history, not here. Restructured 2026-07-06; pruned 2026-07-07 after
-it grew back to 1300+ lines; pruned again 2026-07-11 after it grew to 1900+
-lines; pruned a third time 2026-08-27 after it grew to 2700+ lines (every
-`[x]`-marked item removed outright per this file's own rule — resolved work
-already has a permanent record in `docs/CHANGELOG.md` and git log, restating
-it here was pure duplication; the "needs live confirmation" backlog this
-file itself flagged as a problem at 14+ items was consolidated into one
-list instead of a paragraph each). If this file is turning back into a
-growing append-only history again, prune it — don't let it happen a fourth
-time.*
+and git history, not here. Restructured 2026-07-06; pruned three times since
+(most recently 2026-08-27 after 2700+ lines). Same day, **the full open list
+went through a two-phase triage with Steven**: phase 1, an interactive
+checklist (built by Claude Desktop) where every open item got a Keep /
+Cut-done / Cut-not-doing / Needs-info call; phase 2, every "needs-info" item
+got researched against the actual code/git history (not just re-read from
+this file) and brought back to Steven with concrete findings and one
+question each, which he then answered directly. **Everything below reflects
+the phase-2 answers** — full research findings for anything summarized here
+live in `HANDOFF.md`'s 2026-08-27 entry from Claude Desktop; ask there
+before re-deriving something this pass already confirmed. If this file
+turns back into a growing append-only history again, prune it.*
+
+**Closed this pass, no longer tracked (confirmed resolved, confirmed
+not-worth-building, or explicitly dropped by Steven)**: dock-tab-group
+label styling (risk not worth it — `setAppStyleSheet()` is whole-app scope,
+no per-window hook exists); `mydsl rawlog` diagnostic — **removed
+2026-08-27** (`MyDSL_RawCapture.lua` deleted entirely, confirmed zero
+dependents anywhere in the codebase — see `docs/CHANGELOG.md`); the Roller
+pre-port native trigger (confirmed gone); CharacterAssist "consolidating
+issues" (dropped — revisit only if it resurfaces); BACKSTABS Fail dead
+trigger (leaving as-is, colorizing still works even though the script body
+is inert); Murder/Consider duplicate-mob bug, `setspell` bare-command
+usage, LocationView quote-stripping, and the `MyDSL.save()`/`table.load()`
+naming worry (all four confirmed already fixed in code — just need
+Steven's live re-confirm, see NEEDS LIVE CONFIRMATION below); Layer 4
+areas/zones reference (no usable local data source, removed per Steven);
+Restrings guide, Shatteredarchive maps, inventory hover expansion (all
+previously cut-not-doing).
 
 **Feature creep is paused as of 2026-07-07, per Steven** — bug fixes, live
 confirmation, and finishing already-scoped work only. Nothing under
@@ -17,383 +36,282 @@ DEFERRED gets started without an explicit go-ahead.
 
 ---
 
-## TOP PRIORITY — project-wide audit & optimization phase (opened 2026-08-23)
-Per Steven, both in chat and independently in MyDSL's own `notes_utf8.txt`
-("moving into the optimization phase soon for UI... do a really really
-thorough deep scan of the current state of the project... cross check
-connections of modules... make sure its all in the same namespace...
-review it like its a new project"). Explicit go-ahead for a dedicated audit
-phase, separate from and in addition to the per-item live confirmations
-below.
+## TOP PRIORITY
 
-**See `docs/MYDSL_1.0_ROADMAP.md` for the big picture** — a per-module
-status table across all 44 audited units and the phase order for what's
-left before "feature complete" 1.0. `docs/OPTIMIZATION_AUDIT.md` is the
-live per-file tracker (pass 1 + pass 2, all 44 units); `docs/MYDSL_1.0_
-MODULE_REDESIGN.md` is the Toggle/Connection/Verdict pass on top of it.
-This section stays as the current punch list only.
+- [ ] **Native-content full consolidation — Steven's own words: "this is a
+      high priority to get back to a solid baseline of everything in the
+      package."** Merges three related asks from this pass into one
+      initiative: (1) `build_mydsl_package.py` needs to splice in
+      *everything* live and gameplay-relevant — aliases, triggers,
+      keybinds, scripts, all of it — minus Mudlet's own default content,
+      not just Scripts/Triggers/Keys like today (currently zero
+      `AliasPackage` handling exists at all; `MyDSL_PersonalAliases.xml`'s
+      29 aliases never make it into a build). (2) `scripts/
+      check_known_patterns.py` needs to extend past `.lua`-only scanning to
+      cover the native XML files too, per the same principle — "you should
+      know everything that is happening in the code and mudlet." (3)
+      Steven's broader plan from the phase-1 triage: get everything
+      consolidated into one clean baseline package, spin up a fresh test
+      profile ("MyDSL") to install and verify it, and — once confirmed
+      working — fold DSL2's logs/needed files into it (renaming DSL2 to
+      "MyDSL Test"), then delete the now-unneeded profiles. Needs real
+      scoping before work starts — this is a large, structural,
+      GUI-driven undertaking.
+- [ ] **ChatTriggers — coverage audit + default gag-state redesign.**
+      Steven: "review the chat code for optimization and function, that
+      it's catching all known chats vs. patterns and logs, then set a
+      default for what is gagged and what is not. Local is not gagged by
+      default, all other channels are gagged by default. Local is
+      yells/tells/whispers and such." Concretely: (1) audit `MyDSL_
+      ChatTriggers.lua`'s ~14 channel patterns against `log/` and `scripts/
+      check_text_coverage.py` results to confirm nothing real is falling
+      through uncaptured; (2) flip the default gag state so every channel
+      except Local starts gagged (routed to its tab, off the main
+      console) and Local starts shown. Currently all channels default to
+      shown/ungagged.
+- [ ] **DslColors — integrate into MyDSL, fix known issues, make Census
+      genuinely useful.** This pulls together four separate asks from this
+      pass that are really one project:
+      - **Integrate + toggle.** `DslColors_Core_v1_0.xml` is still a
+        standalone native script today, not wired into MyDSL as a real
+        toggleable module like everything else. Steven: "dslcolor needs to
+        be integrated into MyDSL, it will toggle on off like the others."
+      - **Fix the two confirmed bugs.** No master on/off exists yet (only
+        `dslcolor echo on/off`, which is just notification verbosity) —
+        the full 803-term vocabulary scan runs unconditionally on every
+        line. `dslBoundedFind()` also re-lowercases the line once *per
+        term comparison* instead of once per line — a real, if currently
+        small, perf cost. Steven: "I want an optimization pass on this and
+        a look to see if it helps or can connect to assist any other
+        modules. Fix the known issues."
+      - **Make Census data actually useful.** Today `people[key]`'s
+        `last_seen_*` fields just reflect the last time someone showed up
+        on the `who` list — Steven wants "last seen" to instead reflect
+        the real room/time/area the character actually walked into with
+        you, which means real mapper/DataLayer integration, not a `who`
+        snapshot. Also wants: kingdom/clan membership tracked as a
+        *history*, not just current state; an emerald dragon color
+        palette; a consistency audit on titles/palettes/terms, especially
+        Thax/Thaxanos kingdom coloring against real logs; and is open to
+        further suggestions on color/highlighting of people generally.
+      - **Add player-profile fields to Census.** No alignment, god, hp, or
+        mana field exists in `people[key]` today. Steven: "check logs and
+        collect as much real census as possible — hp avg over any combat
+        we have. Alignment can be manual-added (unless we use the
+        character auras when detects are up — check logs and helpfiles)
+        along with god."
+      - **Document it.** Steven: "there should be more notes on
+        dslcolor" — this module has grown organically with little
+        written explanation of its own data model; worth a real doc pass
+        once the above lands.
+- [ ] **30 hardcoded native sound paths — fix all of them.** `MyDSL_
+      GameplayTriggers.xml` has 30 `<mSoundFile>` entries hardcoding
+      `/home/owner/Desktop/Mudlet/mudlet-data/profiles/DSL2/Sounds/...`
+      (inconsistently split between `DSL2/Sounds/` and `MyDSL/Sounds/`
+      subpaths — even a same-machine profile rename could break some but
+      not all today). Steven: "fix all them" — convert each to
+      `playSoundFile(getMudletHomeDir() .. "/Sounds/...")`.
+- [ ] **Help.lua — redesign to auto-derive from the live alias tree.**
+      Currently 595 lines, hand-maintained, and confirmed drifting out of
+      sync with the real command surface whenever a module changes (its
+      own header admits this). Steven: "this has fallen behind, look at
+      best practice for help... and let's get it cleaned and completed,
+      with the ability to add features going forward. Auto-derive sounds
+      good." Scope: research what auto-deriving help content from alias
+      registration would actually look like (may mean annotating
+      `tempAlias` calls with a description/example at registration time
+      instead of a fully separate static table), then rebuild against
+      that pattern.
+- [ ] **`MyDSL_Full.mpackage` — real from-scratch install test.** The
+      2026-08-26 packaging-format fix itself is solid and tested, but
+      chat self-containment, `Sounds.zip`/`RoomPics.zip` placement, and
+      the PNP-prerequisite step have never been tested end-to-end, and the
+      `INSTALL.md` that's supposed to document Sounds/RoomPics placement
+      doesn't exist yet. Steven: "we will do a from scratch and see how it
+      unfolds and can be improved" — run the real install, then write
+      `INSTALL.md` from what that reveals.
+- [ ] **Login / character-creation flow — design review.** `MyDSL_
+      Login.lua` only covers the two login prompts (`Player name:`/
+      `Password:`) — nothing for character creation (race/class/stat
+      selection, name confirm), and there's genuinely no handling
+      anywhere for "Reconnecting your master account due to LD" (confirmed
+      via repo-wide grep). Steven: "this needs design review as logging
+      into DSL is not the same as name/password — check the login trigger
+      and the logs to see how the login actually works. Propose a better
+      method for new players." Scope: re-read the real login sequence from
+      `log/`, then propose a concrete flow (including whether the
+      reconnect line needs its own alert).
+- [ ] **ItemLore + ground-item capture — design review.** Two related but
+      distinct features, both flagged uncertain: the item-stats DB
+      (`MyDSL_ItemLore.lua`, populated from `lore`/`identify`) and the
+      ground-item *sighting* feature (`MyDSL_DataLayer_ScanLook.lua`'s
+      capture/hover-linkify + `MyDSL_DataLayer_ItemLore.lua`'s
+      `resolveGroundItem()` override mapping) — these live in different
+      files even though the original note conflated them. Steven: "this
+      item library and capture needs a design review" — covers both.
+- [ ] **GroupView quick-action buttons — UX + interconnection review.**
+      Today: exactly 2 fixed button slots per group-member row, shared
+      with TargetView's action table, changeable only via a typed alias
+      (no in-UI picker, no variable slot count). Steven: "review this, I
+      want to make changing buttons easier for the user, and see how the
+      module interconnects" — look at the TargetView/GroupView action-table
+      sharing as part of this, not just the button UI in isolation.
 
-- [ ] **New, not yet started: native dock-tab-group label styling.**
-      Steven asked whether the small tabs shown when multiple windows
-      share a dock side can also be colored to match. Confirmed: no
-      per-window hook exists — the only lever is `setAppStyleSheet()`,
-      whole-Mudlet-application scope, real risk of bleeding into parts
-      of Mudlet's UI outside this addon if the selector isn't scoped
-      carefully. Needs its own careful validation pass before attempting.
-- [ ] **Triaged 2026-08-27 from `docs/myresponses.txt`** (Steven's own
-      "Pass 2" notes, written directly into a personal copy of
-      `docs/OPTIMIZATION_AUDIT.md`, 2026-08-25 — cross-checked against
-      the 2 days of work since; most of the 46 notes turned out already
-      resolved or already tracked elsewhere, see `docs/CHANGELOG.md`'s
-      2026-08-27 entry for the full reconciliation). Genuinely still
-      open, bounded items only — the bigger design asks (mapper
-      full-rewrite, mob-diary wiki window, spell/skill alias shortcuts,
-      project-wide alias-dedup sweep) are tracked instead under "OPEN —
-      Design ideas, not yet scoped" below, not here:
-      - `MyDSL_RawCapture.lua`'s `mydsl rawlog` diagnostic — Steven:
-        "this can be removed as it doesn't sound like it's needed." The
-        audit itself already questioned whether it's still wanted since
-        the concern it was built to catch doesn't apply to DSL2. Needs
-        a scoping check (whole file vs. just this one diagnostic) before
-        removing.
-      - `MyDSL_Roller.lua` — verify the pre-port native trigger is
-        actually gone, not just documented as fixed.
-      - `MyDSL.save()`/`table.load()` naming ambiguity (`MyDSL_
-        DataLayer.lua`) — 9 modules call something by that name; only 2
-        (`MyDSL_CreatureLore.lua`, `MyDSL_AffectsView.lua`) got
-        disambiguated in the module-redesign pass. 7 unconfirmed:
-        `MyDSL_CombatView.lua`, `MyDSL_GroupView.lua`, `MyDSL_
-        LayoutEngine.lua`, `MyDSL_TargetView.lua`, `MyDSL_PromptView.lua`,
-        `MyDSL_WindowRegistry.lua`, `MyDSL_ThemeEngine.lua`. Steven also
-        asked for this explained back to him plainly once confirmed, not
-        just fixed silently.
-      - `MyDSL_ThemeEngine.lua` — Steven asked to discuss design/theme
-        options "to make it user friendly." `99c370d`'s new/edit/delete/
-        preview theme customization landed ~80 min after this note was
-        written — likely already answers it; worth a direct confirm.
-      - `MyDSL_ChatTriggers.lua` — Steven's note asks specifically
-        whether it captures ALL chat channels, broader than the
-        per-channel gag/show already shipped 2026-08-26. Needs a real
-        coverage check (compare against `scripts/check_text_coverage.py`
-        results for chat-shaped unmatched lines).
-      - `MyDSL_ItemLore.lua` — Steven is unsure the ground-item-tracking
-        feature is worth building as designed; needs a design
-        conversation before anything here moves.
-      - `MyDSL_GroupView.lua` — real selectable/dropdown quick-action
-        buttons instead of the current setup. Design discussion.
-      - `MyDSL_CharacterAssist.lua` — Steven: "we plan on just
-        consolidating these issues?" — needs him to say which issues.
-      - `MyDSL_Help.lua` — Steven: "this needs a lot of work, design
-        philosophy discussion." Not scoped.
-- [ ] **`build_mydsl_package.py` doesn't splice `MyDSL_PersonalAliases.xml`
-      into the built package** (found during the 2026-08-23 native-content
-      inventory, still true — confirmed no `AliasPackage` handling exists
-      in the build script at all). A from-scratch reinstall still wouldn't
-      restore Steven's 29 hand-built personal aliases without a manual
-      import of that file separately.
-- [ ] `scripts/check_text_coverage.py` has two confirmed extraction blind
-      spots (wrapper-function-built patterns in `MyDSL_ChatTriggers.lua`/
-      `MyDSL_CharacterAssist.lua`/`MyDSL_Leveling.lua`; narrowed-variable
-      `:find()`/`:match()` calls slipping past the genericness filter) —
-      documented in the script's own "Scope" docstring, not yet fixed.
-      Low urgency (affects the *ranking*, not the tool's core design).
-- [ ] **From the first real `check_text_coverage.py` run (2026-08-25),
-      still open**: the entire login/character-creation flow was
-      completely uncaptured at the time (now addressed by `MyDSL_
-      Login.lua`'s own patterns, but worth re-running the coverage tool
-      to confirm); and one isolated real gap never picked up —
-      `"Reconnecting your master account due to LD"` (90 occurrences), a
-      disconnect/reconnect notification nothing currently handles.
-- [ ] **Real decisions needed from Steven, native content**:
-      - `DslColors_Core_v1_0.xml` has no master on/off — its full
-        803-term-vocabulary scan runs unconditionally on every non-blank
-        line, only a minor `echo on/off` notification setting exists.
-        Also a real per-line perf cost (`dslBoundedFind()` re-lowercases
-        the line on every one of ~803 term comparisons instead of once).
-        Needs a real toggle + the lowercase-once fix.
-      - **30 native `<mSoundFile>` entries in `MyDSL_GameplayTriggers.xml`
-        hardcode `/home/owner/Desktop/Mudlet/mudlet-data/profiles/DSL2/
-        Sounds/...`** — works today (same physical directory, confirmed
-        via inode check) but not portable to a fresh install. Fixing
-        means converting each of the 30 to `playSoundFile(getMudletHomeDir()
-        .. "/Sounds/...")` — real native-XML surgery across 30 trigger
-        blocks, flagged for a decision rather than done blind.
-      - `scripts/check_known_patterns.py` only scans `.lua` files — both
-        bugs above were invisible to its `--all` sweep purely because
-        they live in XML. Worth extending it to the 4 native files.
-      - `MyDSL_PersonalAliases.xml`'s 29 personal command-shortcut
-        aliases aren't "features" in the sense Principle 2 was written
-        for — whether Principle 2 is meant to reach this far is a real
-        open question.
-- [ ] **Trivial cleanup, low priority**: `MyDSL_GameplayTriggers.xml`'s
-      "BACKSTABS Fail" trigger has its entire script body commented out
-      (PNP-era dead code, still fires and matches, does nothing) — safe
-      to remove whenever the native XML is next hand-edited for
-      something else.
-- [ ] **Mapper GMCP-parsing merge into DataLayer — approved, not started.**
-      Steven confirmed 2026-08-25 the mapper fork never runs standalone,
-      so its independent GMCP re-parsing of `char_data`/`room_data` is a
-      real, clean dedup win, not a correctness risk anymore. Needs its
-      own dedicated pass (touches native `DSL_Generic_Mapper.xml`, 6,631
-      lines, a live currently-working system) — not folded into general
-      per-file cleanup. **Distinct from** the bigger "full DSL-specific
-      rewrite" idea tracked under Design Ideas below — this one is a
-      dedup optimization, not a redesign.
-- [ ] **`MyDSL_Full.mpackage` — one combined package, needs a full live
-      confirmation pass.** Chat fully self-contained (EMCO ported in, no
-      separate EMCOChat dependency), namespace fully MyDSL-owned. `Sounds.
-      zip`/`RoomPics.zip` ship separately (media can't be embedded in a
-      `.mpackage`) — placement instructions in `INSTALL.md`. No packaged/
-      documented process for the PNP base-client prerequisite (always
-      manual). Package-format root cause (nested `MyDSL_Full` wrapper)
-      fixed 2026-08-26 — see `docs/MUDLET_PACKAGING_REFERENCE.md`, read
-      before every build.
+*(Native-content tracking's Principle-2 question is answered, not open:
+Principle 2 is "Toggleable By Default" — MYDSL_1.0_PHILOSOPHY.md, unrelated
+to the automation rule Steven was thinking of, which was a different,
+already-retired restriction. Whether the 29 personal shortcut aliases
+specifically need individual per-alias toggles is a minor open question,
+but low-stakes and folds naturally into the native-content consolidation
+item above rather than needing its own decision.)*
 
 ---
 
 ## LOW PRIORITY
 - [ ] **`MyDSL_DataLayer.lua` split-by-domain refactor — code complete
-      2026-08-25 (5 slices, 4,745 → 995 lines, 79% moved into 5 new
-      domain files).** Slices 1-2 (CreatureLore, Combat) live-confirmed
-      against real play the same day. **Slices 3-5 still need Steven's
-      live confirmation**: `MyDSL_DataLayer_ScanLook.lua` (scan/look/
-      players-near — needs a `scan`, a `look`, and a "Players near you:"
-      listing), `MyDSL_DataLayer_ItemLore.lua` (identify/lore/equipment/
-      inventory/containers), `MyDSL_DataLayer_PromptVitals.lua` (score/
-      flags/lunar/time/weather/who/group/improve — needs `score`, a flag
-      toggle, `who`, grouping up, and a skill practice). Full detail:
-      `docs/CHANGELOG.md` (2026-08-25).
-- [ ] Two personal aliases in the live MyDSL profile are cosmetically
-      mislabeled (`^pqf$` shows as "(pqr) PQ Request Find", `^pqh$` shows
-      as "(pqr) PQ Request Hunt") — fixed in the tracked backup, the live
-      Mudlet Alias editor entries still need a 2-second manual rename by
-      Steven whenever he's in there next.
+      2026-08-25, slices 1-2 live-confirmed.** Slices 3-5 still need
+      Steven's live confirmation: `MyDSL_DataLayer_ScanLook.lua` (needs a
+      `scan`, a `look`, and a "Players near you:" listing), `MyDSL_
+      DataLayer_ItemLore.lua` (identify/lore/equipment/inventory/
+      containers), `MyDSL_DataLayer_PromptVitals.lua` (score/flags/lunar/
+      time/weather/who/group/improve). Steven, 2026-08-27: "keep, we will
+      look at in a game run to add to the tests to perform during
+      gameplay" — bundle with the other live-gameplay-test items below.
+- [ ] `scripts/check_text_coverage.py` has two confirmed extraction blind
+      spots (a wrapper-function pattern in ChatTriggers/CharacterAssist/
+      Leveling; a narrowed-variable `:find()`/`:match()` call in the
+      mapper) — genuinely low-stakes, affects only the coverage tool's
+      internal ranking output, not correctness of anything it's ranking.
+      Steven had no context on this one; leaving it as background backlog
+      rather than a real decision point.
 
 ---
 
 ## NEEDS LIVE CONFIRMATION
-Fixed in code, verified via structural tests/syntax checks — none of this
-is closed until Steven confirms it in-game. Consolidated 2026-08-27 (was
-14+ items, several 5+ weeks old, each with a full paragraph — full
-technical detail for any of these: `git log --oneline` + `docs/
-CHANGELOG.md`, not restated here):
-- [ ] DataLayer room-capture: 3 more fixture-line gaps + an NPC-verb gap
-      ("stands/sits behind the bar") — watch for any capture regression
-      during normal play (RightHere/Scan/Leveling/CreatureLore all read
-      from this).
+Fixed in code (or already known-good), none of it closed until Steven
+confirms it in-game. Bundle these into upcoming play sessions rather than
+one at a time:
+- [ ] DataLayer room-capture: 3 more fixture-line gaps + an NPC-verb gap.
 - [ ] Focus/TargetView populating during a Leveling fight AND during
-      normal manual combat — two prior "not populating" reports (2026-
-      07-25 Leveling-specific, 2026-08-23 general) both traced to the
-      same `MyDSL.Target.set()` wiring; needs a real fight to confirm
-      both cases now work.
+      normal manual combat.
 - [ ] Mapper: "air" terrain color while flying, room weight from real
-      movement cost, terrain-color "set once" lock + `rt`/`room terrain`
-      override alias, `dslroom raw` as a one-stop room-info command.
-      (Steven already confirmed 2026-08-24 "fix seems to be fine" for
-      the terrain-lock half specifically — the rest of this bundle
-      hasn't had its own separate confirmation.)
-- [ ] PlayersNear font size surviving a reload.
-- [ ] Location/Portrait "ran smoother before the Mudlet update" — still
-      not root-caused, needs specifics from Steven: which Mudlet version,
-      and whether this is about Location, Portrait, or both (scaling/
-      quality vs. timing/flicker vs. something else) — a fresh screenshot
-      showing the actual problem would narrow this down faster than more
-      code reading.
-- [ ] CharacterAssist: rearm (weapon+shield) itself hasn't been
-      separately confirmed (spellup/setspell and the blind-vision check
-      already were, 2026-07-15).
-- [ ] `MyDSL_AutoWhere.lua` — both manual wiring steps confirmed done,
-      never actually tested live.
-- [ ] Roller double-reject bug fix (native trigger now disabled on load).
+      movement cost, terrain-color "set once" lock + override alias,
+      `dslroom raw`.
+- [ ] PlayersNear font size surviving a reload — ready to test and close.
+- [ ] **Location/Portrait rendering, concrete scope now**: the portrait
+      image should fit/scale to the window (currently doesn't), and
+      there's a stray bar at the top of the window. Reread/rewrite the
+      relevant code with optimization in mind while fixing this.
+- [ ] CharacterAssist: rearm (weapon+shield) itself, separately from
+      spellup/setspell/blind-vision (already confirmed).
 - [ ] PVP performance pass (debounced saves, gated raw-capture, batched
-      buffer trims) — built on code audit, not measurement; worth a real
-      lag check during an actual fight if lag ever comes up again.
-- [ ] **Still true going forward**: anything Steven adds to the native
-      Mudlet package folder by hand (Triggers/Keys/Scripts) is invisible
-      to the next `build_mydsl_package.py` run unless it's git-tracked —
-      confirmed once already (the 2026-07-19 data-loss incident), worth
-      remembering before the next hand-added native item.
-- [ ] Identify persistence (casting `identify` should authoritatively
-      clear stale scraped fields, not just fill gaps) — fixed twice
-      (2026-07-19 merge logic, 2026-08-24 source-scoping for observed-
-      vs-self-identify) but Steven's 2026-08-23 note describing the same
-      symptom might predate one of those fixes or be a fresh recurrence.
-      Needs a fresh live identify + check either way.
-- [ ] Fuzzy name-matching (mob ID via `resolveMobName()`, ground-item
-      mapping via `resolveGroundItem()`) — built, not yet wired into any
-      display/hover UI beyond the resolver itself.
-- [ ] RightHere silently dropping mobs listed after certain uncovered
-      item-flavor-text lines (9th instance of this bug class — an
-      allowlist-growing pattern worth a real "default to keep capturing"
-      redesign discussion with Steven if it recurs a 10th time).
-- [ ] Murder/Consider/Order-All → "They're not here" when a duplicate-mob
-      RightHere entry's count doesn't decrement on a mid-fight kill.
-- [ ] Affects window top row not clickable to recast.
-- [ ] `setspell` bare-command usage message.
-- [ ] LocationView: quote-stripping for `mydsl location set "..."`/`map
-      <room> = "..."`.
+      buffer trims) — code-audited, not measured; worth a real lag check
+      if lag comes up again.
+- [ ] Identify persistence — fresh live `identify` + check.
+- [ ] **Fuzzy name-matching, narrowed scope**: drop ground-item matching
+      entirely; only wire mob ID (`resolveMobName()`) to real clickable
+      links, scoped to inventory/container/equipment lists.
+- [ ] Murder/Consider/Order-All duplicate-mob bug — **already fixed**
+      2026-07-16 (`MyDSL_ScanView.lua:223-237`), just needs a live
+      duplicate-mob-kill confirm.
+- [ ] `setspell` bare-command usage — **already fixed** 2026-07-16, just
+      needs a live re-confirm.
+- [ ] LocationView quote-stripping — **already fixed** 2026-08-23, just
+      needs a live re-confirm.
+- [ ] **Fight-summary spell-damage capture** — not actually an open design
+      question: the existing damage-line pattern matches on message
+      *shape*, not verb identity, so a landing damage spell should already
+      flow through with zero new code. Steven: "check logs or wait till
+      next gameplay for testing, group with other gameplay tests" — just
+      needs one live confirm (or a `log/` grep) to close out.
 
 ---
 
 ## OPEN — Combat, remaining loose ends
-Per-swing display, evasion triggers, both death-line forms, weapon-flag
-proc attribution, and the PNP-faithful display rewrite are confirmed
-correct (code review + a real live fight, 2026-07-11) — see
-`CHANGELOG.md`. Still open:
 - [ ] **DEFERRED, per Steven ("we can wait a bit longer on")**: Algoron
-      Combat League (AGL) / Coliseum combat module — new idea, not
-      scoped. Should be captured separately, in a large window with 4
-      floating sub-windows at the cardinal positions matching the
-      Coliseum's wall echoes. Groundwork (bracket-prefix format,
-      applicable procs) already gathered — see CHANGELOG.
-- [ ] **Fight-summary conclusiveness — the one real remaining gap**:
-      whether direct-damage offensive spells (shock bolt, firebolt,
-      lightning bolt, magic missile, etc.) use the same capturable
-      grammar as regular weapon/skill swings. Zero real corpus examples
-      of any of these actually landing in combat — can't confirm this is
-      captured OR that it's missing. Needs a live fight where a damage
-      spell gets cast and logged, then a check of whether it shows up in
-      the summary. (Skills with no damage number at all — bash's
-      knockdown, trip, riot, dirt-kick — are confirmed to genuinely have
-      nothing for a "landing %" to attach to; not a gap.)
+      Combat League (AGL) / Coliseum combat module.
 
 ---
 
 ## PAUSED — needs more captured log data before further progress
-Per Steven: "lets pause the capture logs phase... we will return to them
-when we have more data to scan."
-- [ ] `procUnholy`/`procManaSelf` — zero occurrences anywhere on this
-      machine as of the last wide search (2026-08-23).
-- [ ] `combatSense1/2` (sense-based evasion) — zero occurrences anywhere.
-      Needs a bard specifically playing/logging.
-
----
-
-## OPEN — Reported bugs, not yet fixed
-- [ ] **Sibling-profile log scanning technique, worth remembering**: a
-      targeted `grep -r` for a specific known phrase across every file in
-      a sibling profile can pay off even when the profile looks mostly
-      like debug noise — sampling one large file isn't representative.
+- [ ] `procUnholy`/`procManaSelf` — zero occurrences found.
+- [ ] `combatSense1/2` — zero occurrences found; needs a bard specifically
+      playing/logging.
 
 ---
 
 ## OPEN — Design ideas, not yet scoped
-- [ ] **TargetView: show debuffs cast on the current target.** Zero real
-      third-person/observer-side corpus text for weaken/slow/blindness/
-      plague landing on someone else — only self-referential "you feel
-      weaker" text exists, so these 4 stay placeholders. Poison is
-      different and already built (`"<mob> looks very ill."` is real,
-      generic, 8+ corpus occurrences) — see `MyDSL.Target.markPoisoned()`.
-- [ ] **TargetView: auto-populate target on aura detection.** Zero real
-      corpus examples of DSL ever displaying a detected aura on anyone —
-      placeholder only until a live catch of real detect-good/evil aura
-      display text exists to build against.
-- [ ] **TargetView: auto-populate from a room's `scan` output.**
-      Mechanically buildable, deliberately not built without a design
-      decision first: which mob gets picked when `scan` shows several
-      (hostile vs. friendly, multiple hostiles), whether it overrides an
-      already-manually-set target, and whether it conflicts with
-      Leveling's own `MyDSL.Target.set()` calls during an active run.
-- [ ] **Skills/Spells → Combat window** — echo real skill/spell actions,
-      reduce raw per-swing spam. Warrior/thief skills still have zero
-      confirmed first-person text anywhere in the corpus.
-- [ ] **Command vocabulary — more IC/human-speak, less `mydsl <module>
-      <verb>`.** Design direction, not scoped.
-- [ ] Census (from UI) interacting with the reference module — Layer 4
-      (ItemLore/ItemReference) exists, so this is unblocked whenever
-      picked up; not yet scoped otherwise.
-- [ ] **DSL event/date reminder module** — Steven: "a DSL reminder that
-      allows you to enter events and dates and have it come up as a
-      reminder when logged in or playing... I believe there are also
-      events in the calendar or holidays of the DSL wiki. Some way to
-      connect this to Discord would be optimal!" Not scoped — needs: what
-      counts as an "event" (manual entry vs. scraped from the DSL wiki),
-      whether Discord integration is in scope for this pass (would be
-      the first outbound-network call in this project, worth a design
-      discussion on its own), and whether the referenced Achaea Mudlet
-      calendar package on GitHub is worth checking for a reusable
-      pattern first.
-- [ ] **Mapper — full DSL-specific rewrite, not a patch.** Steven, from
-      `docs/myresponses.txt` (2026-08-25): wants the Generic Mapper fork
-      rebuilt specifically for DSL rather than patched on top of the
-      stock package, with new/requested features designed in and the
-      current stock code kept only as design reference — same treatment
-      EMCO already got. **Distinct from the already-approved, narrower
-      item above** ("merge the mapper's GMCP handling into DataLayer") —
-      that's a dedup optimization; this is a from-scratch redesign. Real
-      scoping conversation needed — no size estimate exists yet.
-- [ ] **CreatureLore "mob diary" wiki window.** Steven, from
-      `docs/myresponses.txt`: a themed window showing everything
-      `creaturelore` has captured about a mob — stats, every location/
-      area seen, possible map rooms, a manually-added picture (same
-      pattern as room pics). Should also populate TargetView's stats.
-      New feature — needs a design discussion (window layout, how
-      "locations seen" gets recorded, picture-assignment workflow).
-- [ ] **Extend the creaturelore/identify alias-shortcut pattern to
-      spells/skills/other commands.** `bestiary <name>`/`item <name>`
-      (send `creaturelore`/`identify` + show the window) have existed
-      since 2026-07-11 — Steven's actual new ask is extending that same
-      pattern to spells/skills or other game commands he names. Needs
-      him to name real candidates first.
-- [ ] **Project-wide alias-dedup + namespace-guard sweep.** Minimize/
-      remove aliases that exist only because of spelling-mistake variants
-      or duplicate helper names. The namespace-guard *standard* is
-      documented (`docs/MYDSL_1.0_PHILOSOPHY.md`); whether every file
-      actually follows it hasn't been swept. Real grep-driven audit,
-      not started.
-- [ ] **A whole quest-tracking mechanic has zero coverage anywhere** —
-      quest start/expire/timer messages. Matches the DEFERRED "data-
-      driven notes/quest tracking" item below, same underlying gap.
-- [ ] **Mapper: toggleable button bar** for map-editing commands (shift,
-      area add, rename, etc).
-- [ ] **Mapper: alternate/angled exit lines** (Z-shaped, not just
-      straight) — "discuss this."
-- [ ] **Mapper: labels reportedly don't move anymore** — no confirmed
-      cause found in Mudlet's public issue tracker (checked 2026-08-24);
-      genuinely needs Steven's own live reproduction (which Mudlet
-      version, what he actually sees) before further research can narrow
-      it down.
-- [ ] **DslColor**: track a player's kingdom/clan membership changes over
-      time, not just current state; "last seen" should reflect real
-      in-game physical location, not just presence on the `who` list;
-      emerald dragon color palette; audit that titles/palettes/terms are
-      consistently colored, check Thax/Thaxanos kingdom coloring
-      specifically against real logs.
-- [ ] **Player-profile fields** (alignment, god, notes, hp, mana, etc.) —
-      explicitly "brainstorm this," not scoped.
-- [ ] **Roller**: pull more comparison stats (racial/class baselines)
-      from Shattered/the local knowledge base; investigate whether a
-      reconnect-without-full-reload is possible to survive the server's
-      roll time limit — "this will require planning."
-- [ ] **Restrings**: an in-character-flavored guide/workflow for writing
-      them — references Steven's own Obsidian notes, outside this repo.
+- [ ] **TargetView: debuffs on target / aura auto-populate / scan
+      auto-populate** — all three confirmed deferred until a real
+      design+build pass (no corpus text to build against yet for the
+      first two; the third needs a target-selection design decision).
+- [ ] **Combat window/condenser — full module philosophy + optimization
+      discussion.** Broader than originally scoped: `MyDSL_CombatView.lua`
+      already exists and works (live-feeds every damage swing, renders
+      per-target fight summaries) — what's missing is non-damage skill/
+      spell action text (bash's knockdown, spell-cast announcements),
+      zero corpus text confirmed for those yet. Steven: "design discussion
+      about the combat condenser would be beneficial, to discuss the
+      whole module philosophy and optimize" — treat as a full review of
+      the window, not just the missing-coverage question.
+- [ ] **Command vocabulary** — more IC/human-speak, less `mydsl <module>
+      <verb>`. Discussion about whether commands stay grouped under
+      `mydsl <module>` or become direct top-level commands.
+- [ ] Census (from UI) interacting with the reference module — now folded
+      into the DslColors integration item under Top Priority; tracked
+      there, not separately.
+- [ ] **DSL event/date reminder module** — scope narrowed: drop Discord
+      entirely, stays inside Mudlet as a simple reminder/calendar app
+      (enter events/dates, get reminded on login or while playing). Still
+      needs: what counts as an "event" (manual vs. scraped from the DSL
+      wiki's calendar/holidays), and whether the Achaea Mudlet calendar
+      package on GitHub is worth checking for a reusable pattern.
+- [ ] **Mapper — consolidated design discussion.** Steven: "this is part
+      of a larger mapper discussion, consolidate with other mapper
+      topics and do a scan of all the files and prepare for a design
+      discussion." Covers, as one conversation: the full DSL-specific
+      rewrite (vs. patching the stock Generic Mapper fork); the GMCP-
+      parsing merge into DataLayer (approved in principle, not started —
+      touches ~8 call sites in the live 6,631-line native file, needs a
+      real rollback/testing plan); the toggleable button bar for
+      map-editing commands; alternate/angled exit lines; and the
+      labels-don't-move bug (still needs Steven's own live repro — no
+      cause found in Mudlet's public issue tracker).
+- [ ] **CreatureLore "mob diary" wiki window** — deferred; may fold into a
+      larger DSL knowledgebase project alongside the Layer-4-remainder
+      idea (see below).
+- [ ] **Extend creaturelore/identify alias-shortcut pattern** to spells/
+      skills/other commands — Steven: "this needs a larger design
+      discussion" (still no named candidate commands).
+- [ ] **Project-wide alias-dedup + namespace-guard sweep — approved, go
+      ahead.** Real grep-driven audit, not started.
+- [ ] **Quest-tracking mechanic.** Steven approved building this as a
+      pop-up widget similar to the Moon/Weather widgets, using an old
+      incomplete DSL questing script as a starting reference. New research
+      step added this pass: "combine and check across profiles for the
+      autoquest script, we've had a couple" — check the sibling Mudlet
+      profiles (`../PNP1`, `../PNP2`, `../DSL1`, etc. — see `CLAUDE.md`'s
+      reference list) for existing autoquest scripts before designing from
+      scratch. Same underlying blocker either way: zero real corpus text
+      for quest start/expire/timer messages has been captured yet.
+- [ ] **Roller — comparison stats + reconnect timer.** The timer-widget
+      half is ready to scope directly: `MyDSL_AlterformView.lua` is a
+      ready-made template (standalone Geyser countdown window, sound
+      warnings at thresholds) to copy for a disconnect timer, assuming
+      ~30 min until proven otherwise. The comparison-stats half needs
+      research first — Steven: "if you scrape Shattered you should find
+      stats info... offer some ideas based on the roller game stats and
+      maximizing rolls, based off Dragonlance D&D and I think something
+      called d100 mechanics (old was d20 or d25?)." Scope: check the
+      Shattered Archive dump plus DSL's own helpfiles for its actual roll
+      mechanic before proposing anything.
 
 ---
 
 ## DEFERRED — explicitly held, no new scope without Steven's go-ahead
-- [ ] **Shatteredarchive.com maps** — checked the local zip (2026-08-24):
-      no room coordinates/exit graphs/images, just flat per-continent
-      area-NAME lists. Whatever "maps" Steven saw on the live website
-      isn't in this local dump. The area-name lists might have marginal
-      value as a canonical reference (autocomplete/validation for
-      `mydsl leveling area new <name>`) but that's much smaller than
-      "maps" and not built without being asked.
-- [ ] **Layer 4 reference library remainder** — items and mobs/lore are
-      done; whatever else was meant under this heading (areas/zones/
-      general lore) isn't scoped, and the Shatteredarchive dump doesn't
-      have enough content to build one from.
-- [ ] **Inventory hover scope expansion** (hover on carried-not-worn
-      items) + ground-vs-inventory name mapping — explicitly deferred by
-      Steven 2026-07-18 ("not sure we need"). Revisit only if he asks
-      again.
-- [ ] **Data-driven notes/quest tracking** — streamline `notes_utf8.txt`'s
-      in-game feature/quest items via data files instead of manual notes.
-- [ ] **Consolidate all native Mudlet objects into one package** — per
-      Steven: "this is why i want to pull all mudlet objects into one
-      package so we can troubleshoot cleaner." Currently scattered across
-      `gui-drop`/`mpkg`/`DslColors_v1_0.../`/`generic_mapper`/`EMCOChat`/
-      `MyDSL_Full` plus loose top-level items. Large, structural,
-      GUI-driven undertaking, its own future session.
+*(Nothing currently deferred — the two prior items here were either closed
+this pass (Layer 4 areas/zones — no usable data source, removed per
+Steven) or promoted into Top Priority (native-content consolidation).)*
 
 ---
 
@@ -410,84 +328,53 @@ Timers. Real candidates for future integration, none urgent:
 - **~20 misc aliases** (`(inv)`, attire-swap sets, etc.) — fine as native
   aliases unless one becomes relevant to a window.
 
+*(Note: the native-content consolidation item under Top Priority may pull
+some of this into tracked/packaged status even though it stays functionally
+native — that's a packaging/tracking change, not a "build a MyDSL
+equivalent" change, so this section's own list is unaffected until that
+work actually starts.)*
+
 ---
 
 ## DECISIONS RECORDED
 - **Adopted a project-local known-bad-pattern checker + Claude Code hook
-  — 2026-07-21, per Steven.** `scripts/check_known_patterns.py`, a small
-  script encoding real historical bugs from `docs/CHANGELOG.md` as grep
-  rules, wired into a `PostToolUse` hook (`.claude/settings.json`) that
-  runs automatically against every file `Edit`/`Write` touches. Run
-  `python3 scripts/check_known_patterns.py --all` periodically for a
-  full-repo sweep (catches mistakes already latent in untouched files).
-  When a new bug class is fixed and might exist elsewhere too, add a rule
-  instead of a one-off grep.
+  — 2026-07-21, per Steven.** `scripts/check_known_patterns.py`, wired
+  into a `PostToolUse` hook. Run `python3 scripts/check_known_patterns.py
+  --all` periodically for a full-repo sweep.
 - **"Passive observation only, never send automatic game commands" — the
-  hard blanket rule is retired, per Steven 2026-08-23** ("ignore the
-  automation bad comments now, we have moved past that restriction.
-  drinking and eating are fine also"). **What's still true, not touched
-  by this change**: the "automate to assist, not to decide for the
-  player" distinction (spellup reminders/disarm alerts help the player
-  decide faster; something that sends a genuinely *different* command
-  than what the player typed is a different shape of thing) still
-  applies and still needs its own explicit sign-off case by case (see
-  `docs/MyDSL_IdeaBacklog.md`).
+  hard blanket rule is retired, per Steven 2026-08-23.** What's still
+  true: "automate to assist, not to decide for the player" still applies
+  case by case (see `docs/MyDSL_IdeaBacklog.md`).
 - **Mapper: `start mapping` stays a manual gate, not auto-persisted —
-  confirmed 2026-07-18, per Steven.** `map.mapping` is one of Generic
-  Mapper's own in-memory-only "protected" fields, resets to `nil` on
-  every script reload by design — Steven manually re-running `start
-  mapping` after every reinstall is expected, not a bug.
+  confirmed 2026-07-18, per Steven.**
 - **CreatureLore's `lore <name>` "gap" — confirmed a non-issue,
-  2026-07-16.** `lore` is a general item-only skill, nothing to do with
-  creatures; `creaturelore <target>` is DSL's real creature-info command
-  and DSL2 already captures it correctly.
+  2026-07-16.**
 - **LiveView's "age" field — confirmed correct as-is, 2026-07-16.**
-  Elapsed real-world time since character creation, distinct from DSL's
-  own separate roleplay age stat (`practice age`), which stays
-  uncaptured/undisplayed by design.
 - **Itemstat trigger retirement — sequencing confirmed 2026-07-16.**
-  Retires naturally once Layer 4 (the item reference library) replaces
-  the equipment parser's dependency on it — no separate decision needed
-  before then.
-- **"Prompt Line 1" parsing — dropped, confirmed 2026-07-16.** Prompt
-  gagging already works correctly with quiet mode active; the scenario
-  this was meant to cover doesn't occur.
+- **"Prompt Line 1" parsing — dropped, confirmed 2026-07-16.**
 - **Staying on Mudlet 4.20.1, not 4.21/4.22** — confirmed 2026-07-12 real
-  upstream bug: `TMainConsole::getUserWindowSize()` (PR #9334) returns a
-  stale cached size for a shrunk docked `UserWindow`, breaking every
-  percentage-positioned child (Tick's bars, Focus's button grid).
-  Reverting to 4.20.1 fixed everything immediately. **Don't
-  re-investigate Tick/Focus/other-docked-window sizing bugs as a MyDSL
-  problem without first checking the installed Mudlet version** — if a
-  future upgrade is considered, check whether this shrinkage guard has
-  been revised upstream first.
-- Most settings (theme, visibility, chat, fonts, TargetView/AffectsView)
-  are character-bound. **Window layout is the one deliberate exception**:
-  per-profile, not per-character.
-- Themes: user-creatable named presets, shared across all characters
-  (intentionally not character-bound).
-- Creaturelore DB (`MyDSL_CreatureLore.lua`): shared across characters,
-  not character-bound — objective game data, same reasoning as themes.
+  upstream bug (`TMainConsole::getUserWindowSize()`, PR #9334).
+- Most settings are character-bound; **window layout is the one
+  deliberate exception** (per-profile, not per-character).
+- Themes: user-creatable named presets, shared across all characters.
+- Creaturelore DB: shared across characters, not character-bound.
 - `MyDSL_Mapper` removed from WindowRegistry — minimap via
-  `map.configs.map_window` only, not a Geyser.UserWindow.
-- CharPic compatibility code removed from PortraitView (no DSL1 triggers
-  call any `CharPic.*` function).
-- RouteHelper `routeMap` removed — shorthand helpers (`Route.history()`
-  etc.) are the only API.
+  `map.configs.map_window` only.
+- CharPic compatibility code removed from PortraitView.
+- RouteHelper `routeMap` removed — shorthand helpers only.
 - Prompt: toggleable pretty prompt, default ON.
 - Day/Night derived from `time` command, not prompt capture.
 - Alignment from score only, persists until next score run, no auto-send.
 - **Window docking/positioning:** every `Geyser.UserWindow` gets
   `restoreLayout=true` + `autoDock=true` via a single global constructor
   patch (`patchUserWindowConstructor()` in `MyDSL_WindowRegistry.lua`).
-  Startup order: `patchUserWindowConstructor()` → `Windows.loadState()` →
-  `Windows.ensureAll()` → `loadWindowLayout()`, called exactly once, no
-  timers. To persist a layout: `mydsl layout save`; to reset: `mydsl
-  layout reset` (doesn't auto-persist).
 - `DSL_PNP_Highlighter.lua`/`.custom.lua`, `DSL_PNP_People.lua`,
   `DSL_PNP_Statusbar.*`, and ~20 PNP-client-infrastructure files are
-  explicitly out of scope — superseded by the live `DslColors_Core_v1_0`
-  native script, GMCP-first PromptView, or Geyser/WindowRegistry/
-  LayoutEngine/ThemeEngine already.
+  explicitly out of scope.
 - `colors.xml` (profile root) is a stale, unloaded pre-v1.0 DslColors
-  snapshot — confirmed safe to leave alone, not worth reviving.
+  snapshot — confirmed safe to leave alone.
+- **Principle 2 clarified 2026-08-27 (this pass)**: "Toggleable By
+  Default" (`docs/MYDSL_1.0_PHILOSOPHY.md`) — every feature independently
+  on/off, including anything absorbed from native content. Not related to
+  the (already-retired) automation restriction Steven initially suspected
+  it meant.

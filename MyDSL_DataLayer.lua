@@ -288,7 +288,6 @@ local TEST_MODULES = {
   { "LocationView",      "Location" },
   { "LiveView",          "LiveView" },
   { "DataBridge",        "DB" },
-  { "RawCapture",        "RawCapture" },
 }
 
 function MyDSL.test()

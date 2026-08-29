@@ -42,10 +42,10 @@
 --    debug echo) can read the password back out through MyDSL's own state.
 --
 -- 3. Sent with send(cmd, false) -- the second argument suppresses local
---    echo, so the password is never printed to the main window. It's also
---    never captured by MyDSL_RawCapture.lua, which only ever logs
---    *incoming* `line` text (confirmed by reading that file) -- outgoing
---    send() calls aren't visible to it at all.
+--    echo, so the password is never printed to the main window.
+--    (MyDSL_RawCapture.lua, the diagnostic this originally also needed
+--    to stay invisible to, was removed 2026-08-27 -- confirmed unused
+--    per Steven -- so this concern no longer applies at all.)
 --
 -- 4. Silently off if the credentials file doesn't exist or doesn't parse --
 --    no error spam, no repeated nagging, just a single one-line status note

@@ -125,6 +125,23 @@ try:
 except SystemExit:
     check("raises rather than silently emitting an empty package for a childless wrapper", True)
 
+# ---- RETIRED_SCRIPTS: a deliberately-removed script must not silently
+# re-enter a build just because it still lingers in the live profile's own
+# native snapshot until Steven uninstalls+reinstalls (real case,
+# 2026-08-27: MyDSL_RawCapture.lua removed, but still present in MyDSL's
+# own current/*.xml at the time) ---------------------------------------
+
+check("MyDSL_RawCapture is a real, tracked retirement (not a placeholder)",
+      "MyDSL_RawCapture" in b.RETIRED_SCRIPTS)
+
+extra_names = {"DslColors_Core_v1_0", "MyDSL_RawCapture"}
+retired_found = extra_names & b.RETIRED_SCRIPTS
+remaining = extra_names - b.RETIRED_SCRIPTS
+check("a retired script is correctly identified for exclusion",
+      retired_found == {"MyDSL_RawCapture"})
+check("only the real, still-expected native-only script remains after filtering",
+      remaining == {"DslColors_Core_v1_0"})
+
 if failures == 0:
     print("ALL PASS")
     sys.exit(0)

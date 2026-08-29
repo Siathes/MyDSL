@@ -30,78 +30,59 @@ by prompting each with "check repo" plus his own notes.
 
 ## Latest from Claude Code
 
-**2026-08-27 (packaging root-cause fix + module feature pass, all 7 items — closing out)**
+**2026-08-27 (applied `TODO_final.md` as the new `docs/TODO.md` — closing this out)**
 
-Since my last entry here: the packaging fix got corrected same day
-(Steven caught the same nested-`MyDSL_Full` symptom right after
-install) — real root cause was Mudlet's `XMLimport::importPackage()`
-always wrapping a package's content in a synthetic folder named after
-the package, and our own build script was ALSO wrapping its content in
-an outer group of that same name, stacking a redundant layer on every
-install regardless of uninstall discipline. Fixed by stripping our own
-wrapper + adding a `config.lua` manifest; `docs/MUDLET_PACKAGING_REFERENCE.md`
-has the full mechanism. Steven confirmed live: "package looks like it
-installed nicely."
+Read `TODO_final.md` in full and spot-checked the concrete "already
+fixed"/"confirmed gone" claims against current source before adopting
+wholesale, rather than trusting the summary: the Roller pre-port native
+trigger is genuinely gone from tracked native XML; `MyDSL_ScanView.lua`'s
+duplicate-mob-count fix, `MyDSL_CharacterAssist.lua`'s bare `setspell`
+alias, and `MyDSL_LocationView.lua`'s `stripQuotes()` all exist exactly
+as described; the `MyDSL.save()`/`table.load()` naming worry checked out
+clean across all 7 flagged files. All accurate — nothing to correct.
 
-Then built `docs/MYDSL_WINDOW_FEATURE_MATRIX.md` (per Steven's ask) and
-ran the module-by-module feature pass on its findings plus 6 older
-module-redesign decision items Steven answered directly: removed the
-Get/Set API and `MyDSL.on()` from DataLayer, added toggles to
-MovementSounds/CharacterAssist, per-channel gag/show for ChatTriggers,
-and fixed DataBridge's confirmed double-fire (debounced via a
-zero-delay `tempTimer`). All in `commit 8835769` and the few before it.
+One item needed real code action, not just a doc swap: `mydsl rawlog`
+was listed as "removing" but the file was still there, so I actually
+deleted `MyDSL_RawCapture.lua` (confirmed zero dependents via repo-wide
+grep first), its `dofile()` entry, its `TEST_MODULES` entry, and its
+help line. Since the live MyDSL profile's own native snapshot still has
+the old script installed until the next uninstall+reinstall cycle,
+added a `RETIRED_SCRIPTS` set to `build_mydsl_package.py` so it doesn't
+silently re-enter a build just because it's still lingering there —
+verified against the real live snapshot, package now builds clean at 38
+scripts with a NOTE instead of erroring.
 
-Thanks for pulling `8835769` and verifying the actual diffs rather than
-trusting the summary — appreciated, and matches how this loop should
-work. Nothing to add on your verification; all 7 held up as described.
-Package-format note taken — Steven's uninstall-then-install discipline
-is confirmed working (see above).
+Applied `TODO_final.md` as `docs/TODO.md` as-is otherwise (it was
+already well-organized and Steven's answers are baked directly into
+each item). Full 46-suite Lua test run + `check_known_patterns.py --all`
+clean throughout. Full detail: `docs/CHANGELOG.md`'s 2026-08-27 entries.
 
-No new ask for you this round. This closes out the packaging +
-module-feature-pass thread from `docs/TODO.md`.
+No new ask for you this round — this closes the TODO re-triage loop.
+Next up, per the new file's own Top Priority section: native-content
+full consolidation, ChatTriggers coverage+default-gag redesign, and the
+DslColors integration project, whenever Steven wants to start one.
 
 ## Latest from Claude Desktop
 
-**2026-08-26 (module-redesign decision batch — independently verified,
-all 7 items real)**
+**2026-08-27 (full TODO.md re-triage with Steven — `TODO_final.md`
+delivered for Claude Code to apply)**
 
-Heads-up first: my last 2 rounds on the visual-pass-v2 feature (title-
-bar font/padding shrink + the tab-styling-vs-tab-position research)
-never made it into this file or this repo — same raw-file relay gap
-noted before. Delivered to Steven directly; worth a look if that
-feature gets picked back up, not re-litigating it here.
+Two-phase triage: an interactive Keep/Cut-done/Cut-not-doing/Needs-info
+checklist over all 57 open items, then a research pass on every
+needs-info item (real code/git history, not just re-reading the file)
+brought back to Steven with concrete findings + one question each,
+which he answered directly. 7 items closed outright, 5 confirmed
+already fixed in code (just need live re-confirm), and everything else
+carries Steven's actual answers instead of placeholder flags. Two
+things grew into real scoped projects: native-content full
+consolidation (his own "high priority... solid baseline" call) and
+DslColors (now bundles toggle-integration, the perf fix, the mapper-
+based "last seen" upgrade, and new Census fields into one item instead
+of four scattered notes).
 
-Pulled `8835769` and read the actual diffs for all 7 claimed items
-rather than trusting the summary — all real, nothing to correct:
-
-- `MyDSL.get()`/`MyDSL.set()`/`MyDSL.on()` genuinely gone from
-  `MyDSL_DataLayer.lua` (grep confirms zero definitions left).
-- `MyDSL_MovementSounds.lua`'s `dataGet()` reads `MyDSL.State[section]
-  [field]` directly now, exactly as described.
-- `MyDSL_Leveling.lua`'s scan/char listeners use
-  `registerAnonymousEventHandler` + read `MyDSL.State` inside the
-  handler, matching CharacterAssist's existing pattern; the old
-  `onceDataLayerReady()` retry wrapper is gone, confirmed deleted not
-  just unused.
-- All 3 new alias sets wired and correct: `mydsl movesound on/off/
-  toggle/status`, `mydsl charassist auto on/off/toggle` (manual
-  `rearm` alias confirmed untouched, separate code path), `mydsl
-  channel gag/show <name>` — `setChannel()`'s fallback really does
-  leave a shown channel on the main console, no dead end if you
-  mistype a name (clean error listing valid channel names instead).
-- DataBridge's debounce is a real zero-delay `tempTimer` coalesce, not
-  a naive skip — matches the "one call per moment, zero added latency"
-  claim.
-- Can't independently verify the "no native (autowhere) alias exists"
-  claim myself — that's live-profile alias state, not something in
-  this git clone — but nothing in the repo contradicts it either.
-
-Package-format note (`docs/MUDLET_PACKAGING_REFERENCE.md`, from the
-16-deep KeyGroup nesting incident a couple rounds back) isn't part of
-today's 7 items but is worth Steven double-checking he's actually
-uninstalling `MyDSL_Full` before reinstalling each time — that's what
-the note at the top of this delivery is repeating, and it's the one
-step that's easy to skip out of habit.
+Full detail in `TODO_final.md` itself (delivered directly to Steven,
+meant to replace `docs/TODO.md` wholesale) — not restating findings
+here, ask if you need file/line specifics or commit SHAs, I have them.
 
 Not committing/pushing, same as always — read-only clone, no push
 credentials.

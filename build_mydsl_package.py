@@ -72,6 +72,18 @@ REPO_ROOT = os.path.dirname(os.path.abspath(__file__))
 # something to silently absorb.
 EXPECTED_NATIVE_ONLY_SCRIPTS = {"DslColors_Core_v1_0"}
 
+# Scripts deliberately removed from this project (git-tracked source
+# deleted, dofile() entry removed from DSL2's own reference profile) but
+# that will keep showing up in the LIVE MyDSL profile's own native
+# snapshot until Steven actually uninstalls the old MyDSL_Full package
+# and installs a freshly-built one (see docs/MUDLET_PACKAGING_REFERENCE.md).
+# Explicitly excluded here rather than silently re-bundled or added to
+# EXPECTED_NATIVE_ONLY_SCRIPTS (which would wrongly imply this is expected,
+# permanent content, not a retired leftover).
+RETIRED_SCRIPTS = {
+    "MyDSL_RawCapture",  # removed 2026-08-27, per Steven -- zero dependents
+}
+
 # Native Trigger/Key package names known to belong to MyDSL_Full.
 NATIVE_TRIGGER_PACKAGE_NAMES = {"MyDSL_GameplayTriggers", "DslColors_v1_0"}
 NATIVE_KEY_PACKAGE_NAME = "MyDSL_Full"
@@ -348,6 +360,12 @@ def main():
     native_only = get_native_only_scripts(native_source)
     dofile_names = {name for name, _ in dofiles}
     extra_names = set(native_only) - dofile_names
+
+    retired_found = extra_names & RETIRED_SCRIPTS
+    if retired_found:
+        print(f"NOTE: skipping retired script(s), not bundling: {sorted(retired_found)} "
+              "-- see RETIRED_SCRIPTS at the top of this file.")
+        extra_names -= RETIRED_SCRIPTS
 
     # An "extra" name that turns out to match a real git-tracked .lua file
     # in this repo isn't native-only at all -- it's a dofile that just
