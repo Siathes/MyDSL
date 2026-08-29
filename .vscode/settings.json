@@ -1,0 +1,75 @@
+{
+  // Mudlet embeds Lua 5.1 (via LuaJIT) — target that dialect for accurate diagnostics.
+  "Lua.runtime.version": "Lua 5.1",
+  "Lua.runtime.builtin": {
+    "io": "disable",
+    "os": "disable"
+  },
+  "Lua.diagnostics.disable": ["lowercase-global"],
+  "Lua.diagnostics.globals": [
+    "MyDSL", "Geyser", "Adjustable", "demonnic",
+    "cecho", "hecho", "decho", "echo", "cechoLink", "cechoPopup",
+    "send", "sendAll", "expandAlias", "sendGMCP",
+    "tempTimer", "tempTrigger", "tempAlias", "tempButtonToolbar",
+    "permTimer", "permTrigger", "permAlias", "permGroup",
+    "killTimer", "killTrigger", "killAlias",
+    "enableTrigger", "disableTrigger", "enableTimer", "disableTimer",
+    "enableAlias", "disableAlias", "enableKey", "disableKey",
+    "registerAnonymousEventHandler", "raiseEvent", "deleteAllNamedTimers",
+    "matches", "multimatches", "gmcp", "getMudletInfo",
+    "display", "cecho2string", "createLabel", "setLabelStyleSheet",
+    "openUserWindow", "createMiniConsole", "createBuffer",
+    "selectString", "replace", "resetFormat", "moveCursor",
+    "getLines", "getLineCount",
+    "yajl", "utf8"
+  ],
+  "Lua.workspace.checkThirdParty": false,
+  "Lua.workspace.maxPreload": 3000,
+  "Lua.workspace.preloadFileSize": 1000,
+
+  // This directory is a live Mudlet profile: source lives at the top level and in
+  // MyDSL/, everything below is runtime/session data that should never be indexed,
+  // watched, or searched — it's huge and irrelevant to editing code.
+  "files.exclude": {
+    "**/.git": true,
+    "map/": true,
+    "log/": true,
+    "current/": true,
+    "MyDSL/roompics/": true,
+    "MyDSL/portraits/": true,
+    "MyDSL/logs/": true,
+    "map downloads/": true,
+    "__pycache__/": true,
+    "*.mp3": true
+  },
+  "search.exclude": {
+    "map/": true,
+    "log/": true,
+    "current/": true,
+    "MyDSL/roompics/": true,
+    "MyDSL/portraits/": true,
+    "MyDSL/logs/": true,
+    "map downloads/": true,
+    "Sounds/": true,
+    "media/": true,
+    "DSL_Helpfiles/": true,
+    "__pycache__/": true,
+    "*.mpackage": true,
+    "*.xml": true
+  },
+  "files.watcherExclude": {
+    "map/**": true,
+    "log/**": true,
+    "current/**": true,
+    "MyDSL/roompics/**": true,
+    "MyDSL/portraits/**": true,
+    "MyDSL/logs/**": true,
+    "map downloads/**": true,
+    "Sounds/**": true,
+    "media/**": true,
+    "DSL_Helpfiles/**": true,
+    "__pycache__/**": true
+  },
+
+  "editor.formatOnSave": false
+}

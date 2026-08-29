@@ -1,0 +1,10 @@
+{
+  "recommendations": [
+    "sumneko.lua",
+    "anthropic.claude-code",
+    "github.vscode-pull-request-github",
+    "usernamehw.errorlens",
+    "redhat.vscode-xml",
+    "ms-python.python"
+  ]
+}

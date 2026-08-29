@@ -104,3 +104,9 @@ __pycache__/
 # scripts/check_text_coverage.py's working files -- multi-MB extracted
 # corpus text + pattern lists, regenerated on every run, not source
 .text_coverage_scratch/
+
+# Steven's personal annotated scratch copy of docs/OPTIMIZATION_AUDIT.md --
+# already triaged into docs/TODO.md (see CHANGELOG.md 2026-08-27), kept as
+# his own personal working file rather than merged wholesale, not project
+# source
+docs/myresponses.txt
