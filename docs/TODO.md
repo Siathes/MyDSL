@@ -200,15 +200,34 @@ one at a time:
       auto-populate** — all three confirmed deferred until a real
       design+build pass (no corpus text to build against yet for the
       first two; the third needs a target-selection design decision).
-- [ ] **Combat window/condenser — full module philosophy + optimization
-      discussion.** Broader than originally scoped: `MyDSL_CombatView.lua`
-      already exists and works (live-feeds every damage swing, renders
-      per-target fight summaries) — what's missing is non-damage skill/
-      spell action text (bash's knockdown, spell-cast announcements),
-      zero corpus text confirmed for those yet. Steven: "design discussion
-      about the combat condenser would be beneficial, to discuss the
-      whole module philosophy and optimize" — treat as a full review of
-      the window, not just the missing-coverage question.
+- [ ] **Combat window/condenser — philosophy discussion held 2026-08-29,
+      one open question left.** `MyDSL_CombatView.lua` re-read against
+      the "11 loops" memory (that was actually `MyDSL_DataBridge.lua`'s
+      double-fire, already fixed 2026-08-26 — see `docs/CHANGELOG.md`)
+      and the raw/condensed/gag 3-way mode (2026-07-11 bug already fixed,
+      1.0 audit verdict: compliant, no flags). Remaining open question
+      for Steven: does the raw/condensed/gag split still match how he
+      wants to control combat verbosity now that he's seen exactly what
+      each mode does?
+      **Non-damage action text (bash's knockdown, spell-cast
+      announcements) — scanned ALL 13 sibling Mudlet profiles' `log/`
+      dirs 2026-08-29 (not just DSL2's own), not only this repo's: still
+      zero real corpus text for either.** Every "bash" mention found is
+      help-text/discussion, never an actual landed-attack message; zero
+      spell-cast-announcement hits anywhere. Found (and confirmed NOT the
+      same thing, don't conflate): `MyDSL_DataLayer_Combat.lua`'s
+      existing `procStun` trigger ("X is knocked to the ground by Y") is
+      PNP's weapon-proc flag `S`, not the `bash` skill; a `roundhouse`
+      kick-to-floor message and a `knocked down Y's kick` block-message
+      shape exist for other skills, real but also not `bash`. Good news:
+      no new render-side code needed when real text does show up —
+      `CV.appendSwing()` is already a generic "append one decorated line"
+      hook, already used for non-swing text (the round-flush handler's
+      condition note). Scheduled as its own focused live-capture session
+      (bash something, cast something, grab the raw log) — deliberately
+      NOT folded into the native-content/mpackage/Mudlet-5.0 session, per
+      Steven 2026-08-29 ("it can be a focused test, no it doesnt have to
+      roll into the larger test").
 - [ ] **Command vocabulary** — more IC/human-speak, less `mydsl <module>
       <verb>`. Discussion about whether commands stay grouped under
       `mydsl <module>` or become direct top-level commands.
