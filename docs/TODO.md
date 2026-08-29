@@ -99,17 +99,54 @@ DEFERRED gets started without an explicit go-ahead.
       doesn't exist yet. Steven: "we will do a from scratch and see how it
       unfolds and can be improved" — run the real install, then write
       `INSTALL.md` from what that reveals.
-- [ ] **Login / character-creation flow — design review.** `MyDSL_
-      Login.lua` only covers the two login prompts (`Player name:`/
-      `Password:`) — nothing for character creation (race/class/stat
-      selection, name confirm), and there's genuinely no handling
-      anywhere for "Reconnecting your master account due to LD" (confirmed
-      via repo-wide grep). Steven: "this needs design review as logging
-      into DSL is not the same as name/password — check the login trigger
-      and the logs to see how the login actually works. Propose a better
-      method for new players." Scope: re-read the real login sequence from
-      `log/`, then propose a concrete flow (including whether the
-      reconnect line needs its own alert).
+- [ ] **Login flow — design review complete 2026-08-29, awaiting Steven's
+      call on one proposed behavior change.** Re-read the real sequence
+      directly from `log/` (e.g. `log/2026-07-01#15-33-12.txt` lines
+      57-95) instead of trusting `MyDSL_Login.lua`'s own header
+      description of it. Real flow: `Do you want color? (Y/N)` → `[DSL]
+      (Push Enter to Continue)` → Main Login Menu → pick `M` (Master
+      Account Login) → `What is your Master Account's name?` → typed
+      manually, never automated → `Password:` → **this is the MASTER
+      ACCOUNT's password**, not a character password → optionally
+      `Reconnecting your master account due to LD` → Master Login Menu →
+      pick `P` (Play Existing Character) → Master Character List →
+      `Player name:` → **this is which CHARACTER to play**, a totally
+      separate field from the master account name three steps earlier.
+      Findings:
+      1. **"Reconnecting due to LD" needs no alert or handling.**
+         Confirmed by diffing sessions with/against without it
+         (`log/2026-06-30#16-30-33.txt` has it, `log/2026-07-01#15-33-
+         12.txt` doesn't) — purely informational, appears only after a
+         real link-death, and the identical Master Login Menu follows
+         either way. Nothing for the player to do differently.
+      2. **Character creation should stay explicitly out of scope.**
+         Race/class/stat selection is rare, one-time per character, and
+         effectively irreversible — exactly the case "automate to
+         assist, not to play" argues against touching, not a gap to
+         fill.
+      3. **A real usability problem, not a security bug, in what's
+         already built:** the module's `credentials.name` is sent
+         verbatim at every `Player name:` prompt — but that prompt asks
+         which CHARACTER to play, and Steven's own real sessions show
+         him logging into different characters across sessions (`kien`
+         in one, `tibbins` in another, same corpus). A single hardcoded
+         auto-sent character name only helps when it happens to match
+         that session's target character, and silently sends the WRONG
+         name the rest of the time — the opposite of this project's own
+         "never hardcode a character" mandate, even though this is
+         Steven's personal login convenience rather than shared module
+         logic. The master account PASSWORD half is safe to auto-fill
+         (one master account, same password every session); the
+         CHARACTER half isn't, structurally.
+      **Proposed fix, not yet made — needs Steven's sign-off since it
+      changes what gets auto-typed at login:** split today's single
+      `mydsl login on|off` into two independent toggles (master-password
+      autofill vs. character-name autofill), defaulting the character
+      one OFF while leaving password autofill ON, and rename the
+      credentials file's `name` field to `character` so its actual
+      meaning stops reading like the master account's own name. Master
+      account name entry and menu-letter navigation (`M`/`P`) are single
+      low-cost keystrokes each session — not worth automating.
 - [ ] **ItemLore + ground-item capture — design review.** Two related but
       distinct features, both flagged uncertain: the item-stats DB
       (`MyDSL_ItemLore.lua`, populated from `lore`/`identify`) and the

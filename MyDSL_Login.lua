@@ -56,14 +56,19 @@
 --    whether credentials are configured: "mydsl login on|off".
 --
 -- 6. Trigger patterns below match "Player name:" and "Password:" -- both
---    confirmed as real, current corpus strings by Claude Code's
---    check_text_coverage.py run (HANDOFF.md 2026-08-25: 298x and 6,073x
---    respectively, part of the "entire login flow uncaptured" finding).
---    Claude Desktop has no log/ access (standing disclosed limitation) and
---    has NOT independently confirmed exact anchoring/whitespace against a
---    raw captured line -- Claude Code: please corpus-check these two
---    literal patterns before this goes live, same "extraction not
---    paraphrase" discipline as everything else in this project.
+--    confirmed as real, current corpus strings (direct grep of log/, e.g.
+--    log/2026-07-01#15-33-12.txt lines 58-95, 2026-08-29). They are NOT a
+--    matched pair in one prompt sequence, though: "Password:" is the
+--    MASTER ACCOUNT's password (asked right after "What is your Master
+--    Account's name?", which this module never automates), while "Player
+--    name:" is a separate, later prompt asking which CHARACTER to play,
+--    reached only after navigating the Master Login Menu. So
+--    credentials.name is sent at "Player name:" (a character to play),
+--    NOT at the master-account-name prompt -- see docs/TODO.md's
+--    2026-08-29 login-flow design review for the real flow, a confirmed
+--    usability wrinkle this causes (Steven plays more than one character;
+--    a fixed auto-sent name is wrong whenever it doesn't match the
+--    session's target character), and a proposed fix awaiting his call.
 --
 -- 7. Send-once-per-prompt-per-connection guard, reset on Mudlet's own
 --    sysConnectionEvent: prevents a mismatched credential (or a server that
