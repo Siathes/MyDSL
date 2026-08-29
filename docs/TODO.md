@@ -147,14 +147,6 @@ DEFERRED gets started without an explicit go-ahead.
       meaning stops reading like the master account's own name. Master
       account name entry and menu-letter navigation (`M`/`P`) are single
       low-cost keystrokes each session — not worth automating.
-- [ ] **ItemLore + ground-item capture — design review.** Two related but
-      distinct features, both flagged uncertain: the item-stats DB
-      (`MyDSL_ItemLore.lua`, populated from `lore`/`identify`) and the
-      ground-item *sighting* feature (`MyDSL_DataLayer_ScanLook.lua`'s
-      capture/hover-linkify + `MyDSL_DataLayer_ItemLore.lua`'s
-      `resolveGroundItem()` override mapping) — these live in different
-      files even though the original note conflated them. Steven: "this
-      item library and capture needs a design review" — covers both.
 - [ ] **GroupView quick-action buttons — UX + interconnection review.**
       Today: exactly 2 fixed button slots per group-member row, shared
       with TargetView's action table, changeable only via a typed alias
@@ -343,6 +335,25 @@ work actually starts.)*
 ---
 
 ## DECISIONS RECORDED
+- **ItemLore + ground-item capture — design review, 2026-08-29: no
+  structural changes needed.** Traced the full chain across all 4
+  files: `MyDSL_ItemLore.lua` (the persistent DB, correct partial/full
+  three-state model — `lore` can never downgrade an `identify`d record
+  because `merge()` distinguishes "field absent" from "field confirmed
+  empty" via `FULL_STAT_FIELDS`, a real bug fixed 2026-07-19),
+  `MyDSL_DataLayer_ItemLore.lua` (`resolveGroundItem()`: exact ItemLore-
+  DB match, then manual override, then fuzzy-match against known
+  equipment/inventory, else correctly declines rather than guessing),
+  `MyDSL_DataLayer_ScanLook.lua` (the sighting/hover-linkify half), and
+  `MyDSL_ItemReference.lua` (the display window, modeled line-for-line
+  on the already-shipped Bestiary). All four cross-reference correctly;
+  every hard case has an inline note explaining the resolution (e.g.
+  the wand/staff-only `spellInfo` import restriction, confirmed against
+  152/152 real scrape records). Checked the one gap that seemed
+  plausible — no "browse/search all known items" command, only exact-
+  name lookup — and confirmed via `MyDSL_CreatureReference.lua` that
+  Bestiary has the identical lookup-only surface: this project's own
+  established, consistent convention, not an ItemLore-specific gap.
 - **Help.lua "auto-derive" — built a drift checker, not a 189-call-site
   rewrite, 2026-08-29.** Steven's own suggested direction ("auto-derive
   sounds good") could have meant annotating every one of the ~189 real
