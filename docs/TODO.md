@@ -386,8 +386,22 @@ work actually starts.)*
 - **LiveView's "age" field — confirmed correct as-is, 2026-07-16.**
 - **Itemstat trigger retirement — sequencing confirmed 2026-07-16.**
 - **"Prompt Line 1" parsing — dropped, confirmed 2026-07-16.**
-- **Staying on Mudlet 4.20.1, not 4.21/4.22** — confirmed 2026-07-12 real
-  upstream bug (`TMainConsole::getUserWindowSize()`, PR #9334).
+- **Staying on Mudlet 4.20.1 — real, reproducible bug on 4.21/4.22
+  (docked `Geyser.UserWindow`s with percentage-sized children stopped
+  recomputing layout on dock/resize), but the PR #9334 "reject
+  suspicious shrinkage" root-cause citation from 2026-07-12 is
+  confirmed WRONG (Claude Desktop, 2026-08-29 — pulled the actual PR
+  diff: it's a null-pointer guard for an unrelated same-named-docked-
+  window-recreation crash, no shrinkage/size-comparison logic anywhere
+  in it). The real root cause was never actually identified — the PR
+  number was a plausible-sounding guess that stuck. This matters now
+  because Mudlet 5.0 shipped 2026-08-29 with a Geyser layout rewrite
+  (the exact code path in question) — genuinely unknown whether the
+  original bug still exists post-rewrite. Needs a real re-test on a
+  disposable profile (the native-content consolidation project's own
+  planned test profile is the natural place) before considering an
+  upgrade off 4.20.1 — see
+  `~/Downloads/mudlet_upgrade_assessment.md` for the full writeup.**
 - Most settings are character-bound; **window layout is the one
   deliberate exception** (per-profile, not per-character).
 - Themes: user-creatable named presets, shared across all characters.
