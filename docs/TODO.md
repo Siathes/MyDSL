@@ -307,6 +307,66 @@ one at a time:
       different MUD — validates the approach, nothing DSL-relevant found
       in its own content. `PetriaMapper` (small, from-scratch, Spanish-
       language) — skimmed, nothing notable.
+      **Native mapper C++ source read directly 2026-08-29** (fetched
+      `T2DMap.cpp`/`dlgMapper.cpp`/`dlgRoomProperties.cpp`/
+      `dlgRoomExits.cpp` from the real `Mudlet-5.0.0` git tag — this is
+      the actual engine source, not release-note prose, correcting the
+      earlier pass which relied on release notes for everything except
+      `generic_mapper.xml` itself). Full right-click-menu inventory,
+      every native `T2DMap::slot_*` confirmed real by reading the
+      function body, not just its name:
+      - **`slot_shiftUp/Down/Left/Right/Zup/Zdown` already exist
+        natively** — the `mapaddons-safe-delete` Z-shift feature flagged
+        above is redundant, Mudlet's own mapper already does this.
+        Drop that half of the earlier candidate; the safe-delete half
+        still stands (native `deleteRoom` has no orphaned-exit handling).
+      - **`slot_customLineProperties`/`slot_customLineAddPoint`/
+        `slot_moveCustomLineLastPointToTargetRoom`/
+        `slot_undoCustomLineLastPoint`/`slot_doneCustomLine`/
+        `slot_deleteCustomExitLine` — Mudlet's mapper already has native
+        multi-point custom exit lines.** Directly answers the "alternate/
+        angled exit lines" open item above — this may already be a
+        solved problem natively, just needs testing whether it's
+        reachable through our fork's UI/right-click menu as-is, before
+        assuming any DSL-side code is needed.
+      - **`slot_setImage()` is a confirmed empty stub (`{}`), wired to no
+        menu action anywhere in the file.** `dlgRoomProperties.cpp`
+        (770 lines) confirmed to have zero image/picture handling —
+        color only (border/symbol). **Mudlet's native mapper has no
+        working per-room or per-area background-image feature at all**,
+        as of 5.0.0 — relevant directly to Steven's "pictures and editing
+        backgrounds" interest: this has to stay MyDSL's own construction,
+        there's no native feature to hook into or wait for.
+      - **`slot_exportAreaToImage()` is real and working** — exports the
+        rendered map area to a PNG/JPG/BMP/TIFF file via a save dialog.
+        A genuine native "picture" feature already available, distinct
+        from room backgrounds (this is a one-way map screenshot).
+      - **`populateUserContextMenus()`/`slot_userAction()` confirms
+        `addMapEvent` is the real, fully-supported native mechanism**
+        (not a Lua-side workaround) — it builds real `QMenu`/`QAction`
+        entries from `mpMap->mUserMenus`/`mUserActions` and routes clicks
+        back to the `mapAddOnEvent` Lua event. Validates the earlier
+        `mapaddons-safe-delete` candidate at the C++ level.
+      **BatMap opened properly 2026-08-29** (re-checked per Steven's ask,
+      previously skipped for size) — not a rival mapper, a separate
+      Geyser-only "world map" window (`Geyser.UserWindow` + one
+      `Geyser.Label`) with a CSS `background-image` stylesheet, panned by
+      shifting `padding-top`/`padding-left` based on player x/y
+      coordinates, with a small fixed pointer `Geyser.Label` overlaid on
+      top. **Cross-checked against our own code: this is the same
+      technique `MyDSL_PortraitView.lua`/`MyDSL_LocationView.lua` already
+      use** (CSS `border-image`/`background-image`, chosen specifically
+      to avoid the native `setBackgroundImage()` bug — both already
+      documented, already-resolved design decisions, not open bugs).
+      BatMap validates the approach already in use rather than
+      introducing something new. The one genuinely different piece:
+      BatMap's *panning-over-a-large-image-with-a-position-marker*
+      technique is a different shape than our current one-static-image-
+      per-room pattern — worth keeping in mind as a reference if a future
+      "editing backgrounds" feature turns out to mean an area-level
+      decorative backdrop rather than more per-room pictures; not
+      something to build now, just the right pattern to reach for later
+      given the native mapper (confirmed above) has nothing to offer here.
 - [ ] **CreatureLore "mob diary" wiki window** — deferred; may fold into a
       larger DSL knowledgebase project alongside the Layer-4-remainder
       idea (see below).
