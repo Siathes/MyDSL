@@ -200,15 +200,17 @@ one at a time:
       auto-populate** — all three confirmed deferred until a real
       design+build pass (no corpus text to build against yet for the
       first two; the third needs a target-selection design decision).
-- [ ] **Combat window/condenser — philosophy discussion held 2026-08-29,
-      one open question left.** `MyDSL_CombatView.lua` re-read against
-      the "11 loops" memory (that was actually `MyDSL_DataBridge.lua`'s
-      double-fire, already fixed 2026-08-26 — see `docs/CHANGELOG.md`)
-      and the raw/condensed/gag 3-way mode (2026-07-11 bug already fixed,
-      1.0 audit verdict: compliant, no flags). Remaining open question
-      for Steven: does the raw/condensed/gag split still match how he
-      wants to control combat verbosity now that he's seen exactly what
-      each mode does?
+- [ ] **Combat window/condenser — philosophy discussion closed 2026-08-29,
+      resolved to a live-test check.** `MyDSL_CombatView.lua` re-read
+      against the "11 loops" memory (that was actually `MyDSL_
+      DataBridge.lua`'s double-fire, already fixed 2026-08-26 — see
+      `docs/CHANGELOG.md`) and the raw/condensed/gag 3-way mode
+      (2026-07-11 bug already fixed, 1.0 audit verdict: compliant, no
+      flags). Steven's answer on whether the 3-way split still matches
+      how he wants to control combat verbosity: "check the gags in the
+      play test" — deferred to the same focused live session below
+      rather than decided abstractly now; verify raw/condensed/gag mode
+      switching feels right during a real fight, not just read the code.
       **Non-damage action text (bash's knockdown, spell-cast
       announcements) — scanned ALL 13 sibling Mudlet profiles' `log/`
       dirs 2026-08-29 (not just DSL2's own), not only this repo's: still
@@ -223,11 +225,12 @@ one at a time:
       no new render-side code needed when real text does show up —
       `CV.appendSwing()` is already a generic "append one decorated line"
       hook, already used for non-swing text (the round-flush handler's
-      condition note). Scheduled as its own focused live-capture session
-      (bash something, cast something, grab the raw log) — deliberately
-      NOT folded into the native-content/mpackage/Mudlet-5.0 session, per
-      Steven 2026-08-29 ("it can be a focused test, no it doesnt have to
-      roll into the larger test").
+      condition note). **Scheduled as one focused live session** (bash
+      something, cast something, grab the raw log; switch `mydsl combat
+      mode raw|condensed|gag` during a real fight and confirm each feels
+      right) — deliberately NOT folded into the native-content/mpackage/
+      Mudlet-5.0 session, per Steven 2026-08-29 ("it can be a focused
+      test, no it doesnt have to roll into the larger test").
 - [ ] **Command vocabulary** — more IC/human-speak, less `mydsl <module>
       <verb>`. Discussion about whether commands stay grouped under
       `mydsl <module>` or become direct top-level commands.

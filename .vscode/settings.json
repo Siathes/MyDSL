@@ -25,7 +25,14 @@
   ],
   "Lua.workspace.checkThirdParty": false,
   "Lua.workspace.maxPreload": 3000,
-  "Lua.workspace.preloadFileSize": 1000,
+  // Raised 2026-08-29 (was 1000 KB) -- MyDSL/creaturelore_db.lua (1.1MB)
+  // and MyDSL/itemlore_db.lua (2.1MB, largest of these table.save()
+  // data dumps) were both being skipped by the language server and
+  // surfacing a "file too large" notification. These are pure data
+  // (table.save() output, not source), so there's nothing to diagnose in
+  // them anyway -- this just stops the notification, generous headroom
+  // for continued data growth.
+  "Lua.workspace.preloadFileSize": 10000,
 
   // This directory is a live Mudlet profile: source lives at the top level and in
   // MyDSL/, everything below is runtime/session data that should never be indexed,
