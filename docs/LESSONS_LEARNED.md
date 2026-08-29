@@ -34,6 +34,105 @@ grep found two real call sites.
 acting on it (e.g. deleting), even if it's grep-confirmed elsewhere in this
 project's own docs.
 
+**A cited test file is not proof a fix works until its existence is
+checked.** Three test files (`test_mapper_fork_fixes.lua`,
+`test_move_cost_weight.lua`, `test_dsl_ud_display_fix.lua`) were cited by
+name across multiple `CHANGELOG.md`/`TODO.md` entries as verification for
+real fixes — none ever existed anywhere in git history or on disk. Only
+caught 2026-08-23 when an independent review pass actually ran
+`git log --all` instead of trusting the citation.
+**Rule:** when a doc cites a test file as proof a fix is covered, confirm
+the file exists (`git log --all` / `ls`) before trusting the claim —
+especially in any review/audit pass.
+
+**A specific-sounding citation (a PR number, commit hash, function name)
+substitutes for evidence unless someone actually pulls the source.** A
+2026-07-12 decision attributed a real Mudlet docking bug to PR #9334; that
+citation was trusted and repeated for over a month until 2026-08-29, when
+the actual PR diff was pulled and turned out to be an unrelated
+null-pointer guard with no relevant logic at all.
+**Rule:** before repeating or building on a "root cause is X" claim that
+names a specific external source, pull that source yourself once — don't
+assume an earlier session already verified it just because the citation
+reads as specific and confident.
+
+## Cross-boundary blind spots — Lua vs. native XML
+
+**A "zero callers"/"dead code" search that only greps `.lua` files misses
+real callers living in native XML.** `MyDSL_Route.history()` was flagged
+zero-callers by an initial pass; a later pass that included
+`MyDSL_GameplayTriggers.xml` found 83 real callers there. This is the same
+failure shape as the `getTargetCondition()` miss above, but specifically
+about the Lua/XML boundary, and it has recurred.
+**Rule:** a "nothing calls this"/"dead code" claim must state whether
+native XML was included in the search — if the codebase spans both `.lua`
+and tracked XML, search both before concluding something is unused.
+
+**`scripts/check_known_patterns.py` only scans `.lua` files — native XML
+is a standing blind spot for the same bug classes it catches in Lua.** Two
+real bugs (an unconditional `deleteLine()` with no enable guard, and 30
+hardcoded absolute sound paths) existed in native XML triggers and were
+invisible to the automated sweep.
+**Rule:** until the sweep covers native XML too (open TODO item), "the
+sweep ran clean" is a claim about `.lua` files only — native XML still
+needs periodic manual review for the same pattern classes.
+
+**A live, correctly-wired-looking connection can silently reference the
+wrong table name and never error.** `MyDSL_PortraitView.lua` read
+`MyDSL.Windows.windows[...]`, a table that has never existed anywhere in
+the codebase (the real table is `MyDSL.Windows.registry`) — Lua doesn't
+error on reading a nonexistent key, so the window still visibly "worked"
+via an independent fallback while its intended registry/theme/layout
+wiring silently never fired.
+**Rule:** when confirming module A's data reaches module B through a
+shared table, verify both sides use the exact same identifier — a
+typo'd/stale table name looks identical to working code in a quick check.
+
+## Portability
+
+**Hardcoded absolute machine-specific paths (`/home/owner/...`) recur as a
+bug class across both Lua and native XML**, and have twice fooled
+independent reviewers into treating a real bug as environment noise:
+`MyDSL_Leveling.lua`'s seed-file fallback chain (fixed with a `selfDir()`
+helper, 2026-08-24) and, separately, 30 native `<mSoundFile>` triggers
+(fixed 2026-08-29).
+**Rule:** derive any new file path from the file's own location
+(`debug.getinfo`-based `selfDir()` pattern) rather than hardcoding
+`/home/owner/...` — this is a repeat bug class, worth a
+`check_known_patterns.py` rule if it recurs again.
+
+## External API / pattern-engine verification
+
+**A Mudlet native API's return shape needs checking against real source,
+not the function name.** `searchRoom()` reads as "returns a plain array"
+from its name, but Mudlet's actual C++ source returns a table keyed *by
+room ID* — an `ipairs()` loop over it would have silently matched nothing,
+every time, with no error. Caught only by checking the real C++ source
+before shipping.
+**Rule:** for any Mudlet API function whose return shape isn't certain
+from the Manual, check Mudlet's real source before writing `ipairs()`/
+`pairs()` code against it — a wrong assumption here fails silently.
+
+**Python's `re` is not real PCRE, and this project has hit real bugs from
+trusting it as a stand-in.** This project has hit 3 real PCRE-vs-Lua/
+Python-pattern-behavior bugs historically; the test suite's own regex
+verification uses Python `re` as a "near-identical" PCRE proxy, not the
+real engine.
+**Rule:** any new PCRE-flavored pattern with lookahead/lookbehind or other
+PCRE-specific constructs should be cross-checked against real `perl -e`
+(documented in `test/README.md`) before shipping, not just Python `re`.
+
+**A fix that assumes two independently-maintained data pipelines agree
+needs that agreement checked against the real corpus, not judged plausible
+from reading both code paths.** `roomLooksStale()` compares GMCP room name
+vs. displayed room name from two separate pipelines; a corpus check across
+all 260 logged GMCP dumps was required to confirm they actually agree, and
+it surfaced a real unhandled edge case (`"darkness"` placeholder) that
+code-reading alone hadn't caught.
+**Rule:** when a fix's correctness depends on two live systems reporting
+consistent values, verify that against the real corpus — plausible-from-
+code-reading is not the same as empirically confirmed.
+
 ## Native Mudlet content vs. package-installed content
 
 **Anything built by hand directly in Mudlet's own UI (Script/Trigger/Alias

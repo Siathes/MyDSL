@@ -347,7 +347,13 @@ file), ChatWrapper settings (`chat_settings.lua`, single shared file).
 themes are user-creatable named presets, shared across all characters.
 
 ## Workflow
-- One module/bug per branch. Branch name: `fix/<module>-<short-description>`
+- Commit directly to `main` (updated 2026-08-29 to match actual practice
+  since ~2026-08-23 — the old `fix/<module>-<short-description>`
+  per-module-branch rule had quietly stopped being followed weeks earlier;
+  `HANDOFF.md`'s Claude Code ↔ Claude Desktop review loop already reviews
+  `main` directly, so a branch-per-change step wasn't adding review value
+  it wasn't already getting). Keep commits small and focused per change,
+  same as the old rule intended — this only drops the branch step itself.
 - Commit messages: `type: description` (fix/feat/refactor)
 - After every commit: append one line to `docs/CHANGELOG.md` describing what changed
 - After finishing a task, update the relevant checkbox in `docs/TODO.md`
