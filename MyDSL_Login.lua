@@ -22,8 +22,11 @@
 --    the Mudlet *profile* folder, the same place MyDSL_state.lua,
 --    MyDSL_windowstate_*.lua etc. already live and that this repo has never
 --    tracked. Hand-create it once, yourself, in a text editor:
---      return { name = "YourCharacterName", password = "YourPassword" }
+--      return { character = "YourCharacterName", password = "YourPassword" }
 --    Never commit that file, never paste its contents into chat/HANDOFF.
+--    (Renamed from `name` to `character` 2026-08-29 -- see note 6 below;
+--    an existing file using the old `name` key is still read fine, see
+--    loadCredentials()'s own fallback.)
 --
 --    Note for whoever wires this in: this repo's own .gitignore already has
 --    a bare `login` entry ("# Connection credentials (auto-login
@@ -52,23 +55,29 @@
 --    at load that says whether a file was *found*, never whether a
 --    password is *correct*.
 --
--- 5. Toggleable per Principle 2 ("Toggleable By Default"), independent of
---    whether credentials are configured: "mydsl login on|off".
+-- 5. Toggleable per Principle 2 ("Toggleable By Default") -- but as TWO
+--    independent toggles as of 2026-08-29, not one: "mydsl login on|off"
+--    (password autofill) and "mydsl login character on|off" (character-
+--    name autofill). See note 6 for why they're split.
 --
 -- 6. Trigger patterns below match "Player name:" and "Password:" -- both
 --    confirmed as real, current corpus strings (direct grep of log/, e.g.
 --    log/2026-07-01#15-33-12.txt lines 58-95, 2026-08-29). They are NOT a
---    matched pair in one prompt sequence, though: "Password:" is the
---    MASTER ACCOUNT's password (asked right after "What is your Master
---    Account's name?", which this module never automates), while "Player
---    name:" is a separate, later prompt asking which CHARACTER to play,
---    reached only after navigating the Master Login Menu. So
---    credentials.name is sent at "Player name:" (a character to play),
---    NOT at the master-account-name prompt -- see docs/TODO.md's
---    2026-08-29 login-flow design review for the real flow, a confirmed
---    usability wrinkle this causes (Steven plays more than one character;
---    a fixed auto-sent name is wrong whenever it doesn't match the
---    session's target character), and a proposed fix awaiting his call.
+--    matched pair in one prompt sequence: "Password:" is the MASTER
+--    ACCOUNT's password (asked right after "What is your Master Account's
+--    name?", which this module never automates -- typed manually, low-
+--    cost, once per session), while "Player name:" is a separate, later
+--    prompt asking which CHARACTER to play, reached only after navigating
+--    the Master Login Menu. The password is safe to auto-fill unattended
+--    (one master account, same password every session); the character
+--    name isn't, structurally -- Steven's own real corpus shows him
+--    logging into different characters across sessions (kien, tibbins,
+--    ...), so a fixed auto-sent name is right only when it happens to
+--    match that session's target and silently wrong the rest of the time.
+--    Design review: docs/CHANGELOG.md 2026-08-29. Fix, per Steven's own
+--    choice among the options presented: split into two independent
+--    toggles, character autofill OFF by default, password autofill ON by
+--    default (unchanged from before this fix).
 --
 -- 7. Send-once-per-prompt-per-connection guard, reset on Mudlet's own
 --    sysConnectionEvent: prevents a mismatched credential (or a server that
@@ -85,7 +94,11 @@
 -- =============================================================================
 
 MyDSL       = MyDSL or {}
-MyDSL.Login = MyDSL.Login or { enabled = true, _configured = false }
+-- enabled = password autofill (default ON, unchanged from before the
+-- 2026-08-29 split -- always safe, one master account/password).
+-- characterEnabled = character-name autofill (default OFF -- see the
+-- header's note 6 for why: only sometimes correct, unlike the password).
+MyDSL.Login = MyDSL.Login or { enabled = true, characterEnabled = false, _configured = false }
 
 -- Kill any trigger/alias/handler from a previous load.
 MyDSL.Login._triggers = MyDSL.Login._triggers or {}
@@ -118,11 +131,19 @@ local function loadCredentials()
   end
   local ok, result = pcall(chunk)
   if not ok or type(result) ~= "table"
-      or type(result.name) ~= "string" or result.name == ""
       or type(result.password) ~= "string" or result.password == "" then
     credentials = nil
     return false
   end
+  -- Field renamed name -> character 2026-08-29 (see header note 1/6) --
+  -- fall back to the old key so an existing credentials file on disk
+  -- doesn't need to be hand-edited to keep working.
+  local character = result.character or result.name
+  if type(character) ~= "string" or character == "" then
+    credentials = nil
+    return false
+  end
+  result.character = character
   credentials = result
   return true
 end
@@ -136,8 +157,8 @@ end
 
 -- ---- send-once-per-prompt-per-connection guard ------------------------------
 
-local sentName, sentPassword = false, false
-local function resetGuard() sentName, sentPassword = false, false end
+local sentCharacter, sentPassword = false, false
+local function resetGuard() sentCharacter, sentPassword = false, false end
 
 -- Mudlet's own built-in connection event (real name, fires on connect) --
 -- same registerAnonymousEventHandler-with-inline-function pattern already
@@ -145,14 +166,20 @@ local function resetGuard() sentName, sentPassword = false, false end
 MyDSL.Login._connHandler = registerAnonymousEventHandler("sysConnectionEvent", resetGuard)
 
 -- ---- triggers ----------------------------------------------------------------
+-- Both triggers stay registered for the module's whole lifetime -- each
+-- callback independently checks its OWN enabled flag at fire time, so
+-- turning one autofill on/off no longer needs to add/remove the trigger
+-- itself (pre-2026-08-29 behavior, from when there was only one combined
+-- toggle). Simpler, and avoids a trigger existing/not-existing race with
+-- the flag it's supposed to be gated by.
 
 local function registerLoginTriggers()
-  if MyDSL.Login._triggers.name then return end
+  if MyDSL.Login._triggers.character then return end
 
-  MyDSL.Login._triggers.name = tempRegexTrigger([[^Player name:]], function()
-    if not MyDSL.Login.enabled or not credentials or sentName then return end
-    sentName = true
-    send(credentials.name, false)
+  MyDSL.Login._triggers.character = tempRegexTrigger([[^Player name:]], function()
+    if not MyDSL.Login.characterEnabled or not credentials or sentCharacter then return end
+    sentCharacter = true
+    send(credentials.character, false)
   end, 100)
 
   MyDSL.Login._triggers.password = tempRegexTrigger([[^Password:]], function()
@@ -162,38 +189,36 @@ local function registerLoginTriggers()
   end, 100)
 end
 
-local function unregisterLoginTriggers()
-  for k, id in pairs(MyDSL.Login._triggers) do
-    pcall(killTrigger, id)
-    MyDSL.Login._triggers[k] = nil
-  end
-end
-
 registerLoginTriggers()
 
 -- ---- toggle + status aliases ---------------------------------------------
 
+-- "mydsl login on|off" -- password autofill only, unchanged meaning from
+-- before the 2026-08-29 split (this was always the primary/original use).
 MyDSL.Login._aliases.toggle = tempAlias(
   [[^mydsl login (on|off)$]],
   [[MyDSL.Login.enabled = (matches[2] == "on")
-    if MyDSL.Login.enabled then MyDSL._loginRegister() else MyDSL._loginUnregister() end
-    echo("Login autofill " .. matches[2] .. ".\n")]]
+    echo("Login password autofill " .. matches[2] .. ".\n")]]
+)
+
+-- "mydsl login character on|off" -- added 2026-08-29, the new independent
+-- toggle for the "Player name:" autofill. Defaults OFF -- see header
+-- note 6 for why this one specifically shouldn't default on.
+MyDSL.Login._aliases.characterToggle = tempAlias(
+  [[^mydsl login character (on|off)$]],
+  [[MyDSL.Login.characterEnabled = (matches[2] == "on")
+    echo("Login character-name autofill " .. matches[2] .. ".\n")]]
 )
 
 -- Deliberately never echoes the credential values themselves -- only
--- whether a file was found and whether the toggle is on.
+-- whether a file was found and whether each toggle is on.
 MyDSL.Login._aliases.status = tempAlias(
   [[^mydsl login status$]],
-  [[local state = MyDSL.Login.enabled and "ON" or "OFF"
+  [[local pwState  = MyDSL.Login.enabled and "ON" or "OFF"
+    local charState = MyDSL.Login.characterEnabled and "ON" or "OFF"
     if MyDSL.Login._configured then
-      echo("Login autofill: configured, " .. state .. ".\n")
+      echo("Login autofill: configured. Password=" .. pwState .. ", Character=" .. charState .. ".\n")
     else
-      echo("Login autofill: NOT configured (no credentials file found), " .. state .. ".\n")
+      echo("Login autofill: NOT configured (no credentials file found). Password=" .. pwState .. ", Character=" .. charState .. ".\n")
     end]]
 )
-
--- Exposed on MyDSL so the alias script strings (separate Lua chunks, no
--- closure access to this file's locals) can reach these -- same pattern as
--- MyDSL_RawCapture.lua's MyDSL._rawCaptureRegister/Unregister.
-MyDSL._loginRegister   = registerLoginTriggers
-MyDSL._loginUnregister = unregisterLoginTriggers

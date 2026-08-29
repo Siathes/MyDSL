@@ -356,10 +356,11 @@ MyDSL.Help.modules = {
     },
   },
   { key = "login", title = "Login", category = "Setup & Diagnostics", window = nil,
-    summary = "Secure auto-login: fills your name/password at the connect prompts from a credentials file outside the repo -- never types a password into any tracked file. Silently off if that file isn't set up.",
+    summary = "Secure auto-login: fills the master-account password and/or which character to play from a credentials file outside the repo -- never types a password into any tracked file. Silently off if that file isn't set up. Two independent toggles: password autofill (safe, on by default) and character-name autofill (only sometimes correct since you may log into more than one character, off by default).",
     commands = {
-      { cmd = "mydsl login <on|off>", desc = "Toggle auto-login on/off.", example = "mydsl login on" },
-      { cmd = "mydsl login status", desc = "Report whether a credentials file was found and whether autofill is on -- never echoes the credential values themselves.", example = "mydsl login status" },
+      { cmd = "mydsl login <on|off>", desc = "Toggle master-account PASSWORD autofill.", example = "mydsl login on" },
+      { cmd = "mydsl login character <on|off>", desc = "Toggle CHARACTER-NAME autofill at the \"Player name:\" prompt -- off by default, since it's only correct when it matches the character you're actually logging into this session.", example = "mydsl login character on" },
+      { cmd = "mydsl login status", desc = "Report whether a credentials file was found and the state of both toggles -- never echoes the credential values themselves.", example = "mydsl login status" },
     },
   },
 

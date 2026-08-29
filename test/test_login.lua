@@ -5,6 +5,14 @@
 -- any MyDSL.* table, the send-once guard holds, and it resets on
 -- sysConnectionEvent.
 --
+-- Extended 2026-08-29 for the password/character-autofill split (real
+-- usability bug found via corpus review: "Player name:" and "Password:"
+-- aren't a matched pair, and a single hardcoded character name is often
+-- wrong across sessions -- see docs/CHANGELOG.md). Character autofill now
+-- defaults OFF independent of password autofill, and the old `name`
+-- credentials-file key still loads correctly as `character` (backward
+-- compat for a file already on disk from before the rename).
+--
 -- Run: luajit test/test_login.lua
 
 package.path = package.path .. ";./test/?.lua"
@@ -56,12 +64,12 @@ fireTrigger("Player name:")
 fireTrigger("Password:")
 check("unconfigured: sends nothing on Player name:/Password:", #sent == 0)
 
--- ---- Case 2: configured -> sends name/password with echo suppressed -------
+-- ---- Case 2: configured, default state -> password autofills, character doesn't --
 
 local credPath = getMudletHomeDir() .. "/MyDSL_login_credentials.lua"
 os.execute("mkdir -p " .. getMudletHomeDir())
 local f = io.open(credPath, "w")
-f:write('return { name = "TestChar", password = "TestPass123" }\n')
+f:write('return { name = "TestChar", password = "TestPass123" }\n')  -- old `name` key -- backward-compat case
 f:close()
 
 MyDSL = nil
@@ -71,42 +79,60 @@ eventHandlers = {}
 dofile("MyDSL_Login.lua")
 
 check("configured: reports configured", MyDSL.Login._configured == true)
+check("character autofill defaults OFF", MyDSL.Login.characterEnabled == false)
+check("password autofill defaults ON", MyDSL.Login.enabled == true)
 
 fireTrigger("Player name:")
-check("configured: sent exactly one command after name prompt", #sent == 1)
-check("configured: sent the right name", sent[1] and sent[1].cmd == "TestChar")
-check("configured: name send had echo suppressed", sent[1] and sent[1].echo == false)
+check("character autofill OFF by default: 'Player name:' sends nothing", #sent == 0)
 
 fireTrigger("Password:")
-check("configured: sent exactly two commands after password prompt", #sent == 2)
-check("configured: sent the right password", sent[2] and sent[2].cmd == "TestPass123")
-check("configured: password send had echo suppressed", sent[2] and sent[2].echo == false)
+check("password autofill ON by default: sent exactly one command after password prompt", #sent == 1)
+check("configured: sent the right password", sent[1] and sent[1].cmd == "TestPass123")
+check("configured: password send had echo suppressed", sent[1] and sent[1].echo == false)
 
--- ---- Case 3: send-once-per-prompt guard ------------------------------------
+-- ---- Case 3: turning character autofill on sends the (backward-compat) name --
+
+MyDSL.Login.characterEnabled = true
+fireTrigger("Player name:")
+check("character autofill ON: sends the old 'name' key's value as the character",
+  sent[2] and sent[2].cmd == "TestChar")
+check("character send had echo suppressed", sent[2] and sent[2].echo == false)
+
+-- ---- Case 4: send-once-per-prompt guard ------------------------------------
 
 fireTrigger("Player name:")
 fireTrigger("Password:")
 check("guard: repeated prompts within one connection don't resend", #sent == 2)
 
--- ---- Case 4: sysConnectionEvent resets the guard ---------------------------
+-- ---- Case 5: sysConnectionEvent resets the guard ---------------------------
 
 fireEvent("sysConnectionEvent")
 fireTrigger("Player name:")
 fireTrigger("Password:")
 check("reconnect: guard reset allows exactly one more send each", #sent == 4)
-check("reconnect: name resent correctly", sent[3] and sent[3].cmd == "TestChar")
+check("reconnect: character resent correctly", sent[3] and sent[3].cmd == "TestChar")
 check("reconnect: password resent correctly", sent[4] and sent[4].cmd == "TestPass123")
 
--- ---- Case 5: toggle off stops sends without touching configuration --------
+-- ---- Case 6: each toggle only controls its own autofill --------------------
 
 MyDSL.Login.enabled = false
 sent = {}
+fireEvent("sysConnectionEvent")
 fireTrigger("Player name:")
 fireTrigger("Password:")
-check("toggle off: no sends while disabled", #sent == 0)
+check("password toggle off: no password send, character still sends", #sent == 1 and sent[1].cmd == "TestChar")
+
+MyDSL.Login.characterEnabled = false
+MyDSL.Login.enabled = true
+sent = {}
+fireEvent("sysConnectionEvent")
+fireTrigger("Player name:")
+fireTrigger("Password:")
+check("character toggle off: no character send, password still sends",
+  #sent == 1 and sent[1].cmd == "TestPass123")
 check("toggle off: still reports configured (file untouched)", MyDSL.Login._configured == true)
 
--- ---- Case 6: credential value never lands on any MyDSL.* table ------------
+-- ---- Case 7: credential value never lands on any MyDSL.* table ------------
 
 local function scanForSecret(t, seen, found, path)
   seen = seen or {}

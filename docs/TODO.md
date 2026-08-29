@@ -99,54 +99,7 @@ DEFERRED gets started without an explicit go-ahead.
       doesn't exist yet. Steven: "we will do a from scratch and see how it
       unfolds and can be improved" — run the real install, then write
       `INSTALL.md` from what that reveals.
-- [ ] **Login flow — design review complete 2026-08-29, awaiting Steven's
-      call on one proposed behavior change.** Re-read the real sequence
-      directly from `log/` (e.g. `log/2026-07-01#15-33-12.txt` lines
-      57-95) instead of trusting `MyDSL_Login.lua`'s own header
-      description of it. Real flow: `Do you want color? (Y/N)` → `[DSL]
-      (Push Enter to Continue)` → Main Login Menu → pick `M` (Master
-      Account Login) → `What is your Master Account's name?` → typed
-      manually, never automated → `Password:` → **this is the MASTER
-      ACCOUNT's password**, not a character password → optionally
-      `Reconnecting your master account due to LD` → Master Login Menu →
-      pick `P` (Play Existing Character) → Master Character List →
-      `Player name:` → **this is which CHARACTER to play**, a totally
-      separate field from the master account name three steps earlier.
-      Findings:
-      1. **"Reconnecting due to LD" needs no alert or handling.**
-         Confirmed by diffing sessions with/against without it
-         (`log/2026-06-30#16-30-33.txt` has it, `log/2026-07-01#15-33-
-         12.txt` doesn't) — purely informational, appears only after a
-         real link-death, and the identical Master Login Menu follows
-         either way. Nothing for the player to do differently.
-      2. **Character creation should stay explicitly out of scope.**
-         Race/class/stat selection is rare, one-time per character, and
-         effectively irreversible — exactly the case "automate to
-         assist, not to play" argues against touching, not a gap to
-         fill.
-      3. **A real usability problem, not a security bug, in what's
-         already built:** the module's `credentials.name` is sent
-         verbatim at every `Player name:` prompt — but that prompt asks
-         which CHARACTER to play, and Steven's own real sessions show
-         him logging into different characters across sessions (`kien`
-         in one, `tibbins` in another, same corpus). A single hardcoded
-         auto-sent character name only helps when it happens to match
-         that session's target character, and silently sends the WRONG
-         name the rest of the time — the opposite of this project's own
-         "never hardcode a character" mandate, even though this is
-         Steven's personal login convenience rather than shared module
-         logic. The master account PASSWORD half is safe to auto-fill
-         (one master account, same password every session); the
-         CHARACTER half isn't, structurally.
-      **Proposed fix, not yet made — needs Steven's sign-off since it
-      changes what gets auto-typed at login:** split today's single
-      `mydsl login on|off` into two independent toggles (master-password
-      autofill vs. character-name autofill), defaulting the character
-      one OFF while leaving password autofill ON, and rename the
-      credentials file's `name` field to `character` so its actual
-      meaning stops reading like the master account's own name. Master
-      account name entry and menu-letter navigation (`M`/`P`) are single
-      low-cost keystrokes each session — not worth automating.
+
 *(Native-content tracking's Principle-2 question is answered, not open:
 Principle 2 is "Toggleable By Default" — MYDSL_1.0_PHILOSOPHY.md, unrelated
 to the automation rule Steven was thinking of, which was a different,
@@ -367,6 +320,20 @@ work actually starts.)*
   name lookup — and confirmed via `MyDSL_CreatureReference.lua` that
   Bestiary has the identical lookup-only surface: this project's own
   established, consistent convention, not an ItemLore-specific gap.
+- **Login flow — password/character autofill split, implemented
+  2026-08-29.** Design review (docs/CHANGELOG.md same date) found
+  `MyDSL_Login.lua`'s single `mydsl login on|off` toggle covered two
+  unrelated prompts (master account password, and which character to
+  play) with one hardcoded character name that's wrong whenever it
+  doesn't match the session's target character. Presented 4 options;
+  Steven chose "split toggle, default OFF for character autofill." Now
+  `mydsl login on|off` controls password autofill only (unchanged
+  default: on), `mydsl login character on|off` is new and independent
+  (default: off), and the credentials file's field is renamed `name` →
+  `character` with backward-compat fallback for an existing file still
+  using the old key. `test/test_login.lua` extended for both toggles
+  firing independently and the backward-compat load path; confirmed
+  meaningful via targeted revert.
 - **Help.lua "auto-derive" — built a drift checker, not a 189-call-site
   rewrite, 2026-08-29.** Steven's own suggested direction ("auto-derive
   sounds good") could have meant annotating every one of the ~189 real
