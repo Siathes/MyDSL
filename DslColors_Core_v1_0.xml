@@ -1578,6 +1578,7 @@ DSL_COLOR_DB = DSL_COLOR_DB or {
   ignored = {},
   aliases = {},
   settings = {
+    enabled = true,
     echo_updates = true,
     enemy_background = {45, 0, 0},
     enemy_bold = true,
@@ -1696,6 +1697,7 @@ function dslColorLoad()
   DSL_COLOR_DB.ignored = DSL_COLOR_DB.ignored or {}
   DSL_COLOR_DB.aliases = DSL_COLOR_DB.aliases or {}
   DSL_COLOR_DB.settings = DSL_COLOR_DB.settings or {}
+  if DSL_COLOR_DB.settings.enabled == nil then DSL_COLOR_DB.settings.enabled = true end
   if DSL_COLOR_DB.settings.echo_updates == nil then DSL_COLOR_DB.settings.echo_updates = true end
   DSL_COLOR_DB.settings.enemy_background = DSL_COLOR_DB.settings.enemy_background or {45, 0, 0}
   if DSL_COLOR_DB.settings.enemy_bold == nil then DSL_COLOR_DB.settings.enemy_bold = true end
@@ -1796,10 +1798,30 @@ function dslMarkRange(s, e)
   table.insert(DSL_COLOR_LINE_RANGES, {s, e})
 end
 
+-- Real perf fix, 2026-08-29, per Steven ("I want an optimization pass on
+-- this"): dslColorOnLine() calls dslBoundedFind() once per term across
+-- the full ~803-term vocabulary (custom terms, names, orgs, titles,
+-- craft, race, class), and every single one of those calls used to
+-- re-lowercase the SAME real game line from scratch via string.lower(line)
+-- -- up to 803 redundant lowercase passes over identical text, once per
+-- line of actual game output. Cached here instead: the lowercase form is
+-- computed once per real line and reused for every term checked against
+-- it, invalidated automatically the moment a genuinely different line
+-- comes in (plain string equality, not identity -- cheap relative to the
+-- lowercase work it replaces).
+local DSL_COLOR_LOWER_CACHE = { line = nil, lower = nil }
+local function dslLowerCached(line)
+  if DSL_COLOR_LOWER_CACHE.line ~= line then
+    DSL_COLOR_LOWER_CACHE.line = line
+    DSL_COLOR_LOWER_CACHE.lower = string.lower(line)
+  end
+  return DSL_COLOR_LOWER_CACHE.lower
+end
+
 function dslBoundedFind(line, term, startAt)
   if not line or not term or term == "" then return nil end
   local plainStart = startAt or 1
-  local hay = string.lower(line)
+  local hay = dslLowerCached(line)
   local needle = string.lower(term)
   while true do
     local s, e = hay:find(needle, plainStart, true)
@@ -2733,6 +2755,13 @@ function dslRenderOrgTags()
 end
 
 function dslColorOnLine()
+  -- Real gap fix, 2026-08-29, per Steven ("dslcolor needs to be
+  -- integrated into MyDSL, it will toggle on off like the others" +
+  -- "fix the known issues"): no master on/off ever existed -- only
+  -- echo_updates (notification verbosity, not the scan itself). The
+  -- full ~803-term vocabulary scan ran unconditionally on every
+  -- non-blank line regardless. "dslcolor on|off" now controls this.
+  if not (DSL_COLOR_DB and DSL_COLOR_DB.settings and DSL_COLOR_DB.settings.enabled) then return end
   local line = getCurrentLine()
   if not line or line == "" then return end
   dslResetLineRanges()
@@ -2931,6 +2960,7 @@ function dslColorHelp(topic)
     cmd("dslcolor downed &lt;name&gt; / downedby &lt;name&gt;", "manual down/disable history")
     cmd("dslcolor combat note &lt;name&gt; &lt;note&gt;", "timestamped combat note")
     section("Maintenance")
+    cmd("dslcolor on|off", "master toggle -- turns the whole scan off, not just echoes")
     cmd("dslcolor echo on|off", "show/hide update echoes")
     cmd("dslcolor save", "manual save")
     cmd("dslcolor reload", "reload from disk")
@@ -3072,6 +3102,7 @@ function dslColorHelp(topic)
 
   if topic == "maintenance" then
     header("Maintenance")
+    cmd("dslcolor on|off", "master toggle -- turns the whole scan off, not just echoes")
     cmd("dslcolor echo on|off", "toggle update echoes")
     cmd("dslcolor save", "save database")
     cmd("dslcolor savepath", "show save file path")
@@ -3305,6 +3336,7 @@ function dslColorCommand(raw)
   name,note=cmd:match("^combat%s+note%s+([%a'%-]+)%s+(.+)$"); if name and note then dslCombatEvent(name,"note",note); return end
   n=cmd:match("^combat%s+show%s+([%a'%-]+)$"); if n then dslShowPerson(n); return end
 
+  local masterSetting=cmd:match("^(on)$") or cmd:match("^(off)$"); if masterSetting then DSL_COLOR_DB.settings.enabled=(masterSetting=="on"); dslColorSave(); cecho("\n&lt;green&gt;[DslColors] enabled="..tostring(DSL_COLOR_DB.settings.enabled).."\n"); return end
   local setting=cmd:match("^echo%s+(on)$") or cmd:match("^echo%s+(off)$"); if setting then DSL_COLOR_DB.settings.echo_updates=(setting=="on"); dslColorSave(); cecho("\n&lt;green&gt;[DslColors] echo_updates="..tostring(DSL_COLOR_DB.settings.echo_updates).."\n"); return end
   if cmd=="test" then cecho("\n&lt;cyan&gt;[DslColors v1.0 RELEASE] runtime test\n"); dslPrintKV("data_path",DSL_COLOR_DATA_PATH); dslPrintKV("known_people",dslCount(DSL_COLOR_DB.people)); dslPrintKV("known_orgs",dslCount(DSL_COLOR_DB.orgs)); dslPrintKV("race_aliases",dslCount(DSL_RACE_ALIASES)); dslPrintKV("class_aliases",dslCount(DSL_CLASS_ALIASES)); dslPrintKV("title_aliases",dslCount(DSL_TITLE_ALIASES)); dslPrintKV("blocked_titles",dslCount(DSL_COLOR_DB.title_blocklist)); dslPrintKV("person_aliases",dslCount(DSL_COLOR_DB.aliases)); dslPrintKV("custom_terms",dslCount(DSL_COLOR_DB.terms)); dslPrintKV("custom_palettes",dslCount(DSL_COLOR_DB.custom_palettes)); if DSL_COLOR_LAST_LOAD then dslPrintKV("loaded_existing_file", tostring(DSL_COLOR_LAST_LOAD.ok)) end; if DSL_COLOR_LAST_SAVE then dslPrintKV("last_save_ok", tostring(DSL_COLOR_LAST_SAVE.ok)) end; cecho("&lt;green&gt;  alias/core is working.\n"); return end
   if cmd=="savepath" then cecho("\n&lt;cyan&gt;[DslColors] save path: "..DSL_COLOR_DATA_PATH.."\n"); return end

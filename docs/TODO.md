@@ -66,33 +66,11 @@ DEFERRED gets started without an explicit go-ahead.
       "MyDSL Test"), then delete the now-unneeded profiles. Needs real
       scoping before work starts — this is a large, structural,
       GUI-driven undertaking.
-- [ ] **ChatTriggers — coverage audit + default gag-state redesign.**
-      Steven: "review the chat code for optimization and function, that
-      it's catching all known chats vs. patterns and logs, then set a
-      default for what is gagged and what is not. Local is not gagged by
-      default, all other channels are gagged by default. Local is
-      yells/tells/whispers and such." Concretely: (1) audit `MyDSL_
-      ChatTriggers.lua`'s ~14 channel patterns against `log/` and `scripts/
-      check_text_coverage.py` results to confirm nothing real is falling
-      through uncaptured; (2) flip the default gag state so every channel
-      except Local starts gagged (routed to its tab, off the main
-      console) and Local starts shown. Currently all channels default to
-      shown/ungagged.
-- [ ] **DslColors — integrate into MyDSL, fix known issues, make Census
-      genuinely useful.** This pulls together four separate asks from this
-      pass that are really one project:
-      - **Integrate + toggle.** `DslColors_Core_v1_0.xml` is still a
-        standalone native script today, not wired into MyDSL as a real
-        toggleable module like everything else. Steven: "dslcolor needs to
-        be integrated into MyDSL, it will toggle on off like the others."
-      - **Fix the two confirmed bugs.** No master on/off exists yet (only
-        `dslcolor echo on/off`, which is just notification verbosity) —
-        the full 803-term vocabulary scan runs unconditionally on every
-        line. `dslBoundedFind()` also re-lowercases the line once *per
-        term comparison* instead of once per line — a real, if currently
-        small, perf cost. Steven: "I want an optimization pass on this and
-        a look to see if it helps or can connect to assist any other
-        modules. Fix the known issues."
+- [ ] **DslColors — make Census genuinely useful, document it.** The
+      "integrate + toggle" and "fix known bugs" parts of this pass are
+      done (2026-08-29 — see `docs/CHANGELOG.md`: master `dslcolor
+      on|off` added, `dslBoundedFind()`'s per-term line re-lowercase
+      fixed). Still open, and the bigger remaining half of this item:
       - **Make Census data actually useful.** Today `people[key]`'s
         `last_seen_*` fields just reflect the last time someone showed up
         on the `who` list — Steven wants "last seen" to instead reflect
@@ -339,6 +317,17 @@ work actually starts.)*
 ---
 
 ## DECISIONS RECORDED
+- **ChatTriggers coverage audit — confirmed solid, 2026-08-29.** Cross-
+  checked all 5 tabs' patterns against `DSL_Helpfiles/channels.txt`'s
+  authoritative channel list and the real `log/` corpus (1.3M lines).
+  Every channel with real corpus evidence is captured. 4 named channels
+  (Cgos, Thaxanos, Shalonesti, in-character Clan) have zero real chat-
+  message examples anywhere in the corpus — same "can't build, no data"
+  class as quest-tracking, not a fixable gap. Default gag-state also
+  fixed the same day: Local's whisper pattern now matches its say/yell/
+  shout siblings (`gag=false`), per Steven's own "Local is yells/tells/
+  whispers and such" listing — Tells was already correct (a 2026-07-11
+  decision, confirmed still current, not changed).
 - **Adopted a project-local known-bad-pattern checker + Claude Code hook
   — 2026-07-21, per Steven.** `scripts/check_known_patterns.py`, wired
   into a `PostToolUse` hook. Run `python3 scripts/check_known_patterns.py

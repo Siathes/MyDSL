@@ -268,9 +268,12 @@ route("City", [[^\a?\((?!Imm\))]] .. AREA_NAME .. [[\)\s+]] .. AREA_NAME .. [[:\
 -- "\w+ yells .../\w+ shouts ..." patterns required the literal -s form
 -- even for "You", so "You yell '...'"/"You shout '...'" never matched.
 -- gag=false 2026-07-11 per Steven for say/shout/yell specifically (not
--- whisper -- he didn't ask for that one and it's arguably more private).
+-- whisper at the time -- he hadn't asked for that one yet and it seemed
+-- arguably more private). Superseded 2026-08-29: Steven's own default-
+-- gag-state note explicitly lists "Local is yells/tells/whispers and
+-- such" as the not-gagged group -- whisper now matches its 3 siblings.
 route("Local", [[^\a?(?:You say|]] .. NC .. [[+ says)]] .. NC .. [[*']], false)
-route("Local", [[^\a?(?:You whisper|]] .. NC .. [[+ whispers)]] .. NC .. [[*']])
+route("Local", [[^\a?(?:You whisper|]] .. NC .. [[+ whispers)]] .. NC .. [[*']], false)
 route("Local", [[^\a?(?:You yell|]] .. NC .. [[+ yells)]] .. NC .. [[*']], false)
 route("Local", [[^\a?(?:You shout|]] .. NC .. [[+ shouts)]] .. NC .. [[*']], false)
 
