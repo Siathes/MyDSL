@@ -277,17 +277,69 @@ resourcing question for Steven, not something this doc should decide.
 
 ---
 
-## Open questions for the design session (not yet answered)
+## Decisions made 2026-08-29, and what shipped
 
-1. How much of recommendation 3's file split happens now vs. gets scoped
-   as its own follow-up session — this is real refactor work across a
-   6,631-line file, touches the Plan-Mode threshold in `CLAUDE.md`.
-2. Concrete command list for the MyDSL-suite right-click integration
-   (recommendation 4's second tier) — needs Steven's input on what's
-   actually useful to reach from the map, not just what's technically
-   possible.
-3. Whether to pursue standalone release at all, and on what timeline,
-   given the real ongoing costs in the side-question analysis above.
-4. Whether native custom exit lines (finding 2) get tested before or
-   during the file-split work, since confirming they solve the angled-
-   exits want could change how much of that item still needs building.
+1. **File split**: Steven deferred the "how" to best practice. Resolved
+   pragmatically rather than as one big refactor: **new** code follows the
+   right pattern from day one (below); migrating the **existing**
+   interleaved `map.dsl.*` code out of the modified stock copy is deferred
+   — not because it's not worth doing, but because it requires touching
+   `create_room()` and other stock-derived functions this pass
+   deliberately avoided modifying (see the undo-stack note below). Still
+   open, now scoped narrower: migrate the existing interleaved code,
+   not add new interleaving.
+2. **Right-click menu — shipped**: `docs/TODO.md`'s feature list was
+   presented to Steven; he asked for all of it, MyDSL items under their
+   own submenu. Built:
+   - **`map.dsl.safeDelete()`** in `DSL_Generic_Mapper.xml` (v0.2.6→0.2.7)
+     — ported from `mapaddons-safe-delete`, converts orphaned incoming
+     exits to stubs instead of leaving them dangling. Registered as its
+     own fresh `registerAnonymousEventHandler` pair, touching nothing
+     existing in the file. Tested: `test/test_mapper_safe_delete.lua`,
+     confirmed meaningful via targeted revert.
+   - **New `MyDSL_MapperMenu.lua`** — a "MyDSL" submenu (via
+     `addMapEvent`'s parent-key argument) with 3 quick-launch shortcuts:
+     show room picture / open Bestiary / open Item Reference. Deliberately
+     its own file, never added to `DSL_Generic_Mapper.xml`, so the mapper
+     fork stays exactly as useful to a non-MyDSL DSL player as to us —
+     this is the standalone/integrated split in miniature, proven before
+     being applied to the larger existing-code migration.
+   - **Undo stack — NOT built.** Doing this cleanly requires hooking
+     `create_room()`, which lives in the still-interleaved stock-derived
+     portion of `DSL_Generic_Mapper.xml` — building it now would mean
+     either more interleaving (the exact anti-pattern this whole doc
+     argues against) or a fragile heuristic workaround. Deferred to when
+     the real file-split happens, at which point this hook point is
+     something we'd own cleanly.
+   - **"Mobs/items known in this room," "room history" — NOT built,
+     correctly scoped as new feature work, not a menu wire-up.**
+     Confirmed by grep: no room-to-mob/room-to-item association data
+     exists anywhere in `MyDSL_CreatureLore.lua`/`MyDSL_ItemLore.lua`/
+     `MyDSL_DataLayer*.lua`. Building these means designing a real data
+     model first — flagged rather than faked with a shallow version.
+3. **Standalone release: confirmed wanted** — "yes we need this to be a
+   standalone DSL mapper I can give to others and it functions, and also
+   work in our suite and integrate with it." `MyDSL_MapperMenu.lua`'s
+   separate-file pattern above is a direct step toward this.
+   `build_mydsl_package.py` still needs a real standalone-mapper build
+   path (confirmed it doesn't exist, see the side-question section above)
+   — not built this pass, still open.
+4. **Custom exit lines**: confirmed real and exactly matches the maze/
+   overlapping-exit problem described (`TRoom::customLines` — a bent,
+   multi-point path per exit, independent style/color/arrow). **GUI-only,
+   no Lua scripting hook exists** (confirmed: zero hits searching Mudlet's
+   own Lua-mapper API source) — this can't be pre-set from code for a
+   whole maze at once. Workflow: right-click the room → Custom Exit Line →
+   click to lay down bend points → right-click to finish; click an
+   existing point afterward to drag it. Nothing to build; Steven does this
+   directly in Mudlet whenever an exit needs rerouting.
+
+**One remaining manual step, needed before `MyDSL_MapperMenu.lua` does
+anything**: like every other MyDSL module, it needs a native Script +
+`dofile("...MyDSL_MapperMenu.lua")` entry added in Mudlet's own Script
+Editor — confirmed via `build_mydsl_package.py`'s own file-discovery
+mechanism that a new git-tracked `.lua` file isn't auto-loaded or
+auto-packaged, every module has always needed this one-time step. Not
+something to hand-edit into `current/*.xml` directly (that's session-
+managed state, not source of truth) — Steven adds it the same way every
+other module in this project's history was added.

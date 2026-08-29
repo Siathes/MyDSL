@@ -21,6 +21,8 @@
     "openUserWindow", "createMiniConsole", "createBuffer",
     "selectString", "replace", "resetFormat", "moveCursor",
     "getLines", "getLineCount",
+    "getMapEvents", "addMapEvent", "deleteRoom", "getAllRoomEntrances",
+    "getRoomExits", "setExitStub", "updateMap",
     "yajl", "utf8"
   ],
   "Lua.workspace.checkThirdParty": false,

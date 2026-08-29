@@ -5687,7 +5687,7 @@ end
 -- passive door-state feeding, and tiny debug/status helpers.
 -- ============================================================================
 map.dsl = map.dsl or {}
-map.dsl.version = "0.2.6"
+map.dsl.version = "0.2.7"
 map.dsl.base = "Generic Mapper 2.1.8"
 map.dsl.gmcp = map.dsl.gmcp or {}
 map.dsl.line_buffer = map.dsl.line_buffer or {}
@@ -6640,6 +6640,65 @@ map.dsl.registeredEvents = {
   registerAnonymousEventHandler("sysDataSendRequest", "map.dsl.captureCommand"),
   registerAnonymousEventHandler("MyDSL.playersNear.parsed", "map.dsl.highlightPlayersNear")
 }
+
+------------------------------------------------------------------------
+-- Right-click map menu additions (added 2026-08-29, standalone-mapper
+-- design pass -- see docs/MAPPER_REDESIGN.md). Deliberately NOT
+-- interleaved into any existing stock-derived function above: this is a
+-- fresh registerAnonymousEventHandler pair calling only Mudlet's public
+-- addMapEvent/deleteRoom/getAllRoomEntrances API, nothing internal to
+-- this file. General map-editing tools, useful standalone (not MyDSL-
+-- specific) -- MyDSL's own suite-integration menu items live in a
+-- separate .lua file instead (MyDSL_MapperMenu.lua), never here, so
+-- this fork stays exactly as useful to a non-MyDSL DSL player as to us.
+------------------------------------------------------------------------
+
+-- safeDelete(ids) -- ported/adapted from the mapaddons-safe-delete
+-- community package (packages.mudlet.org), confirmed 2026-08-29 that
+-- none of this file's own deleteRoom() call sites did this: deleting a
+-- room natively leaves any OTHER room's exit still pointing at the now-
+-- gone room ID, a dangling connection invisible until you look. This
+-- converts every such incoming exit into a stub instead, before the
+-- room is actually removed.
+function map.dsl.safeDelete(ids)
+  for _, id in ipairs(ids) do
+    id = tonumber(id)
+    if id then
+      local incomingRooms = {}
+      for _, room in ipairs(getAllRoomEntrances(id)) do
+        for dir, exit in pairs(getRoomExits(room)) do
+          if exit == id then
+            incomingRooms[room] = incomingRooms[room] or {}
+            table.insert(incomingRooms[room], dir)
+          end
+        end
+      end
+      deleteRoom(id)
+      for room, dirs in pairs(incomingRooms) do
+        for _, dir in ipairs(dirs) do
+          setExitStub(room, dir, true)
+        end
+      end
+    end
+  end
+  updateMap()
+end
+
+function map.dsl.mapMenuEventHandler(event, mapEvent, ...)
+  if event == "mapAddOnEvent" then
+    if mapEvent == "dslSafeDelete" then
+      map.dsl.safeDelete({...})
+    end
+  elseif event == "mapOpenEvent" then
+    local mapEvents = getMapEvents()
+    if not mapEvents["dslSafeDelete"] then
+      addMapEvent("dslSafeDelete", "mapAddOnEvent", "", "Safe Delete (DSL)")
+    end
+  end
+end
+
+registerAnonymousEventHandler("mapAddOnEvent", "map.dsl.mapMenuEventHandler")
+registerAnonymousEventHandler("mapOpenEvent", "map.dsl.mapMenuEventHandler")
 
 tempTimer(0, [[if map and map.dsl then map.dsl.install() end]])
 -- End DSL Generic Mapper 0.2.2 Minimal Hardening Layer
