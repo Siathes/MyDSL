@@ -127,13 +127,17 @@ background job:
   run `python3 scripts/check_known_patterns.py --all` once — cheap, catches
   any known-bad-pattern instance that landed in a file the per-edit hook
   never saw touched this session.
-- **Periodically, independent of any specific fix**: re-run the full
-  `test/*.lua` suite via `luajit`, not just right after a fix that
-  prompted a claim of "clean." Added 2026-08-23 per a Claude.ai review
-  pass, which had no `luajit` available in its own environment and
-  couldn't independently verify `docs/CHANGELOG.md`'s "all tests re-run
-  clean" claims — a fair point: those claims are only as good as the
-  session that made them, and a periodic independent re-run catches
+- **Periodically, independent of any specific fix**: re-run the full test
+  suite via `scripts/run_all_tests.sh` (adopted 2026-08-29 — single entry
+  point for every `test/*.lua`/`test/*.py` file plus
+  `check_known_patterns.py --all`, hard-gated, with the text/help coverage
+  checks run advisory alongside; `./scripts/run_all_tests.sh > run1.log
+  2>&1` to save a baseline for a before/after diff), not just right after
+  a fix that prompted a claim of "clean." Originally added 2026-08-23 per
+  a Claude.ai review pass, which had no `luajit` available in its own
+  environment and couldn't independently verify `docs/CHANGELOG.md`'s "all
+  tests re-run clean" claims — a fair point: those claims are only as good
+  as the session that made them, and a periodic independent re-run catches
   drift the same way the known-pattern sweep does.
 - **Whenever picking work back up after a real gap** (days/weeks, not
   within the same day): check item 4 above (MyDSL's own notes file) and

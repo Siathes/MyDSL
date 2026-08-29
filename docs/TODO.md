@@ -38,6 +38,18 @@ DEFERRED gets started without an explicit go-ahead.
 
 ## TOP PRIORITY
 
+**Session plan (agreed 2026-08-29, Claude Desktop's proposal):** the
+native-content consolidation item and the `MyDSL_Full.mpackage`
+from-scratch install test both need Steven's hands on Mudlet's GUI and
+both need a disposable test profile — and Claude Desktop's Mudlet 5.0
+upgrade runbook (Phase 2 dock/resize repro) needs the same kind of
+disposable profile. Fold all three into one live sitting: build the test
+profile once, use it for native-content work, the mpackage install test,
+and the Mudlet 5.0 retest, instead of standing one up three separate
+times. `scripts/run_all_tests.sh` (adopted 2026-08-29 from Steven's
+Downloads — see CLAUDE.md housekeeping) is what the runbook's before/after
+diff leans on; confirmed working (52/52 passing) ahead of that session.
+
 - [ ] **Native-content full consolidation — Steven's own words: "this is a
       high priority to get back to a solid baseline of everything in the
       package."** Merges three related asks from this pass into one
