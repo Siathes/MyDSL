@@ -278,6 +278,35 @@ one at a time:
       dock/resize retest) per Steven 2026-08-29 — that session's
       Mudlet-version-upgrade question now also answers whether 4.22's
       real mapper features are reachable.
+      **Alternate-mapper package survey done 2026-08-29** (7 other
+      "mapper"-named packages found on packages.mudlet.org; 4 opened and
+      read directly — `mapaddons-safe-delete`, `shattered-isles-mapper`,
+      `simple-mapper`, `PetriaMapper`; `BatMap`/`Ansalon_Mudlet_Mapper`/
+      `cmud-map-importer` not opened, mostly image/map-data-heavy or off-
+      topic, flagged not prioritized rather than dismissed). Two real
+      candidates for the design session, both currently unused by us
+      (grep-confirmed):
+      - **`addMapEvent`/`mapAddOnEvent` — Mudlet's built-in right-click
+        map-context-menu API, registered nowhere in our fork.**
+        `mapaddons-safe-delete` uses it for two clean, portable tools:
+        safe room delete (converts orphaned incoming exits to stubs
+        instead of leaving dangling connections — **none of our 3
+        `deleteRoom()` call sites do this today**) and a Z-level shift
+        for the current map selection. Mudlet 5.0's own release notes
+        add "map menus can be matched against their map events" as a new
+        capability on the same API. This may be a lower-effort path to
+        the already-open "toggleable button bar for map-editing
+        commands" item above than building a custom Geyser bar from
+        scratch — worth raising first in the design session.
+      - **A room-creation undo stack** (`simple-mapper`'s
+        `simpleMapper.undo()` — pop-and-delete the last auto-created
+        room while walking) — real, modest quality-of-life idea, neither
+        stock `generic_mapper` nor our fork has one today.
+      `shattered-isles-mapper` confirmed as the same "alias/trigger layer
+      on top of stock `generic_mapper`" pattern we already use for a
+      different MUD — validates the approach, nothing DSL-relevant found
+      in its own content. `PetriaMapper` (small, from-scratch, Spanish-
+      language) — skimmed, nothing notable.
 - [ ] **CreatureLore "mob diary" wiki window** — deferred; may fold into a
       larger DSL knowledgebase project alongside the Layer-4-remainder
       idea (see below).
