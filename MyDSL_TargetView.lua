@@ -341,6 +341,28 @@ local function applyCustomActions()
   end
 end
 
+-- TV.listActions() -- added 2026-08-29, per Steven's GroupView/TargetView
+-- button-UX review ("I want to make changing buttons easier for the
+-- user"). The real friction wasn't the assignment mechanism itself
+-- (`focus mobset/playerset <6 keys>`, `group quickset <2 keys>`) but that
+-- neither ever had a way to discover what keys are even valid -- a player
+-- had to already know an internal key like "cure_bugbite" from reading
+-- source. Lists every built-in TV.actions entry (alphabetical, stable
+-- across reloads) plus any custom ones defined via `focus action`. Shared
+-- by both TargetView's own alias and GroupView's, since TV.actions is
+-- their one real shared registry -- see docs/TODO.md's 2026-08-29 entry
+-- for the fuller writeup of how the two modules interconnect.
+function TV.listActions()
+  local keys = {}
+  for key in pairs(TV.actions) do keys[#keys + 1] = key end
+  table.sort(keys)
+  echo("Available action keys (use with focus mobset/playerset or group quickset):\n")
+  for _, key in ipairs(keys) do
+    local act = TV.actions[key]
+    echo(string.format("  %-16s %s -- %s\n", key, act.label or key, act.tooltip or ""))
+  end
+end
+
 function TV.defineAction(key, label, color, template)
   if not key or key == "" or not template or template == "" then return false end
   TV.config.custom_actions[key] = {
@@ -1254,6 +1276,14 @@ function TV.init()
         end
       end
     ]]
+  )
+
+  -- "focus actions" -- added 2026-08-29, see TV.listActions()'s own
+  -- comment for why.
+  TV._focusReserved.actions = true
+  TV._aliases.targetActionsList = tempAlias(
+    "^focus actions$",
+    [[if MyDSL and MyDSL.TargetView and MyDSL.TargetView.listActions then MyDSL.TargetView.listActions() end]]
   )
 
   -- "focus status" -- added 2026-07-11, same pixel-size-report pattern as

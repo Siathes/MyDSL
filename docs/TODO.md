@@ -147,14 +147,6 @@ DEFERRED gets started without an explicit go-ahead.
       meaning stops reading like the master account's own name. Master
       account name entry and menu-letter navigation (`M`/`P`) are single
       low-cost keystrokes each session — not worth automating.
-- [ ] **GroupView quick-action buttons — UX + interconnection review.**
-      Today: exactly 2 fixed button slots per group-member row, shared
-      with TargetView's action table, changeable only via a typed alias
-      (no in-UI picker, no variable slot count). Steven: "review this, I
-      want to make changing buttons easier for the user, and see how the
-      module interconnects" — look at the TargetView/GroupView action-table
-      sharing as part of this, not just the button UI in isolation.
-
 *(Native-content tracking's Principle-2 question is answered, not open:
 Principle 2 is "Toggleable By Default" — MYDSL_1.0_PHILOSOPHY.md, unrelated
 to the automation rule Steven was thinking of, which was a different,
@@ -335,6 +327,27 @@ work actually starts.)*
 ---
 
 ## DECISIONS RECORDED
+- **GroupView/TargetView quick-action buttons — UX + interconnection
+  review, 2026-08-29.** Confirmed the "interconnection" question: both
+  modules already share exactly one action registry,
+  `MyDSL.TargetView.actions` (17 built-ins) plus `TV.config.
+  custom_actions` (user-defined via `focus action`) — `GV.quickAction()`
+  looks it up directly, so a custom action defined once works
+  identically as a GroupView or TargetView button, already correctly
+  wired, not a gap. The real friction behind "make changing buttons
+  easier" wasn't the assignment mechanism (`focus mobset/playerset <6
+  keys>`, `group quickset <2 keys>` — still typed, deliberately not
+  rebuilt into a clickable picker UI given no way to live-test one) but
+  that neither ever had a way to DISCOVER which keys are valid — a
+  player had to already know an internal key like `cure_bugbite` from
+  reading source. Fixed the low-risk, high-value half of that: added
+  `TV.listActions()`, wired to both `focus actions` and `group actions`
+  (GroupView delegates to the same function rather than duplicating).
+  Documented in `MyDSL_Help.lua`; new
+  `test/test_targetview_groupview_list_actions.lua`, confirmed
+  meaningful via targeted revert. A real clickable button-picker (vs.
+  this discoverability fix) remains a separate, larger UI project if
+  Steven still wants one after trying `focus actions`/`group actions`.
 - **ItemLore + ground-item capture — design review, 2026-08-29: no
   structural changes needed.** Traced the full chain across all 4
   files: `MyDSL_ItemLore.lua` (the persistent DB, correct partial/full

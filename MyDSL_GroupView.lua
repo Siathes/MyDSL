@@ -457,6 +457,14 @@ tempAlias("^group quickset reset$",
     MyDSL.GroupView._saveConfig()
     echo("Group quick buttons reset to defaults.\n")
   end]])
+-- "group actions" -- added 2026-08-29, per Steven's button-UX review
+-- ("make changing buttons easier for the user"). Delegates to
+-- MyDSL.TargetView.listActions() rather than a separate copy -- same
+-- shared TV.actions/custom_actions registry "group quickset" already
+-- reads from (see its own comment above), so the list this prints is
+-- always exactly the set of keys "group quickset" will accept.
+tempAlias("^group actions$",
+  "if MyDSL and MyDSL.TargetView and MyDSL.TargetView.listActions then MyDSL.TargetView.listActions() end")
 
 -- status/show/hide/font -- same naming convention as the retrofitted
 -- commands above (bare "group ..."), consistent since none of these
