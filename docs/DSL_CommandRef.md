@@ -79,6 +79,47 @@ it all automatically. Text triggers are only needed for data GMCP doesn't send.
 
 ---
 
+## LOGIN / CONNECTION SEQUENCE (confirmed 2026-08-30, real session logs +
+an old native trigger found in a pre-2026-08-26 profile snapshot)
+
+The full prompt sequence from a fresh connection through reaching character
+selection, used by `MyDSL_Login.lua`'s navigation stage machine:
+
+```
+Do you want color? (Y/N) -> 
+[... ASCII banner ...]
+[DSL] (Push Enter to Continue)
+[... Main Login Menu ...]
+    Your selection? ->
+[... master account submenu ...]
+What is your Master Account's name? 
+Password: 
+[... Master Login Menu, shows (P)lay Existing Character / (V)iew Characters ...]
+    Your selection? ->
+[... character list ...]
+Please press enter to get back to the master menu or enter character name to login.
+Player name:
+```
+
+Notes:
+- `"    Your selection? ->"` (with leading whitespace) appears at BOTH the
+  main login menu (where `m` selects Master Account Login) and the master
+  account menu after password (where `v` selects View Characters, which
+  also accepts a character name directly afterward). Identical text at two
+  different points — only distinguishable by tracking which menu you're
+  actually at, not by the prompt text alone.
+- The player's own typed response to `"What is your Master Account's
+  name?"` / `"Password:"` echoes back as the very next non-blank line,
+  confirmed directly across every real session log checked this pass —
+  nothing else arrives in between. This is what makes first-run credential
+  capture (watch the next line, don't send anything) reliable.
+- `"Password: "` here is the MASTER ACCOUNT's password, not a character's.
+  Separate from `"Player name:"` (which character to play) — see
+  `MyDSL_Login.lua`'s own header for why these two are NOT a matched pair
+  and get handled by independent toggles.
+
+---
+
 ## SCORE COMMAND
 
 ### Command: `score`

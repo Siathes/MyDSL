@@ -402,45 +402,51 @@ one at a time:
 ---
 
 ## OPEN — Design ideas, not yet scoped
-- [ ] **Autologin — real redesign requested 2026-08-30, popup approach
-      rejected by Steven.** Original complaint (notes.json): "autologin
-      appeared small in the corner docked... alter the text to fit a
-      smaller notice window, it was wide." Then, later same session:
-      "lose the autologin, it makes it more combesom. unless you can
-      pitch an actual functioning one from logs" — plus two concrete
-      asks for what a real one should do: "it should also enter the
-      commands to get to the master account login and password... cant
-      you intercept the entry from the command line when it asks for
-      master account name and then password and store it first run?"
-      and "i had an old login trigger that had the info in it for login
-      along with some startup aliases and such, can you find it."
-      **Found it** — an old native Trigger (profile snapshot dated
-      2026-07-17, predates the 2026-08-26 security cleanup) firing on
-      `"Do you want color? (Y/N) ->"`, chaining straight through the
-      whole flow: color prompt → continue → master account login →
-      account name → password → view characters, all in one `mCommand`.
-      Confirms `MyDSL_Login.lua` (2026-08-30) only ever covered half the
-      job — it writes credentials to a file but never actually sends
-      anything, unlike the old trigger. **Real redesign pitched to
-      Steven, not yet built** — replace the popup-setup flow with:
-      (1) a trigger chain on the real login prompts (color → continue →
-      master login → account name → password → character list),
-      reading from the existing credentials file each step rather than
-      a hardcoded string; (2) first-run capture via `sysDataSendRequest`
-      — intercept what Steven actually types at the master-account-name
-      and password prompts the first time he logs in manually, save it
-      automatically, no separate setup command needed; (3) suppress the
-      password prompt's own local echo during that first manual entry
-      so it never shows in plaintext on screen or in any log. Needs
-      Steven's go-ahead on this design before building.
-      **Also surfaced, separate but related — real exposure, not yet
-      cleaned up**: the OLD trigger's `mCommand` (found while searching
-      for it) still has Steven's real account name and password sitting
-      in plaintext in that one old profile snapshot file (`MyDSL/
-      current/2026-07-17#20-43-40.xml` and several other snapshots from
-      the same evening) — never git-tracked, but still live on disk.
-      Should be deleted once Steven confirms he doesn't need those old
-      snapshots for anything else.
+- [x] **Autologin — real redesign, BUILT 2026-08-30, needs live
+      confirmation.** Popup-setup approach rejected by Steven ("lose the
+      autologin, it makes it more combesom. unless you can pitch an
+      actual functioning one from logs"). Rebuilt `MyDSL_Login.lua`
+      around the real navigation sequence, cross-checked against an old
+      native login trigger found in a 2026-07-17 profile snapshot
+      (predates the 2026-08-26 security cleanup) plus this session's own
+      real corpus logs — now in `docs/DSL_CommandRef.md`'s new "LOGIN /
+      CONNECTION SEQUENCE" section. What it does now:
+      - Full navigation: color prompt → continue → master login menu
+        (`m`) → account name → password → master menu (`v`, View
+        Characters) → character list. Every stage gated by an explicit
+        state machine (`MyDSL.Login._stage`), never guesses from bare
+        text alone (`"Your selection? ->"` appears at two different
+        menus, disambiguated by stage).
+      - First-run capture, no setup command needed: if `account`/
+        `password` aren't saved yet, the module doesn't send anything at
+        those two prompts — it watches the next line (confirmed reliable
+        via real corpus: the typed-line echo is always the immediate
+        next line) and saves it automatically. The captured password
+        line is deleted from the console the instant it's captured
+        (`deleteLine()`).
+      - `mydsl login on|off` is now the whole sequence's master switch,
+        not just password autofill; `mydsl login character on|off`
+        unchanged (still independently OFF by default — which character
+        to play varies by session); new `mydsl login forget` clears a
+        bad first-run capture.
+      - `MyDSL_LoginSetup` popup window removed entirely (registry entry,
+        rendering, aliases) — no longer needed.
+      - `test/test_login.lua` rewritten (33 assertions, drives trigger
+        callbacks directly rather than simulating PCRE text-matching,
+        which the test mock doesn't do); `test/test_login_setup.lua`
+        deleted (tested the removed popup). Full test suite +
+        `check_known_patterns.py --all` clean. `MyDSL_Full.mpackage`
+        rebuilt, copied to `~/Downloads/` (confirmed the new module's
+        actual text is inside the built package, not stale).
+      **Needs Steven to actually log in once and confirm**: the
+      navigation sequence sends the right commands at the right prompts,
+      first-run capture saves correctly, and nothing echoes.
+      **Password-trigger security note — per Steven, explicitly not
+      being cleaned up right now** ("dont worry about the password
+      trigger"): the old trigger's real account name/password still sit
+      in plaintext in a handful of old, non-git-tracked profile snapshot
+      files (`MyDSL/current/2026-07-17#*.xml`). Left alone per his
+      instruction.
 - [ ] **Thinner UserWindow title bars?** — Steven, same notes.json: "is
       it possible to make the userwindow titles bars thinner?" General
       polish ask across all `Geyser.UserWindow`-based popups, not scoped

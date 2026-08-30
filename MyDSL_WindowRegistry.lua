@@ -362,14 +362,6 @@ local DEFAULT_REGISTRY = {
   -- DECISIONS RECORDED section) -- but its window itself is just a plain
   -- status display, nothing different about its registry entry.
   MyDSL_Leveling         = { obj=nil, type="UserWindow", visible=false, created=false },
-  -- First-run credential setup popup (MyDSL_Login.lua, 2026-08-30) --
-  -- on-demand, same visible=false precedent as CreatureReference/Help/
-  -- ItemReference/Leveling. Auto-shown once by MyDSL_Login.lua itself
-  -- when no credentials file exists yet and setup hasn't been dismissed --
-  -- the registry entry only controls default visibility on window
-  -- *creation*, not whether/when MyDSL_Login.lua chooses to show() it.
-  MyDSL_LoginSetup       = { obj=nil, type="UserWindow", visible=false, created=false },
-
   -- ---- Adjustable.Container windows (anchored inside the main Mudlet console) --
 
   MyDSL_MoonWeather      = { obj=nil, type="Container",  visible=true,  created=false, lockStyle="padding" },

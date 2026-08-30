@@ -45,7 +45,8 @@
     "setBorderTop", "setBorderRight", "setBorderLeft", "setBorderBottom",
     "getRGB", "copy2decho", "copy2html", "decho2string", "hecho2string",
     "getColumnNumber", "tempPromptTrigger", "showNotification",
-    "stopStopWatch", "clearCmdLine", "appendCmdLine"
+    "stopStopWatch", "clearCmdLine", "appendCmdLine",
+    "deleteLine", "selectCurrentLine"
   ],
   "Lua.workspace.checkThirdParty": false,
   "Lua.workspace.maxPreload": 3000,
