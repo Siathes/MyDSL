@@ -550,35 +550,18 @@ question, folded in per Steven 2026-08-29 rather than a separate check.
       one PNP-adjacent command, and see whether anything visibly needs
       PNP installed separately; (4) report back what broke/felt wrong so
       `INSTALL.md` and this entry can be corrected from real findings
-      rather than assumptions. Once that pass is clean, the natural next
-      step is deciding whether `MyDSL_Full.mpackage` gets an actual
-      public GitHub Release the way the mapper addon already has one.
-      **Same day, moved ahead of the live-test pass**: Steven —
-      "lets push a build for testing and see how it fairs against other
-      users. add and check all the things about pushing public, then do
-      it. remove charcater or my names and info" — decided (via
-      AskUserQuestion) to rewrite git history to scrub the real commit
-      email and do a name sweep scoped to shipped source + top-level
-      public docs only. Both done — see the `chore: sanitize personal
-      names...` and the history-rewrite commits. A public prerelease was
-      then actually created: see the "MyDSL_Full public prerelease"
-      DECISIONS RECORDED entry below for the real details (tag, what's
-      still unverified, the residual native-profile sanitization gap).
-      **Real residual gap, not fixed yet**: the LIVE `MyDSL` profile's
-      own native `DslColors_Core_v1_0` script (edited directly in
-      Mudlet at some point) still has the old un-sanitized "Steven"
-      comments — diverged from the git-tracked reference copy, which IS
-      clean. Mudlet was actively running during the sanitization pass,
-      so hand-editing that live XML directly was skipped as too risky
-      in the moment (could get clobbered by a concurrent autosave). The
-      actually-distributed `.mpackage` was verified clean by
-      post-processing the built artifact directly, so this doesn't
-      affect the current public release — but every FUTURE package
-      build will pull the un-sanitized native comments back in until
-      the live profile's own script content gets fixed (in Mudlet's
-      Script Editor, with Mudlet either closed or the edit made
-      directly in the GUI — not from here again while Mudlet is
-      running).
+      rather than assumptions.
+      **Superseded, same day — actually shipped.** Steven — "lets push a
+      build for testing and see how it fairs against other users. add
+      and check all the things about pushing public, then do it. remove
+      charcater or my names and info" — see the "MyDSL_Full public
+      prerelease shipped" DECISIONS RECORDED entry below for the full
+      real details (privacy sweep, both history rewrites, what's still
+      unverified, the residual native-profile sanitization gap).
+      **[x] DONE**: `mydsl-full-v1.0.0-testing` published as a public
+      GitHub prerelease with the sanitized `MyDSL_Full.mpackage`
+      attached. Still open from here: real testers' feedback (issues,
+      or Steven relaying reports) once anyone actually installs it.
 
 *(Native-content tracking's Principle-2 question is answered, not open:
 Principle 2 is "Toggleable By Default" — MYDSL_1.0_PHILOSOPHY.md, unrelated
@@ -1099,6 +1082,74 @@ work actually starts.)*
 ---
 
 ## DECISIONS RECORDED
+- **MyDSL_Full public prerelease shipped — 2026-08-30.** Steven: "lets
+  push a build for testing and see how it fairs against other users.
+  add and check all the things about pushing public, then do it. remove
+  charcater or my names and info, prob a blanket change for anything
+  steve steven or such" — then, mid-pass, after the first name sweep
+  turned out incomplete: "qinrathaz and vaeilis and any other charcaters
+  i have must be scrubbed as well."
+  **Privacy sweep, two consequential parts confirmed via
+  AskUserQuestion first (both are git-history rewrites — force-push,
+  breaks any existing clones/forks):**
+  1. Rewrote all 604 commits' author identity: the real email
+     (`ssenuick@gmail.com`, the author on every commit) replaced with
+     the account's real GitHub noreply address
+     (`137334290+Siathes@users.noreply.github.com`), via
+     `git-filter-repo --mailmap`. Local git config updated to match for
+     future commits.
+  2. Found mid-sweep, a real separate bug (not what he'd literally
+     asked about, but the same underlying goal): 25 files under `MyDSL/`
+     — `affects/<CharName>.lua` (15), `settings.lua` (85KB, real scan-
+     history timestamps in its `TargetCompact.loreDB`), and various
+     per-character `*_settings_<Name>.lua`/`*_config_<Name>.lua` files —
+     were accidentally git-tracked. Same class of bug as the
+     already-fixed `MyDSL_windowstate_<Name>.lua` gap
+     (`docs/CHANGELOG.md`, earlier), just never noticed under this
+     subdirectory. `git rm --cached` (kept on disk), `.gitignore`
+     extended, then a second full history rewrite (`git-filter-repo
+     --path ... --invert-paths`) purged their actual content from every
+     past commit too. The 5 other files under `MyDSL/`
+     (creaturelore_db.lua, itemlore_db.lua, leveling_areas_seed.lua,
+     bestiary_scrape_import.lua, item_scrape_import.lua) are real shared
+     reference data, correctly left tracked.
+  **Text sweep (current files only, his own explicit scope choice —
+  shipped `.lua`/`.xml` source + top-level public docs, not internal
+  working docs like this file):** "Steven" (450 occurrences) and every
+  character name (Kien, then a second pass for Qinrathaz/Vaelis/
+  Olyndros/Vexgar/Dravak/Gresk/Jarak/Rhaex/Tibbins/Uldek/Vhaelyr/Vrokt)
+  replaced with generic phrasing, hand-reviewed for grammar where a
+  blanket regex read awkwardly. Also caught `colors.xml` (a stale,
+  unloaded snapshot, but still public content) had 3 highlighting
+  regexes naming real characters directly.
+  **Both GitHub tags/releases (`assets-v1`, `mapper-addon-v0.2.11`) and
+  their uploaded assets confirmed intact after each history rewrite** —
+  release assets are keyed by tag name, not commit SHA, so a force-
+  updated tag ref keeps its release. Verified directly via `gh release
+  view` after each push, not assumed.
+  **Known residual gap, not fixed**: the LIVE `MyDSL` profile's own
+  native `DslColors_Core_v1_0` script (edited directly in Mudlet at some
+  point) still has un-sanitized "Steven" comments, diverged from the
+  clean git-tracked reference copy — Mudlet was actively running during
+  the sweep, so hand-editing its live XML directly was judged too risky
+  in the moment. Doesn't affect the actual release (the distributed
+  `.mpackage` was sanitized by post-processing the built artifact
+  directly, verified at 0 remaining name/email occurrences before
+  publishing), but every FUTURE package build will pull the
+  un-sanitized native comments back in until the live profile's own
+  script content gets fixed directly in Mudlet's Script Editor.
+  **Also noted, not acted on**: 4 old tags
+  (`v1.0-phase-a-complete`/`v1.1-moonweather-complete`/
+  `v1.2-moonweather-final`/`v1.4-scan-target-combat-confirmed`) exist
+  only in the local DSL2 working copy, were never pushed to GitHub, and
+  still point at pre-rewrite commit objects with the real email — zero
+  public exposure since they've never left this machine, but pushing
+  them in the future would reintroduce it. Left alone; flag if that
+  ever becomes relevant.
+  **Shipped**: `mydsl-full-v1.0.0-testing` GitHub prerelease, sanitized
+  `MyDSL_Full.mpackage` attached, README/INSTALL.md updated to point at
+  it and framed honestly as an early testing build. Full test suite
+  (63/63) and `check_known_patterns.py --all` clean throughout.
 - **`DSL PNP 4` package diff — checked 2026-08-29, not adopting.** Full
   file-by-file diff against our vendored `PNP files/` (both 50 files,
   identical filenames): 44 of 50 files byte-identical, one difference is
