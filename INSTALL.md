@@ -5,10 +5,15 @@ target/chat windows, the mapper, item/creature reference, character
 assist, theming, and more. If you only want the standalone mapper, see
 the main [README](README.md) instead; it's a separate, lighter package.
 
-**Status: not yet public.** This file documents the install as it exists
-today so a from-scratch test run can be checked against it — see
-`docs/TODO.md`'s "`MyDSL_Full.mpackage` — real from-scratch install
-test" entry for what's confirmed vs. still unverified.
+**Status: early testing build.** Works and is actively played on, but this
+is the first release anyone other than the developer has installed from
+scratch — see `docs/TODO.md`'s "`MyDSL_Full.mpackage` — real
+from-scratch install test" entry for what's confirmed vs. still
+unverified. [Open an issue](https://github.com/Siathes/MyDSL/issues) if
+something doesn't work as documented here.
+
+**[Download the latest release →](https://github.com/Siathes/MyDSL/releases)**
+(look for the prerelease tagged `mydsl-full-*`)
 
 ## Requirements
 

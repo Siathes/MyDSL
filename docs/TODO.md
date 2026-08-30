@@ -553,6 +553,32 @@ question, folded in per Steven 2026-08-29 rather than a separate check.
       rather than assumptions. Once that pass is clean, the natural next
       step is deciding whether `MyDSL_Full.mpackage` gets an actual
       public GitHub Release the way the mapper addon already has one.
+      **Same day, moved ahead of the live-test pass**: Steven —
+      "lets push a build for testing and see how it fairs against other
+      users. add and check all the things about pushing public, then do
+      it. remove charcater or my names and info" — decided (via
+      AskUserQuestion) to rewrite git history to scrub the real commit
+      email and do a name sweep scoped to shipped source + top-level
+      public docs only. Both done — see the `chore: sanitize personal
+      names...` and the history-rewrite commits. A public prerelease was
+      then actually created: see the "MyDSL_Full public prerelease"
+      DECISIONS RECORDED entry below for the real details (tag, what's
+      still unverified, the residual native-profile sanitization gap).
+      **Real residual gap, not fixed yet**: the LIVE `MyDSL` profile's
+      own native `DslColors_Core_v1_0` script (edited directly in
+      Mudlet at some point) still has the old un-sanitized "Steven"
+      comments — diverged from the git-tracked reference copy, which IS
+      clean. Mudlet was actively running during the sanitization pass,
+      so hand-editing that live XML directly was skipped as too risky
+      in the moment (could get clobbered by a concurrent autosave). The
+      actually-distributed `.mpackage` was verified clean by
+      post-processing the built artifact directly, so this doesn't
+      affect the current public release — but every FUTURE package
+      build will pull the un-sanitized native comments back in until
+      the live profile's own script content gets fixed (in Mudlet's
+      Script Editor, with Mudlet either closed or the edit made
+      directly in the GUI — not from here again while Mudlet is
+      running).
 
 *(Native-content tracking's Principle-2 question is answered, not open:
 Principle 2 is "Toggleable By Default" — MYDSL_1.0_PHILOSOPHY.md, unrelated

@@ -29,9 +29,15 @@ The mapper is the piece most useful on its own, so it ships as a **standalone pa
 
 Full details and known issues are in each release's own notes.
 
-## The rest of MyDSL
+## Try the full MyDSL suite (testing build)
 
-Combat/group/target/chat windows, a prompt/vitals overlay, item and creature reference lookups, character-assist helpers, and more — built as a set of independent, toggleable modules rather than one monolithic thing. Not yet packaged for standalone install the way the mapper is; if you want to try it, clone the repo into a Mudlet profile folder and see `CLAUDE.md` for how the pieces fit together.
+Combat/group/target/chat windows, a prompt/vitals overlay, item and creature reference lookups, character-assist helpers, theming, and more — built as a set of independent, toggleable modules rather than one monolithic thing.
+
+**This is an early testing build, not a finished 1.0.** It works and is actively played on, but hasn't yet been installed from scratch by anyone other than its own developer. Expect rough edges — [open an issue](https://github.com/Siathes/MyDSL/issues) if you hit one.
+
+**[Download the latest testing build →](https://github.com/Siathes/MyDSL/releases)** (look for the prerelease tagged `mydsl-full-*`)
+
+See [INSTALL.md](INSTALL.md) for setup steps, including the optional sound/room-picture asset download.
 
 ## License
 
