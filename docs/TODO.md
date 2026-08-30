@@ -54,6 +54,65 @@ Mudlet 4.22's real native mapper features (Configure Areas dialog, exit
 locking, label-color handling) are reachable — same version-upgrade
 question, folded in per Steven 2026-08-29 rather than a separate check.
 
+- [x] **Item identify not connecting to inventory description — FIXED
+      2026-08-30, real pattern confirmed from live corpus, not guessed.**
+      Steven: "the identify works, but its not connecting to the
+      inventory description... log item strange greenish herb, object
+      herb green (can interact with those not greenish or strange." Found
+      the exact real corpus example (`MyDSL Test/log/
+      2026-08-30#10-51-24.txt`): `exam strange`/`exam greenish` both
+      return nothing (neither is a real DSL interact keyword), but
+      `exam green` resolves the item and `c ident green` reports "Object
+      'herb green' is type...". Same log, second item: "a yellowish
+      herb" → "Object 'herb yellow'...". DSL's inventory-description text
+      uses the ordinary English "-ish" suffix on top of the real keyword
+      ("greenish" for "green", "yellowish" for "yellow") — a deterministic
+      grammatical transform, not a fuzzy guess. `MyDSL_DataLayer.lua`'s
+      `wordSet()` (used by `bestFuzzyMatch()`'s token-overlap tier) now
+      also contributes each "-ish" word's stripped base to the match set,
+      length-gated (≥6 letters) so short unrelated "-ish" words
+      ("fish"/"wish"/"dish") aren't mangled. 4 new regression tests using
+      the real captured strings, `test_itemlore_fuzzy_resolve.lua`. Full
+      test suite + `check_known_patterns.py --all` clean.
+- [ ] **CreatureLore vulnerability field — capture pipeline confirmed
+      structurally sound, specific report not yet reproduced.** Steven:
+      "creaturelore isnt capturing and updating all fields, example
+      philosophy student in logs has fire vuln but doesnt show in
+      bestiary or focus." Checked the real current DB record AND the raw
+      `lore`/`consider` output for "a gnome philosophy instructor" in the
+      same session's log (`MyDSL Test/log/2026-08-30#10-51-24.txt` line
+      1226) — `hp`, `race`, `sex`, `damage`, `resists` (via
+      `table.save()`'s shared-reference encoding) all captured correctly.
+      The ONLY line DSL actually sent under "The creature has the
+      following characteristics:" was `Resistances: mental disease` —
+      no `Vulnerabilities:` line appears anywhere in that specific lore
+      output. Since `Resistances:` (identical label-list format) parsed
+      correctly in this exact real example, the `Vulnerabilities:`
+      pattern (same shape, `^Vulnerabilities:%s*(.+)$`) should work
+      correctly whenever DSL actually sends one — but no real example of
+      that line has ever been found in the accessible corpus (the code's
+      own comment already flagged this as unconfirmed when written).
+      Needs Steven to point at the SPECIFIC raw text/timestamp where he
+      saw a fire vulnerability, so the actual line shape (if it differs
+      from the assumed one) can be confirmed rather than guessed at
+      again.
+- [ ] **CreatureLore/ScanLook matching already anchored on "Creature: X",
+      not race — confirmed correct, per Steven's own architecture
+      question.** "this is similar to the creaturelore connection we
+      were trying to match with scan versus looking in room with the
+      interaction words after Creature: . not race." Checked
+      `resolveMobName()` (`MyDSL_DataLayer_ScanLook.lua`): it already
+      matches against CreatureLore's own `key`/`name` fields, which are
+      captured from the "Creature: <name>" line's name portion (not
+      `race`, a separate field) — matches the architecture Steven
+      described as correct. No change needed here; flagging in case a
+      different, more specific bug is what he actually meant.
+- [ ] **Mapping-mode indicator — idea, not built.** Steven: "be nice if
+      there was an indicator of some kind that start mapping was on
+      besides the one message, like a running echo ...Mapping, something
+      unobtrusive and clean?" Not scoped yet — needs a design decision on
+      where it lives (prompt/vitals bar? a small persistent marker in an
+      existing window?) before building.
 - [ ] **Mapper: terrain color not applying, "red boxes instead of
       forest" — real bug found + fixed 2026-08-30, needs live confirm.**
       Steven's own live-test report after the public mapper addon
@@ -111,9 +170,50 @@ question, folded in per Steven 2026-08-29 rather than a separate check.
       added a real regression test proving `logDesync()` actually
       creates a file at a resolvable path. This does NOT by itself fix
       terrain coloring — it fixes the ability to SEE why it's failing.
-      `DSL_Mapper_Addon.mpackage` rebuilt (v0.2.13), needs Steven to
+      `DSL_Mapper_Addon.mpackage` rebuilt (v0.2.13, still), needs Steven to
       reinstall, reproduce, and send `mapper_desync_log.txt` — this
       should finally have real content.
+      **Second real bug found in the same v0.2.13 pass, bigger than the
+      first**: audited every `registerAnonymousEventHandler` call in the
+      file against Mudlet's own confirmed calling convention (event name
+      always passed as the handler's first argument — verified against
+      wiki.mudlet.org's Event Engine manual, not assumed) and found
+      `map.dsl.captureCommand(cmd)` (registered on `sysDataSendRequest`)
+      and `map.dsl.highlightPlayersNear(list)` (registered on
+      `MyDSL.playersNear.parsed`) were both missing the leading `event`
+      parameter — silently catching the event NAME STRING in what should
+      have been their real data argument, every single time, since
+      launch. `captureCommand` is what feeds `move_command_queue`/
+      `door_command_queue` — door-verb parsing and movement-direction
+      tracking have likely been broken this whole time, not just
+      player-highlighting (the symptom that led here — Steven: "i also
+      dont see players near you highlighting on the map"). `ipairs()` on
+      a string doesn't error in Lua, it just yields zero iterations, so
+      this failed completely silently with nothing to notice. Confirmed
+      other handlers in the same file already get this right
+      (`dslMapperAddonInstallUninstallHandler(event, packageName)`,
+      `mapMenuEventHandler(event, mapEvent, ...)`) — these two just
+      didn't, and neither had a direct unit test before now. Fixed both
+      signatures; added regression tests for both (proving the real data
+      lands in the second argument, not the event name). Full test suite
+      + `check_known_patterns.py --all` clean. `DSL_Mapper_Addon.mpackage`
+      rebuilt (still v0.2.13, same session), published to the existing
+      release.
+- [ ] **Help window doesn't reappear after a manual close — narrowed, not
+      yet fixed.** Steven: first report was clicking a help topic link
+      did nothing after closing the window once; follow-up confirmed
+      "no visible window after mydsl help" — the plain text command fails
+      too, not just the click-link path, ruling out a link-specific bug.
+      `MyDSL.Windows.show()` has no "already visible" guard blocking a
+      re-show, so the bug is likely Mudlet-level: closing a
+      `Geyser.UserWindow` via its native title-bar X can leave the
+      underlying widget in a state a plain `:show()` can't recover, while
+      the script-side object reference still looks valid to
+      `MyDSL.Windows.ensure()`. Not fixed blind — needs either a live
+      repro with `mydsl help` immediately after a close (does it error,
+      or just silently do nothing?) or a defensive rewrite of `show()`
+      to detect a stale window and recreate it, which needs confirming
+      the actual Mudlet-side failure mode first.
 - [ ] **AffectsView: click-to-track/untrack on a spell — real constraint
       found, concrete design pitched, not yet built.** Steven: "can we
       rightclick add to tracked untrack (any recommend options) on the

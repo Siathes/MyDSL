@@ -285,7 +285,22 @@ function map.dsl.normalizeSector(value)
   return value
 end
 
-function map.dsl.captureCommand(cmd)
+-- REAL BUG found 2026-08-30 (Steven: "i also dont see players near you
+-- highlighting on the map" -- tracing that led here): registered
+-- handlers ALWAYS receive the event name as their first argument in
+-- Mudlet (confirmed against wiki.mudlet.org's own Event Engine manual,
+-- explicit for both custom raiseEvent()s and built-in system events like
+-- this one) -- this function was missing that leading `event` parameter,
+-- so every real typed command landed in the now-shifted `cmd` slot as
+-- the literal string "sysDataSendRequest" instead, and the actual
+-- command was silently dropped. Confirmed this file already gets this
+-- right elsewhere (dslMapperAddonInstallUninstallHandler(event,
+-- packageName), mapMenuEventHandler(event, mapEvent, ...)) -- this one
+-- and highlightPlayersNear() below were the two that didn't. This is
+-- the function move-cost tracking, door-verb parsing, and the whole
+-- move/door command queues depend on -- likely explains more than just
+-- the reported symptom.
+function map.dsl.captureCommand(event, cmd)
   if not cmd then return end
   cmd = tostring(cmd):lower():trim()
   map.dsl.last_command = cmd
@@ -1149,7 +1164,15 @@ local DSL_PLAYER_HIGHLIGHT_RGB = { 255, 220, 60 }  -- gold -- distinct from ever
 
 map.dsl.highlighted_player_rooms = map.dsl.highlighted_player_rooms or {}
 
-function map.dsl.highlightPlayersNear(list)
+-- Same real bug as map.dsl.captureCommand() above (see its own comment
+-- for the full writeup) -- missing the leading `event` argument every
+-- registered handler actually receives, so `list` was silently catching
+-- the event name string "MyDSL.playersNear.parsed" instead of the real
+-- array. Confirmed as the actual cause of "i also dont see players near
+-- you highlighting on the map": `ipairs()` on a string doesn't error in
+-- Lua (string indexing via [n] just returns nil), so this failed
+-- completely silently, zero iterations, no error to notice.
+function map.dsl.highlightPlayersNear(event, list)
   for _, rid in ipairs(map.dsl.highlighted_player_rooms) do
     pcall(unHighlightRoom, rid)
   end

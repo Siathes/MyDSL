@@ -392,11 +392,36 @@ function MyDSL.normalizeForMatch(name)
 end
 
 -- wordSet(s) -- helper for bestFuzzyMatch()'s token-overlap tier below.
+--
+-- "-ish" stripping added 2026-08-30, real gap found live (Steven: item
+-- identify not connecting "a strange greenish herb" in inventory to
+-- ItemLore's own captured object name "herb green"). Confirmed real via
+-- log corpus, not guessed: `exam strange` and `exam greenish` both
+-- return nothing (neither is a real interact keyword DSL recognizes),
+-- but `exam green` resolves the item and `c ident green` reports
+-- "Object 'herb green' is type...". DSL's own inventory-description
+-- text uses the ordinary English "-ish" suffix ("resembling that color")
+-- on top of the real keyword -- "greenish" for "green", "yellowish" for
+-- "yellow" (same log, same item: "a yellowish herb" -> "Object 'herb
+-- yellow'..."). This is a deterministic grammatical transform, not a
+-- fuzzy guess, so every "-ish" word also contributes its stripped base
+-- to the set alongside the original -- exact matches on the full word
+-- (e.g. someone's stored name genuinely containing "greenish") still
+-- work too, this only adds a second candidate, never removes the first.
+-- Length-gated (>=6 letters, so a stripped base is >=3) to avoid
+-- mangling short unrelated "-ish" words that aren't color adjectives at
+-- all ("fish", "wish", "dish" all end in "ish" but have nothing to do
+-- with this).
 local function wordSet(s)
   local set, n = {}, 0
   for w in s:gmatch("%a+") do
     if not set[w] then n = n + 1 end
     set[w] = true
+    if #w >= 6 and w:sub(-3) == "ish" then
+      local base = w:sub(1, -4)
+      if not set[base] then n = n + 1 end
+      set[base] = true
+    end
   end
   return set, n
 end

@@ -52,6 +52,38 @@ local exact = MyDSL.bestFuzzyMatch("heat resistant pants", {
 })
 check("exact match still wins over the weaker token-overlap tier", exact and exact.tag == "exact")
 
+-- ---- "-ish" color-adjective stripping, added 2026-08-30 -------------------
+-- Real corpus data (MyDSL Test/log/2026-08-30#10-51-24.txt): inventory
+-- shows "a strange greenish herb"; `exam strange` and `exam greenish`
+-- both return nothing (neither is a real DSL interact keyword), but
+-- `exam green` resolves it and `c ident green` reports "Object 'herb
+-- green' is type...". Same log, a second herb: "a yellowish herb" ->
+-- "Object 'herb yellow'...". DSL's own inventory text is the ordinary
+-- English "-ish" form of the real keyword.
+local greenHerb = MyDSL.bestFuzzyMatch("a strange greenish herb", {
+  { name = "herb green", tag = "correct" },
+  { name = "herb yellow", tag = "wrong" },
+})
+check("'-ish' stripping matches 'greenish' inventory text to the real 'herb green' object name",
+  greenHerb and greenHerb.tag == "correct")
+
+local yellowHerb = MyDSL.bestFuzzyMatch("a yellowish herb", {
+  { name = "herb green", tag = "wrong" },
+  { name = "herb yellow", tag = "correct" },
+})
+check("'-ish' stripping matches 'yellowish' inventory text to the real 'herb yellow' object name, not the green one",
+  yellowHerb and yellowHerb.tag == "correct")
+
+-- Short, unrelated "-ish" words must NOT get mangled (length-gated at
+-- >=6 letters so a stripped base is >=3) -- "fish"/"wish"/"dish" have
+-- nothing to do with color adjectives. (Candidate name deliberately NOT
+-- a single letter -- "f" would trivially substring-match "fish" itself
+-- via the existing containment tier, unrelated to this stripping logic.)
+local noFishMangling = MyDSL.bestFuzzyMatch("a strange fish", {
+  { name = "unrelated market stall", tag = "would_be_wrong_if_stripped" },
+})
+check("short '-ish' words like 'fish' are not stripped into nonsense", noFishMangling == nil)
+
 -- ---- MyDSL.resolveItemLoreRecord(): real identify -> real equipment line ----
 MyDSL.ItemLore.db["heat resistant pants"] = {
   key = "heat resistant pants", name = "heat resistant pants",

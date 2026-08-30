@@ -297,5 +297,35 @@ if map.dsl and map.dsl.logDesync then
   os.remove(logPath)
 end
 
+------------------------------------------------------------------------
+-- Event-handler calling convention -- added 2026-08-30, real bug found
+-- via Steven ("i also dont see players near you highlighting on the
+-- map"). Mudlet ALWAYS passes the event name as a handler's first
+-- argument (confirmed against wiki.mudlet.org's Event Engine manual,
+-- for both custom raiseEvent()s and built-in system events) --
+-- captureCommand() and highlightPlayersNear() were both missing that
+-- leading parameter, silently catching the event name string in what
+-- should have been their real data argument. This is exactly the class
+-- of bug direct unit tests exist to catch -- neither had one before.
+------------------------------------------------------------------------
+if map.dsl and map.dsl.captureCommand then
+  map.dsl.last_command = nil
+  map.dsl.captureCommand("sysDataSendRequest", "north")
+  check("captureCommand(event, cmd) reads the real command from the SECOND argument, not the event name",
+    map.dsl.last_command == "north")
+end
+
+if map.dsl and map.dsl.highlightPlayersNear then
+  _G.__rooms[20] = { exists = true, userdata = {}, name = "Town Square" }
+  _G.searchRoom = function(name) return name == "Town Square" and { [20] = "Town Square" } or {} end
+  local highlightCalls = {}
+  _G.highlightRoom = function(rid, ...) highlightCalls[#highlightCalls + 1] = rid; return true end
+  _G.unHighlightRoom = function() return true end
+  map.dsl.highlighted_player_rooms = {}
+  map.dsl.highlightPlayersNear("MyDSL.playersNear.parsed", { { name = "Someone", room = "Town Square" } })
+  check("highlightPlayersNear(event, list) reads the real list from the SECOND argument, not the event name",
+    #highlightCalls == 1 and highlightCalls[1] == 20)
+end
+
 print(string.format("\n%d failure(s)", failures))
 os.exit(failures == 0 and 0 or 1)
