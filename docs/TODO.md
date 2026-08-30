@@ -89,12 +89,24 @@ question, folded in per Steven 2026-08-29 rather than a separate check.
       whole new tag for). Needs Steven to reinstall and confirm terrain
       color now applies; if it still doesn't, `mapper_desync_log.txt`
       will show exactly why for the first time.
-- [ ] **AffectsView: right-click track/untrack on a spell — Steven asked
-      for recommended options, not yet designed or built.** "can we
+- [ ] **AffectsView: click-to-track/untrack on a spell — real constraint
+      found, concrete design pitched, not yet built.** Steven: "can we
       rightclick add to tracked untrack (any recommend options) on the
-      spell." Needs a concrete proposal (context-menu items, what
-      "recommended" tracking defaults would look like) before building —
-      see the reply given when this was asked for the actual pitch.
+      spell." Checked against Mudlet's own real API (wiki.mudlet.org)
+      before proposing anything: `setLink()` (the exact mechanism this
+      whole codebase already uses for item hover/click) does not
+      distinguish left- vs. right-click, and Mudlet's only real
+      right-click context-menu API is map-specific (`addMapMenu`,
+      already used for the mapper's own Safe Delete option) — nothing
+      general exists for console text. Same class of real constraint as
+      the insertText() dead end found earlier this session, not a guess.
+      **Proposed instead**: LEFT-click toggle using the same proven
+      `setLink()`/hover-tooltip technique already used for item hover —
+      click a tracked affect's name to untrack it, click an untracked
+      one to track it, hover tooltip shows which action a click will
+      take. Delivers the actual goal (no typing needed) through a
+      mechanism already confirmed working here, not an unavailable one.
+      Needs Steven's go-ahead before building.
 - [ ] **Native-content full consolidation — Steven's own words: "this is a
       high priority to get back to a solid baseline of everything in the
       package."** Merges three related asks from this pass into one
@@ -372,8 +384,9 @@ one at a time:
       data, not character-specific, same class as CreatureLore/ItemLore's
       already-shared DBs). Needs a live check: `mydsl leveling areas`
       should list all 40 in "MyDSL Test" now.
-- [ ] **Item identify not reachable by click, root cause found + fixed
-      2026-08-30** (Steven, "MyDSL Test" `notes.json`: "c ident pants...
+- [x] **Item identify not reachable by click — CONFIRMED WORKING live by
+      Steven** ("identify item seems to work and persist now"). Root
+      cause found + fixed 2026-08-30 (Steven, "MyDSL Test" `notes.json`: "c ident pants...
       items arent persisting after identifying"). `identify` WAS
       persisting correctly the whole time (confirmed directly in
       `itemlore_db.lua`) — the real bug was every equipment/inventory/
@@ -409,7 +422,6 @@ one at a time:
 - [ ] PVP performance pass (debounced saves, gated raw-capture, batched
       buffer trims) — code-audited, not measured; worth a real lag check
       if lag comes up again.
-- [ ] Identify persistence — fresh live `identify` + check.
 - [ ] **Fuzzy name-matching, narrowed scope**: drop ground-item matching
       entirely; only wire mob ID (`resolveMobName()`) to real clickable
       links, scoped to inventory/container/equipment lists.
