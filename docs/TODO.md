@@ -95,108 +95,61 @@ question, folded in per Steven 2026-08-29 rather than a separate check.
       split; image label is now full-height like every other window.
       `mydsl portrait title <text>` still works unchanged. Not closed
       until Steven confirms the bar is gone in-game.
-- [ ] **Mapper "not following room movement" — reconfirmed 2026-08-30 by
-      Steven ("still biggest issue... mapper is prob the most important
-      module to work"), not resolved by itself as the 2026-08-29 theory
-      below assumed.** Two real findings this pass, both 2026-08-30:
-      1. **Architecture split discovered**: the live `MyDSL` profile
-         still runs the old full-fork `DSL_Generic_Mapper.xml`; the
-         freshly-reinstalled `MyDSL Test` (where Steven actually tested
-         and reported this) runs the new `DSL_Mapper_Addon.xml`
-         (2026-08-29 redesign, layers on Mudlet's own stock mapper
-         instead of forking it). The two profiles are on genuinely
-         different mapper codebases right now — not decided as
-         intentional, needs Steven's call on whether to migrate `MyDSL`
-         to match. `map.dsl.logDesync()` (always-on, writes
-         `mapper_desync_log.txt`, no `map config debug true` needed) was
-         added to the old fork's `check_room()`/`move_map()`/`find_me()`
-         (`DSL_Generic_Mapper.xml` + live `MyDSL` profile's own
-         `current/*.xml`, both synced) for whenever `MyDSL` itself
-         desyncs — but per that file's own header comment, this class of
-         diagnostic can't be replicated in the new addon (stock's
-         functions are private/non-overridable there), so it says
-         nothing about what `MyDSL Test` actually hit. Still open: build
-         an equivalent event-driven desync check for `DSL_Mapper_Addon.xml`
-         (compare `map.currentRoom` before/after a captured move command
-         fires and stock's own new-room event, since the addon can't hook
-         `check_room` directly) — **built 2026-08-30** (`DSL_Mapper_Addon.xml`
-         v0.2.8): `map.dsl.checkRoomDesync()`, deferred 1s off every
-         `gmcp.room_data` event to let stock's own text-trigger
-         resolution finish first (avoids flagging a normal fast move as
-         a false positive from event-ordering), reuses the existing
-         `roomLooksStale()` check (already trusted for color-write
-         gating) and logs to the same `mapper_desync_log.txt` via the
-         same `map.dsl.logDesync()` pattern. `DSL_Mapper_Addon.mpackage`
-         rebuilt. Still needs Steven to actually install it in `MyDSL`
-         (see below) before it can catch anything there.
-      3. **ROOT CAUSE CONFIRMED 2026-08-30, fix shipped in v0.2.10.**
-         Steven turned on stock's own `map debug` himself during a
-         retest (v0.2.8, correct local map loaded) and the real answer
-         was in stock's own output, not either desync logger: every
-         single automatic move failed with `Room N rejected: description
-         mismatch` → `(error): Room not found in map database` — name and
-         exits matched fine every time (consistent with
-         `checkRoomDesync()` finding nothing, since it only ever compared
-         names). A manual `map me` right after always "succeeded," but
-         only because `map.prompt.description` had already been cleared
-         by then, silently skipping the same check rather than passing
-         it. Root cause: `DSL_Mapper_Addon.xml`'s `install()` forced
-         `use_description_matching = true` on every fresh profile ("DSL
-         repeated room names are common"), but stock's `check_room()`
-         (private, unreachable from this addon) never updates a room's
-         stored description once set — first match writes it, any later
-         drift is rejected forever, no self-heal. One mismatch, ever,
-         permanently locks that room out of automatic resolution. Fix:
-         default flipped to `false` in v0.2.10 (`map.dsl.install()`) —
-         name+exits alone were already reliably correct throughout every
-         test this session. `map config use_description_matching` still
-         lets Steven opt back in per-profile if a genuine same-name-
-         same-exits collision ever actually shows up. New regression test
-         (`test_dsl_mapper_addon.lua`) locks the default in.
-         `DSL_Mapper_Addon.mpackage` rebuilt (v0.2.10), copied to
-         `~/Downloads/`. **Needs Steven to install v0.2.10 and confirm the
-         dot follows normally now** before this can be closed — the fix
-         only applies to a genuinely fresh profile (`dsl_generic_mapper_seen`
-         not yet set); an already-`true` existing profile (including
-         `MyDSL`, still on the old fork anyway) needs the manual `map
-         config use_description_matching` toggle instead, package
-         reinstall alone won't flip an already-set value back.
-      4. **`MyDSL` migration to the new architecture — prepared, not
-         executed.** Steven said "do all recommended" to migrating
-         `MyDSL` off the old fork. Deliberately did NOT do this via raw
-         XML surgery on his live-play profile the way the check_room
-         diagnostic edit was done — swapping one whole native package
-         for another touches Mudlet's own package bookkeeping (not just
-         `current/*.xml`), and `MyDSL` has his real character/map data,
-         unlike disposable `MyDSL Test`. Needs Steven, in the `MyDSL`
-         profile: Package Manager → uninstall `DSL_Generic_Mapper` →
-         install the freshly-built `DSL_Mapper_Addon.mpackage`
-         (v0.2.8, includes the new desync checker). Mudlet's own Generic
-         Mapper (built-in) must already be enabled — it should be, since
-         `DSL_Generic_Mapper` was a fork of it, not a replacement.
-      2. **A real contributing factor found, NOT confirmed as the whole
-         explanation — Steven's own 2026-08-30 pushback: "not confident
-         that just loading a local map is the solution."** Confirmed
-         directly in the raw session log: mid-session, with no typed
-         command around it, `MyDSL Test` silently loaded
-         `/MyDSL/map/2026-08-29#19-56-36map.dat` (the *other* profile's
-         map file) — Steven's own deliberate workaround for
-         `MyDSL_Full.mpackage` not shipping map data (a fresh `MyDSL
-         Test` reinstall starts with an empty map, so he manually loads
-         the real `MyDSL` map via the Map widget's `map show` each
-         time). Real, and a footgun worth closing regardless (no
-         confirmation dialog, easy to land mid-session) — `docs/
-         MUDLET_PACKAGING_REFERENCE.md`'s pre-delivery checklist now has
-         a step to seed a fresh `MyDSL Test` with the live map
-         proactively. But this is NOT to be treated as "bug closed" —
-         Steven is testing this himself via a fresh reinstall rather
-         than accepting the explanation as given. Both desync loggers
-         (`DSL_Generic_Mapper.xml` and `DSL_Mapper_Addon.xml`, see item 1
-         above) stay in place specifically so his next test either
-         produces a `mapper_desync_log.txt` entry (real remaining bug,
-         not just the map-load footgun) or produces nothing (footgun was
-         the whole story). Do not close this item until his test result
-         comes back either way.
+- [x] **Mapper "not following room movement" — RESOLVED 2026-08-30,
+      confirmed by Steven directly** ("it now follows with room
+      description false... i watched the mapper move each time after
+      the toggle"), also confirmed in the raw session log (clean walk
+      through 6 rooms with `map config use_description_matching false`
+      set, no rejections, vs. the same walk failing with it `true`).
+      Root cause: `DSL_Mapper_Addon.xml`'s `install()` forced
+      `use_description_matching = true` on every fresh profile ("DSL
+      repeated room names are common"), but stock's `check_room()`
+      (private, unreachable from this addon) never updates a room's
+      stored description once set — first match writes it, any later
+      drift is rejected forever, no self-heal. One mismatch, ever,
+      permanently locks that room out of automatic resolution — pinned
+      down via Steven's own live `map debug` trace showing `Room N
+      rejected: description mismatch` → `Room not found in map database`
+      on every single automatic move, despite name+exits always matching
+      correctly. Fixed in `DSL_Mapper_Addon.xml` v0.2.10: default flipped
+      to `false`; `map config use_description_matching` still lets a
+      player opt back in per-profile if a genuine same-name-same-exits
+      collision ever shows up in practice. Regression test added
+      (`test_dsl_mapper_addon.lua`). `DSL_Mapper_Addon.mpackage` rebuilt,
+      in `~/Downloads/`.
+      - Two loose ends, not blocking closure: (1) the fix only auto-
+        applies to a genuinely fresh profile (`dsl_generic_mapper_seen`
+        not yet set) — an already-installed profile needs the manual
+        `map config use_description_matching false` toggle instead (what
+        Steven actually did to confirm this). (2) `MyDSL` (live-play)
+        is still on the old full-fork `DSL_Generic_Mapper.xml`, not this
+        addon — deliberately left unmigrated (see the "MyDSL Package
+        Manager migration" item below) since it touches Mudlet's own
+        package bookkeeping on his real character profile, not something
+        to raw-edit. If `MyDSL` shows the same symptom, the same manual
+        `map config` toggle works there too regardless of migration.
+      - Also surfaced and fixed along the way, not the root cause but
+        real: `MyDSL Test` was silently loading the *other* profile's
+        map file mid-session when Steven used `map show` (his own
+        workaround for a fresh reinstall's empty map) — `docs/
+        MUDLET_PACKAGING_REFERENCE.md`'s pre-delivery checklist now has
+        a step to seed a fresh `MyDSL Test` with the live map
+        proactively so that workaround isn't needed going forward.
+      - Both desync loggers built during the investigation
+        (`map.dsl.logDesync()` in `DSL_Generic_Mapper.xml` and
+        `DSL_Mapper_Addon.xml`'s `checkRoomDesync()`) stay in place as
+        standing infrastructure — check `mapper_desync_log.txt` first if
+        anything like this ever resurfaces.
+- [ ] **`MyDSL` migration to the new mapper architecture** — still on the
+      old full-fork `DSL_Generic_Mapper.xml`; `MyDSL_Mapper_Addon.xml`
+      v0.2.10 (with the description-matching fix) is ready in
+      `~/Downloads/`. Deliberately not done via raw XML surgery (touches
+      Mudlet's own package bookkeeping on Steven's real character
+      profile) — needs Steven, in the `MyDSL` profile: Package Manager →
+      uninstall `DSL_Generic_Mapper` → install `DSL_Mapper_Addon.mpackage`.
+      Not urgent now that the actual symptom (mapper not following) has
+      a same-profile workaround (`map config use_description_matching
+      false`) regardless of which architecture is running.
 - [ ] **DslColors — make Census genuinely useful, document it.** The
       "integrate + toggle" and "fix known bugs" parts of this pass are
       done (2026-08-29 — see `docs/CHANGELOG.md`: master `dslcolor
