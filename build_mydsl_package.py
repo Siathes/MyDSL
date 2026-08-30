@@ -85,6 +85,17 @@ RETIRED_SCRIPTS = {
     "MyDSL_RawCapture",  # removed 2026-08-27, per Steven -- zero dependents
 }
 
+# Root-level MyDSL_*.lua files that are pure table.save() data dumps (a
+# player's own persisted settings), not real modules with logic -- must
+# never get treated as a dofile-able Script. Found accidentally
+# git-tracked 2026-08-29 (should have been gitignored like MyDSL_state.lua/
+# MyDSL_layout.lua/MyDSL_windowstate_*.lua, now is) while extending the
+# "bundle every git-tracked module" fallback below to not require a
+# dofile() entry anywhere first -- without this exclusion, that fallback
+# would have silently bundled Steven's own personal theme/font choices as
+# if they were application code.
+EXCLUDED_DATA_FILES = {"MyDSL_theme_settings", "MyDSL_windowfonts"}
+
 # Native Trigger/Key package names known to belong to MyDSL_Full.
 NATIVE_TRIGGER_PACKAGE_NAMES = {"MyDSL_GameplayTriggers", "DslColors_v1_0"}
 NATIVE_KEY_PACKAGE_NAME = "MyDSL_Full"
@@ -389,6 +400,40 @@ def main():
     for name, _ in recovered_dofiles:
         extra_names.discard(name)
     dofiles = dofiles + recovered_dofiles
+
+    # Steven's call, 2026-08-29: stop requiring a dofile() Script in DSL2's
+    # own live profile at all before a new module gets bundled -- "we no
+    # longer need to do the dofiles... we will be mostly working out of
+    # this [MyDSL_Full.mpackage] as a real install." The recovery step
+    # above only catches a module that's already native content somewhere
+    # (DSL2 OR the live MyDSL profile) but missing from DSL2's dofile
+    # list -- it doesn't catch a module that was never added as a native
+    # Script anywhere at all (e.g. MyDSL_MapperMenu.lua, added this
+    # session, never wired into any profile's Script Editor). This picks
+    # up every git-tracked root-level MyDSL_*.lua file not already in
+    # `dofiles`, appended at the end of load order (safe default: new
+    # modules in this codebase call into other MyDSL.* functions
+    # defensively/soft-checked at event-fire time, not at load time, so
+    # load position doesn't matter the way it can for foundational
+    # modules like MyDSL_DataLayer.lua).
+    dofile_names = {name for name, _ in dofiles}
+    git_files = subprocess.run(
+        ["git", "-C", str(REPO_ROOT), "ls-files", "MyDSL_*.lua"],
+        capture_output=True, text=True, check=True,
+    ).stdout.splitlines()
+    never_wired = []
+    for rel_path in sorted(git_files):
+        name = os.path.splitext(os.path.basename(rel_path))[0]
+        if name in dofile_names or name in RETIRED_SCRIPTS or name in EXCLUDED_DATA_FILES:
+            continue
+        never_wired.append((name, os.path.join(REPO_ROOT, rel_path)))
+    if never_wired:
+        print(
+            f"NOTE: {len(never_wired)} git-tracked module(s) never added as a native "
+            f"Script anywhere, bundled anyway per Steven's 2026-08-29 call: "
+            f"{[n for n, _ in never_wired]}"
+        )
+        dofiles = dofiles + never_wired
 
     if extra_names != EXPECTED_NATIVE_ONLY_SCRIPTS:
         raise SystemExit(

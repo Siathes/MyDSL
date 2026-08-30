@@ -66,6 +66,19 @@ MyDSL/data/
 MyDSL_layout.lua
 MyDSL_state.lua
 MyDSL_windowstate_*.lua
+# Same class, found accidentally git-tracked 2026-08-29 while extending
+# build_mydsl_package.py's module discovery -- both are single-line
+# table.save() dumps of Steven's own current theme/font choices (real
+# content confirmed: `return {{[[active]]=[[refined_convergence]],},}` /
+# a window-name-to-font-size map), not logic, same as the three above.
+# Being git-tracked meant they'd get committed on every settings change
+# AND could have been silently bundled as if they were real dofile
+# Scripts -- excluded from that path too, see EXCLUDED_DATA_FILES in
+# build_mydsl_package.py. git rm --cached'd the same day (kept on disk,
+# matching the 3 files above -- not rewriting history, just stopping
+# further tracking).
+MyDSL_theme_settings.lua
+MyDSL_windowfonts.lua
 
 # Analysis & snapshot artifacts from Claude Code development sessions
 MyDSL_audit_snapshot_*.txt
