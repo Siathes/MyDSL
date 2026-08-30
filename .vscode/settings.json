@@ -32,6 +32,7 @@
     "getMapEvents", "addMapEvent", "removeMapEvent", "removeMapMenu",
     "deleteRoom", "getAllRoomEntrances",
     "getRoomExits", "setExitStub", "updateMap",
+    "downloadFile", "unzipAsync",
     "yajl", "utf8"
   ],
   "Lua.workspace.checkThirdParty": false,

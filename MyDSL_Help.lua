@@ -364,6 +364,15 @@ MyDSL.Help.modules = {
     },
   },
 
+  { key = "assets", title = "Assets", category = "Setup & Diagnostics", window = nil,
+    summary = "Optional media (movement/combat sounds, room screenshot pictures) fetched on-demand from a GitHub Release -- never installed automatically. Character portraits are intentionally NOT offered here (personal, not shared). Only one fetch runs at a time.",
+    commands = {
+      { cmd = "mydsl assets status", desc = "List available assets and their approximate size, and show what's currently fetching (if anything).", example = "mydsl assets status" },
+      { cmd = "mydsl assets fetch <sounds|roompics>", desc = "Download and install one asset set.", example = "mydsl assets fetch sounds" },
+      { cmd = "mydsl assets fetch all", desc = "Fetch sounds, then room pictures, one after the other.", example = "mydsl assets fetch all" },
+    },
+  },
+
   -- ---- Automation / Assist ----
   -- Unlike every other module listed here, MyDSL_Leveling.lua SENDS real
   -- game commands -- an explicit, narrow exception to this project's

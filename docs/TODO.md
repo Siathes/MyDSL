@@ -136,9 +136,24 @@ question, folded in per Steven 2026-08-29 rather than a separate check.
       `(event, zipLocation, extractLocation)` or `sysUnzipError`
       `(event, zipLocation)` — `extractLocation` always comes back with
       a trailing `/` regardless of what was passed in. Both of Claude
-      Desktop's open unknowns from the plan are now resolved; building
-      the actual `mydsl assets fetch` alias + the 3 release zips is
-      still open, not started.
+      Desktop's open unknowns from the plan are now resolved.
+      **Built 2026-08-30**: `MyDSL_AssetFetch.lua` (`mydsl assets
+      fetch <sounds|roompics|all>` / `mydsl assets status`), strictly
+      opt-in, one fetch at a time. Portraits deliberately dropped from
+      scope, per Steven ("characters are personal and noone else needs
+      mine so not needed") — Sounds.zip and RoomPics.zip only. Both
+      zips already existed pre-built in the live MyDSL profile
+      (confirmed correct: Sounds.zip 9.9MB/89 files, RoomPics.zip
+      345MB/117 files, each zip's own entries already carry the right
+      `Sounds/...`/`MyDSL/roompics/...` prefix) — uploaded as GitHub
+      Release assets on `assets-v1`
+      (https://github.com/Siathes/MyDSL/releases/tag/assets-v1), with
+      Steven's explicit go-ahead. `test/test_assetfetch.lua` (20
+      assertions: dispatch, single-fetch-at-a-time guard, the full
+      download→unzip→cleanup chain, `fetch all` sequencing, error
+      handling) all pass against mocked `downloadFile`/`unzipAsync`.
+      Real end-to-end network fetch itself still needs a live in-Mudlet
+      test — not something the Lua test suite can cover.
 
 *(Native-content tracking's Principle-2 question is answered, not open:
 Principle 2 is "Toggleable By Default" — MYDSL_1.0_PHILOSOPHY.md, unrelated
