@@ -855,13 +855,18 @@ local function parsePlayersNearBodyLine(line)
   return { name = name, room = trim(room) }
 end
 
+-- FIX 2026-08-29, per Steven live-test note ("players near you shows in
+-- window also named players near you"): this used to copy/route the
+-- literal "Players near you:" header line into MyDSL_PlayersNear before
+-- capturing body lines, duplicating the window's own title ("Players
+-- Near"). The window title already says this -- gag the header off main
+-- console instead of routing it as content, same as beginScan()'s header
+-- line is handled.
 function MyDSL.beginPlayersNear()
   if not (MyDSL and MyDSL.Route) then return end
   MyDSL.Route.clear("MyDSL_PlayersNear")
   MyDSL._playersNearParsed = {}
   selectCurrentLine()
-  copy()
-  MyDSL.Route.players(nil)
   deleteLine()
 
   if MyDSL._triggers.playersNearBody then

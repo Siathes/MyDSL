@@ -47,16 +47,19 @@ end
 -- Scan window fills passively via DataLayer appendBuffer (game colors preserved).
 -- RightHere is rebuilt from State.scan.rightHere as clickable target links.
 
+-- FIX 2026-08-29, per Steven live-test note ("right here" shows in
+-- window also named "Right Here"): dropped the redundant "Right Here:"
+-- header text -- the window's own title bar already says that (see
+-- MyDSL.Windows.getTitle(RH_WIN, "Right Here") below).
 function SV.renderRightHere()
   local mc = SV._mc and SV._mc.rightHere
   if not mc then return end
   mc:clear()
   local scan = MyDSL.State and MyDSL.State.scan
   if not scan or not scan.rightHere then
-    rhLog(mc, "\n<128,128,128>Right Here: (empty)\n")
+    rhLog(mc, "<128,128,128>(empty)\n")
     return
   end
-  rhLog(mc, "<136,136,136>Right Here:\n<r>")
 
   if not next(scan.rightHere) then
     rhLog(mc, "<68,68,68>  (empty)\n<r>")

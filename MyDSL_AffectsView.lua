@@ -641,6 +641,15 @@ function A.setCommand(name, cmd)
   A.customCommands[name] = cmd
   A.save()
   ce(name .. " command=" .. cmd)
+  -- Hint added 2026-08-29, per Steven's live-test note ("adding a skill
+  -- to the affects command... not intuitive, don't think i did it
+  -- correctly"): a custom recast command and being tracked/displayed are
+  -- two separate settings (this file's own `tracked` table vs.
+  -- `customCommands`) -- setting one doesn't imply the other, and there
+  -- was previously no feedback pointing that out.
+  if not A.tracked[name] then
+    ce(name .. " is not currently tracked/displayed -- run 'mydsl affects track " .. name .. "' to show it.")
+  end
 end
 
 function A.clearCommand(name)
