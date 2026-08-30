@@ -57,40 +57,59 @@ saved for last.
   (immediately followed by a correct `look`). Not actioned; flag only if
   it recurs persistently or blocks mapping.
 
-## Needs Steven's decision, not fixed blind
+## Round 2 (Steven's answers) — resolved
 
-- **"Current layout should be default install layout" / "all current
-  settings need to become defaults."** Doable, but changes what a fresh
-  install looks like for every future profile/character, so it's a real
-  decision, not a mechanical fix. Two separate questions to settle:
-  1. Layout: capture the current arranged window positions/sizes as the
-     new packaged defaults, replacing `MyDSL_LayoutEngine.lua`'s
-     `MyDSL.Layout.defaults` table — straightforward once you confirm the
-     current MyDSL Test arrangement is the one to freeze.
-  2. Settings: which specific saved-settings files count as "current
-     settings" to bake in as defaults (theme? font sizes? tracked
-     affects list? window visibility?) — needs a concrete list since
-     "all" spans several independent files.
-- **Layout doesn't save on window move.** Confirmed why: Mudlet's own
-  dockable-window layout persistence (`saveWindowLayout()`/
-  `saveProfile()`) has no per-move callback exposed to Lua — there's no
-  native "window moved" event to hook, so an automatic save-on-move isn't
-  actually the "simple fix" it might look like. A periodic autosave
-  timer (e.g. call `saveWindowLayout()` every few minutes while
-  connected) is a real, simple alternative if losing an occasional
-  rearrangement on crash/close is the actual concern — flagging as an
-  option rather than building it, since it's a behavior change (extra
-  disk writes, autosave timing) worth your sign-off first.
-- **"Update all manually added titles and other items to DSL from this
-  and DSL2 files."** Not clear yet what specific data this refers to
-  (room titles? character-specific overrides? something in DSL2's own
-  profile vs. this MyDSL Test one?) — need a concrete pointer to what to
-  sync before this can be scoped.
-- **Sound/RoomPic first-time-load prompt.** Already tracked in
-  `docs/TODO.md` (asset-distribution plan, opt-in `mydsl assets fetch` —
-  researched, not yet built). Steven's note here ("maybe should be first
-  time load option") is consistent with the existing plan (opt-in, not
-  default-on) — no new decision needed, just still open work.
+1. **"Visual settings/window locations/text size need to be defaults."**
+   Window layout/position: turned out to already be solved a different
+   way than assumed — `saveWindowLayout()`/`loadWindowLayout()` (the
+   existing `mydsl layout save`) persist to `windowLayout.dat`/
+   `windowLayoutGeometry.dat` in the shared Mudlet config directory
+   beside `profiles/`, NOT per-profile as this project's docs previously
+   assumed (corrected in `MyDSL_LayoutEngine.lua`/`MyDSL_WindowRegistry.lua`/
+   `docs/MyDSL_MudletWindowManagement.md`/`docs/TODO.md`). Since dock
+   widget names are profile-name-scoped, a delete+reinstall of "MyDSL
+   Test" under that same name already inherits the saved layout — nothing
+   to build, just confirm it in the next test. Settings: checked every
+   saved-settings file against its module's code defaults —
+   Affects `timerMode` (cycles→both) and Live `infoFont` (13→9) were the
+   only two real mismatches, both fixed; Tick/Alterform/Live's other
+   fonts already matched. `DEFAULT_TRACKED` (the Affects module's
+   starter spell list) deliberately NOT overwritten with Kien's live
+   subset — it's already a broad, class-spanning list and the project's
+   own "never hardcode a character/class" rule means one character's
+   current loadout shouldn't narrow the universal default.
+2. **Layout-save-on-move.** Confirmed: no native per-move hook exists, so
+   this stays manual — but `mydsl layout save` already existed and is
+   already documented (`MyDSL_Help.lua`), so there's nothing new to
+   build here either. Just a reminder: run it after rearranging.
+3. **DslColors: bake manually-added items into defaults (e.g.
+   "professor").** Found it — `DSL_COLOR_DB.titles["Professor"] =
+   "title_scholarly"` was a real, per-profile learned entry (confirmed
+   real via a live "who" sighting on Xenoyr). Promoted into
+   `DSL_TITLE_ALIASES` (the built-in vocabulary) in the git-tracked
+   `DslColors_Core_v1_0.xml`, tested clean. **Not fully shipped yet**:
+   the actual native Script content that gets packaged comes from the
+   live "MyDSL" profile's own Script editor copy, not this git file —
+   Mudlet was running against a profile when this was found, so editing
+   its loaded XML on disk directly was skipped as too risky. Needs the
+   same one-line addition made through Mudlet's own Script editor in the
+   "MyDSL" profile (Scripts → DslColors_Core_v1_0 → add
+   `["Professor"] = "scholarly", ["professor"] = "scholarly",` to
+   `DSL_TITLE_ALIASES`) before a rebuilt package actually carries it.
+
+## Still open
+
+- **DslColors' bigger Census/titles/palette work** (emerald dragon
+  palette, Thax/Thaxanos consistency audit, alignment/god/hp fields) —
+  unrelated to the "professor" promotion above, already tracked as its
+  own large item under `docs/TODO.md` TOP PRIORITY, not touched here.
+- **Sound/RoomPic first-time-load prompt / `mydsl assets fetch`.**
+  Design fully researched (`docs/TODO.md`), the alias code itself is
+  buildable now, but the actual GitHub Release (zipping
+  Sounds/RoomPics/Portraits and uploading them as release assets) is a
+  real, visible, hard-to-reverse action only Steven can authorize/do the
+  account side of — asked him directly rather than building against a
+  guessed URL.
 
 ## Open items carried over, not yet actioned
 
