@@ -96,6 +96,11 @@ MyDSL_Full/
 # Same reasoning, same class of file -- rebuilt package output for the DSL
 # Generic Mapper fork (source is DSL_Generic_Mapper.xml, which stays tracked).
 DSL_Generic_Mapper.mpackage
+# Same reasoning, same class of file -- rebuilt package output for the
+# standalone DSL Mapper Addon (source is DSL_Mapper_Addon.xml, which
+# stays tracked; built via build_dsl_mapper_addon_package.py, which also
+# stays tracked).
+DSL_Mapper_Addon.mpackage
 
 # Python build tooling (build_mydsl_package.py) -- cache, not source
 __pycache__/
