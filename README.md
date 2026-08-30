@@ -1,16 +1,17 @@
 # MyDSL
 
-**Every window DSL never gave you, without touching a single line it did.**
+**See Algoron like you never have before.**
 
-A Mudlet addon suite for **Dark and Shattered Lands** (dsl-mud.org): combat, group, and target tracking, a live vitals bar, a moon/weather widget that actually knows DSL's dual-moon mechanic, a mapper, item and creature reference lookups, character-assist helpers, and a dozen built-in visual themes — all layered on top of the game's own text, never hiding or replacing it.
+A Mudlet addon suite for **Dark and Shattered Lands** (dsl-mud.org) that turns your console into a living view of the world — real weather and time of day coloring your background as it changes, all three of Algoron's moons tracked at once, and a full window layout for combat, group, target, mapping, and more laid over the game's own text without ever hiding or replacing a line of it.
 
 ![MyDSL running a full window layout in Mudlet — combat, group, target, chat, mapper, vitals, and more, all open at once](docs/images/mydsl-full-suite.png)
 
-- **Passive by design.** Nothing here sends a command you didn't ask for or gags a line you didn't tell it to.
-- **The moon/weather widget tracks DSL's real dual-moon mechanic** — phase, position, regen bonus, and a full phase-by-phase countdown to your next bonus window.
+- **Watch the world breathe.** An ambient background shifts with real weather and time of day, fading smoothly between them — your console looks like where you actually are, not a flat wall of text.
+- **Track all three of Algoron's moons** — red, white, and black — phase, position, regen bonus, and a full countdown to your own moon's next phase, at a glance.
+- **Always know what time it is in Algoron** — a live clock, day/night indicator, and date, without ever typing `time`.
 - **Combat, group, and target windows** stay in sync with what's actually happening in the fight — no guessing, no polling.
 - **The mapper** colors terrain, tracks door state, learns real move-point costs, and highlights other players — built on top of Mudlet's own mapper, not a replacement for it.
-- **A dozen built-in themes**, from a deep-gradient Tron blue to *Shattered Moonlight*, a signature theme built around DSL's own dual-moon lore.
+- **A dozen built-in themes**, from a deep-gradient Tron blue to *Shattered Moonlight*, a signature theme built around Algoron's own three moons.
 - **Every window is independently toggleable.** Build the layout you actually want, not the one that shipped.
 
 ## Try the DSL Mapper Addon

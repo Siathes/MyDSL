@@ -439,12 +439,15 @@ MyDSL.Theme.presets = MyDSL.Theme.presets or {
   -- blow my mind." Not a generic palette -- built from three things
   -- already real in this project, not invented for this preset:
   --
-  -- 1. DSL's own dual-moon mechanic. `MyDSL_MoonWeather.lua` parses two
-  --    real, recurring game lines every session -- "The red moon is..."
-  --    and "The white moon is..." -- DSL's own lore literally has two
-  --    moons. That duality IS this theme: bgGradient is a true night sky
-  --    (near-black fading to a cool indigo-black, not a saturated
-  --    purple like arcane_midnight -- deliberately closer to how a real
+  -- 1. DSL's own three-moon mechanic (red/white/black -- see docs/
+  --    DSL_CommandRef.md's MOON SYSTEM section, wiki-confirmed).
+  --    `MyDSL_MoonWeather.lua` parses two of those three as real,
+  --    recurring game lines every session -- "The red moon is..." and
+  --    "The white moon is..." (the black moon is only visible to
+  --    evil-aligned characters, so it's the one most sessions never see)
+  --    -- this theme deliberately draws on that pairing: bgGradient is a
+  --    true night sky (near-black fading to a cool indigo-black, not a
+  --    saturated purple like arcane_midnight -- deliberately closer to how a real
   --    night sky looks than a fantasy "arcane" glow), titleColor is the
   --    white moon (a cool silver-white glow) sitting on titleBgColor,
   --    the red moon (a deep blood-red wash) -- the two moons together,
