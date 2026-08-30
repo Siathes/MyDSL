@@ -196,8 +196,8 @@ end</script>
 					<colorTriggerFgColor>#000000</colorTriggerFgColor>
 					<colorTriggerBgColor>#000000</colorTriggerBgColor>
 					<regexCodeList>
-						<string>\b(Qinrathaz)\b</string>
-						<string>\b(Vaelis)\b</string>
+						<string>\b(TestChar2)\b</string>
+						<string>\b(TestChar3)\b</string>
 					</regexCodeList>
 					<regexCodePropertyList>
 						<integer>1</integer>
@@ -2040,7 +2040,7 @@ end</script>
 					<colorTriggerFgColor>#000000</colorTriggerFgColor>
 					<colorTriggerBgColor>#000000</colorTriggerBgColor>
 					<regexCodeList>
-						<string>\b(Dravak)\b</string>
+						<string>\b(TestChar4)\b</string>
 					</regexCodeList>
 					<regexCodePropertyList>
 						<integer>1</integer>
