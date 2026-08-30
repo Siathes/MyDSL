@@ -519,6 +519,40 @@ question, folded in per Steven 2026-08-29 rather than a separate check.
       handling) all pass against mocked `downloadFile`/`unzipAsync`.
       Real end-to-end network fetch itself still needs a live in-Mudlet
       test — not something the Lua test suite can cover.
+      **In progress, 2026-08-30**: Steven — "i want to do a fresh
+      install, dete mydsl test, recreate a base mydsl test, install the
+      packages and see how it runs, then make a release version ready
+      to share for testing." `MyDSL Test` deleted (`rm -rf`, confirmed
+      nothing of value lost — notes.json fully reconciled first, the
+      only per-profile data there was already-superseded test state:
+      the 29 DslColors titles were already promoted into the shipped
+      defaults, and its `MyDSL_login_credentials.lua` held the known
+      corrupted-capture prompt text, not real credentials).
+      **Deliberately did NOT pre-seed the new profile's map** from
+      `MyDSL`'s live map data, unlike `docs/MUDLET_PACKAGING_REFERENCE.md`'s
+      standing checklist item 6 — that guidance was written for keeping
+      a working *continued-play* test profile convenient, which is the
+      opposite of what a from-scratch onboarding test needs: a real new
+      tester won't have Steven's map either, so starting empty is the
+      correct test condition this time, not a gap to patch.
+      `INSTALL.md` written (repo root) — install steps, the
+      uninstall-old-copy-first rule, `mydsl assets fetch` documented as
+      the opt-in Sounds/RoomPics step, autologin's paused status
+      explained, and the PNP-prerequisite/chat-self-containment unknowns
+      called out explicitly as things this test should actually answer
+      rather than asserted either way.
+      **What's left, and can't be done from here — needs Steven's own
+      hands in Mudlet's GUI**: (1) create a new profile named
+      `MyDSL Test`, connect once so Mudlet's own Generic Mapper is
+      active; (2) Toolbar → Packages → Install Package →
+      `~/Downloads/MyDSL_Full.mpackage` (already rebuilt current,
+      41 scripts); (3) play enough to exercise chat, mapper, at least
+      one PNP-adjacent command, and see whether anything visibly needs
+      PNP installed separately; (4) report back what broke/felt wrong so
+      `INSTALL.md` and this entry can be corrected from real findings
+      rather than assumptions. Once that pass is clean, the natural next
+      step is deciding whether `MyDSL_Full.mpackage` gets an actual
+      public GitHub Release the way the mapper addon already has one.
 
 *(Native-content tracking's Principle-2 question is answered, not open:
 Principle 2 is "Toggleable By Default" — MYDSL_1.0_PHILOSOPHY.md, unrelated
@@ -982,6 +1016,20 @@ one at a time:
       `getLabelToolTip` added to `test/mudlet_mock.lua`. Needs Steven to
       confirm the tooltip actually renders on hover in real Mudlet (the
       mock can't verify Qt's real tooltip rendering).
+- [ ] **QOL: auto-send `weather` on indoor→outdoor terrain transition** —
+      Steven, `MyDSL Test/notes.json` (2026-08-30, right before the
+      "MyDSL Test" reinstall/release-prep pass): "when you walk from
+      indoor terrain to outdoor terrain update the weather with a
+      weather command." Scoping check done: the mapper already
+      distinguishes indoor rooms via GMCP sector data
+      (`DSL_Mapper_Addon.xml:264`, `value:find("indoors")` → `"inside"`),
+      so an indoor→outdoor edge is detectable without new capture work;
+      `MyDSL.State.weather` only updates when the player manually types
+      `weather`, so ambient background / the Moon/Weather widget can go
+      stale for a long walk. Same class of automation as the already-
+      approved auto-drink/eat (`send("weather")` on a real detected
+      transition, assists upkeep, doesn't decide anything for the
+      player). Not built yet — real feature work, not a bug fix.
 - [ ] **Roller — comparison stats + reconnect timer.** The timer-widget
       half is ready to scope directly: `MyDSL_AlterformView.lua` is a
       ready-made template (standalone Geyser countdown window, sound
