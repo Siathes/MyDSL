@@ -330,6 +330,34 @@ MyDSL.Theme.presets = MyDSL.Theme.presets or {
     warnColor      = { r = 180, g =  90, b =  70, a = 255 },
     goodColor      = { r = 120, g = 160, b = 100, a = 255 },
   },
+
+  -- ---- Rainbow (theme-builder tool) --------------------------------
+  -- Added 2026-08-30, per Steven: "that is so fun i want you to leave
+  -- that in as a test theme for anyone that wants to build a theme."
+  -- Companion to `theme debug rainbow` (which maps NATIVE Mudlet chrome
+  -- selector-by-selector) -- this one is a real, selectable theme that
+  -- gives each of the 9 per-window color keys its own loud, distinct
+  -- hue, so a theme builder can see at a glance exactly which key
+  -- controls which part of a real MyDSL window (title bar text vs.
+  -- background, body text, dim/highlight/warn/good spans, border) --
+  -- see this file's own header comment ("WHAT EACH KEY AFFECTS") for
+  -- the full written reference this pairs with. Deliberately loud/ugly
+  -- on purpose, same as the chrome debug tool -- not meant for real use.
+  rainbow = {
+    font = "Noto Sans Mono", fontSize = 9,
+    titleFont = "Noto Sans Mono", titleFontSize = 9,
+    bgColor        = { r =  64, g =  32, b =  32, a = 255 },  -- panel background
+    textColor      = { r =   0, g = 255, b = 255, a = 255 },  -- body text
+    borderColor    = { r = 255, g = 102, b =   0, a = 255 },  -- panel border
+    borderSize     = 2,
+    radius         = 0,
+    titleColor     = { r = 255, g = 255, b =   0, a = 255 },  -- title bar text
+    titleBgColor   = { r =   0, g = 102, b =   0, a = 255 },  -- title bar background
+    highlightColor = { r = 255, g =   0, b = 255, a = 255 },  -- highlight/emphasis text
+    dimColor       = { r = 102, g = 153, b = 255, a = 255 },  -- dim/secondary text
+    warnColor      = { r = 255, g =   0, b =   0, a = 255 },  -- warn/danger text
+    goodColor      = { r =   0, g = 255, b =   0, a = 255 },  -- good/success text
+  },
 }
 
 -- Explicit display/listing order -- pairs() iteration order over
@@ -338,6 +366,7 @@ MyDSL.Theme.presets = MyDSL.Theme.presets or {
 MyDSL.Theme.presetOrder = MyDSL.Theme.presetOrder or {
   "refined_convergence", "terminal_purist", "zoned_hud",
   "obsidian_ember", "arcane_midnight", "tron_blue", "muted_scroll_nature",
+  "rainbow",
 }
 
 
@@ -684,20 +713,37 @@ end
 -- debugRainbowCSS() / setDebugRainbow() -- added 2026-08-30, per Steven's
 -- direct ask ("map, research all the options that we can color, then
 -- make a theme that has a different color in a fashion you can track
--- with screenshots. so you can map the theme areas?"). Real gap found
--- live: his own screenshots after `theme chrome full` show the menu bar,
--- icon toolbar, Search/toolbar buttons, and the Wait gauge all STILL
--- default grey/white, despite appStyleSheetCSS() genuinely including
--- QMenuBar/QToolBar/QPushButton/QToolButton/QProgressBar rules (verified
--- directly -- the generated CSS string does contain them). Rather than
--- guess why (a Linux desktop's native/global-menu theming bypassing Qt
--- stylesheets for specific widget classes is one real, common cause, but
--- unconfirmed here), this gives every one of the same rules its OWN
--- loud, mutually-unmistakable color -- one screenshot then tells us
--- definitively which selectors actually reach their real widget and
--- which don't, instead of theorizing further. Diagnostic only -- not a
--- real preset, not in presetOrder/list, never persisted as the active
--- theme. `theme debug rainbow` / `theme debug off` (restores whatever
+-- with screenshots. so you can map the theme areas?"), then KEPT IN
+-- PERMANENTLY per his direct follow-up after trying it live ("that is so
+-- fun i want you to leave that in as a test theme for anyone that wants
+-- to build a theme") -- this is intentionally a real, permanent, public
+-- feature now, not a throwaway diagnostic. Companion tool: the `rainbow`
+-- entry in MyDSL.Theme.presets above does the same thing for the 9
+-- per-window color keys (a real, selectable theme); this one covers the
+-- other half -- NATIVE Mudlet chrome, which is not part of any preset's
+-- own key set.
+--
+-- CONFIRMED RESULTS, live-tested 2026-08-30 on Steven's system (not
+-- theoretical -- read from his own rainbow screenshot), kept here so a
+-- future theme builder doesn't have to re-discover this:
+--   REAL, styleable via setAppStyleSheet(): QMenuBar (top menu bar),
+--     QToolBar (icon toolbar strip), QComboBox (dropdowns), QScrollBar
+--     (track AND the width/height shrink both took effect).
+--   NOT reachable this way (confirmed still default grey/white in the
+--     same screenshot despite the CSS genuinely targeting them): the
+--     Search button and toolbar icon buttons, the Wait/Tick gauges, and
+--     the command-line input. These are almost certainly custom Mudlet-
+--     drawn widgets, not real QPushButton/QProgressBar/QLineEdit
+--     instances -- no generic Qt class selector can reach them from
+--     Lua. Not a bug in this CSS; a real platform/widget-implementation
+--     limit.
+--   UNCONFIRMED either way: QMenu/QMenu::item (no dropdown/right-click
+--     menu was open in the test screenshot), QTabBar (Chat's own tabs
+--     happened to already be a similar blue from the active theme
+--     itself, so the rainbow's blue tones weren't visually distinguishable
+--     from that coincidence -- re-test with a theme whose own colors
+--     aren't blue to get a clean read).
+-- `theme debug rainbow` / `theme debug off` (restores whatever
 -- chromeMode+theme were actually active).
 function MyDSL.Theme.debugRainbowCSS()
   return [[

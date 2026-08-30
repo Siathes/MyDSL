@@ -22,7 +22,7 @@ local function resetTheme()
   MyDSL.Theme.presets["my_custom"] = nil
   MyDSL.Theme.customPresets = {}
   for i = #MyDSL.Theme.presetOrder, 1, -1 do
-    if not table.contains({ "refined_convergence", "terminal_purist", "zoned_hud", "obsidian_ember", "arcane_midnight", "tron_blue", "muted_scroll_nature" }, MyDSL.Theme.presetOrder[i]) then
+    if not table.contains({ "refined_convergence", "terminal_purist", "zoned_hud", "obsidian_ember", "arcane_midnight", "tron_blue", "muted_scroll_nature", "rainbow" }, MyDSL.Theme.presetOrder[i]) then
       table.remove(MyDSL.Theme.presetOrder, i)
     end
   end

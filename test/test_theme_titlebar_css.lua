@@ -97,6 +97,16 @@ check("titleBarCSS text color for muted_scroll_nature is its titleColor (196,180
 check("titleBarCSS background for muted_scroll_nature is titleBgColor (120,110,60 @ 90/255)",
   contains(titleBar5, "background-color: rgba(120,110,60,0.35)"))
 
+-- ---- rainbow (theme-builder tool): titleColor 255,255,0, titleBgColor 0,102,0 @ 255/255 ----
+
+MyDSL.Theme.setTheme("rainbow")
+
+local titleBar6 = MyDSL.Theme.titleBarCSS("MyDSL_Scan")
+check("titleBarCSS text color for rainbow is its titleColor (255,255,0, bright yellow)",
+  contains(titleBar6, "color: rgba(255,255,0,1.00)"))
+check("titleBarCSS background for rainbow is titleBgColor (0,102,0, bright green, fully opaque)",
+  contains(titleBar6, "background-color: rgba(0,102,0,1.00)"))
+
 -- ---- headerLabelCSS is gone -- one bar, not two ----------------------------
 
 check("MyDSL.Theme.headerLabelCSS no longer exists -- the separate-Label mechanism was removed",
