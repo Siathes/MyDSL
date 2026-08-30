@@ -3271,9 +3271,16 @@ function C.installAliases()
   tempAlias([[^emco notify (.+)$]], [[MyDSL.Chat.addNotifyTab(matches[2])]])
   tempAlias([[^emco unnotify (.+)$]], [[MyDSL.Chat.removeNotifyTab(matches[2])]])
   tempAlias([[^emco blink (\S+)$]], [[MyDSL.Chat.setBlink(matches[2])]])
-  tempAlias([[^emco blankLine (\S+)$]], [[MyDSL.Chat.setBlankLine(matches[2])]])
+  -- Case-insensitive on the camelCase verbs only ("blankLine"/"fontSize") --
+  -- real friction found 2026-08-30 via MyDSL Test's notes.json (Steven:
+  -- "i got huh? on emco fontsize 9"). The lowercase-typo version of a
+  -- multi-word verb never matched the exact-case regex, so it fell
+  -- straight through as an unrecognized game command (DSL's own "huh?").
+  -- Every other emco verb here is already all-lowercase, so this doesn't
+  -- change how they match.
+  tempAlias([[(?i)^emco blankLine (\S+)$]], [[MyDSL.Chat.setBlankLine(matches[2])]])
   tempAlias([[^emco color (\S+) (.+)$]], [[MyDSL.Chat.setColor(matches[2], matches[3])]])
-  tempAlias([[^emco fontSize (\d+)$]], [[MyDSL.Chat.setFont(matches[2])]])
+  tempAlias([[(?i)^emco fontSize (\d+)$]], [[MyDSL.Chat.setFont(matches[2])]])
   tempAlias([[^emco timestamp (\S+)$]], [[MyDSL.Chat.setTimestamp(matches[2])]])
   tempAlias([[^emco save$]], [[MyDSL.Chat.saveSettings(); MyDSL.Chat.status()]])
   tempAlias([[^emco load$]], [[MyDSL.Chat.loadSettings(); MyDSL.Chat.applyFont(); MyDSL.Chat.applyWrap(); MyDSL.Chat.applyTimestamp(); MyDSL.Chat.status()]])

@@ -371,6 +371,63 @@ if map.dsl and map.dsl.highlightPlayersNear then
   map.dsl.highlightPlayersNear("MyDSL.playersNear.parsed", {})  -- empty where result -- e.g. nobody nearby
   check("an empty where result turns every highlight off immediately, no lingering/fading",
     #highlightCalls == 0 and #unhighlightCalls == 1 and #map.dsl.player_highlighted_rooms == 0)
+
+  -- Real bug found live 2026-08-30 via screenshot (Steven: "does it
+  -- track me (kien) also, it shouldnt track the player") -- DSL's own
+  -- `where` output includes the player's own name/room (confirmed via
+  -- the same screenshot's "Players Near" panel: "Kien A Long Bare
+  -- Hallway"), and since a no-relation-on-file entry highlights neutral
+  -- gold, the player's own trail lit up gold as they walked, matching
+  -- "terrain coloring is jumping around with gold rooms" exactly. Self
+  -- is now filtered via MyDSL.charName() + dslKey(), the same real
+  -- globals already used for the friend/enemy lookup above.
+  _G.MyDSL = _G.MyDSL or {}
+  _G.MyDSL.charName = function() return "Kien" end
+  highlightCalls, unhighlightCalls = {}, {}
+  map.dsl.highlightPlayersNear("MyDSL.playersNear.parsed", {
+    { name = "Kien", room = "Town Square" },
+    { name = "Meki", room = "Market" },
+  })
+  check("the logged-in character's own name is never highlighted, even though DSL's own where output includes it",
+    #highlightCalls == 1 and highlightCalls[1].rid == 21)
+end
+
+------------------------------------------------------------------------
+-- healCorruptedRoomName() -- added 2026-08-30, real bug found live via
+-- screenshot + mapper_desync_log.txt (Steven: "something happened to
+-- make the room name capture fail, see the screenshot it got some prompt
+-- info in it"). Stock's own private raw-text room-name scan occasionally
+-- grabs Kien's own configured DSL prompt-echo line ("==-Night Time -
+-- 5:30am :: [room] :: [exits]-==") instead of the real room name --
+-- confirmed via the log: room 1102 was permanently created with that
+-- literal string as its name while fresh GMCP said "A Trail Near the
+-- Ocean" one second later. Two-part fix: (1) the "^==%-%u.*$" entry added
+-- to installAddonOverrides()'s ignore_patterns defaults (not directly
+-- unit-testable here -- stock's own consumer of that list is private),
+-- and (2) this function, the retroactive half -- self-heals an already-
+-- corrupted room's name the next time it's genuinely GMCP-confirmed
+-- visited, same self-heal shape as syncRoomDescription() above.
+------------------------------------------------------------------------
+if map.dsl and map.dsl.healCorruptedRoomName then
+  _G.__rooms[1102] = { exists = true, userdata = {}, name =
+    "==-Night Time - 5:30am :: [The Western-Most Point of Arkania] :: [NSW-NW-SW-SE]-==" }
+  map.dsl.gmcp = map.dsl.gmcp or {}
+  map.dsl.gmcp.room_data = { room = "A Trail Near the Ocean" }
+  map.dsl.gmcp.room_data_time = os.time()
+  map.dsl.healCorruptedRoomName(1102)
+  check("a room whose stored name looks like a prompt echo gets repaired from fresh GMCP",
+    getRoomName(1102) == "A Trail Near the Ocean")
+
+  _G.__rooms[1103] = { exists = true, userdata = {}, name = "A Genuine Room Name" }
+  map.dsl.healCorruptedRoomName(1103)
+  check("a room with a normal, non-prompt-echo name is left completely untouched",
+    getRoomName(1103) == "A Genuine Room Name")
+
+  _G.__rooms[1104] = { exists = true, userdata = {}, name = "==-Night Time - 5:30am :: [x] :: [y]-==" }
+  map.dsl.gmcp.room_data_time = os.time() - 10
+  map.dsl.healCorruptedRoomName(1104)
+  check("a corrupted name is left alone rather than guessed at when GMCP isn't fresh enough to trust",
+    getRoomName(1104) ~= "A Trail Near the Ocean")
 end
 
 print(string.format("\n%d failure(s)", failures))

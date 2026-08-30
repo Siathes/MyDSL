@@ -167,6 +167,20 @@ forward instead of a separate scratch file.*
   keybind play `characterflapping.mp3` when flying / `characterwalk.mp3`
   when not. (This is what those two loose `.mp3` files at the profile root
   are for — not orphaned assets, they're waiting on this trigger wiring.)
+- **Stun/lag timer display, from MyDSL Test's notes.json (2026-08-30).**
+  Steven: "is there a way to have a stun/lag timer display after some
+  echoes. some skills have pre lag, post lag, stuns which make you unable
+  to do some actions/spells for a certain duration... is there a way to
+  have a graphical nice timer? circling the mouse would be insanely good.
+  it can be manually added so we dont have to find all stun echoes?" Needs
+  scoping before building: (1) which specific echoes mark lag/stun start
+  (would need real corpus examples per skill, same "don't guess the
+  pattern" standard as everything else here — a manually-addable/
+  configurable list per his own suggestion sidesteps needing to enumerate
+  every one up front); (2) a visual design for the timer itself (a
+  circular/radial countdown was his own idea — check Mudlet's Lua UI
+  functions for anything that supports this before assuming a custom
+  QML/Geyser build is needed).
 
 ## Research questions (for a future "have AI summarize this" pass)
 

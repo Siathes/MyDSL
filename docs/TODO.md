@@ -224,7 +224,31 @@ question, folded in per Steven 2026-08-29 rather than a separate check.
       readable) via its own `dslKey()` normalizer — friend=green,
       enemy=red, no relation on file=neutral gold. 5 tests rewritten,
       23 total passing. `DSL_Mapper_Addon.mpackage` rebuilt (v0.2.15),
-      published to the existing release. Needs Steven to confirm live.
+      published to the existing release. **Steven confirmed live** ("
+      relationship colors work nicely and size is fine").
+      **Two more real bugs found the same live session (v0.2.16):**
+      (1) player-highlighting included Kien's own name — DSL's own
+      `where` output lists the player themselves, and since a
+      no-relation entry highlights neutral gold, his own trail was
+      lighting up gold as he walked ("terrain coloring is jumping
+      around with gold rooms" was this bug, not a terrain bug).
+      `highlightPlayersNear()` now skips any entry matching
+      `MyDSL.charName()`. (2) room name capture corrupted by Kien's own
+      configured DSL prompt line ("something happened to make the room
+      name capture fail... it got some prompt info in it") —
+      `mapper_desync_log.txt` caught it directly: stock's private
+      raw-text room-name scan grabbed the whole prompt echo
+      ("==-Night Time - 5:30am :: [room] :: [exits]-==") as a new
+      room's name while fresh GMCP said the real name a second later.
+      Fixed via a `map.save.ignore_patterns` entry (stops future
+      occurrences) plus `healCorruptedRoomName()` (retroactively repairs
+      any room already corrupted this way from fresh GMCP). Also
+      defaulted `stretch_map` off per Steven's direct ask ("what are the
+      settings to turn of the shifting of the rooms when mapping... i
+      want those as default") — confirmed via stock's own help text
+      this is the room-pushed-to-make-space behavior. 6 new regression
+      tests. `DSL_Mapper_Addon.mpackage` rebuilt (v0.2.16), published.
+      Needs Steven to confirm all three live.
 - [ ] **Help window doesn't reappear after a manual close — narrowed, not
       yet fixed.** Steven: first report was clicking a help topic link
       did nothing after closing the window once; follow-up confirmed

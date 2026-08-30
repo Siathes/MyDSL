@@ -118,7 +118,7 @@ registerAnonymousEventHandler("sysUninstallPackage", "dslMapperAddonInstallUnins
 local profilePath = getMudletHomeDir()
 
 map.dsl = map.dsl or {}
-map.dsl.version = "0.2.15"
+map.dsl.version = "0.2.16"
 map.dsl.base = "Generic Mapper 2.1.8"
 map.dsl.gmcp = map.dsl.gmcp or {}
 map.dsl.line_buffer = map.dsl.line_buffer or {}
@@ -1026,12 +1026,43 @@ function map.dsl.syncRoomDescription()
   end
 end
 
+-- healCorruptedRoomName(rid) -- added 2026-08-30, same finding as the
+-- "^==-[A-Z]" ignore_patterns entry above (see that comment for the full
+-- writeup) -- this is the other, retroactive half: adding the ignore
+-- pattern only stops FUTURE occurrences, it does nothing for a room like
+-- 1102 whose name was already permanently corrupted to the raw prompt
+-- line before the pattern existed. Every real GMCP-confirmed visit to
+-- such a room is a chance to notice and repair it: if the stored name
+-- looks like a prompt echo (matches the same pattern) and fresh GMCP
+-- disagrees, trust GMCP and overwrite -- GMCP is the authoritative name
+-- source this whole addon already relies on elsewhere (roomLooksStale(),
+-- applyRoomMetadata()), never a guess.
+local DSL_PROMPT_ECHO_PATTERN = "^==%-%u"
+function map.dsl.healCorruptedRoomName(rid)
+  if not rid or not map.roomexists or not map.roomexists(rid) then return end
+  local stored = getRoomName(rid)
+  if not stored or not stored:match(DSL_PROMPT_ECHO_PATTERN) then return end
+  local rd = map.dsl.gmcp and map.dsl.gmcp.room_data
+  local rdFresh = rd and map.dsl.gmcp.room_data_time
+    and (os.time() - map.dsl.gmcp.room_data_time) &lt;= DSL_GMCP_ROOMDATA_TIMEOUT
+  if not rdFresh or not rd.room then return end
+  local gmcpName = tostring(rd.room):trim()
+  if gmcpName == "" or gmcpName:lower() == "darkness" then return end
+  setRoomName(rid, gmcpName)
+  if map.dsl.logDesync then
+    map.dsl.logDesync(string.format(
+      "healCorruptedRoomName: room=%s stored name looked like a prompt echo, replaced with gmcp name %q",
+      tostring(rid), gmcpName))
+  end
+end
+
 function map.dsl.onGenericNewRoom()
   if map.dsl.logDesync then
     map.dsl.logDesync(string.format(
       "onNewRoom fired: stock resolved map.currentRoom=%s name=%q",
       tostring(map.currentRoom), tostring(map.currentRoom and getRoomName(map.currentRoom))))
   end
+  map.dsl.healCorruptedRoomName(map.currentRoom)
   map.dsl.syncRoomDescription()
   map.dsl.applyRoomMetadata()
   map.dsl.announceAreaChange(map.currentRoom)
@@ -1231,8 +1262,9 @@ function map.dsl.highlightPlayersNear(event, list)
   end
   map.dsl.player_highlighted_rooms = {}
   if not list then return end
+  local selfKey = MyDSL and MyDSL.charName and dslKey and dslKey(MyDSL.charName())
   for _, entry in ipairs(list) do
-    if entry.room and entry.room ~= "" then
+    if entry.room and entry.room ~= "" and not (selfKey and entry.name and dslKey(entry.name) == selfKey) then
       local c = dsl_playerHighlightColor(entry.name)
       local ok, matches = pcall(searchRoom, entry.room, false, true)
       if ok and type(matches) == "table" then
@@ -1250,6 +1282,7 @@ function map.dsl.install()
   if map.defaults then
     map.defaults.use_description_matching = false
     map.defaults.download_path = ""
+    map.defaults.stretch_map = false
   end
   if map.configs then
     -- REVERSED 2026-08-30 -- this used to force description matching ON
@@ -1285,9 +1318,21 @@ function map.dsl.install()
     -- reload/reconnect), silently reverting a player's own "map config
     -- search_on_look true" with no message. Now it only sets the default
     -- once.
+    -- stretch_map defaults off, added 2026-08-30 per Steven ("what are the
+    -- settings to turn of the shifting of the rooms when mapping... i
+    -- want those as default"). Stock's own real help text (map.help.config)
+    -- confirms this is exactly that setting: "When adding a new room that
+    -- would overlap an existing room, if this is set the map will stretch
+    -- out to prevent the overlap, with all rooms further in the direction
+    -- moved getting pushed one further in that direction" -- i.e. existing
+    -- rooms visibly shift position on the map to make space. Stock's own
+    -- shipped default is `true`; same once-only first-install pattern as
+    -- the two settings above so a later `map config stretch_map true`
+    -- opt-back-in is never silently reverted.
     if not map.configs.dsl_generic_mapper_seen then
       map.configs.use_description_matching = false
       map.configs.search_on_look = false
+      map.configs.stretch_map = false
     end
     map.configs.dsl_generic_mapper_seen = true
     map.configs.dsl_generic_mapper_version = map.dsl.version
@@ -1306,7 +1351,36 @@ function map.dsl.install()
     "^gmcp event &lt;gmcp%.add_affect&gt; display%(gmcp%) to see the full content$",
     "^gmcp event &lt;gmcp%.remove_affect&gt; display%(gmcp%) to see the full content$",
     "^%[ INFO %].*$",
-    "^%[  OK  %].*$"
+    "^%[  OK  %].*$",
+    -- Real bug found live 2026-08-30 via screenshot (Steven: "something
+    -- happened to make the room name capture fail, see the screenshot it
+    -- got some prompt info in it"). mapper_desync_log.txt pinned the exact
+    -- moment: stock resolved a brand-new room (id 1102) with name literally
+    -- set to "==-Night Time - 5:30am :: [The Western-Most Point of
+    -- Arkania] :: [NSW-NW-SW-SE]-==" -- Kien's own configured DSL prompt
+    -- line (MyDSL_PromptSetup.lua's promptString) -- while fresh GMCP one
+    -- second later reported the real name, "A Trail Near the Ocean".
+    -- Stock's private raw-text room-name scan (see this file's own
+    -- "map ignore" help text: "any text that might appear after a command
+    -- is sent to move and before the room name appears... should have an
+    -- ignore pattern added for it") occasionally catches this prompt echo
+    -- sitting in that window and mistakes it for the room name -- our own
+    -- map.prompt.room GMCP override (beforeExits()) only wins when it runs
+    -- before stock's own scan does, and evidently lost that race here.
+    -- ignore_patterns is the correct, public, save-persisted lever for
+    -- this exact class of problem (used above for hunger/thirst spam etc).
+    -- Same prompt shape MyDSL_DataLayer_PromptVitals.lua already
+    -- recognizes (Night Time/Day Time/Dawn and the name-echo variant) --
+    -- NOT a straight copy of that file's own PCRE pattern ("^==-[A-Z]"),
+    -- since stock consumes ignore_patterns via string.gsub() (confirmed:
+    -- current/*.xml's real move_map(), "for k,v in ipairs(map.save.
+    -- ignore_patterns) do cur_line = string.gsub(cur_line,v,'') end"),
+    -- i.e. Lua patterns, not PCRE -- an un-escaped "-" right after "="
+    -- would be read as a lazy quantifier on "=", not a literal hyphen.
+    -- ".*$" added so the WHOLE line is consumed (matching every other
+    -- entry in this list), not just its "==-N" prefix, so the leftover
+    -- text can't itself get mistaken for a room name.
+    "^==%-%u.*$"
   }
   for _, pat in ipairs(defaults) do
     if not table.contains(map.save.ignore_patterns, pat) then table.insert(map.save.ignore_patterns, pat) end
