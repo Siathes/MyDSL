@@ -253,6 +253,78 @@ end
 -- information not the room info") -- these two plus the identity/info/
 -- attribute rows below are "the information"; roomTitle/roomMeta/
 -- exitsCon (the room name/terrain/exits) are deliberately left alone.
+
+-- THEME_BAR_COLORS -- added 2026-08-30 for tron_blue specifically (per
+-- Steven's direct follow-up, "id like to change the hp/mana/move into
+-- tron colors appropriate or look, research tron themes"), renamed +
+-- extended to every theme SAME DAY once he asked for a full "release
+-- themes" pass ("now that you know all items... make it a whole teme
+-- look... 2-3 randoms from previous themes that round it out"). Each
+-- entry is a light/mid/dark triplet per bar for styleBarFill()'s
+-- existing 3-stop gradient sheen -- HP/Mana/Move/Improve all get their
+-- own palette now, not just tron_blue. Declared here, ahead of every
+-- function that reads it (styleBarNumCentered() below, colorSet()
+-- further down) -- Lua locals are only visible to code AFTER their own
+-- declaration, so this must come first or those closures would silently
+-- resolve THEME_BAR_COLORS as an undefined global instead.
+--
+-- tron_blue -- HP/Move from a documented Tron Legacy palette (huehive.co,
+--   Neon Blue #00A3E0 / Neon Green #00FF00); Mana tuned by Steven
+--   directly via the live interactive preview artifact (a yellow ->
+--   orange -> red fire gradient, replacing the initial Electric Purple
+--   research pick); Improve reuses that freed-up Electric Purple
+--   (#A500FF, same researched palette).
+-- muted_scroll_nature -- earthy/outdoors: terracotta HP, forest-teal
+--   Mana, autumn-gold Move, mossy-sage Improve.
+-- library -- indoors/bookish: wine-red HP, ink-blue Mana, brass-gold
+--   Move, banker's-lamp-green Improve (matches the preset's own
+--   goodColor choice for the same reason -- a real, recognizable
+--   library object, not an arbitrary green).
+-- pink_pastel -- soft accent family matching the preset's own dark-
+--   plum-plus-pastel-accent design: dusty rose HP, lavender Mana, mint
+--   Move, soft gold Improve.
+-- obsidian_ember / arcane_midnight -- each theme's own accent hue
+--   (ember orange-red / arcane violet) carried into HP, with the other
+--   three bars picked for contrast against it, not copies of it.
+local THEME_BAR_COLORS = {
+  tron_blue = {
+    hp      = { "#78d2f5", "#00a3e0", "#003c5a" },  -- Neon Blue
+    mana    = { "#f6d32d", "#ff7800", "#e01b24" },  -- yellow -> orange -> red
+    move    = { "#8cff8c", "#00ff00", "#005a00" },  -- Neon Green
+    improve = { "#d9a3ff", "#a500ff", "#380066" },  -- Electric Purple
+  },
+  muted_scroll_nature = {
+    hp      = { "#e08a6a", "#b8452a", "#4a1810" },  -- terracotta
+    mana    = { "#8ac9b8", "#3f9478", "#1a3d30" },  -- forest teal
+    move    = { "#c9a86a", "#8a6a2a", "#3d2e10" },  -- autumn gold-brown
+    improve = { "#a8c98a", "#6a944a", "#2e4a1a" },  -- mossy sage
+  },
+  library = {
+    hp      = { "#c96a6a", "#8a2a2a", "#3d1010" },  -- wine red
+    mana    = { "#7a9ac9", "#2a4a8a", "#10203d" },  -- ink blue
+    move    = { "#e0c07a", "#b8862a", "#4a3510" },  -- brass gold
+    improve = { "#8ac98a", "#4a944a", "#1a4a1a" },  -- banker's-lamp green
+  },
+  pink_pastel = {
+    hp      = { "#f5b8c8", "#e07a9a", "#8a3550" },  -- dusty rose
+    mana    = { "#d0b8f5", "#a87ae0", "#5a3590" },  -- lavender
+    move    = { "#b8f5d8", "#7ae0ab", "#359065" },  -- mint
+    improve = { "#f5e0b8", "#e0b87a", "#906a35" },  -- soft gold
+  },
+  obsidian_ember = {
+    hp      = { "#ff9a6a", "#e64a20", "#5a1a0a" },  -- ember orange-red
+    mana    = { "#8a9ab8", "#3a4a68", "#151d2e" },  -- deep blue-grey
+    move    = { "#e0c080", "#b88a30", "#4a3510" },  -- warm gold
+    improve = { "#f0c080", "#d69440", "#5a3a10" },  -- amber (matches highlightColor)
+  },
+  arcane_midnight = {
+    hp      = { "#e06a90", "#a82a5a", "#4a1030" },  -- crimson-violet
+    mana    = { "#c090ff", "#8a3aff", "#3a1080" },  -- bright violet (matches theme)
+    move    = { "#7ae0c0", "#2ab890", "#0f4a3a" },  -- teal (contrast)
+    improve = { "#e0a0f0", "#b060d6", "#4a1a5a" },  -- violet-pink (matches highlightColor)
+  },
+}
+
 local function styleBarLabel()
   return string.format([[
     background-color: rgba(0,0,0,0);
@@ -288,15 +360,19 @@ end
 -- centered-text-on-the-fill look Steven asked for, Improve-only —
 -- transparent background so the gradient fill shows through underneath.
 -- Text color themed 2026-08-30 per Steven ("find a nice tron purple feel
--- for the improve bar and text") -- this function is only ever used for
--- the Improve bar (see the ternary at its call site below), so a
--- tron_blue check here is unambiguous without needing a kind parameter.
--- Same glow-on-dark-surface logic as every other tron_blue accent: a
--- brightened tint of the bar's own purple, not the raw fill color, so
--- it reads clearly against the gradient underneath.
+-- for the improve bar and text"), generalized same day alongside every
+-- other theme's own Improve palette (THEME_BAR_COLORS above) -- this
+-- function is only ever used for the Improve bar (see the ternary at its
+-- call site below), so reusing that same table here is unambiguous.
+-- Reuses the bar's own "light" gradient stop as the text color -- already
+-- a bright, legible tint in the bar's own hue family, so text and fill
+-- always read as one cohesive accent instead of needing a second,
+-- separately-tuned color table.
 local function styleBarNumCentered()
   local color = "#f5f0ff"
-  if MyDSL.Theme and MyDSL.Theme.active == "tron_blue" then color = "#e0b3ff" end
+  local active = MyDSL.Theme and MyDSL.Theme.active
+  local themed = active and THEME_BAR_COLORS[active] and THEME_BAR_COLORS[active].improve
+  if themed then color = themed[1] end
   return string.format([[
     background-color: rgba(0,0,0,0);
     color: %s;
@@ -308,40 +384,14 @@ local function styleBarNumCentered()
   ]], color, math.max(6, (tonumber(L.config.barFont) or 8) + 2))
 end
 
--- TRON_BAR_COLORS -- added 2026-08-30, per Steven's direct follow-up
--- ("id like to change the hp/mana/move into tron colors appropriate or
--- look, research tron themes"). HP/Move started from a documented Tron
--- Legacy palette (huehive.co) -- Neon Blue #00A3E0, Neon Green #00FF00.
--- Mana's own hue was then tuned by Steven directly via the live
--- interactive preview artifact (dragged swatches against a real
--- recreation of this gradient, handed back exact hex values) -- a
--- yellow -> orange -> red fire gradient, replacing the initial Electric
--- Purple research pick with his own preferred look. All three stay
--- visually distinct (the bar's own text label already disambiguates
--- them too, so exact hue no longer needs to carry the entire "which
--- stat is this" job the way red/blue/green universally does for every
--- OTHER preset). Each is a light/mid/dark triplet for styleBarFill()'s
--- existing 3-stop gradient sheen.
-local TRON_BAR_COLORS = {
-  hp      = { "#78d2f5", "#00a3e0", "#003c5a" },  -- Neon Blue
-  mana    = { "#f6d32d", "#ff7800", "#e01b24" },  -- yellow -> orange -> red
-  move    = { "#8cff8c", "#00ff00", "#005a00" },  -- Neon Green
-  -- Added 2026-08-30 per Steven ("find a nice tron purple feel for the
-  -- improve bar and text") -- the same researched Electric Purple
-  -- (#A500FF, huehive.co's Tron Legacy palette) originally slated for
-  -- Mana before its own fire-gradient redesign, freeing this hue up for
-  -- Improve instead.
-  improve = { "#d9a3ff", "#a500ff", "#380066" },  -- Electric Purple
-}
-
--- colorSet(kind) -- theme-conditional 2026-08-30 (see TRON_BAR_COLORS
--- above): every OTHER preset keeps HP/Mana/Move's universal red/blue/
--- green (a real MUD-UI convention worth preserving generally), only
--- tron_blue swaps to the researched Tron palette, per Steven's explicit
--- ask for THAT theme specifically.
+-- colorSet(kind) -- theme-conditional (see THEME_BAR_COLORS above):
+-- a theme with no entry here keeps HP/Mana/Move's universal red/blue/
+-- green (a real MUD-UI convention worth preserving as the default).
 function L.colorSet(kind)
-  if MyDSL.Theme and MyDSL.Theme.active == "tron_blue" and TRON_BAR_COLORS[kind] then
-    local t = TRON_BAR_COLORS[kind]
+  local active = MyDSL.Theme and MyDSL.Theme.active
+  local themed = active and THEME_BAR_COLORS[active]
+  if themed and themed[kind] then
+    local t = themed[kind]
     return t[1], t[2], t[3]
   end
   if kind == "hp" then return "#ff7777", "#cc2525", "#7d1010" end

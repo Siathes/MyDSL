@@ -226,10 +226,21 @@ MyDSL.Theme.presets = MyDSL.Theme.presets or {
   -- ("Obsidian Ember"). Clean near-black, hairline borders, warm ember
   -- accent -- the cheapest of the ChatGPT directions to build 1:1 since
   -- it needs no new art assets, just color/border/font values.
+  -- bgGradient added 2026-08-30 -- picked as one of the "2-3 that round
+  -- it out" release themes, per Steven's request, brought up to the same
+  -- full-treatment standard as tron_blue (gradient background + its own
+  -- HP/Mana/Move/Improve bar palette, see THEME_BAR_COLORS in
+  -- MyDSL_LiveView.lua). Subtle near-black-to-warm-ember gradient, not a
+  -- dramatic one -- this preset's whole identity is restraint (see its
+  -- own original design comment below), so the gradient stays understated.
   obsidian_ember = {
     font = "Noto Sans Mono", fontSize = 9,
     titleFont = "Noto Sans Mono", titleFontSize = 9,
     bgColor        = { r =  13, g =  13, b =  13, a = 240 },
+    bgGradient     = {
+      from = { r =  10, g =  10, b =  10, a = 240 },
+      to   = { r =  24, g =  16, b =  12, a = 240 },
+    },
     textColor      = { r = 225, g = 220, b = 210, a = 255 },
     borderColor    = { r =  38, g =  38, b =  38, a = 200 },
     borderSize     = 1,
@@ -246,10 +257,16 @@ MyDSL.Theme.presets = MyDSL.Theme.presets or {
   -- Adapted from a ChatGPT concept render Steven supplied 2026-07-11
   -- ("Arcane Midnight v2"). Deep indigo/violet, distinct from every other
   -- preset's blue/teal/amber families.
+  -- bgGradient added 2026-08-30 -- the other "round it out" release
+  -- theme, same full-treatment pass as obsidian_ember above.
   arcane_midnight = {
     font = "Noto Sans Mono", fontSize = 9,
     titleFont = "Noto Sans Mono", titleFontSize = 9,
     bgColor        = { r =  20, g =  16, b =  36, a = 240 },
+    bgGradient     = {
+      from = { r =  10, g =   8, b =  20, a = 240 },
+      to   = { r =  28, g =  20, b =  48, a = 240 },
+    },
     textColor      = { r = 216, g = 210, b = 232, a = 255 },
     borderColor    = { r =  59, g =  46, b =  91, a = 195 },
     borderSize     = 1,
@@ -288,13 +305,31 @@ MyDSL.Theme.presets = MyDSL.Theme.presets or {
   -- Tuned 2026-08-30 via the live interactive preview artifact (Steven
   -- dragged swatches against a real recreation of this preset's own CSS,
   -- then handed back the exact resulting hex values -- no more guess-
-  -- and-screenshot rounds). borderColor/titleColor/titleBgColor are the
-  -- only three RGB values that actually changed from the prior deepening
-  -- pass; everything else was already right and confirmed unchanged.
+  -- and-screenshot rounds). borderColor/titleColor/titleBgColor were the
+  -- three RGB values that changed from the prior deepening pass.
+  -- FULL REWRITE 2026-08-30, same day, per Steven's "now that you know
+  -- all items" ask: "a dark blue cradient with a plash of electic neon
+  -- blue, make it a whole teme look." bgGradient (new preset key, see
+  -- panelCSS()'s own comment) replaces the old flat near-black bgColor --
+  -- true near-black at the top fading into the tuned deep navy
+  -- (5,15,104, the same blue the interactive-preview pass already
+  -- confirmed correct) at the bottom, so every window panel actually
+  -- reads as a gradient, not a flat fill. bgColor is kept as the flat
+  -- fallback for MiniConsoles (styleConsole() has no gradient path) and
+  -- for any older code that reads bgColor directly. borderColor/
+  -- titleColor/highlightColor stay the confirmed neon-cyan glow accents
+  -- -- that contrast against the now-gradient surface IS "a splash of
+  -- electric neon blue." HP/Mana/Move/Improve bar colors (see
+  -- THEME_BAR_COLORS in MyDSL_LiveView.lua) are unchanged -- already
+  -- separately tuned and approved this same session.
   tron_blue = {
     font = "Noto Sans Mono", fontSize = 9,
     titleFont = "Noto Sans Mono", titleFontSize = 9,
     bgColor        = { r =   4, g =   7, b =  12, a = 248 },
+    bgGradient     = {
+      from = { r =   2, g =   3, b =  10, a = 250 },
+      to   = { r =   5, g =  15, b = 104, a = 250 },
+    },
     textColor      = { r = 210, g = 240, b = 245, a = 255 },
     borderColor    = { r =  12, g =  30, b = 162, a = 210 },
     borderSize     = 1,
@@ -315,10 +350,18 @@ MyDSL.Theme.presets = MyDSL.Theme.presets or {
   -- Steven's own explicit word, so the parchment/nature feel comes from
   -- warm tan text and earthy border/accent tones sitting on a dark base,
   -- not from a bright page-colored background.
+  -- bgGradient added 2026-08-30, same "full release theme" parity pass
+  -- as obsidian_ember/arcane_midnight/library/pink_pastel -- bark-brown
+  -- top fading into a deeper forest green at the bottom, matching this
+  -- preset's own earthy identity.
   muted_scroll_nature = {
     font = "Noto Sans Mono", fontSize = 9,
     titleFont = "Noto Sans Mono", titleFontSize = 9,
     bgColor        = { r =  24, g =  26, b =  18, a = 240 },
+    bgGradient     = {
+      from = { r =  24, g =  26, b =  18, a = 240 },
+      to   = { r =  14, g =  28, b =  16, a = 240 },
+    },
     textColor      = { r = 214, g = 200, b = 170, a = 255 },
     borderColor    = { r =  70, g =  64, b =  42, a = 200 },
     borderSize     = 1,
@@ -329,6 +372,65 @@ MyDSL.Theme.presets = MyDSL.Theme.presets or {
     dimColor       = { r = 110, g = 112, b =  96, a = 255 },
     warnColor      = { r = 180, g =  90, b =  70, a = 255 },
     goodColor      = { r = 120, g = 160, b = 100, a = 255 },
+  },
+
+  -- ---- H: Leatherbound Library --------------------------------------
+  -- Added 2026-08-30, a distinct theme from muted_scroll_nature per
+  -- Steven's own split ("nature theme AND scroll/library themed" as two
+  -- separate presets, not one). Where nature is outdoors/earthy, this is
+  -- indoors/bookish: dark aged-wood and worn leather, brass fittings,
+  -- cream parchment text, a deep banker's-lamp green for "good" (a real,
+  -- recognizable library object -- the green-glass desk lamp -- rather
+  -- than an arbitrary green).
+  library = {
+    font = "Noto Sans Mono", fontSize = 9,
+    titleFont = "Noto Sans Mono", titleFontSize = 9,
+    bgColor        = { r =  26, g =  16, b =  10, a = 245 },
+    bgGradient     = {
+      from = { r =  18, g =  11, b =   7, a = 245 },
+      to   = { r =  38, g =  24, b =  14, a = 245 },
+    },
+    textColor      = { r = 222, g = 205, b = 170, a = 255 },
+    borderColor    = { r = 110, g =  70, b =  30, a = 210 },
+    borderSize     = 1,
+    radius         = 5,
+    titleColor     = { r = 200, g = 160, b =  70, a = 255 },
+    titleBgColor   = { r =  60, g =  38, b =  18, a = 200 },
+    highlightColor = { r = 230, g = 190, b = 110, a = 255 },
+    dimColor       = { r = 140, g = 120, b =  95, a = 255 },
+    warnColor      = { r = 170, g =  60, b =  40, a = 255 },
+    goodColor      = { r = 110, g = 150, b =  90, a = 255 },
+  },
+
+  -- ---- I: Pink Pastel -------------------------------------------------
+  -- Added 2026-08-30, per Steven's direct ask ("one pink pastle
+  -- themed"). Deliberately NOT a literal light/cream pastel background
+  -- -- every DSL color (bright yellows, whites, cyans) is tuned for a
+  -- dark console, and a light background would wash all of it out or
+  -- force re-tuning DSL's own text colors, which this project has never
+  -- done for any other preset. "Pastel" comes through as soft,
+  -- desaturated ACCENT colors (dusty rose, lavender, mint) against a
+  -- dark plum base instead -- same dark-console approach every other
+  -- preset here uses, just with a gentler, softer accent family than
+  -- tron_blue's neon or obsidian_ember's ember.
+  pink_pastel = {
+    font = "Noto Sans Mono", fontSize = 9,
+    titleFont = "Noto Sans Mono", titleFontSize = 9,
+    bgColor        = { r =  30, g =  20, b =  28, a = 245 },
+    bgGradient     = {
+      from = { r =  24, g =  16, b =  22, a = 245 },
+      to   = { r =  45, g =  30, b =  38, a = 245 },
+    },
+    textColor      = { r = 235, g = 215, b = 220, a = 255 },
+    borderColor    = { r = 200, g = 140, b = 160, a = 200 },
+    borderSize     = 1,
+    radius         = 10,
+    titleColor     = { r = 240, g = 190, b = 210, a = 255 },
+    titleBgColor   = { r =  80, g =  50, b =  65, a = 190 },
+    highlightColor = { r = 255, g = 200, b = 230, a = 255 },
+    dimColor       = { r = 150, g = 120, b = 130, a = 255 },
+    warnColor      = { r = 220, g = 110, b = 110, a = 255 },
+    goodColor      = { r = 150, g = 210, b = 180, a = 255 },
   },
 
   -- ---- Rainbow (theme-builder tool) --------------------------------
@@ -366,7 +468,7 @@ MyDSL.Theme.presets = MyDSL.Theme.presets or {
 MyDSL.Theme.presetOrder = MyDSL.Theme.presetOrder or {
   "refined_convergence", "terminal_purist", "zoned_hud",
   "obsidian_ember", "arcane_midnight", "tron_blue", "muted_scroll_nature",
-  "rainbow",
+  "library", "pink_pastel", "rainbow",
 }
 
 
@@ -507,6 +609,48 @@ function MyDSL.Theme.setTheme(name)
   MyDSL.Theme.saveActive()
   MyDSL.Theme.applyAppStyleSheet()
   raiseEvent("MyDSL.theme.changed", name)
+  return true
+end
+
+-- stepTheme(delta) -- added 2026-08-30, per Steven ("add a theme
+-- next/prev command to walk through themes?"). Walks presetOrder
+-- (the same real, stable order 'theme list' already shows), wrapping
+-- at both ends so "next" from the last theme reaches the first and vice
+-- versa. Returns the name it switched to, or nil if presetOrder is
+-- somehow empty (never happens in practice -- defensive only).
+function MyDSL.Theme.stepTheme(delta)
+  local order = MyDSL.Theme.presetOrder
+  local n = #order
+  if n == 0 then return nil end
+  local idx = table.index_of and table.index_of(order, MyDSL.Theme.active)
+  if not idx then
+    for i, name in ipairs(order) do
+      if name == MyDSL.Theme.active then idx = i break end
+    end
+  end
+  idx = idx or 1
+  local nextIdx = ((idx - 1 + delta) % n) + 1
+  local name = order[nextIdx]
+  MyDSL.Theme.setTheme(name)
+  return name
+end
+
+-- resetToDefault() -- added 2026-08-30, per Steven ("there should also
+-- be a restore to mudlet defauls"). A single escape hatch for someone
+-- who's been trying themes (rainbow included) and wants back to a known-
+-- safe baseline in one step, rather than remembering both `theme set`
+-- and `theme chrome` separately. "refined_convergence" is this file's
+-- own original lowest-risk preset (its own header comment: "Lowest
+-- risk" -- promotes the pre-existing Live/Tick look to every window
+-- rather than inventing a new style), paired with chromeMode "ui" so
+-- native Mudlet chrome goes back to its real out-of-the-box look too --
+-- together the closest this project can get to "Mudlet defaults" (MyDSL
+-- windows themselves have no Mudlet-native default to fall back to,
+-- since Mudlet doesn't define what a MyDSL window looks like).
+function MyDSL.Theme.resetToDefault()
+  MyDSL.Theme.setDebugRainbow(false)
+  MyDSL.Theme.chromeMode = "ui"
+  MyDSL.Theme.setTheme("refined_convergence")
   return true
 end
 
@@ -853,14 +997,32 @@ end
 -- declarations only (no selector) -- this is what a Label's
 -- setStyleSheet() needs, and it's what LiveView/AlterformView/TickView's
 -- own background Labels use it for.
+-- bgGradient -- optional preset key added 2026-08-30, per Steven's tron_blue
+-- rewrite ask ("a dark blue cradient with a splash of electic neon
+-- blue"). {from={r,g,b,a}, to={r,g,b,a}} -- top-to-bottom, same real Qt
+-- QLinearGradient mechanism MyDSL_LiveView.lua's styleBarFill() already
+-- uses successfully for the HP/Mana/Move bar sheen, just two stops
+-- instead of four. Entirely optional -- a preset with no bgGradient key
+-- falls back to its flat bgColor exactly as before, so this never
+-- breaks a preset that doesn't define one.
 function MyDSL.Theme.panelCSS(windowName)
-  local bg     = MyDSL.Theme.get(windowName, "bgColor")
-  local border = MyDSL.Theme.get(windowName, "borderColor")
-  local size   = MyDSL.Theme.get(windowName, "borderSize") or 1
-  local radius = MyDSL.Theme.get(windowName, "radius") or 0
+  local bg       = MyDSL.Theme.get(windowName, "bgColor")
+  local gradient = MyDSL.Theme.get(windowName, "bgGradient")
+  local border   = MyDSL.Theme.get(windowName, "borderColor")
+  local size     = MyDSL.Theme.get(windowName, "borderSize") or 1
+  local radius   = MyDSL.Theme.get(windowName, "radius") or 0
+  local bgCSS
+  if type(gradient) == "table" and gradient.from and gradient.to then
+    bgCSS = string.format(
+      "QLinearGradient(x1:0, y1:0, x2:0, y2:1, stop:0 %s, stop:1 %s)",
+      MyDSL.Theme.colorToCSS(gradient.from), MyDSL.Theme.colorToCSS(gradient.to)
+    )
+  else
+    bgCSS = MyDSL.Theme.colorToCSS(bg)
+  end
   return string.format(
     "background-color: %s; border: %dpx solid %s; border-radius: %dpx;",
-    MyDSL.Theme.colorToCSS(bg), size, MyDSL.Theme.colorToCSS(border), radius
+    bgCSS, size, MyDSL.Theme.colorToCSS(border), radius
   )
 end
 
@@ -1163,6 +1325,23 @@ if not MyDSL.Theme._aliasesInstalled then
     else
       cecho("\n<firebrick>[MyDSL] Unknown theme '" .. tostring(name) .. "'. Try 'theme list'.\n")
     end
+  end)
+
+  -- "theme next/prev" -- added 2026-08-30, per Steven ("add a theme
+  -- next/prev command to walk through themes?"). Walks MyDSL.Theme
+  -- .presetOrder (the same stable, real display order 'theme list'
+  -- already uses), wrapping around both ends.
+  tempAlias("^theme (next|prev)$", function()
+    local name = MyDSL.Theme.stepTheme(matches[2] == "next" and 1 or -1)
+    cecho("\n<green>[MyDSL] Theme set to '" .. tostring(name) .. "'.\n")
+  end)
+
+  -- "theme reset" -- added 2026-08-30, per Steven ("there should also be
+  -- a restore to mudlet defauls"). See MyDSL.Theme.resetToDefault()'s
+  -- own comment above for the full writeup.
+  tempAlias("^theme reset$", function()
+    MyDSL.Theme.resetToDefault()
+    cecho("\n<green>[MyDSL] Theme reset -- 'refined_convergence' + chrome 'ui' (native Mudlet UI back to its own default look).\n")
   end)
 
   -- "theme chrome full/ui" -- added 2026-08-30, per Steven's "2 versions

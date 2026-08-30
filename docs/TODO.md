@@ -817,6 +817,19 @@ one at a time:
       this same gap, found and fixed along the way — there may be
       others; some UserWindow-vs-Container styling gaps are already on
       record elsewhere in this file too).
+      **2026-08-30, same day: "release themes" pass done.** tron_blue
+      fully rewritten (real gradient background + neon splash, "a whole
+      teme look"), plus 4 more per Steven's direct ask: `library` and
+      `pink_pastel` (new), `obsidian_ember`/`arcane_midnight` (existing,
+      brought up to the same standard) — all 6 now share dedicated
+      HP/Mana/Move/Improve bar palettes and gradient backgrounds. Also
+      added `theme next`/`prev` (walk through themes) and `theme reset`
+      (one-step restore to a safe baseline). A final parity sweep across
+      all 10 presets found and fixed one real gap (muted_scroll_nature's
+      missing bgGradient) before shipping. **Still open**: which theme
+      Steven wants as the actual DEFAULT (item 1 above) — still his own
+      call, not decided by any of this work. Needs live confirm on all 6
+      release themes plus the two new commands.
 - [ ] **Skill-based affect tracking (e.g. `hide`)** — Steven, "MyDSL Test"
       `notes.json`: "its a skill not a cast, need a method for tracking
       skills like spells?" `MyDSL_AffectsView.lua`'s tracking today is
