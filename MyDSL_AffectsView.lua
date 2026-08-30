@@ -945,9 +945,9 @@ function A.status()
      "; wrap=" .. tostring(A.config.missingWrapWidth) ..
      "; timerMode=" .. tostring(A.config.timerMode) ..
      "; castCommand=" .. tostring(A.config.castCommand) ..
-     "; customCommands=" .. tostring(tableCount(A.customCommands or {})) ..
+     "; customCommands=" .. tostring(table.size(A.customCommands or {})) ..
      "; aliasVersion=" .. tostring(A.aliasVersion) ..
-     "; links=" .. tostring(tableCount(A._linkTargets or {})) ..
+     "; links=" .. tostring(table.size(A._linkTargets or {})) ..
      "; character=" .. tostring(A.charName()) ..
      "; file=" .. tostring(A.dataFile()))
 end

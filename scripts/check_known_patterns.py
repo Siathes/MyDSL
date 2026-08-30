@@ -72,7 +72,42 @@ RULES = [
         "as of the 2026-07-21 audit; this rule exists to keep it that way.",
         ".lua",
     ),
+    (
+        "python-style-f-string",
+        # Requires an actual { after the opening quote (before it closes) --
+        # a bare `\bf["']` also matches incidental "...f" string endings
+        # like `["%%f"] = ...` (the f is the last char of an unrelated
+        # string, not an f-string prefix) -- confirmed false-positiving on
+        # 6 real lines in PNP files/EMCOChat/MyDSL_DataLayer_Combat.lua
+        # before this was tightened. Every real f-string bug found this
+        # session had a {...} placeholder, since that's the entire point
+        # of using one.
+        re.compile(r"""\bf(['"])[^'"]*\{"""),
+        "f\"...\"/f'...' Python-style string interpolation does not exist "
+        "in Lua -- this parses as calling a function named f with a "
+        "string argument, which errors at runtime ('attempt to call "
+        "global \\'f\\' (a nil value)') unless f happens to be defined. "
+        "Confirmed hit twice: the DSL PNP 4 community package (checked "
+        "2026-08-29, not adopted because of this) and, independently, "
+        "live in this project's own MyDSL_Chat.lua (8 real call sites, "
+        "fixed same day -- see docs/CHANGELOG.md 2026-08-29). Use string "
+        "concatenation (..) instead.",
+        ".lua",
+    ),
 ]
+
+
+# Directories excluded from every rule: confirmed-dead vendored code this
+# project has explicitly decided not to maintain or fix (CLAUDE.md:
+# "EMCO is already fully integrated... confirmed dead vendored copy,
+# nothing further to do"). Flagging real bugs here forever would make
+# this sweep a permanently-red gate for something nobody's going to
+# touch -- added 2026-08-29 after the python-style-f-string rule (also
+# added that day) found 8 real, genuine hits in EMCOChat/emco.lua, the
+# unused predecessor MyDSL_Chat.lua was ported from and fixed
+# independently. If EMCOChat/ is ever revived/re-integrated, remove it
+# from this list first.
+EXCLUDED_DIRS = ("EMCOChat/",)
 
 
 def find_lua_files():
@@ -80,7 +115,10 @@ def find_lua_files():
         ["git", "-C", str(REPO_ROOT), "ls-files", "*.lua"],
         capture_output=True, text=True, check=True,
     )
-    return [REPO_ROOT / p for p in result.stdout.splitlines() if p.strip()]
+    return [
+        REPO_ROOT / p for p in result.stdout.splitlines()
+        if p.strip() and not p.startswith(EXCLUDED_DIRS)
+    ]
 
 
 def check_file(path: Path):

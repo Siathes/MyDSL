@@ -969,7 +969,7 @@ end
 -- @usage myEMCO:enableCmdLine(tabName, template)
 function EMCO:enableCmdLine(tabName, template)
   if not table.contains(self.consoles, tabName) then
-    return nil, f"{self.name}:enableCmdLine(tabName,template) tabName is not in the console list. Valid options are {table.concat(self.consoles, 'm')}"
+    return nil, self.name .. ":enableCmdLine(tabName,template) tabName is not in the console list. Valid options are " .. table.concat(self.consoles, 'm')
   end
   local window = self.mc[tabName]
   window:enableCommandLine()
@@ -997,7 +997,7 @@ end
 -- @tparam string tabName the name of the tab to disable the command line of.
 function EMCO:disableCmdLine(tabName)
   if not table.contains(self.consoles, tabName) then
-    return nil, f"{self.name}:disableCmdLine(tabName,template) tabName is not in the console list. Valid options are {table.concat(self.consoles, 'm')}"
+    return nil, self.name .. ":disableCmdLine(tabName,template) tabName is not in the console list. Valid options are " .. table.concat(self.consoles, 'm')
   end
   local window = self.mc[tabName]
   window:disableCommandLine()
@@ -1814,7 +1814,7 @@ end
 function EMCO:sendNotification(tabName, msg)
   if self.notifyWithFocus or not hasFocus() then
     if self.notifyTabs[tabName] then
-      showNotification(f'{self.name}:{tabName}', msg)
+      showNotification(self.name .. ':' .. tabName, msg)
     end
   end
 end
@@ -1831,7 +1831,7 @@ function EMCO:xEcho(tabName, message, xtype, excludeAll)
     local line = getCurrentLine()
     local mute, reason = self:matchesGag(line)
     if mute then
-      debugc(f"{self.name}:append(tabName) denied because current line matches the pattern '{reason}'")
+      debugc(self.name .. ":append(tabName) denied because current line matches the pattern '" .. tostring(reason) .. "'")
       return
     end
     selectCurrentLine()
@@ -1850,7 +1850,7 @@ function EMCO:xEcho(tabName, message, xtype, excludeAll)
   else
     local mute, reason = self:matchesGag(message)
     if mute then
-      debugc(f"{self.name}:{xtype}(tabName, msg, excludeAll) denied because msg matches '{reason}'")
+      debugc(self.name .. ":" .. tostring(xtype) .. "(tabName, msg, excludeAll) denied because msg matches '" .. tostring(reason) .. "'")
       return
     end
     ofr, ofg, ofb = Geyser.Color.parse("white")
@@ -1981,7 +1981,7 @@ end
 function EMCO:xLink(tabName, linkType, text, commands, hints, useCurrentFormat, excludeAll)
   local gag, reason = self:matchesGag(text)
   if gag then
-    debugc(f"{self.name}:{linkType}(tabName, text, command, hint, excludeAll) denied because text matches '{reason}'")
+    debugc(self.name .. ":" .. tostring(linkType) .. "(tabName, text, command, hint, excludeAll) denied because text matches '" .. tostring(reason) .. "'")
     return
   end
   local console = self.mc[tabName]
@@ -2351,7 +2351,7 @@ end
 function EMCO:enableTabLogging(tabName)
   local console = self.mc[tabName]
   if not console then
-    debugc(f"EMCO:enableTabLogging(tabName): tabName {tabName} not found.")
+    debugc("EMCO:enableTabLogging(tabName): tabName " .. tostring(tabName) .. " not found.")
     return
   end
   console.log = true
@@ -2364,7 +2364,7 @@ end
 function EMCO:disableTabLogging(tabName)
   local console = self.mc[tabName]
   if not console then
-    debugc(f"EMCO:disableTabLogging(tabName): tabName {tabName} not found.")
+    debugc("EMCO:disableTabLogging(tabName): tabName " .. tostring(tabName) .. " not found.")
     return
   end
   console.log = false

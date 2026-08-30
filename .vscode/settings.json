@@ -8,6 +8,14 @@
   "Lua.diagnostics.disable": ["lowercase-global"],
   "Lua.diagnostics.globals": [
     "MyDSL", "Geyser", "Adjustable", "demonnic",
+    // MyCore -- an optional external package this profile doesn't ship
+    // (not vendored, not in this repo); several MyDSL_*.lua files read
+    // it as a soft fallback for character name/GMCP state (always
+    // guarded, e.g. `if MyCore and MyCore.getChar then` -- see
+    // MyDSL_DataLayer.lua's MyDSL.charName()), confirmed 2026-08-29 via
+    // a full Lua-language-server diagnostic sweep. Real, intentional,
+    // just undeclared -- not a typo.
+    "MyCore",
     "cecho", "hecho", "decho", "echo", "cechoLink", "cechoPopup",
     "send", "sendAll", "expandAlias", "sendGMCP",
     "tempTimer", "tempTrigger", "tempAlias", "tempButtonToolbar",
