@@ -33,10 +33,30 @@
     "deleteRoom", "getAllRoomEntrances",
     "getRoomExits", "setExitStub", "updateMap",
     "downloadFile", "unzipAsync",
-    "yajl", "utf8"
+    "yajl", "utf8",
+    // Added 2026-08-30 after a full lua-language-server --check sweep
+    // (996 problems flagged headless vs. the real, settings.json-aware
+    // count VSCode itself shows) confirmed these are real Mudlet Lua API
+    // functions this project's own .lua files call, just never added to
+    // this list -- not bugs.
+    "hideWindow", "showWindow", "resizeWindow", "setBackgroundColor",
+    "getAvailableFonts", "getTime", "rex", "saveWindowLayout",
+    "saveProfile", "createMapper", "hasFocus", "showMenu", "setFont",
+    "setBorderTop", "setBorderRight", "setBorderLeft", "setBorderBottom",
+    "getRGB", "copy2decho", "copy2html", "decho2string", "hecho2string",
+    "getColumnNumber", "tempPromptTrigger", "showNotification",
+    "stopStopWatch"
   ],
   "Lua.workspace.checkThirdParty": false,
   "Lua.workspace.maxPreload": 3000,
+  // Added 2026-08-30, same sweep as above: "PNP files/" (vendored PNP
+  // reference source, never edited -- see CLAUDE.md) and "EMCOChat/"
+  // (confirmed-dead vendored EMCO copy, see CLAUDE.md's MyDSL 1.0
+  // mandate note) accounted for 605 of 996 flagged problems combined.
+  // Neither is this project's own code, so there's nothing to fix there --
+  // exclude both from diagnostics entirely rather than leaving that noise
+  // in every file's Problems count.
+  "Lua.workspace.ignoreDir": ["PNP files/", "EMCOChat/"],
   // Raised 2026-08-29 (was 1000 KB) -- MyDSL/creaturelore_db.lua (1.1MB)
   // and MyDSL/itemlore_db.lua (2.1MB, largest of these table.save()
   // data dumps) were both being skipped by the language server and
