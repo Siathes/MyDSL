@@ -1,8 +1,12 @@
--- Regression test for MyDSL_AmbientBackground.lua, added 2026-08-30.
--- Focuses on the pure gradient math (AB.computeColor) and the base-color
--- snapshot/restore guards, since those are the genuinely new logic --
--- the module reuses MyDSL_MoonWeather's already-tested clock/weather
--- accessors rather than re-deriving either.
+-- Regression test for MyDSL_AmbientBackground.lua, added 2026-08-30,
+-- updated same day for two live-feedback redesigns: (1) single subtle
+-- color per weather + a continuous day/night lightness curve, replacing
+-- the original four-keyframe two-color-per-weather gradient; (2) a real
+-- multi-step fade between colors instead of an instant snap. Focuses on
+-- the pure gradient math (AB.computeColor), the fade mechanism, and the
+-- base-color snapshot/restore guards -- the module reuses
+-- MyDSL_MoonWeather's already-tested clock/weather accessors rather than
+-- re-deriving either.
 --
 -- Run: luajit test/test_ambient_background.lua
 
@@ -22,6 +26,11 @@ _G.setBackgroundColor = function(name, r, g, b, a)
 end
 local fakeRealBg = { 12, 12, 14 }
 _G.getBackgroundColor = function(name) return fakeRealBg[1], fakeRealBg[2], fakeRealBg[3], 255 end
+-- mudlet_mock.lua's shared tempTimer is a no-op by default (same note as
+-- test_login.lua) -- fire immediately here so a fadeTo() sequence's full
+-- chain of steps completes synchronously within one apply() call, same
+-- override convention already established there.
+_G.tempTimer = function(delay, fn) if type(fn) == "function" then fn() end; return 1 end
 
 -- Stand in for MyDSL_MoonWeather so the module's own event-driven apply()
 -- path is exercisable without loading that whole file too.
@@ -35,13 +44,14 @@ dofile("MyDSL_AmbientBackground.lua")
 local AB = MyDSL.Ambient
 
 ------------------------------------------------------------------------
--- computeColor() -- pure gradient math
+-- computeColor() -- pure gradient math (single color per weather + a
+-- continuous cosine day/night lightness curve)
 ------------------------------------------------------------------------
 local base = { 10, 10, 10 }
 
 local midnight = AB.computeColor(0, "Clear", base)
-check("midnight blends strongly toward black (near base*0.1, not base itself)",
-  midnight[1] <= 3 and midnight[2] <= 3 and midnight[3] <= 3)
+check("midnight is darker than the real base color (darkened toward black)",
+  midnight[1] < base[1])
 
 local noon = AB.computeColor(720, "Clear", base)
 check("noon is noticeably brighter than midnight but still far from the raw weather color (subtle, not garish)",
@@ -49,11 +59,13 @@ check("noon is noticeably brighter than midnight but still far from the raw weat
 
 local dawn = AB.computeColor(360, "Clear", base)
 local dusk = AB.computeColor(1080, "Clear", base)
-check("dawn and dusk produce the identical color (same palette entry, symmetric keyframes)",
+check("dawn and dusk produce the identical color (the day/night curve is symmetric around noon/midnight)",
   dawn[1] == dusk[1] and dawn[2] == dusk[2] and dawn[3] == dusk[3])
+check("dawn/dusk sit strictly between midnight and noon in brightness",
+  dawn[1] > midnight[1] and dawn[1] < noon[1])
 
 local noonStorm = AB.computeColor(720, "Storm", base)
-check("weather category changes the noon color (Storm's palette differs from Clear's)",
+check("weather category changes the color (Storm's palette differs from Clear's)",
   noonStorm[1] ~= noon[1] or noonStorm[2] ~= noon[2] or noonStorm[3] ~= noon[3])
 
 local noonUnknown = AB.computeColor(720, "SomeUnrecognizedCategory", base)
@@ -79,13 +91,26 @@ check("captureBase() never overwrites an existing snapshot, even if the live bac
   AB.config.baseColor[1] == 12)
 
 ------------------------------------------------------------------------
--- enable()/disable() -- real console calls
+-- apply() / fadeTo() -- real console calls, faded not snapped
 ------------------------------------------------------------------------
 AB.config.enabled = true
+AB._currentApplied = nil
 bgCalls = {}
 AB.apply()
-check("apply() while enabled calls setBackgroundColor on the real 'main' console",
+check("the very first apply() this session snaps once (nothing to fade from yet)",
   #bgCalls == 1 and bgCalls[1].name == "main" and bgCalls[1].a == 255)
+
+-- A different target (noon instead of midnight) should now fade in
+-- multiple steps rather than jump straight there.
+MyDSL.MoonWeather.currentGameMinutes = function() return 720 end
+bgCalls = {}
+AB.apply()
+check("a changed target fades across more than one step, not an instant jump",
+  #bgCalls > 1)
+local expected = AB.computeColor(720, "Clear", AB.config.baseColor)
+local last = bgCalls[#bgCalls]
+check("the fade's final step lands exactly on the real computed target color",
+  last.r == expected[1] and last.g == expected[2] and last.b == expected[3])
 
 bgCalls = {}
 AB.config.enabled = false
@@ -95,7 +120,7 @@ check("apply() while disabled makes no console calls at all",
 
 bgCalls = {}
 AB.restoreBase()
-check("restoreBase() sets the console back to the exact snapshotted base color",
+check("restoreBase() sets the console back to the exact snapshotted base color, in one instant call (not faded)",
   #bgCalls == 1 and bgCalls[1].r == 12 and bgCalls[1].g == 12 and bgCalls[1].b == 14)
 
 print(string.format("\n%d failure(s)", failures))

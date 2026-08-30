@@ -215,6 +215,57 @@ MyDSL.Theme.presets = MyDSL.Theme.presets or {
     warnColor      = { r = 230, g =  90, b = 110, a = 255 },
     goodColor      = { r = 110, g = 210, b = 160, a = 255 },
   },
+
+  -- ---- F: Tron Blue -----------------------------------------------------
+  -- Added 2026-08-30, per Steven's direct ask ("a shiny tron blue theme").
+  -- Near-black base with sharp corners (radius=2, the lowest of any preset
+  -- here besides terminal_purist's 0 -- Tron's whole aesthetic is angular
+  -- grid lines, not soft rounding) and a bright electric-cyan accent doing
+  -- double duty as border/title/highlight. warnColor deliberately breaks
+  -- from every other preset's red-family warning color and uses Tron's
+  -- own real in-universe contrast color instead -- the films' antagonist
+  -- programs/vehicles are consistently orange against the protagonist
+  -- side's cyan, so an orange warnColor reads as "authentically Tron,"
+  -- not an arbitrary color choice.
+  tron_blue = {
+    font = "Noto Sans Mono", fontSize = 9,
+    titleFont = "Noto Sans Mono", titleFontSize = 9,
+    bgColor        = { r =   6, g =  10, b =  16, a = 245 },
+    textColor      = { r = 210, g = 240, b = 245, a = 255 },
+    borderColor    = { r =   0, g = 200, b = 255, a = 200 },
+    borderSize     = 1,
+    radius         = 2,
+    titleColor     = { r =  80, g = 230, b = 255, a = 255 },
+    titleBgColor   = { r =   0, g = 180, b = 255, a =  90 },
+    highlightColor = { r = 140, g = 255, b = 255, a = 255 },
+    dimColor       = { r =  90, g = 120, b = 140, a = 255 },
+    warnColor      = { r = 255, g = 110, b =  40, a = 255 },
+    goodColor      = { r =  80, g = 230, b = 170, a = 255 },
+  },
+
+  -- ---- G: Muted Scroll Nature --------------------------------------------
+  -- Added 2026-08-30, per Steven's direct ask ("another muted scroll
+  -- nature theme"). Deep olive-bark background rather than a literal
+  -- bright parchment cream -- a light background would fight readability
+  -- and contrast against every other preset here, and "muted" was
+  -- Steven's own explicit word, so the parchment/nature feel comes from
+  -- warm tan text and earthy border/accent tones sitting on a dark base,
+  -- not from a bright page-colored background.
+  muted_scroll_nature = {
+    font = "Noto Sans Mono", fontSize = 9,
+    titleFont = "Noto Sans Mono", titleFontSize = 9,
+    bgColor        = { r =  24, g =  26, b =  18, a = 240 },
+    textColor      = { r = 214, g = 200, b = 170, a = 255 },
+    borderColor    = { r =  70, g =  64, b =  42, a = 200 },
+    borderSize     = 1,
+    radius         = 6,
+    titleColor     = { r = 196, g = 180, b = 110, a = 255 },
+    titleBgColor   = { r = 120, g = 110, b =  60, a =  90 },
+    highlightColor = { r = 210, g = 175, b =  90, a = 255 },
+    dimColor       = { r = 110, g = 112, b =  96, a = 255 },
+    warnColor      = { r = 180, g =  90, b =  70, a = 255 },
+    goodColor      = { r = 120, g = 160, b = 100, a = 255 },
+  },
 }
 
 -- Explicit display/listing order -- pairs() iteration order over
@@ -222,7 +273,7 @@ MyDSL.Theme.presets = MyDSL.Theme.presets or {
 -- presets in a stable, meaningful order every time.
 MyDSL.Theme.presetOrder = MyDSL.Theme.presetOrder or {
   "refined_convergence", "terminal_purist", "zoned_hud",
-  "obsidian_ember", "arcane_midnight",
+  "obsidian_ember", "arcane_midnight", "tron_blue", "muted_scroll_nature",
 }
 
 

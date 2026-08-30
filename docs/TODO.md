@@ -112,7 +112,18 @@ question, folded in per Steven 2026-08-29 rather than a separate check.
       besides the one message, like a running echo ...Mapping, something
       unobtrusive and clean?" Not scoped yet — needs a design decision on
       where it lives (prompt/vitals bar? a small persistent marker in an
-      existing window?) before building.
+      existing window?) before building. **Refined 2026-08-30, from
+      MyDSL Test's notes.json**: "for the display wether mapping, not
+      mapping question of how and where. is there the ability to put a
+      tag/flag in the command line or in front of it? Mapping [command
+      line], [mapping - command line]" — a specific placement idea (a
+      tag prefixed onto the command-input line itself) added to the
+      still-open design-decision list above. Needs research before
+      building: does Mudlet's own command-line API support a persistent
+      prefix/decoration (vs. `appendCmdLine()`'s one-shot text insertion,
+      already used elsewhere in this codebase for the login-setup
+      popup), or would this need a separate small label docked right
+      next to the input line instead.
 - [ ] **Mapper: terrain color not applying, "red boxes instead of
       forest" — real bug found + fixed 2026-08-30, needs live confirm.**
       Steven's own live-test report after the public mapper addon
@@ -249,21 +260,27 @@ question, folded in per Steven 2026-08-29 rather than a separate check.
       this is the room-pushed-to-make-space behavior. 6 new regression
       tests. `DSL_Mapper_Addon.mpackage` rebuilt (v0.2.16), published.
       Needs Steven to confirm all three live.
-- [ ] **Help window doesn't reappear after a manual close — narrowed, not
-      yet fixed.** Steven: first report was clicking a help topic link
-      did nothing after closing the window once; follow-up confirmed
-      "no visible window after mydsl help" — the plain text command fails
-      too, not just the click-link path, ruling out a link-specific bug.
-      `MyDSL.Windows.show()` has no "already visible" guard blocking a
-      re-show, so the bug is likely Mudlet-level: closing a
-      `Geyser.UserWindow` via its native title-bar X can leave the
-      underlying widget in a state a plain `:show()` can't recover, while
-      the script-side object reference still looks valid to
-      `MyDSL.Windows.ensure()`. Not fixed blind — needs either a live
-      repro with `mydsl help` immediately after a close (does it error,
-      or just silently do nothing?) or a defensive rewrite of `show()`
-      to detect a stale window and recreate it, which needs confirming
-      the actual Mudlet-side failure mode first.
+- [x] **Help window doesn't reappear after a manual close — no longer
+      reproducing, per Steven's own live report 2026-08-30 + screenshots**
+      ("help reappeared and is back in my dock after popping up large").
+      Original theory (a stale `Geyser.UserWindow` object surviving a
+      native title-bar close, unrecoverable by a plain `:show()`) was
+      never actually fixed in code this session — the profile reinstall/
+      restart done earlier the same session most likely cleared whatever
+      stale widget state was involved, consistent with that theory.
+      Separately, fixed a real but different, lower-stakes bug the same
+      screenshots caught: `MyDSL_Help` had no `MyDSL_LayoutEngine.lua`
+      default at all (same exact gap `MyDSL_ItemReference` had before its
+      own 2026-07-16 fix — see that entry's comment), so its FIRST-EVER
+      creation fell back to the generic oversized "5%,5%,35%,30%"
+      default before Mudlet's auto-dock shrank it down to its real small
+      resting slot above Chat — exactly what "popping up large" then
+      "back in my dock" (small) describes. Added a real default
+      (`x=0.66, y=0.00, w=0.34, h=0.06`, matching where it actually
+      lands) so a fresh profile doesn't get the oversized flash on first
+      open. Leaving this checked off provisionally — re-open if the
+      original no-reappear symptom (not the size flash) comes back on a
+      normal close+reopen with no restart in between.
 - [ ] **AffectsView: click-to-track/untrack on a spell — real constraint
       found, concrete design pitched, not yet built.** Steven: "can we
       rightclick add to tracked untrack (any recommend options) on the
@@ -516,17 +533,23 @@ item above rather than needing its own decision.)*
 Fixed in code (or already known-good), none of it closed until Steven
 confirms it in-game. Bundle these into upcoming play sessions rather than
 one at a time:
-- [ ] **Ambient background gradient, built 2026-08-30** (Steven: "is there
-      a way to set the background color of the main screen during day and
-      night... full black at midnight, and a subtle but noticeable at its
-      brightest color for noon... syncs [with] moon weather... MATCHES
-      THE WEATHER"). New module `MyDSL_AmbientBackground.lua`, on by
-      default. `mydsl ambient off` reverts to your exact real background
-      if it's too much, `mydsl ambient status` shows current state. Needs:
-      does it actually look right live (color choices are a first-pass
-      guess, not tuned against how it actually reads against real DSL
-      text colors), does the gradient feel smooth across a real session,
-      does `mydsl ambient off` cleanly restore your real background.
+- [ ] **Ambient background gradient, built + redesigned 3x 2026-08-30,
+      same live session while Steven was actually testing it.** Original
+      ask, then "much more subtle," then "pick some subte but distinct
+      colors for the weather, then have the time of day brighten or
+      darken that color," then "it will also need to fade between colors
+      so its not jarring" — see `docs/CHANGELOG.md`'s three 2026-08-30
+      ambient entries for the full trace. Current shape: one subtle
+      color per weather category, a smooth cosine day/night lightness
+      curve (no fixed dawn/dusk hue anymore), a constant 0.20 blend
+      strength against your real console, and a 10-step 2-second fade
+      between targets. New module `MyDSL_AmbientBackground.lua`, on by
+      default. `mydsl ambient off` reverts to your exact real background,
+      `mydsl ambient status` shows current state. Needs live confirm:
+      does the new single-color-per-weather + brighten/darken model read
+      right, does the fade actually feel smooth (not jarring) on a real
+      weather change, is 0.20 the right constant strength or does it
+      need its own tuning pass.
 - [ ] **Login credential setup popup, built 2026-08-30** (Steven: "add a
       way for the user to add the login information like a pop up UI for
       the first setup (i dont want users to have to edit code for basic
@@ -772,6 +795,21 @@ one at a time:
          per-line decoration — sidesteps line-editing entirely.
       Needs Steven's input on which direction, or a live test of option 1
       before committing to it.
+- [ ] **Theme default + a new "tron blue" palette — idea, not scoped.**
+      Steven, `MyDSL Test/notes.json` (2026-08-30): "find one of the
+      themes i liked and make it default, and parity across modules. if
+      you can think of a new one that matches or MyDSL style and
+      features/functions like that cool package icon you made go for it
+      and add one more. do a research for a pallet that would stand out
+      maybe in the tron blue style." Three separate asks bundled: (1)
+      which existing `MyDSL_ThemeEngine.lua` preset does Steven actually
+      mean by "one of the themes i liked" — needs his own pick, not a
+      guess; (2) a "parity across modules" audit — confirm every window
+      actually reads its colors from the active theme rather than a
+      hardcoded value (some UserWindow-vs-Container styling gaps are
+      already on record elsewhere in this file); (3) a genuinely new
+      "tron blue" preset — needs a real palette research pass before
+      building, same standard as every other design decision here.
 - [ ] **Skill-based affect tracking (e.g. `hide`)** — Steven, "MyDSL Test"
       `notes.json`: "its a skill not a cast, need a method for tracking
       skills like spells?" `MyDSL_AffectsView.lua`'s tracking today is

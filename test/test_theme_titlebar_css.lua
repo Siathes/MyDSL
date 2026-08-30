@@ -75,6 +75,26 @@ check("titleBarCSS text color for obsidian_ember is its titleColor (230,126,60)"
 check("titleBarCSS background for obsidian_ember is titleBgColor, now-visible (230,126,60 @ 90/255)",
   contains(titleBar3, "background-color: rgba(230,126,60,0.35)"))
 
+-- ---- tron_blue: titleColor 80,230,255, titleBgColor 0,180,255 @ 90/255 ----
+
+MyDSL.Theme.setTheme("tron_blue")
+
+local titleBar4 = MyDSL.Theme.titleBarCSS("MyDSL_Combat")
+check("titleBarCSS text color for tron_blue is its titleColor (80,230,255)",
+  contains(titleBar4, "color: rgba(80,230,255,1.00)"))
+check("titleBarCSS background for tron_blue is titleBgColor (0,180,255 @ 90/255)",
+  contains(titleBar4, "background-color: rgba(0,180,255,0.35)"))
+
+-- ---- muted_scroll_nature: titleColor 196,180,110, titleBgColor 120,110,60 @ 90/255 ----
+
+MyDSL.Theme.setTheme("muted_scroll_nature")
+
+local titleBar5 = MyDSL.Theme.titleBarCSS("MyDSL_History")
+check("titleBarCSS text color for muted_scroll_nature is its titleColor (196,180,110)",
+  contains(titleBar5, "color: rgba(196,180,110,1.00)"))
+check("titleBarCSS background for muted_scroll_nature is titleBgColor (120,110,60 @ 90/255)",
+  contains(titleBar5, "background-color: rgba(120,110,60,0.35)"))
+
 -- ---- headerLabelCSS is gone -- one bar, not two ----------------------------
 
 check("MyDSL.Theme.headerLabelCSS no longer exists -- the separate-Label mechanism was removed",

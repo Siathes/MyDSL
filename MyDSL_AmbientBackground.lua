@@ -38,21 +38,25 @@
     compositing behavior (same class of "unreliable, don't lean on it"
     caution as the background-image note above), and keeps the result
     fully deterministic/testable.
-  - "Full black at midnight" vs "subtle but noticeable... noon" isn't one
-    constant blend strength -- a DSL console's real background is already
-    close to black, so a fixed 20-30% blend toward pure black would be
-    nearly invisible at midnight. Strength itself progresses across the
-    day: strong (~90% toward black) at midnight for a real, visible
-    darkening, weak (~15% toward the weather's peak color) at noon to
-    stay subtle, ~45% at dawn/dusk in between.
-  - "Yellow to red to black" -- four keyframes across 24h (midnight/
-    dawn/noon/dusk/midnight), piecewise-linear interpolated: black at
-    00:00, each weather's own dawn/dusk color at 06:00 and 18:00, each
-    weather's own peak color at 12:00. For Clear weather specifically
-    this literally produces black -> red-orange -> gold -> red-orange ->
-    black across the day, matching Steven's own example almost exactly;
-    other weather categories (Storm/Rain/Snow/Sleet/Cloudy) get their own
-    palette so the effect visibly "matches the weather" as asked.
+  - REDESIGNED 2026-08-30, same day, twice: first per Steven's own
+    follow-up found in MyDSL Test's notes.json ("mydsl ambient will have
+    to be much more subtle") -- strength values roughly halved. Then per
+    his direct simplification request: "pick some subte but distinct
+    colors for the weather, then have the time of day brighten or darken
+    that color?" -- replaces the original four-keyframe two-color-per-
+    weather gradient (a separate dawn/dusk hue AND a separate noon hue,
+    with blend strength ALSO varying across the day) with a cleaner
+    two-stage model: (1) each weather category has exactly ONE subtle,
+    distinct base color -- no more separate dawn/dusk vs. noon hues;
+    (2) a single smooth, continuous (cosine, not piecewise-linear)
+    day/night curve adjusts that ONE color's lightness -- darkened
+    toward black at midnight, full color at noon -- then that adjusted
+    color blends against the real console background at one constant,
+    already-subtle strength. "Time of day brightens/darkens THAT color"
+    literally describes step 2; the earlier "yellow to red to black"
+    phrasing (Clear's own dawn-to-noon-to-dusk hue shift) is superseded
+    by this simpler, explicitly-requested model rather than kept
+    alongside it.
 
   Passive display only. Never sends game commands.
   Aliases: mydsl ambient on/off/toggle/status
@@ -102,19 +106,27 @@ function AB.loadSettings()
 end
 
 ------------------------------------------------------------------------
--- Weather palettes -- {dawn/dusk = {r,g,b}, noon = {r,g,b}}. Subjective
--- color choices, first pass -- adjustable later if Steven wants a
--- different palette per weather type, but each one is a deliberate,
--- weather-appropriate choice, not a placeholder.
+-- Weather palette -- ONE subtle, distinct base color per weather category
+-- (see the header comment's 2026-08-30 redesign note). Subjective color
+-- choices, first pass -- adjustable later if Steven wants different
+-- ones, but each is a deliberate, weather-appropriate choice, not a
+-- placeholder.
 ------------------------------------------------------------------------
 local WEATHER_PALETTE = {
-  Clear  = { dawn = { 200, 80,  30 },  noon = { 255, 200, 60 } },   -- red-orange -> gold
-  Cloudy = { dawn = { 110, 95, 100 },  noon = { 150, 150, 160 } },  -- muted mauve-grey -> pale grey
-  Rain   = { dawn = { 55,  65,  85 },  noon = { 85,  105, 135 } },  -- deep blue-grey -> steel blue
-  Storm  = { dawn = { 85,  35,  55 },  noon = { 100, 55,  85 } },   -- dark red-violet -> muted violet-red
-  Snow   = { dawn = { 130, 140, 165 }, noon = { 200, 210, 230 } },  -- cool pale blue-grey -> icy white-blue
-  Sleet  = { dawn = { 100, 110, 125 }, noon = { 150, 160, 180 } },  -- darker grey-blue -> muted blue-grey
+  Clear  = { 200, 165, 70 },   -- warm gold
+  Cloudy = { 130, 130, 145 },  -- neutral slate grey
+  Rain   = { 75,  100, 140 },  -- steel blue
+  Storm  = { 120, 55,  85 },   -- deep plum-red
+  Snow   = { 175, 195, 220 },  -- pale icy blue
+  Sleet  = { 125, 140, 160 },  -- cool grey-blue
 }
+
+-- The one constant "how much of this tint shows through at all" cap --
+-- replaces the old midnight/dawn-dusk/noon strength split now that
+-- time-of-day is handled entirely by darkening/brightening the weather
+-- color itself (see dayLightness() below), not by varying how strongly
+-- it's blended in.
+local DSL_AMBIENT_STRENGTH = 0.20
 
 local function lerp(a, b, t) return a + (b - a) * t end
 
@@ -128,41 +140,66 @@ end
 
 local function clamp255(n) return math.max(0, math.min(255, n)) end
 
--- gradientAt(totalMin, palette) -- four keyframes across 24h (see header
--- comment for the reasoning): 00:00 black/strong, 06:00 dawn/mid,
--- 12:00 noon/weak, 18:00 dusk (same as dawn)/mid, 24:00 black/strong
--- again. Returns {color={r,g,b}, strength=0..1}.
-local function gradientAt(totalMin, palette)
-  local BLACK = { 0, 0, 0 }
-  local keyframes = {
-    { min = 0,    color = BLACK,        strength = 0.90 },
-    { min = 360,  color = palette.dawn, strength = 0.45 },
-    { min = 720,  color = palette.noon, strength = 0.15 },
-    { min = 1080, color = palette.dawn, strength = 0.45 },
-    { min = 1440, color = BLACK,        strength = 0.90 },
-  }
-  for i = 1, #keyframes - 1 do
-    local k1, k2 = keyframes[i], keyframes[i + 1]
-    if totalMin >= k1.min and totalMin <= k2.min then
-      local t = (k2.min == k1.min) and 0 or (totalMin - k1.min) / (k2.min - k1.min)
-      return {
-        color = lerpColor(k1.color, k2.color, t),
-        strength = lerp(k1.strength, k2.strength, t),
-      }
-    end
-  end
-  return { color = BLACK, strength = 0.90 }
+-- dayLightness(totalMin) -- smooth, continuous (cosine, not piecewise-
+-- linear keyframes) 0..1 curve: 0 at midnight, 1 at noon. A cosine curve
+-- means the color never visibly "kinks" at a fixed hour the way the old
+-- 4-keyframe version could -- brightening/darkening reads as one smooth
+-- sweep across the whole day, matching "brighten or darken that color"
+-- literally.
+local function dayLightness(totalMin)
+  local angle = (totalMin - 720) / 1440 * 2 * math.pi
+  return (math.cos(angle) + 1) / 2
 end
 
 -- computeColor(totalMin, category, baseColor) -- pure function, no game
--- state read directly, so it's fully unit-testable. baseColor is the
--- player's real snapshotted console background; the result blends toward
--- the gradient's color at the gradient's own strength for this moment.
+-- state read directly, so it's fully unit-testable. Two stages: (1) the
+-- weather's own single color is darkened toward black / brightened
+-- toward its full saturation by dayLightness(); (2) that adjusted color
+-- blends against the player's real snapshotted console background at
+-- the one constant subtlety cap.
 function AB.computeColor(totalMin, category, baseColor)
-  local palette = WEATHER_PALETTE[category] or WEATHER_PALETTE.Clear
-  local g = gradientAt(totalMin % 1440, palette)
-  local blended = lerpColor(baseColor, g.color, g.strength)
+  local weatherColor = WEATHER_PALETTE[category] or WEATHER_PALETTE.Clear
+  local L = dayLightness(totalMin % 1440)
+  local adjusted = lerpColor({ 0, 0, 0 }, weatherColor, L)
+  local blended = lerpColor(baseColor, adjusted, DSL_AMBIENT_STRENGTH)
   return { clamp255(blended[1]), clamp255(blended[2]), clamp255(blended[3]) }
+end
+
+------------------------------------------------------------------------
+-- Fade -- added 2026-08-30 per Steven ("it will also need to fade
+-- between colors so its not jarring"). Every apply() picks a fresh
+-- target and steps the real console color toward it over
+-- DSL_AMBIENT_FADE_SECONDS rather than snapping instantly -- matters
+-- most on a weather change (an otherwise-instant hue jump) but also
+-- smooths the small step apply() takes every real DSL tick. A
+-- generation counter (not killTimer -- tempTimer's real id isn't a
+-- stable handle to cancel by, see other modules in this codebase using
+-- the same pattern) lets a new target simply supersede an in-flight
+-- fade instead of fighting it: each queued step checks it's still the
+-- newest fade before doing anything.
+local DSL_AMBIENT_FADE_SECONDS = 2.0
+local DSL_AMBIENT_FADE_STEPS   = 10
+
+function AB.fadeTo(target)
+  if not AB._currentApplied then
+    -- Nothing to fade from yet (first apply this session) -- snap once.
+    AB._currentApplied = target
+    pcall(setBackgroundColor, "main", target[1], target[2], target[3], 255)
+    return
+  end
+  AB._fadeGen = (AB._fadeGen or 0) + 1
+  local myGen = AB._fadeGen
+  local from = AB._currentApplied
+  local function step(i)
+    if myGen ~= AB._fadeGen then return end  -- superseded by a newer fade
+    local c = lerpColor(from, target, i / DSL_AMBIENT_FADE_STEPS)
+    pcall(setBackgroundColor, "main", c[1], c[2], c[3], 255)
+    AB._currentApplied = c
+    if i < DSL_AMBIENT_FADE_STEPS then
+      tempTimer(DSL_AMBIENT_FADE_SECONDS / DSL_AMBIENT_FADE_STEPS, function() step(i + 1) end)
+    end
+  end
+  step(1)
 end
 
 ------------------------------------------------------------------------
@@ -181,7 +218,7 @@ function AB.apply()
 
   local category = (MyDSL.MoonWeather.weatherCategory and MyDSL.MoonWeather.weatherCategory()) or "Clear"
   local c = AB.computeColor(totalMin, category, AB.config.baseColor)
-  pcall(setBackgroundColor, "main", c[1], c[2], c[3], 255)
+  AB.fadeTo(c)
 end
 
 -- captureBase() -- snapshots the player's real "main" background exactly
@@ -196,10 +233,17 @@ function AB.captureBase()
   end
 end
 
+-- restoreBase() -- deliberately instant, not faded (a deliberate "turn
+-- it off" action, not a moment-to-moment gradient step). Also cancels
+-- any in-flight fade and resets the fade's own "last applied" tracking,
+-- so the NEXT apply() (e.g. after a later re-enable) fades from the
+-- real restored base rather than from a stale mid-fade color.
 function AB.restoreBase()
   if not AB.config.baseColor then return end
+  AB._fadeGen = (AB._fadeGen or 0) + 1
   local c = AB.config.baseColor
   pcall(setBackgroundColor, "main", c[1], c[2], c[3], 255)
+  AB._currentApplied = { c[1], c[2], c[3] }
 end
 
 function AB.enable()

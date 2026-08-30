@@ -88,6 +88,18 @@ MyDSL.Layout.defaults = MyDSL.Layout.defaults or {
   -- MyDSL_CreatureReference: bottom-right — mob/creature info lookup.
   MyDSL_CreatureReference = { x=0.66, y=0.73, w=0.34, h=0.27 },
 
+  -- MyDSL_Help: added 2026-08-30 -- had no LayoutEngine entry at all
+  -- before this, same exact bug class as MyDSL_ItemReference's own fix
+  -- above (see that entry's comment): fell back to the generic
+  -- "5%,5%,35%,30%" default, which reads as "popping up large" on first
+  -- creation before shrinking down once docked (Steven, from a real
+  -- screenshot: "help reappeared and is back in my dock after popping up
+  -- large"). Real live position lands as a thin strip directly above
+  -- Chat, so default it there instead of the oversized fallback -- only
+  -- affects the very first-ever creation per profile, same caveat as
+  -- every other entry here.
+  MyDSL_Help              = { x=0.66, y=0.00, w=0.34, h=0.06 },
+
   -- ---- LEFT PANEL (UserWindows) ------------------------------------
 
   -- MyDSL_Portrait: top-left corner — character portrait image.
