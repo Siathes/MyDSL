@@ -2,7 +2,7 @@
 
 **Every window DSL never gave you, without touching a single line it did.**
 
-A Mudlet addon suite for **Dark and Shattered Lands** (dsl-mud.org): combat, group, and target tracking, a live vitals bar, a moon/weather widget that actually knows DSL's dual-moon mechanic, a mapper, item and creature reference lookups, character-assist helpers, and a dozen built-in visual themes — all layered on top of the game's own text, never hiding or replacing it.
+A Mudlet addon suite for **Dark and Shattered Lands** (dsl-mud.org): combat, group, and target tracking, a live vitals bar, a moon/weather widget that actually knows DSL's three moon mechanic, a mapper, item and creature reference lookups, character-assist helpers, and a dozen built-in visual themes — all layered on top of the game's own text, never hiding or replacing it.
 
 ![MyDSL running a full window layout in Mudlet — combat, group, target, chat, mapper, vitals, and more, all open at once](docs/images/mydsl-full-suite.png)
 
