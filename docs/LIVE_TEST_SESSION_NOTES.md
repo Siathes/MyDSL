@@ -20,14 +20,26 @@ context-switch; batched here for one larger pass afterward instead.
       pass: which of these should be silent-by-default (only shown via
       an explicit `status`/`debug` command) vs. genuinely worth a
       one-time confirmation on fresh install.
-- [ ] **`MyDSL_MapperMenu.lua` proper distribution path.** Test-profile
-      shortcut in place (a local `dofile()` Script pointing at the DSL2
-      repo path, same-machine only). Real fix: add a native dofile
-      Script for it in DSL2's own profile so
-      `build_mydsl_package.py`'s dofile-list discovery picks it up, then
-      rebuild `MyDSL_Full.mpackage` for real. Not done yet.
-
 ## Confirmed clean (no action needed)
+
+- **`MyDSL_MapperMenu.lua`'s distribution path — resolved differently
+  than first planned.** Steven's call: stop requiring a native dofile
+  Script anywhere before a module gets bundled at all.
+  `build_mydsl_package.py` now auto-bundles every git-tracked
+  `MyDSL_*.lua` file not yet in the discovered dofile list. Real
+  package rebuilt with it included — the test-profile local-`dofile()`
+  shortcut from earlier can be removed once you reinstall the new
+  `MyDSL_Full.mpackage`.
+- **Bonus find from the same change: `MyDSL_Leveling.lua` (real,
+  1,026-line, actively-maintained automation module) had never been in
+  any built package either**, same root cause. Now bundled too — worth
+  actually testing the Leveling automation for the first time in an
+  installed package, not just from the dev profile.
+- Caught and fixed before it shipped: the same discovery change first
+  auto-picked-up `MyDSL_theme_settings.lua`/`MyDSL_windowfonts.lua`
+  (Steven's personal saved settings, not real modules) — excluded, and
+  a real `.gitignore` gap that let them get git-tracked in the first
+  place is now fixed too.
 
 - Both packages installed without errors — `errors.txt` empty, log shows
   clean module init for both `DSL_Mapper_Addon` and `MyDSL_Full`.
