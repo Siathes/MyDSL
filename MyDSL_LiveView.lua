@@ -32,7 +32,9 @@ L.title = L.title or "-= Live =-"
 
 L.config = L.config or {}
 L.config.shown = L.config.shown ~= false
-L.config.font = tonumber(L.config.font or 10) or 10
+-- Default lowered 10 -> 7, 2026-08-30 per Steven's own live preference
+-- ("mydsl live font 7").
+L.config.font = tonumber(L.config.font or 7) or 7
 L.config.titleFont = tonumber(L.config.titleFont or 12) or 12
 L.config.barFont = tonumber(L.config.barFont or 9) or 9
 -- Added 2026-07-11, per the maintainer ("let me be able to adjust the text size...

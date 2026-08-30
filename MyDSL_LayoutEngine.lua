@@ -63,8 +63,14 @@ MyDSL.Layout.defaults = MyDSL.Layout.defaults or {
   -- MyDSL_Chat: full-height right column top — chat is the most-read panel.
   MyDSL_Chat             = { x=0.66, y=0.00, w=0.34, h=0.30 },
 
-  -- MyDSL_Affects: just below chat — active spell timers, frequently glanced.
-  MyDSL_Affects          = { x=0.66, y=0.30, w=0.34, h=0.25 },
+  -- MyDSL_Affects: real live position captured 2026-08-30 via the fixed
+  -- "mydsl layout save" (see MyDSL_WindowRegistry.lua's saveLayout() --
+  -- this whole file's own comments used to say the maintainer's real live
+  -- positions come from native dock-state, not these fractional
+  -- defaults; that stopped being true for these three entries once a
+  -- real capture actually existed). Moved to a wide strip on the left,
+  -- below the RightHere/PlayersNear/Combat row.
+  MyDSL_Affects          = { x=0.00, y=0.6161, w=0.3949, h=0.2127 },
 
   -- MyDSL_Tick: narrow standalone strip in bottom strip, between Live and Target.
   MyDSL_Tick             = { x=0.59, y=0.79, w=0.03, h=0.21 },
@@ -105,8 +111,10 @@ MyDSL.Layout.defaults = MyDSL.Layout.defaults or {
   -- MyDSL_Portrait: top-left corner — character portrait image.
   MyDSL_Portrait         = { x=0.00, y=0.00, w=0.10, h=0.18 },
 
-  -- MyDSL_Location: room/area name display (top-left).
-  MyDSL_Location         = { x=0.00, y=0.18, w=0.10, h=0.18 },
+  -- MyDSL_Location: real live position captured 2026-08-30 (see
+  -- MyDSL_Affects's comment above for how) -- moved to a tall left-side
+  -- panel, bottom half, roughly mirroring Scan's own panel above it.
+  MyDSL_Location         = { x=0.0281, y=0.8366, w=0.3668, h=0.3100 },
 
   -- MyDSL_ItemReference: top-left, next to Portrait/Location -- added
   -- 2026-07-16, had no LayoutEngine entry at all before this (fell back
@@ -144,8 +152,10 @@ MyDSL.Layout.defaults = MyDSL.Layout.defaults or {
   -- MyDSL_History: general informational output — sailing, quests, atmosphere events.
   MyDSL_History          = { x=0.34, y=0.82, w=0.32, h=0.18 },
 
-  -- MyDSL_Scan: right of combat — scan/look-around results.
-  MyDSL_Scan             = { x=0.34, y=0.60, w=0.32, h=0.22 },
+  -- MyDSL_Scan: real live position captured 2026-08-30 (see
+  -- MyDSL_Affects's comment above for how) -- moved to a tall left-side
+  -- panel, top half, roughly mirroring Location's own panel below it.
+  MyDSL_Scan             = { x=0.0281, y=0.1077, w=0.3668, h=0.5006 },
 
   -- MyDSL_Live: center bottom strip — live vitals bar (HP/mana/mv).
   MyDSL_Live             = { x=0.10, y=0.82, w=0.56, h=0.18 },
