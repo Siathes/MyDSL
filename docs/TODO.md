@@ -140,6 +140,37 @@ question, folded in per Steven 2026-08-29 rather than a separate check.
         `DSL_Mapper_Addon.xml`'s `checkRoomDesync()`) stay in place as
         standing infrastructure — check `mapper_desync_log.txt` first if
         anything like this ever resurfaces.
+      - **Real fix for the underlying goal added 2026-08-30 (v0.2.11),
+        per Steven**: "we want to store the description and be able to
+        track rooms that have the same name but different descriptions.
+        thats why it was turned on" — leaving matching off forever loses
+        the real, confirmed-legitimate use case (a themed maze area,
+        "Wing of the Stone Dragon," with deliberately repeated room
+        names for genuinely different rooms — see `c388119`, 2026-07-18).
+        `map.dsl.syncRoomDescription()`: on every room stock resolves
+        successfully (`onGenericNewRoom`), resync that room's stored
+        description to whatever was just captured. Fixes the actual
+        defect in stock's `check_room()` (private, unreachable) — it
+        writes a room's description exactly once and never updates it,
+        so any drift between the stored text and a later capture is a
+        permanent lockout. Root cause of the drift itself, confirmed via
+        git history: the DSL mapper fork's description-capture format has
+        changed at least twice since it was added 2026-07-18 (a perf pass
+        the next day, the 2026-08-29 addon rewrite) — any room mapped
+        before the most recent change has a description frozen in an
+        older format, guaranteed to mismatch on the first revisit under
+        newer code. Not specific to imported maps — Steven's own two
+        failing rooms (Fellowship Saloon, Porch) are ordinary long-
+        standing hometown rooms, not anything imported/merged.
+        `syncRoomDescription()` heals this organically during normal
+        play (matching stays off in the meantime — healing only works
+        while it's off, since a stale stored description would otherwise
+        block the very resolution needed to heal it). Once enough of a
+        given map area has been revisited under the current code,
+        `map config use_description_matching` can be turned back on
+        safely — Steven's own call on timing, not automated. Regression
+        tests added. `DSL_Mapper_Addon.mpackage` rebuilt (v0.2.11), in
+        `~/Downloads/`.
 - [ ] **`MyDSL` migration to the new mapper architecture** — still on the
       old full-fork `DSL_Generic_Mapper.xml`; `MyDSL_Mapper_Addon.xml`
       v0.2.10 (with the description-matching fix) is ready in

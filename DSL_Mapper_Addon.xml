@@ -99,7 +99,7 @@ registerAnonymousEventHandler("sysUninstallPackage", "dslMapperAddonInstallUnins
 -- passive door-state feeding, and tiny debug/status helpers.
 -- ============================================================================
 map.dsl = map.dsl or {}
-map.dsl.version = "0.2.10"
+map.dsl.version = "0.2.11"
 map.dsl.base = "Generic Mapper 2.1.8"
 map.dsl.gmcp = map.dsl.gmcp or {}
 map.dsl.line_buffer = map.dsl.line_buffer or {}
@@ -862,12 +862,56 @@ end
 -- centerview() itself right afterward -- which would point the "dot
 -- never moves" symptom at Mudlet's own map-widget rendering, not
 -- anything in this codebase.
+-- Self-heals a room's stored description on every successful visit --
+-- added 2026-08-30, the real fix behind flipping use_description_matching
+-- off, per Steven ("we want to store the description and be able to
+-- track rooms that have the same name but different descriptions.
+-- thats why it was turned on"). Stock's own check_room() (private,
+-- unreachable here) is the actual reason that goal broke: it WRITES a
+-- room's stored description exactly once, the very first time a name+
+-- exits match succeeds with no description on file yet, and never
+-- updates it again -- any later drift between the stored text and what
+-- gets captured on a real revisit is a permanent, silent lockout, not a
+-- one-time hiccup. This function is the missing other half: every time
+-- stock resolves a room successfully (onGenericNewRoom fires -- reliable
+-- now that matching is off and isn't blocking resolution), resync that
+-- room's stored description to whatever was just captured. Run this for
+-- a while with matching off and every room actually visited ends up with
+-- a genuinely current, correct stored description -- at which point
+-- use_description_matching can be turned back on (`map config
+-- use_description_matching`) and should hold, since drift can no longer
+-- silently accumulate. Turning matching back on BEFORE that healing
+-- period would reproduce the original lockout for any room whose
+-- pre-existing stored description was already stale, since check_room()
+-- would reject it before this function ever got a chance to run --
+-- healing only works with matching off, which is why the default stays
+-- off rather than flipping this back on automatically.
+--
+-- One accepted tradeoff, same one Steven's original goal already implied
+-- accepting: with matching off, if two genuinely DIFFERENT rooms happen
+-- to share the same name AND exits, stock's own name+exits match can't
+-- tell them apart, so a visit to one can overwrite the other's stored
+-- description with the wrong text. Real risk, but rare in practice (name
+-- and exits matched correctly through every real test this session, no
+-- sign of an actual collision) and self-corrects the same way on the
+-- next real visit to whichever room actually got mismatched.
+function map.dsl.syncRoomDescription()
+  if not map.currentRoom or not map.roomexists or not map.roomexists(map.currentRoom) then return end
+  local desc = map.prompt and map.prompt.description
+  if not desc or desc == "" then return end
+  local stored = getRoomUserData(map.currentRoom, "description")
+  if stored ~= desc then
+    setRoomUserData(map.currentRoom, "description", desc)
+  end
+end
+
 function map.dsl.onGenericNewRoom()
   if map.dsl.logDesync then
     map.dsl.logDesync(string.format(
       "onNewRoom fired: stock resolved map.currentRoom=%s name=%q",
       tostring(map.currentRoom), tostring(map.currentRoom and getRoomName(map.currentRoom))))
   end
+  map.dsl.syncRoomDescription()
   map.dsl.applyRoomMetadata()
   map.dsl.announceAreaChange(map.currentRoom)
 end

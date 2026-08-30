@@ -153,6 +153,51 @@ if type(_G.dslMapperAddonInstallUninstallHandler) == "function" then
 end
 
 ------------------------------------------------------------------------
+-- syncRoomDescription() -- added 2026-08-30, the actual fix Steven asked
+-- for after the use_description_matching-off workaround: keep every
+-- visited room's stored description CURRENT, so stock's own check_room()
+-- (which only ever writes a room's description once, never updates it)
+-- can't accumulate the drift that caused the original permanent-lockout
+-- bug. Uses mudlet_mock.lua's real __rooms-backed getRoomUserData/
+-- setRoomUserData/roomexists, not a reinvented mock.
+------------------------------------------------------------------------
+if map.dsl and map.dsl.syncRoomDescription then
+  _G.__rooms[1] = { exists = true, userdata = {} }
+  _G.__rooms[2] = { exists = true, userdata = {} }
+  -- map.roomexists is stock's own wrapper (real at runtime, confirmed via
+  -- the live installed profile's alias code), not native `roomexists` --
+  -- mudlet_mock.lua only mocks the native one, so mock this one too.
+  map.roomexists = function(id) return _G.roomexists(id) == 1 end
+
+  map.currentRoom = 1
+  map.prompt = { description = "A quiet square with a fountain." }
+  map.dsl.syncRoomDescription()
+  check("syncRoomDescription() writes the captured description onto the current room",
+    getRoomUserData(1, "description") == "A quiet square with a fountain.")
+
+  setRoomUserData(1, "description", "A STALE description from months ago.")
+  map.prompt.description = "A quiet square with a fountain."
+  map.dsl.syncRoomDescription()
+  check("syncRoomDescription() overwrites a drifted stored description with the current capture (the actual self-heal)",
+    getRoomUserData(1, "description") == "A quiet square with a fountain.")
+
+  map.currentRoom = 999  -- doesn't exist
+  local ok8 = pcall(map.dsl.syncRoomDescription)
+  check("syncRoomDescription() on a nonexistent room doesn't error", ok8)
+
+  if map.dsl.onGenericNewRoom then
+    map.currentRoom = 2
+    map.prompt.description = "A bustling market full of vendors."
+    map.dsl.applyRoomMetadata = map.dsl.applyRoomMetadata or function() end
+    map.dsl.announceAreaChange = map.dsl.announceAreaChange or function() end
+    local ok9 = pcall(map.dsl.onGenericNewRoom)
+    check("onGenericNewRoom() runs without error and calls syncRoomDescription internally", ok9)
+    check("onGenericNewRoom() actually synced the description for the newly-resolved room",
+      getRoomUserData(2, "description") == "A bustling market full of vendors.")
+  end
+end
+
+------------------------------------------------------------------------
 -- use_description_matching default -- REVERSED 2026-08-30 after Steven's
 -- own live `map debug` trace showed EVERY automatic room resolution
 -- failing with "Room N rejected: description mismatch" on ordinary,
