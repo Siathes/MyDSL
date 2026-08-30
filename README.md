@@ -1,6 +1,17 @@
 # MyDSL
 
-A Mudlet addon suite for **Dark and Shattered Lands** (dsl-mud.org) — passive observation windows (combat, group, target, chat, prompt/vitals), a mapper layer, item/creature reference, and more, all built to sit alongside the game's own text without hiding or replacing it.
+**Every window DSL never gave you, without touching a single line it did.**
+
+A Mudlet addon suite for **Dark and Shattered Lands** (dsl-mud.org): combat, group, and target tracking, a live vitals bar, a moon/weather widget that actually knows DSL's dual-moon mechanic, a mapper, item and creature reference lookups, character-assist helpers, and a dozen built-in visual themes — all layered on top of the game's own text, never hiding or replacing it.
+
+![MyDSL running a full window layout in Mudlet — combat, group, target, chat, mapper, vitals, and more, all open at once](docs/images/mydsl-full-suite.png)
+
+- **Passive by design.** Nothing here sends a command you didn't ask for or gags a line you didn't tell it to.
+- **The moon/weather widget tracks DSL's real dual-moon mechanic** — phase, position, regen bonus, and a full phase-by-phase countdown to your next bonus window.
+- **Combat, group, and target windows** stay in sync with what's actually happening in the fight — no guessing, no polling.
+- **The mapper** colors terrain, tracks door state, learns real move-point costs, and highlights other players — built on top of Mudlet's own mapper, not a replacement for it.
+- **A dozen built-in themes**, from a deep-gradient Tron blue to *Shattered Moonlight*, a signature theme built around DSL's own dual-moon lore.
+- **Every window is independently toggleable.** Build the layout you actually want, not the one that shipped.
 
 ## Try the DSL Mapper Addon
 
