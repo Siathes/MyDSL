@@ -34,6 +34,16 @@ function _G.send(cmd, echoFlag) sent[#sent + 1] = { cmd = cmd, echo = echoFlag }
 local deleteLineCalls = 0
 function _G.deleteLine() deleteLineCalls = deleteLineCalls + 1 end
 
+-- mudlet_mock.lua's shared tempTimer is a total no-op (doesn't even store
+-- the callback) -- MyDSL_Login.lua's real deferred-arming fix (design
+-- note 10: tempTimer(0, ...) so capturingField only takes effect starting
+-- the NEXT incoming line, never the one that armed it) needs it to
+-- actually run. Since this test fires triggers one at a time via separate
+-- explicit fire() calls rather than simulating one real same-line
+-- dispatch pass, firing immediately (not literally deferred) is enough to
+-- exercise the real behavior being tested here.
+function _G.tempTimer(delay, fn) if type(fn) == "function" then fn() end return 1 end
+
 -- Invokes a registered trigger's callback directly by MyDSL.Login._triggers
 -- key. capture, if given, is set as matches[2] before calling (mirrors a
 -- real single-capture-group PCRE match: matches[1]=whole line, matches[2]=

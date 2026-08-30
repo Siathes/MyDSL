@@ -438,15 +438,43 @@ one at a time:
         `check_known_patterns.py --all` clean. `MyDSL_Full.mpackage`
         rebuilt, copied to `~/Downloads/` (confirmed the new module's
         actual text is inside the built package, not stale).
-      **Needs Steven to actually log in once and confirm**: the
-      navigation sequence sends the right commands at the right prompts,
-      first-run capture saves correctly, and nothing echoes.
       **Password-trigger security note — per Steven, explicitly not
       being cleaned up right now** ("dont worry about the password
       trigger"): the old trigger's real account name/password still sit
       in plaintext in a handful of old, non-git-tracked profile snapshot
       files (`MyDSL/current/2026-07-17#*.xml`). Left alone per his
       instruction.
+      **Real bug found + fixed same day via Steven's own first live
+      test**: reported "blocked the password entry once," "toggle for
+      autologin doesnt work, it still auto logins," and a corrupted
+      credentials file. Confirmed real — the file held the literal
+      prompt text (`account = "What is your Master Account's name? "`,
+      `password = "Password: "`), not anything he typed. Root cause:
+      `acctname_prompt`/`password` armed `capturingField` synchronously
+      inside their own callback, but the catch-all capture trigger
+      (matches any non-blank line, lower priority) could fire on that
+      SAME line within the same dispatch pass — self-capturing the
+      prompt before the player ever typed anything, and, for the
+      password prompt, `deleteLine()` then deleted the prompt itself off
+      the screen. Separately, the capture triggers never checked
+      `MyDSL.Login.enabled` at all, part of why the toggle didn't fully
+      stop things. Fixed: arming deferred one tick (`tempTimer(0, ...)`)
+      so it only takes effect starting with the next genuinely-new
+      incoming line, never the one that armed it; both capture triggers
+      now also gated by `enabled`. `test/test_login.lua` updated (mocks
+      `tempTimer` to actually run its callback, which the shared mock
+      doesn't by default) — still 33/33 passing. Steven independently
+      confirmed the diagnosis by disabling scripts entirely and logging
+      in clean with no "bad file" message. Steven explicitly asked NOT
+      to add defensive guarding against a corrupted file on load ("dont
+      guard against a corrupt file its server side") — only the
+      structural same-line-race fix shipped, no extra validation layer.
+      `MyDSL_Full.mpackage` rebuilt, copied to `~/Downloads/` — confirmed
+      the fix's actual text is inside the built package.
+      **Still needs Steven to log in fresh and confirm**: the fixed
+      navigation sequence sends the right commands at the right prompts,
+      first-run capture saves the REAL typed values this time (not
+      prompt text), and `mydsl login off` fully stops everything.
 - [x] **Thinner UserWindow title bars — FIXED 2026-08-30, needs live
       confirm.** `MyDSL_ThemeEngine.lua`'s `MyDSL.Theme.titleBarCSS()`
       (the one shared function every docked window's title bar CSS comes

@@ -101,6 +101,22 @@
 --    to know if what was typed was correct until the server accepts it: if
 --    a typo gets captured and saved, this clears the credentials file so
 --    the next connection re-captures cleanly.
+--
+-- 10. Real bug, found and fixed same day via Steven's own corrupted
+--     credentials file (captured value was literally the prompt text,
+--     "What is your Master Account's name? "): the acctname_prompt/
+--     password triggers armed capturingField SYNCHRONOUSLY, inside their
+--     own callback -- but the catch-all capture trigger (matches any
+--     non-blank line) can fire on that SAME line within the same
+--     dispatch pass, at a lower priority that runs AFTER the prompt
+--     trigger armed it. Result: it self-captured the prompt line before
+--     the player ever typed anything, and (for the password prompt)
+--     deleteLine() then deleted the prompt itself off the screen. Fixed
+--     by deferring the arming one tick (tempTimer(0, ...)) so it only
+--     takes effect starting with the next genuinely-new incoming line.
+--     Same pass also fixed the capture triggers never checking
+--     MyDSL.Login.enabled at all -- part of why "mydsl login off"
+--     didn't fully stop things.
 -- =============================================================================
 
 MyDSL       = MyDSL or {}
@@ -256,7 +272,17 @@ local function registerLoginTriggers()
       send(credentials.account, false)
       MyDSL.Login._stage = "password"
     else
-      capturingField = "account"
+      -- BUG (found 2026-08-30 via Steven's own corrupted credentials
+      -- file -- captured value was literally the prompt text itself,
+      -- "What is your Master Account's name? "): arming capturingField
+      -- here directly, synchronously, meant the catch-all capture
+      -- trigger below (which matches ANY non-blank line, priority 99)
+      -- could fire on THIS SAME LINE within the same dispatch pass --
+      -- priority 100 firing before priority 99 on one line, not after --
+      -- self-capturing the prompt before the player ever typed anything.
+      -- Deferred one tick so arming only takes effect starting with the
+      -- NEXT genuinely-new incoming line, never the one that armed it.
+      tempTimer(0, function() capturingField = "account" end)
       -- stage advances once the capture trigger below actually catches
       -- the typed line, not here -- if the player is still mid-typing
       -- we don't want a stray unrelated line advancing the stage early.
@@ -266,9 +292,13 @@ local function registerLoginTriggers()
   -- Catches the very next non-blank line while capturingField=="account" --
   -- see design note 5 for why this is safe (confirmed real corpus: the
   -- player's own typed-line echo is always the immediate next line here,
-  -- nothing else arrives in between).
+  -- nothing else arrives in between). Also requires MyDSL.Login.enabled --
+  -- fixed 2026-08-30 alongside the same-line bug above: this previously
+  -- didn't check the master toggle at all, so a still-armed capture could
+  -- keep acting even after "mydsl login off" (part of Steven's "toggle
+  -- doesn't work" report).
   MyDSL.Login._triggers.acctname_capture = tempRegexTrigger([[^(.+)$]], function()
-    if capturingField ~= "account" then return end
+    if not MyDSL.Login.enabled or capturingField ~= "account" then return end
     capturedAccount = matches[2]
     capturingField = nil
     MyDSL.Login._stage = "password"
@@ -280,16 +310,22 @@ local function registerLoginTriggers()
       send(credentials.password, false)
       MyDSL.Login._stage = "mastermenu"
     else
-      capturingField = "password"
+      -- Same same-line self-capture bug and same fix as acctname_prompt
+      -- above -- this was the one that actually deleted the visible
+      -- "Password: " prompt line (deleteLine() firing on the prompt
+      -- itself, not the player's typed response) and saved the prompt
+      -- text as the "password".
+      tempTimer(0, function() capturingField = "password" end)
     end
   end, 100)
 
   -- Catches the next non-blank line while capturingField=="password" --
   -- same mechanism as the account capture, but also deletes the line
   -- (design note 5) since this one's an actual secret, not just a
-  -- username-level value.
+  -- username-level value. Also gated by MyDSL.Login.enabled -- see the
+  -- account capture trigger's own comment above for why.
   MyDSL.Login._triggers.password_capture = tempRegexTrigger([[^(.+)$]], function()
-    if capturingField ~= "password" then return end
+    if not MyDSL.Login.enabled or capturingField ~= "password" then return end
     local capturedPassword = matches[2]
     capturingField = nil
     deleteLine()
