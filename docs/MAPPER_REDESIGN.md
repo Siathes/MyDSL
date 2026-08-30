@@ -243,9 +243,78 @@ revisiting if that assumption turns out wrong in practice.
 has a `DSL_Generic_Mapper.mpackage` entry with a comment implying a
 standalone build output — **still aspirational, not real, unchanged by
 this pass**. `build_mydsl_package.py` (497 lines) has zero references to
-`generic_mapper` anywhere; nothing builds `DSL_Mapper_Addon.xml` into a
-distributable `.mpackage` yet either — that's packaging/build-script work
-still to do, separate from the file itself now existing and being tested.
+`generic_mapper` anywhere.
+
+**Update, 2026-08-29 — packaging built and validated against real
+Mudlet source, not just docs/forum posts.** New
+`build_dsl_mapper_addon_package.py` builds a real `.mpackage`, its
+`config.lua` and icon-bundling confirmed against Mudlet's own source
+directly (`Host::getPackageConfig()` in `src/Host.cpp`, and — the
+strongest confirmation available — `src/dlgPackageExporter.cpp`, the
+code behind Mudlet's own official "Export as package" dialog):
+- `config.lua` isn't limited to `mpackage` — `getPackageConfig()`
+  captures *every* string global the chunk sets into `mPackageInfo`.
+  The canonical field set, taken directly from what
+  `dlgPackageExporter.cpp` itself writes: `mpackage`, `author`, `icon`,
+  `title`, `description` (rendered as **Markdown** in the Package
+  Manager), `version`, `helpURL`, `dependencies`, `created` — using
+  Lua's `key = [[value]]` long-string format (confirmed exact, same
+  function: `appendToDetails()`).
+- `icon` is a bare filename, resolved by the Package Manager at
+  `<packageName>/.mudlet/Icon/<filename>` inside the installed
+  package's own data directory — confirmed in both
+  `dlgPackageManager.cpp` (display) and `dlgPackageExporter.cpp`
+  (`copyIconToTmp()`, which writes it into the zip at exactly that
+  path). Used the DSL logo Steven had in Downloads
+  (`dsllogo edit.png`, 200×133) — now tracked at
+  `DSL_Mapper_Addon_Icon.png`.
+- `dependencies` is informational only — confirmed via `Host.cpp`
+  (zero enforcement logic anywhere) — declared as `generic_mapper`
+  accurately, doesn't gate install.
+- Filled in: `title = "DSL Mapper Addon"`, `author = "Siathes"`,
+  `version` tracks `map.dsl.version` (currently `0.2.7`), `helpURL`
+  points at the GitHub repo, `description` explains what it does and
+  that it doesn't bundle Generic Mapper, `created` is the real build
+  date.
+
+**Two more real gaps found by cross-checking Mudlet's own documented
+best practices** (`wiki.mudlet.org/w/Manual:Best_Practices`, fetched
+directly, not paraphrased) **— both fixed**:
+- *"hook into the sysInstallPackage event to give some introductory
+  text about the package they just installed."* Added — confirmed
+  `sysInstallPackage` fires with the real package name as `arg[1]`,
+  only for an actual package install (not every script reload),
+  directly in `Host.cpp`.
+- *"undo any UI changes on uninstall."* Added — `sysUninstallPackage`
+  now kills the addon's registered event handlers and calls
+  `removeMapEvent("dslSafeDelete")` to remove the Safe Delete menu
+  item cleanly. `removeMapEvent()`/`removeMapMenu()` confirmed as the
+  real, documented Lua functions directly in
+  `TLuaInterpreterMapper.cpp` (an earlier guess at the function name,
+  `deleteMapEvent`, was wrong — checked before using it).
+- **A third, same wiki page, already-confirmed and already fixed
+  earlier this session** (not new, restated for completeness): *"when
+  adding customisation triggers to the generic mapper, add them
+  outside of the `generic_mapper` folder"* — word-for-word the same
+  finding that drove `DSL_Mapper_Addon.xml`'s entire existence.
+
+**One real bug caught before shipping, same session**: the first draft
+of the install/uninstall handler used `local function
+dslMapperAddonEventHandler(...)`, then registered it via
+`registerAnonymousEventHandler("sysInstallPackage",
+"dslMapperAddonEventHandler")`. Since `registerAnonymousEventHandler`
+looks its second argument up by name in `_G`, a `local` function is
+never actually reachable that way — it would have silently never
+fired, no error, just quietly done nothing. Caught via test (added a
+specific assertion for it: `test/test_dsl_mapper_addon.lua` now checks
+the handler is a real global, and confirmed via targeted revert that
+reintroducing `local` makes that exact assertion fail). Fixed by making
+it a proper global function, matching every other handler in this file.
+
+Package rebuilt and delivered to `~/Downloads/DSL_Mapper_Addon.mpackage`
+(35.6KB, up from 19.9KB — a self-contained icon file, not a meaningful
+size concern) with updated testing instructions asking testers to check
+the Package Manager's display and confirm uninstall cleanup works.
 
 **Real issues to weigh:**
 

@@ -46,6 +46,38 @@ tempTimer(3, function()
 end)
 
 ------------------------------------------------------------------------
+-- Install-welcome text and uninstall cleanup, added 2026-08-29 per
+-- Mudlet's own documented package best practices (wiki.mudlet.org's
+-- "Manual:Best Practices" -- confirmed via direct fetch, not assumed):
+-- "hook into the sysInstallPackage event to give some introductory text
+-- about the package they just installed" and "undo any UI changes on
+-- uninstall". sysInstallPackage fires (arg[1] = package name) only for
+-- a real package install, not every script reload -- confirmed directly
+-- in Host.cpp's installPackage(). removeMapEvent()/removeMapMenu() are
+-- the real, documented Lua functions for tearing down addMapEvent
+-- registrations (wiki.mudlet.org/w/Manual:Lua_Functions#removeMapEvent /
+-- #removeMapMenu, confirmed against TLuaInterpreterMapper.cpp directly).
+------------------------------------------------------------------------
+
+-- Must be a real global (not local) -- registerAnonymousEventHandler's
+-- second argument is looked up by name in _G, a local function here
+-- would never actually be found or called.
+function dslMapperAddonInstallUninstallHandler(event, packageName)
+  if event == "sysInstallPackage" and packageName == "DSL_Mapper_Addon" then
+    cecho("\n&lt;green&gt;[DSL Mapper Addon] &lt;white&gt;Installed. This adds DSL-specific mapping (door verbs, terrain, GMCP room data) plus a Safe Delete option to Mudlet's own map right-click menu.\n")
+    cecho("&lt;green&gt;[DSL Mapper Addon] &lt;white&gt;Needs Mudlet's own Generic Mapper (open the Mapper once if you haven't) -- this addon doesn't include a copy of it.\n")
+  elseif event == "sysUninstallPackage" and packageName == "DSL_Mapper_Addon" then
+    if map and map.dsl and map.dsl.registeredEvents then
+      for _, id in ipairs(map.dsl.registeredEvents) do pcall(killAnonymousEventHandler, id) end
+    end
+    if type(removeMapEvent) == "function" then pcall(removeMapEvent, "dslSafeDelete") end
+  end
+end
+
+registerAnonymousEventHandler("sysInstallPackage", "dslMapperAddonInstallUninstallHandler")
+registerAnonymousEventHandler("sysUninstallPackage", "dslMapperAddonInstallUninstallHandler")
+
+------------------------------------------------------------------------
 -- The DSL-specific mapper layer -- copied verbatim from the git-tracked,
 -- tested DSL_Generic_Mapper.xml (not re-derived; see that file's own
 -- test/ coverage for what's verified here), with one small addition:

@@ -120,5 +120,37 @@ if map.dsl and map.dsl.installAddonOverrides then
   check("neutralized map.checkVersion() runs without error", ok3)
 end
 
+------------------------------------------------------------------------
+-- Install-welcome / uninstall-cleanup handler, added 2026-08-29 per
+-- Mudlet's own documented package best practices. Must be a real GLOBAL
+-- function -- registerAnonymousEventHandler looks its second argument
+-- up by name in _G; a `local function` here would silently never be
+-- found or called (a real bug caught and fixed before shipping).
+------------------------------------------------------------------------
+check("install/uninstall handler is a real global function (not local -- would silently never fire)",
+  type(_G.dslMapperAddonInstallUninstallHandler) == "function")
+
+if type(_G.dslMapperAddonInstallUninstallHandler) == "function" then
+  local removeMapEventCalls = {}
+  _G.removeMapEvent = function(name) removeMapEventCalls[#removeMapEventCalls + 1] = name; return true end
+
+  local ok4 = pcall(_G.dslMapperAddonInstallUninstallHandler, "sysInstallPackage", "DSL_Mapper_Addon")
+  check("sysInstallPackage handler runs without error", ok4)
+
+  local ok5 = pcall(_G.dslMapperAddonInstallUninstallHandler, "sysInstallPackage", "SomeOtherPackage")
+  check("sysInstallPackage for a DIFFERENT package doesn't error either (ignored, not mismatched)", ok5)
+
+  map.dsl.registeredEvents = {111, 222}
+  local killedIds = {}
+  _G.killAnonymousEventHandler = function(id) killedIds[#killedIds + 1] = id; return true end
+
+  local ok6 = pcall(_G.dslMapperAddonInstallUninstallHandler, "sysUninstallPackage", "DSL_Mapper_Addon")
+  check("sysUninstallPackage handler runs without error", ok6)
+  check("uninstall killed both registered event handlers",
+    #killedIds == 2 and killedIds[1] == 111 and killedIds[2] == 222)
+  check("uninstall called removeMapEvent to clean up the Safe Delete menu item",
+    #removeMapEventCalls == 1 and removeMapEventCalls[1] == "dslSafeDelete")
+end
+
 print(string.format("\n%d failure(s)", failures))
 os.exit(failures == 0 and 0 or 1)
