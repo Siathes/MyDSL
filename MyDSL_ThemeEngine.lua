@@ -497,9 +497,73 @@ end
 -- other chrome it doesn't name. Reapplied on every theme switch (from
 -- setTheme() above) and on load (from loadActive() below) so app chrome
 -- always matches the active MyDSL window theme, not just window borders.
+-- Widened 2026-08-30, same live session, per Steven's direct follow-up
+-- from a screenshot ("we need to include the rest of the grey areas
+-- from mudlet ui... keep it thematic. shrink the width of the main
+-- screen scroll bar"). Added: QMenuBar/QMenu (the top menu bar and
+-- every right-click/dropdown menu -- still plain grey in his screenshot,
+-- untouched by the first pass), QToolBar (the icon toolbar strip),
+-- QLineEdit (the command-line input + the map's own Search box),
+-- QStatusBar (the bottom status strip), QProgressBar (the Wait/Tick
+-- gauges). QScrollBar:vertical/:horizontal now set an explicit width/
+-- height (8px, down from Qt's much wider default ~16-18px) -- the first
+-- pass only recolored the scrollbar, never actually narrowed it, which
+-- is what he specifically asked for this time.
 function MyDSL.Theme.appStyleSheetCSS(name)
   local function c(key) return MyDSL.Theme.colorToCSS(MyDSL.Theme.presets[name] and MyDSL.Theme.presets[name][key] or MyDSL.Theme.defaults[key]) end
   return string.format([[
+    QMenuBar {
+      background: %s;
+      color: %s;
+    }
+    QMenuBar::item {
+      background: transparent;
+      color: %s;
+      padding: 4px 10px;
+    }
+    QMenuBar::item:selected {
+      background: %s;
+      color: %s;
+    }
+    QMenu {
+      background: %s;
+      color: %s;
+      border: 1px solid %s;
+    }
+    QMenu::item {
+      padding: 4px 20px;
+    }
+    QMenu::item:selected {
+      background: %s;
+      color: %s;
+    }
+    QToolBar {
+      background: %s;
+      border: none;
+      spacing: 2px;
+    }
+    QStatusBar {
+      background: %s;
+      color: %s;
+    }
+    QLineEdit {
+      background: %s;
+      color: %s;
+      border: 1px solid %s;
+      border-radius: 3px;
+      padding: 2px 4px;
+      selection-background-color: %s;
+    }
+    QProgressBar {
+      background: %s;
+      color: %s;
+      border: 1px solid %s;
+      border-radius: 3px;
+      text-align: center;
+    }
+    QProgressBar::chunk {
+      background: %s;
+    }
     QTabBar::tab {
       background: %s;
       color: %s;
@@ -524,17 +588,25 @@ function MyDSL.Theme.appStyleSheetCSS(name)
       selection-color: %s;
       border: 1px solid %s;
     }
-    QScrollBar:vertical, QScrollBar:horizontal {
+    QScrollBar:vertical {
       background: %s;
       border: none;
+      width: 8px;
+    }
+    QScrollBar:horizontal {
+      background: %s;
+      border: none;
+      height: 8px;
     }
     QScrollBar::handle:vertical, QScrollBar::handle:horizontal {
       background: %s;
-      border-radius: 4px;
+      border-radius: 3px;
     }
     QScrollBar::add-line, QScrollBar::sub-line {
       background: none;
       border: none;
+      width: 0px;
+      height: 0px;
     }
     QToolButton, QPushButton {
       background: %s;
@@ -546,10 +618,20 @@ function MyDSL.Theme.appStyleSheetCSS(name)
       background: %s;
     }
   ]],
+    c("bgColor"), c("textColor"),
+    c("textColor"),
+    c("titleBgColor"), c("titleColor"),
+    c("bgColor"), c("textColor"), c("borderColor"),
+    c("titleBgColor"), c("titleColor"),
+    c("bgColor"),
+    c("bgColor"), c("textColor"),
+    c("bgColor"), c("textColor"), c("borderColor"), c("titleBgColor"),
+    c("bgColor"), c("textColor"), c("borderColor"), c("titleBgColor"),
     c("bgColor"), c("dimColor"), c("borderColor"),
     c("titleBgColor"), c("titleColor"), c("borderColor"),
     c("bgColor"), c("textColor"), c("borderColor"),
     c("bgColor"), c("textColor"), c("titleBgColor"), c("titleColor"), c("borderColor"),
+    c("bgColor"),
     c("bgColor"),
     c("borderColor"),
     c("bgColor"), c("textColor"), c("borderColor"),

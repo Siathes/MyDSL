@@ -287,16 +287,25 @@ end
 -- Rather than just widen that side slot, this restores the pre-v1A15
 -- centered-text-on-the-fill look Steven asked for, Improve-only —
 -- transparent background so the gradient fill shows through underneath.
+-- Text color themed 2026-08-30 per Steven ("find a nice tron purple feel
+-- for the improve bar and text") -- this function is only ever used for
+-- the Improve bar (see the ternary at its call site below), so a
+-- tron_blue check here is unambiguous without needing a kind parameter.
+-- Same glow-on-dark-surface logic as every other tron_blue accent: a
+-- brightened tint of the bar's own purple, not the raw fill color, so
+-- it reads clearly against the gradient underneath.
 local function styleBarNumCentered()
+  local color = "#f5f0ff"
+  if MyDSL.Theme and MyDSL.Theme.active == "tron_blue" then color = "#e0b3ff" end
   return string.format([[
     background-color: rgba(0,0,0,0);
-    color: #f5f0ff;
+    color: %s;
     border: 0px;
     font-family: "Noto Sans Mono", monospace;
     font-size: %dpt;
     font-weight: bold;
     qproperty-alignment: 'AlignCenter';
-  ]], math.max(6, (tonumber(L.config.barFont) or 8) + 2))
+  ]], color, math.max(6, (tonumber(L.config.barFont) or 8) + 2))
 end
 
 -- TRON_BAR_COLORS -- added 2026-08-30, per Steven's direct follow-up
@@ -314,9 +323,15 @@ end
 -- OTHER preset). Each is a light/mid/dark triplet for styleBarFill()'s
 -- existing 3-stop gradient sheen.
 local TRON_BAR_COLORS = {
-  hp   = { "#78d2f5", "#00a3e0", "#003c5a" },  -- Neon Blue
-  mana = { "#f6d32d", "#ff7800", "#e01b24" },  -- yellow -> orange -> red
-  move = { "#8cff8c", "#00ff00", "#005a00" },  -- Neon Green
+  hp      = { "#78d2f5", "#00a3e0", "#003c5a" },  -- Neon Blue
+  mana    = { "#f6d32d", "#ff7800", "#e01b24" },  -- yellow -> orange -> red
+  move    = { "#8cff8c", "#00ff00", "#005a00" },  -- Neon Green
+  -- Added 2026-08-30 per Steven ("find a nice tron purple feel for the
+  -- improve bar and text") -- the same researched Electric Purple
+  -- (#A500FF, huehive.co's Tron Legacy palette) originally slated for
+  -- Mana before its own fire-gradient redesign, freeing this hue up for
+  -- Improve instead.
+  improve = { "#d9a3ff", "#a500ff", "#380066" },  -- Electric Purple
 }
 
 -- colorSet(kind) -- theme-conditional 2026-08-30 (see TRON_BAR_COLORS
