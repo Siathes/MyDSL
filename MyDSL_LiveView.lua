@@ -299,7 +299,35 @@ local function styleBarNumCentered()
   ]], math.max(6, (tonumber(L.config.barFont) or 8) + 2))
 end
 
+-- TRON_BAR_COLORS -- added 2026-08-30, per Steven's direct follow-up
+-- ("id like to change the hp/mana/move into tron colors appropriate or
+-- look, research tron themes"). Real research, not invented: fetched a
+-- documented Tron Legacy palette (huehive.co) -- Neon Blue #00A3E0,
+-- Electric Purple #A500FF, Neon Green #00FF00 are all real, named colors
+-- from that palette, not guessed. Assigned one each to HP/Mana/Move so
+-- all three stay visually distinct (the bar's own text label already
+-- disambiguates them too, so exact hue no longer needs to carry the
+-- entire "which stat is this" job the way red/blue/green universally
+-- does for every OTHER preset). Each is a light/mid/dark triplet for
+-- styleBarFill()'s existing 3-stop gradient sheen -- light = brightened
+-- toward white, dark = the same hue driven down toward black, mid = the
+-- real researched hex itself.
+local TRON_BAR_COLORS = {
+  hp   = { "#78d2f5", "#00a3e0", "#003c5a" },  -- Neon Blue
+  mana = { "#d278ff", "#a500ff", "#3c006e" },  -- Electric Purple
+  move = { "#8cff8c", "#00ff00", "#005a00" },  -- Neon Green
+}
+
+-- colorSet(kind) -- theme-conditional 2026-08-30 (see TRON_BAR_COLORS
+-- above): every OTHER preset keeps HP/Mana/Move's universal red/blue/
+-- green (a real MUD-UI convention worth preserving generally), only
+-- tron_blue swaps to the researched Tron palette, per Steven's explicit
+-- ask for THAT theme specifically.
 function L.colorSet(kind)
+  if MyDSL.Theme and MyDSL.Theme.active == "tron_blue" and TRON_BAR_COLORS[kind] then
+    local t = TRON_BAR_COLORS[kind]
+    return t[1], t[2], t[3]
+  end
   if kind == "hp" then return "#ff7777", "#cc2525", "#7d1010" end
   if kind == "mana" then return "#78baff", "#2a77d4", "#0d356d" end
   if kind == "move" then return "#83ff80", "#2baa39", "#0d5b18" end

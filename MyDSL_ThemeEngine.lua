@@ -15,6 +15,52 @@
 -- contract, but every real consumer builds title/body CSS itself via
 -- get()+colorToCSS() instead -- those two functions were dead, removed.)
 -- =============================================================================
+--
+-- WHAT EACH KEY AFFECTS -- added 2026-08-30 per Steven ("map the changes
+-- and what they change so we can do some theme trials"). A theme switch
+-- (`theme set <name>`) takes effect live/immediately -- every consumer
+-- below listens for "MyDSL.theme.changed" and re-styles right away, no
+-- reload needed.
+--   font / fontSize           -- every window's body text
+--   titleFont / titleFontSize -- every window's native title bar text
+--   bgColor       -- every window's panel background; also the HP/Mana/
+--                    Move bar TRACK background (2026-08-30) and one
+--                    input to appStyleSheetCSS() (QComboBox/QScrollBar/
+--                    QToolButton backgrounds)
+--   textColor     -- default body text color (most windows build their
+--                    own colored spans on top of this base)
+--   borderColor   -- every window's panel border; the title bar's own
+--                    bottom border-line; the HP/Mana/Move bar TRACK
+--                    border; appStyleSheetCSS()'s QTabBar/QComboBox/
+--                    QToolButton border color
+--   borderSize    -- every window's panel border thickness
+--   radius        -- every window's panel corner rounding
+--   titleColor    -- native title bar text color; appStyleSheetCSS()'s
+--                    selected-tab text + selection text color
+--   titleBgColor  -- native title bar background wash; appStyleSheetCSS()'s
+--                    selected-tab background + dropdown selection color
+--   highlightColor-- used by individual windows for emphasis text (not
+--                    every window consumes this the same way -- check a
+--                    given window's own render() if a highlight change
+--                    doesn't show where expected)
+--   dimColor      -- muted/secondary text; appStyleSheetCSS()'s
+--                    unselected-tab text color
+--   warnColor / goodColor -- semantic danger/success text color, used
+--                    by windows that render pass/fail or danger states
+--   zones (zoned_hud only) -- per-category border/title/titleBgColor
+--                    override, keyed by MyDSL.Theme.windowZone
+--
+-- NOT theme-driven (deliberately, or not wired up yet):
+--   HP/Mana/Move bar FILL colors (MyDSL_LiveView.lua's L.colorSet()) --
+--     universal red/blue/green for every preset EXCEPT tron_blue, which
+--     gets its own researched Tron palette instead (2026-08-30, per
+--     Steven's direct ask) -- the bar's own text label already
+--     disambiguates HP/Mana/Move, so exact hue no longer has to.
+--   Improve/XP bar fill colors -- always their own fixed gold/purple,
+--     not yet wired to theme or the tron_blue override above.
+--   Mapper room colors, DslColors relationship colors (friend/enemy/
+--     neutral) -- entirely separate systems, not theme-driven.
+-- =============================================================================
 
 
 ------------------------------------------------------------------------
