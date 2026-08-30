@@ -99,7 +99,7 @@ registerAnonymousEventHandler("sysUninstallPackage", "dslMapperAddonInstallUnins
 -- passive door-state feeding, and tiny debug/status helpers.
 -- ============================================================================
 map.dsl = map.dsl or {}
-map.dsl.version = "0.2.8"
+map.dsl.version = "0.2.9"
 map.dsl.base = "Generic Mapper 2.1.8"
 map.dsl.gmcp = map.dsl.gmcp or {}
 map.dsl.line_buffer = map.dsl.line_buffer or {}
@@ -474,14 +474,37 @@ end
 -- happens to win that race. A 1-second grace period gives stock's own
 -- resolution time to finish first; a genuine desync is not a timing
 -- fluke and is still just as visible a full second later.
+-- Widened 2026-08-30 (same day, Steven confirmed "the dot never moves at
+-- all" -- option 1 of 3) to log EVERY check, not just a mismatch. A
+-- silent "nothing logged" result was ambiguous between "no bug" and "the
+-- check never saw good data to compare in the first place" (e.g. GMCP
+-- room_data not actually refreshing, or map.currentRoom never set at
+-- all -- both previously silent early-returns here). Verbose on purpose
+-- while this is still an open investigation; narrow back to
+-- mismatch-only logging once the real cause is confirmed.
 function map.dsl.checkRoomDesync()
-  if not map.currentRoom or not map.roomexists or not map.roomexists(map.currentRoom) then return end
-  if not map.dsl.roomLooksStale(map.currentRoom) then return end
   local rd = map.dsl.gmcp and map.dsl.gmcp.room_data
+  local gmcpName = rd and rd.room
+  local rdAge = map.dsl.gmcp and map.dsl.gmcp.room_data_time
+    and string.format("%.1fs", os.time() - map.dsl.gmcp.room_data_time) or "never"
+  if not map.currentRoom then
+    map.dsl.logDesync(string.format(
+      "no map.currentRoom set at all -- fresh GMCP says player is in %q (gmcp age %s)",
+      tostring(gmcpName), rdAge))
+    return
+  end
+  if not map.roomexists or not map.roomexists(map.currentRoom) then
+    map.dsl.logDesync(string.format(
+      "map.currentRoom=%s does not exist in the loaded map database -- GMCP says player is in %q (gmcp age %s)",
+      tostring(map.currentRoom), tostring(gmcpName), rdAge))
+    return
+  end
+  local storedName = getRoomName(map.currentRoom)
+  local stale = map.dsl.roomLooksStale(map.currentRoom)
   map.dsl.logDesync(string.format(
-    "STUCK: map.currentRoom=%s stored_name=%q but fresh GMCP says the player is actually in %q -- " ..
-    "stock's own room resolution silently failed to follow a real move",
-    tostring(map.currentRoom), tostring(getRoomName(map.currentRoom)), tostring(rd and rd.room)))
+    "check: currentRoom=%s stored_name=%q gmcp_name=%q gmcp_age=%s -> %s",
+    tostring(map.currentRoom), tostring(storedName), tostring(gmcpName), rdAge,
+    stale and "STUCK (mismatch)" or "ok"))
 end
 
 function map.dsl.beforeExits(exits)
@@ -829,7 +852,22 @@ function map.dsl.announceAreaChange(rid)
   map.dsl.last_area_id = newArea
 end
 
+-- Logs its own firing -- added 2026-08-30, same investigation as
+-- checkRoomDesync() above. This is stock's own "onNewRoom" event,
+-- raised only from inside its private set_room() when a room genuinely
+-- resolves -- if this handler never fires despite real moves, stock
+-- itself never recognized the move at all (an even earlier-stage
+-- failure than anything checkRoomDesync() can see). If it DOES fire
+-- every time, stock is resolving rooms and should be calling
+-- centerview() itself right afterward -- which would point the "dot
+-- never moves" symptom at Mudlet's own map-widget rendering, not
+-- anything in this codebase.
 function map.dsl.onGenericNewRoom()
+  if map.dsl.logDesync then
+    map.dsl.logDesync(string.format(
+      "onNewRoom fired: stock resolved map.currentRoom=%s name=%q",
+      tostring(map.currentRoom), tostring(map.currentRoom and getRoomName(map.currentRoom))))
+  end
   map.dsl.applyRoomMetadata()
   map.dsl.announceAreaChange(map.currentRoom)
 end

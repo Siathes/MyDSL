@@ -129,7 +129,26 @@ question, folded in per Steven 2026-08-29 rather than a separate check.
          same `map.dsl.logDesync()` pattern. `DSL_Mapper_Addon.mpackage`
          rebuilt. Still needs Steven to actually install it in `MyDSL`
          (see below) before it can catch anything there.
-      3. **`MyDSL` migration to the new architecture — prepared, not
+      3. **Steven's own reinstall test (2026-08-30, `MyDSL Test` v0.2.8):
+         loaded the correct local map this time, still confirmed "the
+         dot never moves at all" (option 1 of 3 asked) — but
+         `mapper_desync_log.txt` was never created anywhere.** No Lua
+         errors either. That's ambiguous on its own (could mean no bug,
+         could mean the check never saw good data to compare) — widened
+         `checkRoomDesync()` in v0.2.9 to log EVERY check unconditionally
+         (not just a mismatch), and added a second breadcrumb at
+         `onGenericNewRoom()` (stock's own real "onNewRoom" event) so the
+         next test will show conclusively: is GMCP room_data actually
+         refreshing per move, is `map.currentRoom` tracking it, and is
+         stock's own new-room event firing at all. If that event fires
+         correctly every move with the right room, the "dot never moves"
+         symptom points at Mudlet's own map-widget rendering, not
+         anything in this codebase — nothing further to fix here in that
+         case. `DSL_Mapper_Addon.mpackage` rebuilt (v0.2.9), copied to
+         `~/Downloads/`. Needs Steven to install this build and test
+         again, send back `mapper_desync_log.txt`'s contents (or confirm
+         it's still empty) either way.
+      4. **`MyDSL` migration to the new architecture — prepared, not
          executed.** Steven said "do all recommended" to migrating
          `MyDSL` off the old fork. Deliberately did NOT do this via raw
          XML surgery on his live-play profile the way the check_room
