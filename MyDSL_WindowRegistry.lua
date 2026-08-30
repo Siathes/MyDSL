@@ -1012,6 +1012,25 @@ MyDSL.Windows.loadState()
 MyDSL.Windows.ensureAll()
 if loadWindowLayout then loadWindowLayout() end
 
+-- Bug found live 2026-08-29 (Steven: help window "currently starts opened
+-- on my second screen, it needs to start closed till called"): the native
+-- loadWindowLayout() call above restores whatever floating/visible state
+-- a window last had in the SHARED windowLayout.dat (see this file's own
+-- "CORRECTED 2026-08-29" comment above MyDSL.Windows.saveLayout() -- same
+-- profile name, so a prior session's "mydsl help" left Help floating and
+-- visible on a second monitor, and that comes back on every fresh login
+-- under this profile name) -- this can override ensureAll()'s own
+-- entry.visible=false hide() from moments earlier. The characterIdentified
+-- handler below re-applies MyDSL's own visibility bookkeeping, but only
+-- once login completes; re-asserting it immediately here closes the gap
+-- where a should-be-hidden window is visible (on whatever screen it last
+-- was) for the time between profile connect and character identification.
+for _, entry in pairs(MyDSL.Windows.registry) do
+  if entry.created and entry.obj and not entry.visible then
+    pcall(function() entry.obj:hide() end)
+  end
+end
+
 -- Re-load once the real character is known -- fixed 2026-07-07. loadState()
 -- above runs at script-boot time, which on a genuinely fresh Mudlet start
 -- happens before login, so it loads "Unknown"'s visibility state (or bare

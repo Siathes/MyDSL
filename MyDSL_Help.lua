@@ -593,6 +593,16 @@ MyDSL._aliases.help = tempAlias(
   [[if MyDSL and MyDSL.help then MyDSL.help() end]]
 )
 
+-- "mydsl" bare (no sub-command) also opens help -- Steven, 2026-08-29:
+-- "mydsl by itself should also open help". Every other "mydsl <verb> ..."
+-- alias in the codebase requires at least one word after "mydsl", so this
+-- doesn't collide with any of them.
+if MyDSL._aliases.helpBare then pcall(killAlias, MyDSL._aliases.helpBare) end
+MyDSL._aliases.helpBare = tempAlias(
+  "^mydsl$",
+  [[if MyDSL and MyDSL.help then MyDSL.help() end]]
+)
+
 if MyDSL._aliases.helpOverview then pcall(killAlias, MyDSL._aliases.helpOverview) end
 MyDSL._aliases.helpOverview = tempAlias(
   "^mydsl help overview$",
