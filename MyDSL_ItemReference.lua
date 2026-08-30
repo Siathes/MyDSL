@@ -67,7 +67,13 @@ function IR.render(name)
   if MyDSL.ItemLore and MyDSL.ItemLore.get then
     rec = MyDSL.ItemLore.get(itemKey(name))
   end
-  if not rec then
+  -- Bug found live 2026-08-29 (Steven: "after a cast ident item, then if i
+  -- click an item it only updates the name, not the info"): this fallback
+  -- used to apply unconditionally, so clicking any item with no DB record
+  -- yet redrew the PREVIOUS identify's stats under the newly-clicked
+  -- item's name -- wrong data, not just stale data. Only use the live
+  -- capture as a fallback when it's actually a record for this same item.
+  if not rec and MyDSL.State.itemlore and MyDSL.State.itemlore.key == itemKey(name) then
     rec = MyDSL.State.itemlore
   end
 
