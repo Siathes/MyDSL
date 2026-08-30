@@ -33,6 +33,10 @@ Full details and known issues are in each release's own notes.
 
 Combat/group/target/chat windows, a prompt/vitals overlay, item and creature reference lookups, character-assist helpers, and more — built as a set of independent, toggleable modules rather than one monolithic thing. Not yet packaged for standalone install the way the mapper is; if you want to try it, clone the repo into a Mudlet profile folder and see `CLAUDE.md` for how the pieces fit together.
 
+## License
+
+[PolyForm Noncommercial 1.0.0](LICENSE.md) — free to use, copy, modify, and redistribute (including modified/derivative versions) for any noncommercial purpose, which explicitly covers personal/hobby use. Commercial use isn't permitted.
+
 ## Source / issues
 
-Report bugs or ask questions via [Issues](https://github.com/Siathes/MyDSL/issues). Contributions/forks welcome — no license file has been added yet, so ask first if you want to redistribute a modified copy.
+Report bugs or ask questions via [Issues](https://github.com/Siathes/MyDSL/issues). Contributions/forks welcome.

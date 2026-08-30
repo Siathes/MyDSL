@@ -45,7 +45,8 @@ Does **not** bundle a copy of Generic Mapper -- it expects your own \
 Mudlet install to already have it (Mudlet ships it built in for most \
 games; open the Mapper once if you've never used it in this profile).
 
-Part of the MyDSL project."""
+Part of the MyDSL project. Free for any noncommercial use (PolyForm \
+Noncommercial 1.0.0) -- see the repo's LICENSE.md."""
 
 
 def lua_field(key, value):
