@@ -700,7 +700,7 @@ function L.ensureUI()
   L.ui.attrCon = Geyser.Label:new({ name=L.name.."_AttrCon", x="61%", y=tostring(ROW_Y[5]).."%", width="37%", height=tostring(ROW_H).."%" }, L.ui.win)
   -- Row 6 on this side, previously left blank per the sketch, now used
   -- for dragon Vitality, added 2026-07-12 per the maintainer ("dragon vitality
-  -- stat next for dragons/qinrathaz only... below con in the stats
+  -- stat next for dragon characters only... below con in the stats
   -- window"). Left blank (empty echo) for non-dragon characters, same
   -- as it always was -- see render() below.
   L.ui.attrVit = Geyser.Label:new({ name=L.name.."_AttrVit", x="61%", y=tostring(ROW_Y[6]).."%", width="37%", height=tostring(ROW_H).."%" }, L.ui.win)

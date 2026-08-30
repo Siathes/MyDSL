@@ -613,8 +613,8 @@ end
 -- this tracker today, so it stays as-is on purpose -- don't "fix" this
 -- again without building/coordinating with that module first.
 local DAMAGE_VERBS = "miss|scratch|graze|hit|injure|wound|maul|decimate|devastate|maim|MUTILATE|DISEMBOWEL|DISMEMBER|MASSACRE|MANGLE|DEMOLISH|DEVASTATE|OBLITERATE|ANNIHILATE|ERADICATE|GHASTLY|HORRID|DREADFUL|HIDEOUS|INDESCRIBABLE|UNSPEAKABLE"
--- REAL BUG, found live 2026-07-20 (the maintainer, via the actual Olyndros
--- session log, flagged as "combat remains in the main window, the
+-- REAL BUG, found live 2026-07-20 (the maintainer, via a second test character's
+-- real session log, flagged as "combat remains in the main window, the
 -- readicates and others should be going to combat with the condenser"):
 -- this trigger's own final group used to require the line to end in one
 -- or more literal "."/"!" characters -- but DSL's real current combat
@@ -639,8 +639,8 @@ local DAMAGE_VERBS = "miss|scratch|graze|hit|injure|wound|maul|decimate|devastat
 -- comes from a fixed per-verb DAM_INFO[verb].score lookup, not parsed
 -- from this text -- so passing a "(340)"-shaped punct through is safe,
 -- nothing depends on it being exactly "."/"!".
--- REAL BUG, found live 2026-07-25 (the maintainer, via a real Olyndros leveling
--- session): even after the 2026-07-20 fix above (matching the "(340)"
+-- REAL BUG, found live 2026-07-25 (the maintainer, via a real leveling
+-- session on a second test character): even after the 2026-07-20 fix above (matching the "(340)"
 -- damage-number ending), the maintainer's own note says "damage still appearing
 -- in main window and not being moved to combat" -- and the log confirms
 -- it: every single swing this session printed completely raw, verbatim

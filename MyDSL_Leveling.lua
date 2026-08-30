@@ -584,7 +584,7 @@ function MyDSL.Leveling.onScanUpdated()
   if not area then return end
 
   -- REAL BUG, found live 2026-07-20 (the maintainer: "it did not engage the
-  -- enemies", confirmed via the Olyndros session log -- a full 12-step
+  -- enemies", confirmed via a second test character's session log -- a full 12-step
   -- pass through "philosophy" completed with 0 kills despite every room
   -- showing real, enabled mobs, e.g. "(Golden Aura) A gnome student is
   -- here."). Root cause: `entry.raw` (MyDSL_DataLayer.lua's
@@ -621,7 +621,7 @@ registerAnonymousEventHandler("MyDSL.scan.updated", "MyDSL.Leveling.onScanUpdate
 -- REAL BUG, found live 2026-07-25, per the maintainer's own MyDSL-profile notes
 -- ("target window not populating when im in combat, should become the
 -- target im fighting, have all the mob info etc."). Confirmed against
--- this exact Olyndros leveling session's own log: zero Focus/TargetView
+-- this exact leveling session's own log (a second test character): zero Focus/TargetView
 -- activity of any kind the whole run. Root cause: Leveling tracks its
 -- own kill target entirely independently (L.session.pendingKillMobKey)
 -- and never told the shared MyDSL.Target API about it -- so Focus never

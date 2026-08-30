@@ -554,7 +554,7 @@ local function isUnparsedPresenceLine(line)
   -- via MyDSL_Leveling.lua's own live testing (exactly the shared-risk
   -- scenario that module's own comments flagged as most likely, since a
   -- leveling run generates far more room-look volume than normal play).
-  -- Confirmed via 2 separate real session logs (Olyndros, "Philosophy
+  -- Confirmed via 2 separate real session logs (a second test character, "Philosophy
   -- Guild"): "     Several small desks are here positioned strategically."
   -- is the very FIRST line after "[Exits: ...]" in that room, plural
   -- ("are here", not "is here"), starts with neither an article nor

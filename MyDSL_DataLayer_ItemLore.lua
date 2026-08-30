@@ -486,10 +486,10 @@ end
 -- Added 2026-07-19, per the maintainer ("integrate the eq of others hover text
 -- note") -- confirmed real format via log corpus for both a mob
 -- ("Brash is using:", log/2026-07-16#18-07-53.html) and a real player/
--- dragon character ("Qinrathaz is using:",
+-- dragon character (a second test character, "<name> is using:",
 -- MyDSL/log/2026-07-19#16-33-40.html): identical body-line shape to
 -- your own "You are using:" listing (same "<slot>  (flags) item name"
--- format, confirmed multi-slot in the Qinrathaz capture -- light/
+-- format, confirmed multi-slot in that capture -- light/
 -- finger/neck x2/head/wrist x2/held all present and correctly
 -- formatted), just prefixed with the subject's name instead of "You".
 --

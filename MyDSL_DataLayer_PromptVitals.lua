@@ -974,9 +974,9 @@ MyDSL._triggers.wimpySet = tempRegexTrigger(
 ------------------------------------------------------------------------
 -- Dragon Vitality -- text trigger on the `stat` command's output
 ------------------------------------------------------------------------
--- Added 2026-07-12, per the maintainer ("dragon vitality stat next for dragons/
--- qinrathaz only, see help files for dragon vitality if needed at it
--- below con in the stats window"). DSL_Helpfiles/dragons.txt confirms:
+-- Added 2026-07-12, per the maintainer ("dragon vitality stat next for
+-- dragon characters only, see help files for dragon vitality if needed
+-- at it below con in the stats window"). DSL_Helpfiles/dragons.txt confirms:
 -- "Dragons will lose vitality with every death though not alterforms.
 -- When a dragon's vitality is gone, the dragon will permanently die" --
 -- a dragon-only permadeath-countdown stat, not present for any other
