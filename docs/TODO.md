@@ -82,10 +82,11 @@ question, folded in per Steven 2026-08-29 rather than a separate check.
       "MyDSL Test"), then delete the now-unneeded profiles. Needs real
       scoping before work starts — this is a large, structural,
       GUI-driven undertaking.
-- [ ] **Portrait window "black title bar" — root cause found and fixed
-      2026-08-30, needs live re-confirm.** A fresh screenshot (Steven
-      circled it in red) pinned it down: a solid black bar between the
-      native title bar and the portrait image. Cause: the 2026-08-26
+- [x] **Portrait window "black title bar" — RESOLVED, confirmed by Steven
+      directly ("portrait bar is gone") and independently in "MyDSL Test"
+      notes.json ("black border gone in portrait").** A fresh screenshot
+      (Steven circled it in red) pinned it down: a solid black bar between
+      the native title bar and the portrait image. Cause: the 2026-08-26
       "Direction A+" pass reserved the top 10% of Portrait's content area
       for `MyDSL.Windows.ensureHeader()`, a function never actually
       implemented anywhere (confirmed nil project-wide) — every other
@@ -93,8 +94,7 @@ question, folded in per Steven 2026-08-29 rather than a separate check.
       reserved gap; Portrait alone kept both the dead call and the
       resulting empty margin. Removed both call sites and the 10%/90%
       split; image label is now full-height like every other window.
-      `mydsl portrait title <text>` still works unchanged. Not closed
-      until Steven confirms the bar is gone in-game.
+      `mydsl portrait title <text>` still works unchanged.
 - [x] **Mapper "not following room movement" — RESOLVED 2026-08-30,
       confirmed by Steven directly** ("it now follows with room
       description false... i watched the mapper move each time after
@@ -402,14 +402,45 @@ one at a time:
 ---
 
 ## OPEN — Design ideas, not yet scoped
-- [ ] **Login setup popup renders wrong** — Steven, 2026-08-30 "MyDSL Test"
-      `notes.json`: "autologin appeared small in the corner docked, it
-      needs to be not docked and in the center of the screen and alter
-      the text to fit a smaller notice window, it was wide." The
-      `MyDSL_LoginSetup` `Geyser.UserWindow` (`MyDSL_Login.lua`,
-      2026-08-30 feature) needs real positioning/sizing work — centered,
-      not docked, and its instruction text needs to fit a narrower
-      window. Not yet fixed.
+- [ ] **Autologin — real redesign requested 2026-08-30, popup approach
+      rejected by Steven.** Original complaint (notes.json): "autologin
+      appeared small in the corner docked... alter the text to fit a
+      smaller notice window, it was wide." Then, later same session:
+      "lose the autologin, it makes it more combesom. unless you can
+      pitch an actual functioning one from logs" — plus two concrete
+      asks for what a real one should do: "it should also enter the
+      commands to get to the master account login and password... cant
+      you intercept the entry from the command line when it asks for
+      master account name and then password and store it first run?"
+      and "i had an old login trigger that had the info in it for login
+      along with some startup aliases and such, can you find it."
+      **Found it** — an old native Trigger (profile snapshot dated
+      2026-07-17, predates the 2026-08-26 security cleanup) firing on
+      `"Do you want color? (Y/N) ->"`, chaining straight through the
+      whole flow: color prompt → continue → master account login →
+      account name → password → view characters, all in one `mCommand`.
+      Confirms `MyDSL_Login.lua` (2026-08-30) only ever covered half the
+      job — it writes credentials to a file but never actually sends
+      anything, unlike the old trigger. **Real redesign pitched to
+      Steven, not yet built** — replace the popup-setup flow with:
+      (1) a trigger chain on the real login prompts (color → continue →
+      master login → account name → password → character list),
+      reading from the existing credentials file each step rather than
+      a hardcoded string; (2) first-run capture via `sysDataSendRequest`
+      — intercept what Steven actually types at the master-account-name
+      and password prompts the first time he logs in manually, save it
+      automatically, no separate setup command needed; (3) suppress the
+      password prompt's own local echo during that first manual entry
+      so it never shows in plaintext on screen or in any log. Needs
+      Steven's go-ahead on this design before building.
+      **Also surfaced, separate but related — real exposure, not yet
+      cleaned up**: the OLD trigger's `mCommand` (found while searching
+      for it) still has Steven's real account name and password sitting
+      in plaintext in that one old profile snapshot file (`MyDSL/
+      current/2026-07-17#20-43-40.xml` and several other snapshots from
+      the same evening) — never git-tracked, but still live on disk.
+      Should be deleted once Steven confirms he doesn't need those old
+      snapshots for anything else.
 - [ ] **Thinner UserWindow title bars?** — Steven, same notes.json: "is
       it possible to make the userwindow titles bars thinner?" General
       polish ask across all `Geyser.UserWindow`-based popups, not scoped

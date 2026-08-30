@@ -1289,8 +1289,16 @@ DSL_ORG_ALIASES = {
   ["Ganth"] = "ganth",
   ["ganth"] = "ganth",
   ["Thaxanos"] = "thaxanos",
-  ["Thaxanos"] = "thaxanos",
   ["thaxanos"] = "thaxanos",
+  -- (THAX)/THAX/thax added 2026-08-30 -- Steven's own notes.json: "dslcolor
+  -- need to map THAX to thaxanos kingdom color palette etc." Real game text
+  -- shows the bracketed abbreviation ("(THAX) Vexgar."), not the full
+  -- "Thaxanos" -- every other kingdom with a short form (VR/Verminasia,
+  -- WANTED/Retired, etc.) already has all 3 key variants; Thaxanos was
+  -- missing all of them.
+  ["(THAX)"] = "thaxanos",
+  ["THAX"] = "thaxanos",
+  ["thax"] = "thaxanos",
   ["(Retired)"] = "retired",
   ["Retired"] = "retired",
   ["retired"] = "retired",
