@@ -401,12 +401,10 @@ function P.setTitle(title)
   end
   P.config.title = title
   P.save()
-  if MyDSL.Windows and MyDSL.Windows.ensureHeader then
-    MyDSL.Windows.ensureHeader(P.config.windowName, title)
-  else
-    if P.window and P.window.setTitle then pcall(function() P.window:setTitle(title) end) end
-    if P.window and P.window.setWindowTitle then pcall(function() P.window:setWindowTitle(title) end) end
-  end
+  -- ensureHeader() doesn't exist -- see the matching comment in
+  -- ensureWindow() above. Native title bar only.
+  if P.window and P.window.setTitle then pcall(function() P.window:setTitle(title) end) end
+  if P.window and P.window.setWindowTitle then pcall(function() P.window:setWindowTitle(title) end) end
   return P.refresh("title")
 end
 
@@ -523,18 +521,21 @@ function P.ensureWindow()
     P.state.windowReady = true
   end
 
-  -- Visual pass v2 "Direction A+" (locked spec, HANDOFF.md 2026-08-26).
-  -- Portrait is the one window with a genuinely user-customizable title
-  -- ("mydsl portrait title <text>", P.setTitle() below) -- ensureHeader()
-  -- gets P.config.title verbatim (whatever Steven set, not a hardcoded
-  -- "Portrait") specifically to preserve that existing feature, not the
-  -- plain window-name-only text every other window uses.
-  if MyDSL.Windows and MyDSL.Windows.ensureHeader then
-    MyDSL.Windows.ensureHeader(P.config.windowName, P.config.title)
-  else
-    if P.window and P.window.setTitle then pcall(function() P.window:setTitle(P.config.title) end) end
-    if P.window and P.window.setWindowTitle then pcall(function() P.window:setWindowTitle(P.config.title) end) end
-  end
+  -- Real bug fix 2026-08-30 (Steven, live screenshot): a solid black bar
+  -- was rendering between the native title bar and the portrait image.
+  -- Root cause: the 2026-08-26 "Direction A+" pass reserved the top 10%
+  -- of several windows' content area for a MyDSL.Windows.ensureHeader()
+  -- call, but ensureHeader() was never actually implemented in
+  -- MyDSL_WindowRegistry.lua -- confirmed nil, not just here but
+  -- project-wide (grep finds zero definitions anywhere). Every other
+  -- window from that pass relies on the native title bar alone with no
+  -- reserved gap; Portrait was the one straggler still carrying the dead
+  -- call *and* the 10% margin that was meant to hold it. Uses the native
+  -- title bar like every other window now -- no functional loss, the
+  -- custom-title feature (`mydsl portrait title <text>`) still works via
+  -- setTitle() below.
+  if P.window and P.window.setTitle then pcall(function() P.window:setTitle(P.config.title) end) end
+  if P.window and P.window.setWindowTitle then pcall(function() P.window:setWindowTitle(P.config.title) end) end
 
   local parent = getWindowObject() or P.window
 
@@ -547,9 +548,9 @@ function P.ensureWindow()
       return Geyser.Label:new({
         name = "MyDSL_Portrait_ImageLabel",
         x = 0,
-        y = "10%",
+        y = 0,
         width = "100%",
-        height = "90%",
+        height = "100%",
       }, parent)
     end)
     if ok and lbl then
