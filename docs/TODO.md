@@ -215,6 +215,49 @@ item above rather than needing its own decision.)*
 Fixed in code (or already known-good), none of it closed until Steven
 confirms it in-game. Bundle these into upcoming play sessions rather than
 one at a time:
+- [ ] **Login credential setup popup, built 2026-08-30** (Steven: "add a
+      way for the user to add the login information like a pop up UI for
+      the first setup (i dont want users to have to edit code for basic
+      scripts)"). Mudlet/Geyser has no native text-entry widget (confirmed
+      via grep — none exists anywhere in this codebase or the vendored PNP
+      reference), so a real popup window (`MyDSL_LoginSetup`) now
+      auto-shows once when unconfigured, explains what's needed, and its
+      "Click here" link pre-fills the command line via `appendCmdLine()`
+      with `mydsl login setup <character> <password>` so nothing has to
+      be typed from memory or a text editor — running that command writes
+      `MyDSL_login_credentials.lua` itself. "Don't ask again" persists via
+      a small separate settings file (never touches the credentials file).
+      `mydsl login setup` reopens it any time. `test/test_login_setup.lua`,
+      11 assertions (setup writes a working file, bad input rejected, no
+      password leaks into any echo, dismissal persists across reload).
+      Needs live confirmation the popup actually renders/positions
+      correctly and the command-line pre-fill really works in real Mudlet
+      (the mock can't verify `appendCmdLine`/`clearCmdLine`'s real effect).
+- [ ] **DslColors — 29 titles Steven had already added live promoted to
+      shipped defaults, 2026-08-30.** Found via his own note ("the
+      dslcolors new titles live in the config/settings file") — read
+      straight from `DSL_PeopleColors_data.lua`'s persisted
+      `DSL_COLOR_DB.titles` table in both `MyDSL` and `MyDSL Test`:
+      Advocate, Apprentice, Caliph, Cardinal, Darkness, Duchess, Duke,
+      Floramancer, Gadikli, Grunt, Guard, "High Priest", Jujumaster,
+      Lieutenant, Ogrelord, Oneiromancer, Philanthropist, Priest,
+      Purveyor, Raider, Royal, Sage, Scallywag, Seeker, Shadowhunter,
+      Student, Tadpole, Troublemaker, Voivode — all real, previously
+      user-added titles, not guesses. Promoted into
+      `DSL_DEFAULT_TITLE_SEEDS`/signature (release6 → release7), same
+      treatment "Professor" got 2026-08-29, in both the git-tracked
+      reference copy and the live native profile. Needs a live check that
+      the colors actually render right for a title in this new batch.
+- [ ] **Leveling module's areas/routes/mobs data — not lost, just not yet
+      copied to the new profile, fixed 2026-08-30.** All 40 areas in the
+      live `MyDSL` profile's `leveling_areas.lua` turned out to be
+      `source = "seed"` — i.e. exactly `MyDSL/leveling_areas_seed.lua`
+      (already git-tracked) imported once via `mydsl leveling import`,
+      not hand-built beyond that. Copied the file directly into
+      `MyDSL Test/MyDSL/leveling_areas.lua` (pure world/mob reference
+      data, not character-specific, same class as CreatureLore/ItemLore's
+      already-shared DBs). Needs a live check: `mydsl leveling areas`
+      should list all 40 in "MyDSL Test" now.
 - [ ] **Item identify not reachable by click, root cause found + fixed
       2026-08-30** (Steven, "MyDSL Test" `notes.json`: "c ident pants...
       items arent persisting after identifying"). `identify` WAS
@@ -286,15 +329,6 @@ one at a time:
 ---
 
 ## OPEN — Design ideas, not yet scoped
-- [ ] **Autologin "not doing anything" — not a bug, confirmed 2026-08-30**
-      (Steven, "MyDSL Test" `notes.json`). `MyDSL_Login.lua` deliberately
-      never creates `MyDSL_login_credentials.lua` itself (Principle 5: no
-      credentials in tracked code/backups, ever) — Steven has to
-      hand-create that file once per profile. Confirmed neither `MyDSL`
-      nor `MyDSL Test`'s profile folder has one yet, so there's nothing
-      for it to autofill. Not something to fix in code; needs Steven to
-      create the file (see `MyDSL_Login.lua`'s own header comment for the
-      exact format) in whichever profile(s) he wants it active.
 - [ ] **Skill-based affect tracking (e.g. `hide`)** — Steven, "MyDSL Test"
       `notes.json`: "its a skill not a cast, need a method for tracking
       skills like spells?" `MyDSL_AffectsView.lua`'s tracking today is
@@ -303,18 +337,6 @@ one at a time:
       design pass — what real DSL output (if any) signals hide's start/
       end — before this can be scoped, same class of blocker as the
       bash/spell-cast-announcement corpus gap already tracked above.
-- [ ] **New DslColors title(s) to add to defaults** — Steven, "MyDSL Test"
-      `notes.json`: "some new titles to add to dslcolor defaults", no
-      specific title(s) named. Needs Steven to say which title(s) before
-      this can be actioned.
-- [ ] **Leveling module's areas/routes/mobs data missing on fresh
-      install** — Steven, "MyDSL Test" `notes.json`: "mydsl leveling areas
-      need to have the areas that where created for it loaded already...
-      we had area routes and mobs before." This data likely predates the
-      2026-08-30 profile cleanup and may only exist in
-      `~/Documents/DSL_MUD_Archive/` now (or may need to be rebuilt from
-      scratch) — needs a check of what `MyDSL_Leveling.lua` actually
-      expects/reads before concluding anything, not assumed lost.
 - [ ] **TargetView: debuffs on target / aura auto-populate / scan
       auto-populate** — all three confirmed deferred until a real
       design+build pass (no corpus text to build against yet for the

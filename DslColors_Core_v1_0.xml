@@ -1382,6 +1382,8 @@ local DSL_DEFAULT_TITLE_SEEDS = {
   {"Aboleth", "military"},
   {"Acolyte", "military"},
   {"Advisor", "political"},
+  {"Advocate", "political"},
+  {"Apprentice", "scholarly"},
   {"Archmagus", "scholarly"},
   {"Archon", "political"},
   {"Archwizard", "scholarly"},
@@ -1391,7 +1393,9 @@ local DSL_DEFAULT_TITLE_SEEDS = {
   {"Bishop", "religious"},
   {"Brother", "religious"},
   {"Cabin Person", "military"},
+  {"Caliph", "royalty"},
   {"Captain", "military"},
+  {"Cardinal", "religious"},
   {"Citizen", "political"},
   {"Civilian", "political"},
   {"Clansmen", "political"},
@@ -1400,25 +1404,35 @@ local DSL_DEFAULT_TITLE_SEEDS = {
   {"Count", "royalty"},
   {"Dame", "royalty"},
   {"Dark_Knight:Legion", "military"},
+  {"Darkness", "military"},
   {"Deacon", "religious"},
   {"Dread Pirate", "military"},
+  {"Duchess", "political"},
+  {"Duke", "political"},
   {"Duskbinder", "scholarly"},
   {"Elder", "political"},
   {"Emperor", "royalty"},
   {"Executioner", "military"},
   {"Explorer", "scholarly"},
   {"Finder", "scholarly"},
+  {"Floramancer", "political"},
+  {"Gadikli", "political"},
   {"General", "military"},
   {"Gentleman", "scholarly"},
   {"Gladius", "military"},
+  {"Grunt", "military"},
+  {"Guard", "military"},
   {"High", "royalty"},
+  {"High Priest", "religious"},
   {"Huntress", "military"},
   {"Initiate", "military"},
   {"Inquisior", "military"},
   {"Inquisitor", "military"},
+  {"Jujumaster", "scholarly"},
   {"King", "royalty"},
   {"Knight", "military"},
   {"Lady", "royalty"},
+  {"Lieutenant", "military"},
   {"Lord", "royalty"},
   {"Magi", "scholarly"},
   {"Magus", "scholarly"},
@@ -1429,39 +1443,54 @@ local DSL_DEFAULT_TITLE_SEEDS = {
   {"Nascent", "scholarly"},
   {"Notorious Pirate", "military"},
   {"Novitiate", "scholarly"},
+  {"Ogrelord", "political"},
+  {"Oneiromancer", "scholarly"},
   {"Oreborn", "political"},
   {"Patron", "religious"},
+  {"Philanthropist", "political"},
   {"Pirate", "military"},
+  {"Priest", "religious"},
   {"Prince", "royalty"},
   {"Princess", "royalty"},
   {"Private", "military"},
   {"Protector", "military"},
+  {"Purveyor", "political"},
   {"Queen", "royalty"},
   {"Queensguard", "military"},
+  {"Raider", "military"},
   {"recruit", "military"},
   {"Regent", "royalty"},
   {"Renown Pirate", "military"},
+  {"Royal", "political"},
+  {"Sage", "religious"},
   {"Sailor", "military"},
   {"Samaritan", "political"},
   {"Sandsworn", "military"},
+  {"Scallywag", "military"},
   {"Scout", "military"},
+  {"Seeker", "political"},
   {"Senator", "political"},
   {"Sentry", "military"},
   {"Sergeant", "military"},
+  {"Shadowhunter", "political"},
   {"Sheikh", "political"},
   {"Sir", "military"},
   {"Soldier", "military"},
   {"Spellbinder", "scholarly"},
+  {"Student", "scholarly"},
   {"Sultan", "royalty"},
   {"Sultana", "royalty"},
   {"Supreme", "military"},
   {"Supreme General", "military"},
   {"Swordsman", "military"},
+  {"Tadpole", "scholarly"},
   {"Temple", "religious"},
   {"Thane", "royalty"},
+  {"Troublemaker", "military"},
   {"unproven", "military"},
   {"Vengeant", "military"},
   {"Vizier", "scholarly"},
+  {"Voivode", "political"},
   {"Watcher", "royalty"},
   {"Windseer", "military"},
   {"Wizard", "military"},
@@ -1471,7 +1500,22 @@ local DSL_DEFAULT_TITLE_SEEDS = {
 -- real via a live "who" sighting, see DSL_TITLE_ALIASES above for the
 -- promoted category mapping) -- bumping the signature string is what
 -- triggers the one-time stale-blocklist-clear reseed logic below for it.
-local DSL_DEFAULT_TITLE_SIGNATURE = "release6:Abbott|Aboleth|Acolyte|Advisor|Archmagus|Archon|Archwizard|Armiger|Aspirant|Baroness|Bishop|Brother|Cabin Person|Captain|Citizen|Civilian|Clansmen|Commander|Conscript|Count|Dame|Dark_Knight:Legion|Deacon|Dread Pirate|Duskbinder|Elder|Emperor|Executioner|Explorer|Finder|General|Gentleman|Gladius|High|Huntress|Initiate|Inquisior|Inquisitor|King|Knight|Lady|Lord|Magi|Magus|Mogul|Monsignor|Monsignor Patron|Nameless|Nascent|Notorious Pirate|Novitiate|Oreborn|Patron|Pirate|Prince|Princess|Private|Professor|Protector|Queen|Queensguard|recruit|Regent|Renown Pirate|Sailor|Samaritan|Sandsworn|Scout|Senator|Sentry|Sergeant|Sheikh|Sir|Soldier|Spellbinder|Sultan|Sultana|Supreme|Supreme General|Swordsman|Temple|Thane|unproven|Vengeant|Vizier|Watcher|Windseer|Wizard|Zealot"
+--
+-- Bumped release6 -> release7, 2026-08-30: promoted 29 more titles the
+-- same way -- Steven had already added each of these live via
+-- "dslcolor title CATEGORY EXACT-TITLE" (confirmed straight from the live
+-- profile's own DSL_PeopleColors_data.lua, its persisted DSL_COLOR_DB.titles
+-- table, both MyDSL and MyDSL Test), so these are real, previously-sighted
+-- titles, not guesses: Advocate/Apprentice/Caliph/Cardinal/Darkness/
+-- Duchess/Duke/Floramancer/Gadikli/Grunt/Guard/"High Priest"/Jujumaster/
+-- Lieutenant/Ogrelord/Oneiromancer/Philanthropist/Priest/Purveyor/Raider/
+-- Royal/Sage/Scallywag/Seeker/Shadowhunter/Student/Tadpole/Troublemaker/
+-- Voivode. Categories carried over unchanged from what Steven already
+-- assigned live (DSL_COLOR_DB's "title_CATEGORY" palette keys stripped
+-- back to the bare category name DSL_TITLE_ALIASES/DSL_TITLE_KEY_TO_PALETTE
+-- both use). Baking these in as shipped defaults means a fresh profile no
+-- longer needs Steven to re-add all 29 by hand.
+local DSL_DEFAULT_TITLE_SIGNATURE = "release7:Abbott|Aboleth|Acolyte|Advisor|Advocate|Apprentice|Archmagus|Archon|Archwizard|Armiger|Aspirant|Baroness|Bishop|Brother|Cabin Person|Caliph|Captain|Cardinal|Citizen|Civilian|Clansmen|Commander|Conscript|Count|Dame|Dark_Knight:Legion|Darkness|Deacon|Dread Pirate|Duchess|Duke|Duskbinder|Elder|Emperor|Executioner|Explorer|Finder|Floramancer|Gadikli|General|Gentleman|Gladius|Grunt|Guard|High|High Priest|Huntress|Initiate|Inquisior|Inquisitor|Jujumaster|King|Knight|Lady|Lieutenant|Lord|Magi|Magus|Mogul|Monsignor|Monsignor Patron|Nameless|Nascent|Notorious Pirate|Novitiate|Ogrelord|Oneiromancer|Oreborn|Patron|Philanthropist|Pirate|Priest|Prince|Princess|Private|Protector|Purveyor|Queen|Queensguard|Raider|recruit|Regent|Renown Pirate|Royal|Sage|Sailor|Samaritan|Sandsworn|Scallywag|Scout|Seeker|Senator|Sentry|Sergeant|Shadowhunter|Sheikh|Sir|Soldier|Spellbinder|Student|Sultan|Sultana|Supreme|Supreme General|Swordsman|Tadpole|Temple|Thane|Troublemaker|unproven|Vengeant|Vizier|Voivode|Watcher|Windseer|Wizard|Zealot"
 for _, row in ipairs(DSL_DEFAULT_TITLE_SEEDS) do
   local title, category = row[1], row[2]
   DSL_TITLE_ALIASES[title] = category

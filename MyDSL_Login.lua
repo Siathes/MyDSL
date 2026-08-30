@@ -91,6 +91,27 @@
 --    after MyDSL_RawCapture's own entry. Still needs Steven's live
 --    confirmation in-game -- a file edit here doesn't prove Mudlet
 --    itself picked it up correctly.
+--
+-- 9. First-run setup popup, added 2026-08-30 per Steven ("add a way for
+--    the user to add the login information like a pop up UI for the
+--    first setup (i dont want users to have to edit code for basic
+--    scripts)"). Mudlet/Geyser has no native text-entry widget (confirmed
+--    -- grepped this whole codebase and the vendored PNP reference for
+--    any prior use of one; there is none, it doesn't exist), so a true
+--    mouse-driven form isn't achievable -- the real fix for "don't make
+--    users edit code" is replacing "hand-write a .lua file in a text
+--    editor" with "type one in-game command," and using a real popup
+--    window (MyDSL_LoginSetup, same Geyser.UserWindow + WindowRegistry
+--    pattern as every other window here) to explain it and pre-fill the
+--    command line via appendCmdLine() so nothing has to be typed from
+--    memory. The command itself still writes credentials.password in
+--    full to the main window while being typed -- same as typing a
+--    normal password at DSL's own login prompt -- so this is not a
+--    downgrade from that flow's normal exposure. Auto-shown once per
+--    reload when no credentials file exists yet and setup hasn't been
+--    dismissed; "mydsl login setup" reopens it any time, "mydsl login
+--    setup <character> <password>" is what the pre-filled command line
+--    actually submits.
 -- =============================================================================
 
 MyDSL       = MyDSL or {}
@@ -148,11 +169,49 @@ local function loadCredentials()
   return true
 end
 
+-- writeCredentials(character, password) -- the actual "form submit" behind
+-- "mydsl login setup <character> <password>". Never echoes the password
+-- back; overwrites any existing file (running setup again is exactly how
+-- you'd want to change what's saved).
+local function writeCredentials(character, password)
+  local path = getMudletHomeDir() .. "/MyDSL_login_credentials.lua"
+  local f, err = io.open(path, "w")
+  if not f then
+    cecho("<red>[MyDSL] Login setup failed -- couldn't write " .. path .. ": " .. tostring(err) .. "<reset>\n")
+    return false
+  end
+  f:write(string.format("return { character = %q, password = %q }\n", character, password))
+  f:close()
+  return true
+end
+
+-- ---- setup-popup dismissal flag (own small file -- never touches the
+-- credentials file itself, so it's safe to read/write even before setup
+-- has ever run) --------------------------------------------------------------
+local function settingsFile()
+  return getMudletHomeDir() .. "/MyDSL_login_settings.lua"
+end
+
+local function loadSetupDismissed()
+  local chunk = loadfile(settingsFile())
+  if not chunk then return false end
+  local ok, result = pcall(chunk)
+  return ok and type(result) == "table" and result.setupDismissed == true
+end
+
+local function saveSetupDismissed(dismissed)
+  local f = io.open(settingsFile(), "w")
+  if not f then return end
+  f:write("return { setupDismissed = " .. tostring(dismissed and true or false) .. " }\n")
+  f:close()
+end
+
 MyDSL.Login._configured = loadCredentials()
+MyDSL.Login._setupDismissed = loadSetupDismissed()
 if MyDSL.Login._configured then
   cecho("<dark_green>[MyDSL] Login autofill: credentials found.<reset>\n")
 else
-  cecho("<light_gray>[MyDSL] Login autofill: not configured (see MyDSL_Login.lua header).<reset>\n")
+  cecho("<light_gray>[MyDSL] Login autofill: not configured. Type 'mydsl login setup' for a guided setup, or see MyDSL_Login.lua's header for the manual file format.<reset>\n")
 end
 
 -- ---- send-once-per-prompt-per-connection guard ------------------------------
@@ -222,3 +281,118 @@ MyDSL.Login._aliases.status = tempAlias(
       echo("Login autofill: NOT configured (no credentials file found). Password=" .. pwState .. ", Character=" .. charState .. ".\n")
     end]]
 )
+
+-- ---- first-run setup popup -------------------------------------------------
+-- See header note 9 for why this is a guided command instead of a real
+-- form: Mudlet/Geyser has no text-entry widget, so the popup's job is to
+-- explain the command and pre-fill the command line, not collect input
+-- itself.
+
+local SETUP_WIN = "MyDSL_LoginSetup"
+local SETUP_MC  = "MyDSL_LoginSetup_MC"
+MyDSL.Login._mc = MyDSL.Login._mc or {}
+
+local function ensureSetupWindow()
+  if not (MyDSL.Windows and Geyser and Geyser.MiniConsole) then return nil end
+  local win = MyDSL.Windows.ensure(SETUP_WIN)
+  if not win then return nil end
+  if win.setTitle then pcall(function() win:setTitle("Login Setup") end) end
+  if not MyDSL.Login._mc.console then
+    MyDSL.Login._mc.console = Geyser.MiniConsole:new({
+      name = SETUP_MC, x = 0, y = 0, width = "100%", height = "100%",
+      wrapWidth = 300, scrollBar = true,
+    }, win)
+  end
+  if MyDSL.Theme and MyDSL.Theme.styleConsole then
+    MyDSL.Theme.styleConsole(MyDSL.Login._mc.console, SETUP_WIN, MyDSL.Windows.getFontSize(SETUP_WIN, 9))
+  end
+  return MyDSL.Login._mc.console
+end
+
+-- Pre-fills the command line rather than sending anything -- "automate to
+-- assist, not to play": the player still types their own name/password
+-- and presses Enter themselves, same as this module never auto-submits
+-- anything the player didn't ask for.
+function MyDSL.Login.prefillSetupCommand()
+  if clearCmdLine then pcall(clearCmdLine) end
+  if appendCmdLine then pcall(appendCmdLine, "mydsl login setup YourCharacterName YourPassword") end
+  echo("Command line filled in below -- replace YourCharacterName/YourPassword with your own, then press Enter.\n")
+end
+
+function MyDSL.Login.dismissSetup()
+  MyDSL.Login._setupDismissed = true
+  saveSetupDismissed(true)
+  if MyDSL.Windows then pcall(MyDSL.Windows.hide, SETUP_WIN) end
+end
+
+function MyDSL.Login.renderSetup()
+  local mc = ensureSetupWindow()
+  if not mc then return end
+  clearWindow(SETUP_MC)
+  mc:decho("<255,255,153>DSL login autofill isn't set up yet.<r>\n\n")
+  mc:decho("<204,204,204>Saves your master account password (and, if you turn it on separately, which character to play) so you don't have to type them in every time you connect.<r>\n\n")
+  mc:dechoLink(
+    "<136,204,255>Click here to fill in the setup command<r>",
+    "MyDSL.Login.prefillSetupCommand()",
+    "Pre-fills the command line -- you still type your name/password and press Enter yourself",
+    true
+  )
+  mc:decho("\n\n<204,204,204>...or just type it yourself:<r>\n")
+  mc:decho("<255,204,68>mydsl login setup <character-name> <password><r>\n\n")
+  mc:decho("<136,136,136>Saved locally in this profile's own folder only -- never in git, never sent anywhere but DSL's own login prompt, same as typing it in by hand.<r>\n\n")
+  mc:dechoLink(
+    "<136,136,136>Don't ask again<r>",
+    "MyDSL.Login.dismissSetup()",
+    "Hides this popup for future sessions; 'mydsl login setup' still opens it any time",
+    true
+  )
+  mc:decho("\n")
+end
+
+function MyDSL.Login.showSetup()
+  MyDSL.Login.renderSetup()
+  if MyDSL.Windows then pcall(MyDSL.Windows.show, SETUP_WIN) end
+end
+
+-- setup(character, password) -- the actual "form submit."
+function MyDSL.Login.setup(character, password)
+  character = tostring(character or ""):gsub("^%s+", ""):gsub("%s+$", "")
+  password  = tostring(password  or ""):gsub("^%s+", ""):gsub("%s+$", "")
+  if character == "" or password == "" then
+    echo("usage: mydsl login setup <character-name> <password>\n")
+    return false
+  end
+  if not writeCredentials(character, password) then return false end
+  MyDSL.Login._configured = loadCredentials()
+  MyDSL.Login._setupDismissed = true
+  saveSetupDismissed(true)
+  if MyDSL.Windows then pcall(MyDSL.Windows.hide, SETUP_WIN) end
+  cecho("<dark_green>[MyDSL] Login credentials saved for '" .. character .. "'. Password autofill is ON.<reset>\n")
+  return true
+end
+
+-- "mydsl login setup" (no args) -- (re)open the guided popup.
+MyDSL.Login._aliases.setupOpen = tempAlias(
+  [[^mydsl login setup$]],
+  [[if MyDSL and MyDSL.Login then MyDSL.Login.showSetup() end]]
+)
+
+-- "mydsl login setup <character> <password>" -- password can itself
+-- contain spaces, so it greedily takes the rest of the line, not just
+-- one word.
+MyDSL.Login._aliases.setupSubmit = tempAlias(
+  [[^mydsl login setup (\S+) (.+)$]],
+  [[if MyDSL and MyDSL.Login then MyDSL.Login.setup(matches[2], matches[3]) end]]
+)
+
+-- Auto-show once per reload -- deferred slightly so WindowRegistry/Theme
+-- (loaded earlier in the dofile order, but this keeps the same safety
+-- margin other modules' own deferred-init calls already use rather than
+-- assuming load order never changes) are definitely ready.
+if not MyDSL.Login._configured and not MyDSL.Login._setupDismissed then
+  tempTimer(0.3, function()
+    if MyDSL and MyDSL.Login and not MyDSL.Login._configured and not MyDSL.Login._setupDismissed then
+      MyDSL.Login.showSetup()
+    end
+  end)
+end
