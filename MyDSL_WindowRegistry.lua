@@ -953,10 +953,21 @@ end
 -- Simplified 2026-07-08, per Steven: the custom capture-into-percentages-
 -- and-write-our-own-file approach (previously Steps 1-2 here) is dropped
 -- in favor of just Mudlet's own native saveWindowLayout()/saveProfile() --
--- "its not woking right and i dont want to have that fight again." Layout
--- persistence is per-profile now (native Qt dock-state save, not
--- per-character), matching restoreLayout=true/autoDock=true already
--- patched onto every window in patchUserWindowConstructor().
+-- "its not woking right and i dont want to have that fight again."
+-- CORRECTED 2026-08-29 (full finding in
+-- `docs/MyDSL_MudletWindowManagement.md`): this native save is NOT
+-- per-profile -- `saveWindowLayout()` writes
+-- `windowLayout.dat`/`windowLayoutGeometry.dat` into the shared Mudlet
+-- config directory beside `profiles/`, one file shared by every profile
+-- on the machine, loaded automatically by `loadWindowLayout()` below at
+-- every profile's startup. Since dock widget object names are
+-- profile-name-scoped, the practical effect is: "mydsl layout save" once
+-- in a profile makes THAT SAME PROFILE NAME start with this arrangement
+-- again after a delete+reinstall (the profile folder never held the
+-- layout to begin with) -- matches restoreLayout=true/autoDock=true
+-- already patched onto every window in patchUserWindowConstructor(). A
+-- differently-named profile falls back to the dock-side default
+-- placement below instead.
 function MyDSL.Windows.saveLayout()
   if saveWindowLayout then saveWindowLayout() end
   if saveProfile then saveProfile() end

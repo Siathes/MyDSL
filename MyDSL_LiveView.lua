@@ -41,7 +41,11 @@ L.config.barFont = tonumber(L.config.barFont or 9) or 9
 -- fixed font+3 offset with no independent setting); terrainFont covers
 -- roomMeta specifically (was tied to the base font). titleFont/barFont
 -- were already independently adjustable (mydsl live titlefont/barfont).
-L.config.infoFont = tonumber(L.config.infoFont or 13) or 13
+-- Default lowered 13 -> 9, 2026-08-29: baked in per Steven's live-test
+-- request ("visual settings... that are set now, those need to be
+-- defaults") -- 9 is what he actually set via `mydsl live infofont 9`
+-- during the MyDSL Test session.
+L.config.infoFont = tonumber(L.config.infoFont or 9) or 9
 L.config.terrainFont = tonumber(L.config.terrainFont or 10) or 10
 L.config.width = L.config.width or "34%"
 L.config.height = L.config.height or "13%"
@@ -110,7 +114,7 @@ function L.serializeSettings()
   table.insert(out, string.format("  font = %d,\n", tonumber(L.config.font) or 10))
   table.insert(out, string.format("  titleFont = %d,\n", tonumber(L.config.titleFont) or 12))
   table.insert(out, string.format("  barFont = %d,\n", math.max(8, tonumber(L.config.barFont) or 8)))
-  table.insert(out, string.format("  infoFont = %d,\n", math.max(9, tonumber(L.config.infoFont) or 13)))
+  table.insert(out, string.format("  infoFont = %d,\n", math.max(9, tonumber(L.config.infoFont) or 9)))
   table.insert(out, string.format("  terrainFont = %d,\n", math.max(8, tonumber(L.config.terrainFont) or 10)))
   table.insert(out, "}\n")
   return table.concat(out)
@@ -852,7 +856,7 @@ end
 -- span below now sets font-size inline too, reading L.config.infoFont
 -- live so "mydsl live infofont <n>" actually has a visible effect.
 local function infoFontPt()
-  return math.max(8, tonumber(L.config.infoFont) or 13)
+  return math.max(8, tonumber(L.config.infoFont) or 9)
 end
 
 -- kv(key, value, valueColor) -- "<dim>key</dim> <bold colored>value</bold>"

@@ -80,6 +80,30 @@ loadWindowLayout()
 3. Run `mydsl layout save` → calls `saveWindowLayout()` + `saveProfile()`
 4. Every future load: windows restore to your saved arrangement
 
+**CORRECTION, 2026-08-29 — where this file actually lives.** Confirmed
+directly against Mudlet's own test suite (`mudlet-lua/tests/UI_spec.lua`,
+"saveWindowLayout and loadWindowLayout") and live on disk: `saveWindowLayout()`
+writes `windowLayout.dat`/`windowLayoutGeometry.dat` into the shared Mudlet
+config directory *beside* `profiles/` (e.g. `~/.config/mudlet/windowLayout.dat`),
+not inside any one profile folder. It's one file shared by every Mudlet
+profile on the machine. Per this project's own earlier `Host::openWindow()`
+source read (see `docs/CHANGELOG.md` 2026-08-24), dock widget object names
+are `dockWindow_<ProfileName>_<WindowName>` — profile-name-scoped — so
+what actually happens on load is: `loadWindowLayout()` reads the one
+shared file and restores whichever entries match the CURRENT profile's
+own dock widget names. Practical consequences:
+- Recreating a profile under the **same name** (e.g. deleting and
+  reinstalling into "MyDSL Test" again) should restore its saved layout
+  automatically from this file, with no extra work — the profile folder
+  itself never held the layout to begin with.
+- A **different-named** profile (or a genuinely new one) won't match any
+  saved entries and falls back to the dock-side default-placement logic
+  documented below, same as before this correction.
+- "Deleting a profile to start fresh" does NOT reset the saved layout —
+  only deleting `windowLayout.dat`/`windowLayoutGeometry.dat` themselves
+  would. If Steven ever wants a genuinely blank layout, that's the file
+  to remove (outside any profile), not the profile folder.
+
 ---
 
 ## The sysWindowResizeEvent / reflowAll() Problem — ROOT CAUSE OF RESETS

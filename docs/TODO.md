@@ -534,7 +534,17 @@ work actually starts.)*
   already sitting in `MyDSL_LocationView.lua:22` — worth a direct
   retest of that specific comment once on a testable newer version.
 - Most settings are character-bound; **window layout is the one
-  deliberate exception** (per-profile, not per-character).
+  deliberate exception** (not per-character). **Corrected 2026-08-29**:
+  it's not per-profile either — `saveWindowLayout()` writes
+  `windowLayout.dat`/`windowLayoutGeometry.dat` into the shared Mudlet
+  config directory beside `profiles/`, confirmed against Mudlet's own
+  test suite and live on disk (`~/.config/mudlet/windowLayout.dat`) — one
+  file shared by every Mudlet profile on the machine, auto-loaded by
+  `loadWindowLayout()` at every profile's startup. Since dock widget
+  object names are profile-name-scoped, `mydsl layout save` in a profile
+  makes THAT SAME PROFILE NAME start with the arrangement again after a
+  delete+reinstall; a differently-named profile doesn't inherit it. Full
+  writeup in `docs/MyDSL_MudletWindowManagement.md`.
 - Themes: user-creatable named presets, shared across all characters.
 - Creaturelore DB: shared across characters, not character-bound.
 - `MyDSL_Mapper` removed from WindowRegistry — minimap via

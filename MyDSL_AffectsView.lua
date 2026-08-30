@@ -62,7 +62,9 @@ local DEFAULT_CONFIG = {
   missingWrapWidth = 56,
   lowCycles = 5,
   castCommand = "cast",
-  timerMode = "cycles",
+  -- Default changed cycles -> both, 2026-08-29, per Steven's live-test
+  -- request to bake in the settings he actually has set now.
+  timerMode = "both",
   useGmcp = true,
   useTextFallback = true,
   debug = false,

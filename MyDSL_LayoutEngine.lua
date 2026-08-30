@@ -200,7 +200,20 @@ end
 -- percentage-based positions here now only matter for a window's very
 -- first-ever creation; ongoing persistence is native Qt dock-state
 -- (saveWindowLayout()/saveProfile(), see MyDSL_WindowRegistry.lua's
--- saveLayout()), which is inherently per-profile already.
+-- saveLayout()).
+--
+-- CORRECTION, 2026-08-29: the assumption above that this is "inherently
+-- per-profile already" is wrong. Confirmed directly against Mudlet's own
+-- test suite (`mudlet-lua/tests/UI_spec.lua`, "saveWindowLayout and
+-- loadWindowLayout" describe block): `saveWindowLayout()` writes
+-- `windowLayout.dat`/`windowLayoutGeometry.dat` into the CONFIGURATION
+-- directory beside `profiles/`, not inside any one profile folder --
+-- confirmed live too (`~/.config/mudlet/windowLayout.dat`, shared by
+-- every profile on this machine). Full detail (including the
+-- profile-name-scoped dock widget naming that determines which entries
+-- in that shared file actually apply to a given profile) is in
+-- `docs/MyDSL_MudletWindowManagement.md`. This doesn't change how this
+-- file behaves (still correct as written), just the stated reasoning.
 local SAVE_FILE = getMudletHomeDir() .. "/MyDSL_layout.lua"
 
 

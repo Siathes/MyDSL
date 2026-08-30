@@ -1364,7 +1364,14 @@ DSL_TITLE_KEY_TO_PALETTE = {
   ["unknown_titles"] = "title_unknown_titles",
 }
 
-DSL_TITLE_ALIASES = {}
+DSL_TITLE_ALIASES = {
+  -- Promoted 2026-08-29 from a manual per-profile addition Steven had to
+  -- make live ("i had to add professor") -- confirmed real via a live
+  -- "who" sighting (Xenoyr, title_prefix "Professor") but missing from
+  -- the built-in vocabulary below. Baked in here so it ships as a
+  -- default instead of every profile needing the same manual fix.
+  ["Professor"] = "scholarly", ["professor"] = "scholarly",
+}
 
 -- Release approved exact default title seed list.
 -- Keep this small. These are leading title words/phrases confirmed in supplied WHO logs.
@@ -1460,7 +1467,11 @@ local DSL_DEFAULT_TITLE_SEEDS = {
   {"Wizard", "military"},
   {"Zealot", "military"},
 }
-local DSL_DEFAULT_TITLE_SIGNATURE = "release5:Abbott|Aboleth|Acolyte|Advisor|Archmagus|Archon|Archwizard|Armiger|Aspirant|Baroness|Bishop|Brother|Cabin Person|Captain|Citizen|Civilian|Clansmen|Commander|Conscript|Count|Dame|Dark_Knight:Legion|Deacon|Dread Pirate|Duskbinder|Elder|Emperor|Executioner|Explorer|Finder|General|Gentleman|Gladius|High|Huntress|Initiate|Inquisior|Inquisitor|King|Knight|Lady|Lord|Magi|Magus|Mogul|Monsignor|Monsignor Patron|Nameless|Nascent|Notorious Pirate|Novitiate|Oreborn|Patron|Pirate|Prince|Princess|Private|Protector|Queen|Queensguard|recruit|Regent|Renown Pirate|Sailor|Samaritan|Sandsworn|Scout|Senator|Sentry|Sergeant|Sheikh|Sir|Soldier|Spellbinder|Sultan|Sultana|Supreme|Supreme General|Swordsman|Temple|Thane|unproven|Vengeant|Vizier|Watcher|Windseer|Wizard|Zealot"
+-- Bumped release5 -> release6, 2026-08-29: added "Professor" (confirmed
+-- real via a live "who" sighting, see DSL_TITLE_ALIASES above for the
+-- promoted category mapping) -- bumping the signature string is what
+-- triggers the one-time stale-blocklist-clear reseed logic below for it.
+local DSL_DEFAULT_TITLE_SIGNATURE = "release6:Abbott|Aboleth|Acolyte|Advisor|Archmagus|Archon|Archwizard|Armiger|Aspirant|Baroness|Bishop|Brother|Cabin Person|Captain|Citizen|Civilian|Clansmen|Commander|Conscript|Count|Dame|Dark_Knight:Legion|Deacon|Dread Pirate|Duskbinder|Elder|Emperor|Executioner|Explorer|Finder|General|Gentleman|Gladius|High|Huntress|Initiate|Inquisior|Inquisitor|King|Knight|Lady|Lord|Magi|Magus|Mogul|Monsignor|Monsignor Patron|Nameless|Nascent|Notorious Pirate|Novitiate|Oreborn|Patron|Pirate|Prince|Princess|Private|Professor|Protector|Queen|Queensguard|recruit|Regent|Renown Pirate|Sailor|Samaritan|Sandsworn|Scout|Senator|Sentry|Sergeant|Sheikh|Sir|Soldier|Spellbinder|Sultan|Sultana|Supreme|Supreme General|Swordsman|Temple|Thane|unproven|Vengeant|Vizier|Watcher|Windseer|Wizard|Zealot"
 for _, row in ipairs(DSL_DEFAULT_TITLE_SEEDS) do
   local title, category = row[1], row[2]
   DSL_TITLE_ALIASES[title] = category
