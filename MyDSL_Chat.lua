@@ -2,13 +2,13 @@
 -- MyDSL_Chat.lua -- EMCO engine + chat window management, merged
 -- =============================================================================
 -- Merged 2026-07-17 from MyDSL_EMCO.lua + MyDSL_ChatWrapper.lua, per
--- Steven ("do we need chat wrapper? can it be all rolled into one
+-- the maintainer ("do we need chat wrapper? can it be all rolled into one
 -- chat?"). EMCO was only ever consumed by ChatWrapper, and splitting a
 -- foundational class from its one real caller across two files added
 -- dofile()-order fragility (EMCO had to load first) for no real benefit
 -- -- one file, one load-order slot, same as every other MyDSL module.
 --
--- Also eliminates the "demonnic" namespace entirely, per Steven ("we are
+-- Also eliminates the "demonnic" namespace entirely, per the maintainer ("we are
 -- also going to revert to everything under MyDSL namespace again...
 -- it should all be under MyDSL"). The ported EMCO instance used to live
 -- at the bare global demonnic.chat (EMCO's own historical convention,
@@ -2552,7 +2552,7 @@ function C.loadSettings()
 end
 
 
--- requireEMCO() -- rewritten 2026-07-17, per Steven ("fold emco into
+-- requireEMCO() -- rewritten 2026-07-17, per the maintainer ("fold emco into
 -- mydsl... clean rip... cannibalize emco like we did pnp"). Real blocker
 -- found live: a fresh-install test came back "missing emco" -- this used
 -- to require() the separate EMCOChat package, an external dependency
@@ -2597,7 +2597,7 @@ function C.ensureWindow()
       MyDSL.Windows.ensure(C.config.windowName)
       -- MyDSL.Windows.setFont/setTitle were dead references -- neither
       -- function has ever existed on WindowRegistry, so both guarded
-      -- calls silently no-op'd forever. Fixed 2026-07-11, per Steven
+      -- calls silently no-op'd forever. Fixed 2026-07-11, per the maintainer
       -- ("fix all window titles/names") -- call setTitle directly on the
       -- real window object instead, same pattern every other module uses.
     end)
@@ -2797,7 +2797,7 @@ function C.revive(reason)
   return true
 end
 
--- startupSync() -- rewritten 2026-07-17, per Steven ("why are we
+-- startupSync() -- rewritten 2026-07-17, per the maintainer ("why are we
 -- rebuilding it every load, doesnt it save the settings? i dont think the
 -- delay rebuild is the right method"). Settings (tabs/colors/font) already
 -- persist and reload correctly via C.loadSettings() -- that was never the
@@ -3084,7 +3084,7 @@ function C.test(tab, msg)
 end
 
 -- ---- EMCO-vocabulary handlers, ported 2026-07-17 -----------------------
--- Cannibalized from EMCOChat's own native alias tree (per Steven, "clean
+-- Cannibalized from EMCOChat's own native alias tree (per the maintainer, "clean
 -- rip... cannibalize emco like we did pnp"), adapted to operate on
 -- MyDSL's real chat object/window instead of demonnic.container (the old
 -- native Adjustable.Container this project has hidden forever -- see
@@ -3272,7 +3272,7 @@ function C.installAliases()
   tempAlias([[^emco unnotify (.+)$]], [[MyDSL.Chat.removeNotifyTab(matches[2])]])
   tempAlias([[^emco blink (\S+)$]], [[MyDSL.Chat.setBlink(matches[2])]])
   -- Case-insensitive on the camelCase verbs only ("blankLine"/"fontSize") --
-  -- real friction found 2026-08-30 via MyDSL Test's notes.json (Steven:
+  -- real friction found 2026-08-30 via MyDSL Test's notes.json (the maintainer:
   -- "i got huh? on emco fontsize 9"). The lowercase-typo version of a
   -- multi-word verb never matched the exact-case regex, so it fell
   -- straight through as an unrecognized game command (DSL's own "huh?").

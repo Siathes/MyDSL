@@ -1,7 +1,7 @@
 -- =============================================================================
 -- MyDSL_ItemLore.lua  --  Persistent, cross-session item-stats DB
 -- =============================================================================
--- Layer 4, first slice. Per Steven (2026-07-16): "it should use the skill
+-- Layer 4, first slice. Per the maintainer (2026-07-16): "it should use the skill
 -- lore, and the spell identify to fill a database of items stats in game."
 --
 -- Directly modeled on MyDSL_CreatureLore.lua's real, already-proven merge
@@ -22,7 +22,7 @@
 -- partial -- it simply never includes those keys in the first place. No
 -- separate "partial vs. full" merge path is needed; this is automatic.
 --
--- Real bug found live 2026-07-19, per Steven ("when an item is identified
+-- Real bug found live 2026-07-19, per the maintainer ("when an item is identified
 -- in game, it doesnt replace the shattered archive info and persist. it
 -- reverts to shattered info not the identified info"). Confirmed by
 -- decoding the live itemlore_db.lua: a real in-game identify of "badger
@@ -211,7 +211,7 @@ function IL.importScraped(path)
           filledAny = true
         end
       end
-      -- spellInfo -- added 2026-07-18, real gap found live (Steven: "the
+      -- spellInfo -- added 2026-07-18, real gap found live (the maintainer: "the
       -- platinum wand is missing the actual spell it uses magic missle
       -- lvl(30)"). Confirmed the raw scrape record DOES have this --
       -- "spellInfo=[[magic missile]]" -- it just was never in
@@ -227,11 +227,11 @@ function IL.importScraped(path)
       -- this to the full charges+level via merge()'s existing
       -- fill-gaps-only rule, never overwriting a real capture.
       -- NOTE: the scrape has no separate "spell level" number anywhere
-      -- (confirmed -- only the bare spell name) -- the "lvl(30)" Steven
+      -- (confirmed -- only the bare spell name) -- the "lvl(30)" the maintainer
       -- remembers can only come from a real `identify` on that specific
       -- wand; this fix can't recover a number the source data never had.
       --
-      -- RESTRICTED to wand/staff 2026-07-18, real bug found live (Steven:
+      -- RESTRICTED to wand/staff 2026-07-18, real bug found live (the maintainer:
       -- "seems to affect wands and potions, maybe scrolls" -- a "yellow
       -- potion with red swirls" example). Checked the site's own raw HTML
       -- directly (curl): wands/staves always have exactly one clean spell
@@ -275,7 +275,7 @@ function IL.importScraped(path)
 end
 
 -- cleanupBadSpellCharges() -- added 2026-07-18, one-time fixup for
--- anyone (Steven included) who already ran "mydsl itemlore import" before
+-- anyone (the maintainer included) who already ran "mydsl itemlore import" before
 -- the wand/staff restriction above existed. importScraped()'s own
 -- fill-gaps-only rule means a stale, wrongly-imported spellCharges
 -- (potion/scroll spellInfo mapped in when it shouldn't have been) can

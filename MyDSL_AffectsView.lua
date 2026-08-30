@@ -62,7 +62,7 @@ local DEFAULT_CONFIG = {
   missingWrapWidth = 56,
   lowCycles = 5,
   castCommand = "cast",
-  -- Default changed cycles -> both, 2026-08-29, per Steven's live-test
+  -- Default changed cycles -> both, 2026-08-29, per the maintainer's live-test
   -- request to bake in the settings he actually has set now.
   timerMode = "both",
   useGmcp = true,
@@ -353,7 +353,7 @@ function A.ensureWindow()
       return MyDSL.Windows.ensure(A.config.windowName)
     end)
     if ok then
-      -- Fixed 2026-07-11, per Steven ("fix all window titles/names"):
+      -- Fixed 2026-07-11, per the maintainer ("fix all window titles/names"):
       -- this branch always returned here before setTitle() ever ran,
       -- so the window kept Mudlet's raw default title ("User window -
       -- DSL2 - MyDSL_Affects") despite this file having real title-
@@ -534,7 +534,7 @@ end
 -- with no "modifies ... by ... for ... cycles" clause at all is a real,
 -- corpus-confirmed variant of this same header's output -- matches
 -- neither A.ids.triggers.song nor .spell below, both of which require
--- that clause. Cross-checked against Steven's own separate note (MyDSL
+-- that clause. Cross-checked against the maintainer's own separate note (MyDSL
 -- notes_utf8.txt, PERSONAL/GAME NOTES section: "low level charcaters
 -- cant see timers for affects, can we add the affects without a timer
 -- and let them update with affects since we dont know when they fll
@@ -544,7 +544,7 @@ end
 -- No duration/modifier data exists in this form, so this adds the
 -- affect as present-but-unknown-duration (-1, matching A.add()'s own
 -- "no known expiry" convention) with no modifier extra -- exactly the
--- "show it, update it via echoes, don't fake a timer" behavior Steven
+-- "show it, update it via echoes, don't fake a timer" behavior the maintainer
 -- asked for in that same note.
 function A.captureSpellLineBare(name)
   if not A.state.capture then return end
@@ -643,7 +643,7 @@ function A.setCommand(name, cmd)
   A.customCommands[name] = cmd
   A.save()
   ce(name .. " command=" .. cmd)
-  -- Hint added 2026-08-29, per Steven's live-test note ("adding a skill
+  -- Hint added 2026-08-29, per the maintainer's live-test note ("adding a skill
   -- to the affects command... not intuitive, don't think i did it
   -- correctly"): a custom recast command and being tracked/displayed are
   -- two separate settings (this file's own `tracked` table vs.
@@ -1190,7 +1190,7 @@ function A.onTimersUpdated()
   -- already wired in, but nothing ever decremented the whole-cycle count
   -- between GMCP updates, see onTickUpdated() below).
   --
-  -- Narrowed 2026-07-12, per Steven asking (after seeing a debug dump full
+  -- Narrowed 2026-07-12, per the maintainer asking (after seeing a debug dump full
   -- of repeated identical Affects selectSection()/link-rescan calls) "does
   -- affects need to update that often also?" -- the default display mode
   -- is "cycles" (timerTextForAffect() just shows the bare "Nc" count),

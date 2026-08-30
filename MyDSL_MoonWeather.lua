@@ -217,7 +217,7 @@ end
 
 -- currentGameMinutes() -- extracted 2026-08-30 from clockStr()'s own
 -- interpolation math (no behavior change), so a new consumer (the ambient
--- background gradient, per Steven's ask) can reuse the exact same tested
+-- background gradient, per the maintainer's ask) can reuse the exact same tested
 -- DSL-time-from-real-time extrapolation instead of re-deriving it.
 -- Returns a continuous float 0-1439.99... (minutes since DSL midnight),
 -- or nil before any anchor has ever been set (matches clockStr()'s own
@@ -268,7 +268,7 @@ function MW.cyclesNow()
   if not MW._lunar.anchor_real then return nil end
   local tick_avg = MyDSL.DB and MyDSL.DB.tick and MyDSL.DB.tick.average
   tick_avg = (tick_avg and tick_avg > 10) and tick_avg or 40
-  -- Real bug, fixed 2026-07-12, per Steven ("it will update correct then
+  -- Real bug, fixed 2026-07-12, per the maintainer ("it will update correct then
   -- change to -1 the cycle reported"): this used to subtract the raw
   -- fractional elapsed_ticks (e.g. 0.02 right after anchoring) from
   -- anchor_cycles, then countdownStr() floor()'d the result -- so a
@@ -284,7 +284,7 @@ end
 
 -- cyclesToHourStr(cyc_int) -- shared by countdownStr() (current-phase
 -- countdown) and phaseScheduleLines() (whole-cycle schedule) below.
--- Real fix 2026-07-12, per Steven ("the timer is not correct"). The old
+-- Real fix 2026-07-12, per the maintainer ("the timer is not correct"). The old
 -- formula here (hours = floor(cyc/2), half whenever cyc is odd) is NOT
 -- how DSL's own "(N Hours)"/"(N 1/2 Hours)" text actually maps to cycles
 -- -- confirmed by extracting all 30 distinct real "Cycles remaining X
@@ -393,7 +393,7 @@ end
 ------------------------------------------------------------------------
 -- INTERNAL: buildWeatherText()
 ------------------------------------------------------------------------
--- Added 2026-07-12, per Steven ("across all the logs do we have enough
+-- Added 2026-07-12, per the maintainer ("across all the logs do we have enough
 -- weather info to add it to the top of the moonweather window above the
 -- moon images... need suggestions"). The data side already existed --
 -- MyDSL_DataLayer.lua's parseWeatherLine() has captured
@@ -406,11 +406,11 @@ end
 -- ("...clear sky" vs "...clear night sky", etc) -- day/night picked
 -- from whether "night" appears in the actual captured sentence itself,
 -- no dependency on this module's own separate day/night tracking.
--- Symbol + short label, per Steven's choice from 3 previewed options.
+-- Symbol + short label, per the maintainer's choice from 3 previewed options.
 -- Checked in order (most specific first) since some real sentences
 -- contain more than one candidate word (e.g. rain's "...clouded sky"
 -- also contains "cloud").
--- Icons fixed 2026-07-12, found live (Steven: "no icons" -- text label
+-- Icons fixed 2026-07-12, found live (the maintainer: "no icons" -- text label
 -- showed, symbol didn't). 🌧/🌨 (U+1F327/U+1F328) are in Unicode's newer
 -- "Supplemental Symbols and Pictographs" block (introduced 2014), which
 -- doesn't have guaranteed font coverage on Linux without a full emoji
@@ -420,7 +420,7 @@ end
 -- were already working. Sleet reuses the snow symbol since there's no
 -- equivalently old sleet-specific character -- the text label
 -- ("Sleet" vs "Snow") is what actually disambiguates, matching why
--- Steven picked "symbol + short text" over symbol-only in the first
+-- the maintainer picked "symbol + short text" over symbol-only in the first
 -- place. Clear-night switched from ✨ (also newer, Unicode 6.0) to ☆
 -- (Unicode 1.1) for the same reason.
 local WEATHER_KEYWORDS = {
@@ -435,7 +435,7 @@ local WEATHER_KEYWORDS = {
   { "sun is shining",  nil, "Clear" },
 }
 
--- windLabel(windDesc) -- added 2026-07-12, per Steven ("wind should be
+-- windLabel(windDesc) -- added 2026-07-12, per the maintainer ("wind should be
 -- captured. clouds, clear, rain, gold [cold] breeze, temperate wind,
 -- etc"). windDesc is the raw clause MyDSL_DataLayer.lua's
 -- extractWindClause() already pulled out (e.g. "A cold gentle breeze
@@ -457,7 +457,7 @@ end
 
 -- weatherCategory() -- extracted 2026-08-30 from buildWeatherText()'s own
 -- WEATHER_KEYWORDS lookup (no behavior change), so a new consumer (the
--- ambient background gradient, per Steven's "MATCHES THE WEATHER" ask)
+-- ambient background gradient, per the maintainer's "MATCHES THE WEATHER" ask)
 -- can key off the same confirmed real taxonomy (Clear/Cloudy/Rain/Sleet/
 -- Snow/Storm) instead of re-parsing MyDSL.State.weather.description with
 -- a second, possibly-drifting keyword list. Returns just the label, or
@@ -548,7 +548,7 @@ local function buildFocalText(focal, lunarData)
 
     -- Line 3: regen + live countdown — only present when bonus block was parsed.
     -- Regen is gold when non-zero. Countdown ticks down live via the 1-second timer.
-    -- Fixed 2026-07-12, per Steven ("spacing needs fixing a little"): this
+    -- Fixed 2026-07-12, per the maintainer ("spacing needs fixing a little"): this
     -- was missing the "<br>" before Regen, so it ran directly onto the end
     -- of the Cs span with no separator at all (e.g. "+2CsRegen+0%").
     if moon.cycles_remaining then
@@ -568,7 +568,7 @@ end
 ------------------------------------------------------------------------
 -- INTERNAL/PUBLIC: buildTooltipText(focal, lunar)
 ------------------------------------------------------------------------
--- Steven, MyDSL Test notes.json (2026-08-30): "is it possible to have a
+-- the maintainer, MyDSL Test notes.json (2026-08-30): "is it possible to have a
 -- hover ove on the moon/weather that tells the moon schedule for your
 -- moon? time till its phases?" Exposed as MW.tooltipText() (public, so
 -- it's directly testable) and wired to the widget's one real Geyser.Label
@@ -627,7 +627,7 @@ function MW.phaseScheduleLines(color, currentPhaseKey, cyclesRemaining)
   return lines
 end
 
--- tooltipText(focal, lunar) -- Steven, MyDSL Test/notes.json (2026-08-30):
+-- tooltipText(focal, lunar) -- the maintainer, MyDSL Test/notes.json (2026-08-30):
 -- "hover works on moon/weather - make text smaller add the times to all
 -- the next phases so the user can see how long till a next specific
 -- phase." Returns real HTML (Qt's tooltip auto-detects rich text) so the
@@ -767,7 +767,7 @@ function MW.render()
 
   -- Row heights rebalanced 2026-07-12 to fit the new weather row above
   -- the moons (12%): was 50/20/30, now 44/18/26 -- still sums to 100%.
-  -- Row font sizes bumped +1pt 2026-07-12, per Steven ("fonts need to go
+  -- Row font sizes bumped +1pt 2026-07-12, per the maintainer ("fonts need to go
   -- up one"): weather/time rows 8pt->9pt, focal (bonus) row 7pt->8pt.
   -- Weather row knocked back down to 8pt same day (separate ask, after
   -- the +1 bump): "the actual weather line at the top of moonweather
@@ -797,7 +797,7 @@ function MW.render()
     '</table>',
     weatherRow, leftHtml, centerHtml, rightHtml, focalText, timeRow)
 
-  -- Skip the echo if nothing actually changed. Fixed 2026-07-12, per Steven
+  -- Skip the echo if nothing actually changed. Fixed 2026-07-12, per the maintainer
   -- ("seems to redraw the bonuses sometimes"): MyDSL.Timers.Slow fires this
   -- render() once every real second (see _registerHandlers() below), but
   -- nothing shown needs 1-second resolution -- the clock only displays
@@ -843,7 +843,7 @@ function MW.hide() if MyDSL.Windows then MyDSL.Windows.hide("MyDSL_MoonWeather")
 function MW.toggle() if MyDSL.Windows then MyDSL.Windows.toggle("MyDSL_MoonWeather") end end
 
 
--- Removed 2026-07-07 (full dead-code audit, per Steven): MW.onLunarUpdate/
+-- Removed 2026-07-07 (full dead-code audit, per the maintainer): MW.onLunarUpdate/
 -- onWeatherUpdate/onTickUpdate/onTimeUpdate/onLoginUpdate used to live here
 -- as the public event handlers, but _registerHandlers() below was refactored
 -- at some point to use inline anonymous closures instead (same logic,
@@ -937,7 +937,7 @@ local function _buildUI()
 
   pcall(function() container:setTitle(" ") end)   -- minimize title bar chrome
   -- REAL BUG, found live 2026-07-12 in MyDSL_AlterformView.lua's identical
-  -- pattern (Steven: "you can see the min/close buttons"): the old
+  -- pattern (the maintainer: "you can see the min/close buttons"): the old
   -- "lockStyle = 'padding'" constructor field did nothing at all --
   -- confirmed by reading Mudlet's actual bundled
   -- GeyserAdjustableContainer.lua -- a container is only ever locked at
@@ -947,7 +947,7 @@ local function _buildUI()
   -- native chrome (min/restore, close, lock, save, load buttons) live and
   -- visible.
   --
-  -- SECOND REAL BUG, found live 2026-07-12 (same day, Steven: "since we
+  -- SECOND REAL BUG, found live 2026-07-12 (same day, the maintainer: "since we
   -- locked the window i cant resize the moonweather to fit all the
   -- text"): the fix above used container:lockContainer("light"), which
   -- I wrongly documented as "hiding just the min/restore and close
@@ -1017,7 +1017,7 @@ local function _registerHandlers()
   -- Re-apply background color when the active theme switches. Added
   -- 2026-07-11 alongside named ThemeEngine presets.
   reg("MyDSL.theme.changed",   function() MW._applyTextStyle() end)
-  -- Added 2026-07-11, per Steven's "can we pull all timers off one tick"
+  -- Added 2026-07-11, per the maintainer's "can we pull all timers off one tick"
   -- question: this replaces MW.startClockTimer()'s own independent
   -- tempTimer(1, loop) self-reschedule chain -- the exact same once/sec
   -- cadence, just riding TickSource's shared MyDSL.Timers.Slow event
@@ -1150,7 +1150,7 @@ function MW.init()
   end
 
   -- Force-unlock on every reload, not just first creation. Fixed
-  -- 2026-07-12, per Steven ("since we locked the window i cant resize the
+  -- 2026-07-12, per the maintainer ("since we locked the window i cant resize the
   -- moonweather to fit all the text"): _buildUI() (Step 2 above) only runs
   -- once -- the container is a Geyser object that survives script
   -- reloads, so anyone who already hit the old lockContainer("light") bug

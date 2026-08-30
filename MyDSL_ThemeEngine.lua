@@ -16,7 +16,7 @@
 -- get()+colorToCSS() instead -- those two functions were dead, removed.)
 -- =============================================================================
 --
--- WHAT EACH KEY AFFECTS -- added 2026-08-30 per Steven ("map the changes
+-- WHAT EACH KEY AFFECTS -- added 2026-08-30 per the maintainer ("map the changes
 -- and what they change so we can do some theme trials"). A theme switch
 -- (`theme set <name>`) takes effect live/immediately -- every consumer
 -- below listens for "MyDSL.theme.changed" and re-styles right away, no
@@ -54,7 +54,7 @@
 --   HP/Mana/Move bar FILL colors (MyDSL_LiveView.lua's L.colorSet()) --
 --     universal red/blue/green for every preset EXCEPT tron_blue, which
 --     gets its own researched Tron palette instead (2026-08-30, per
---     Steven's direct ask) -- the bar's own text label already
+--     the maintainer's direct ask) -- the bar's own text label already
 --     disambiguates HP/Mana/Move, so exact hue no longer has to.
 --   Improve/XP bar fill colors -- always their own fixed gold/purple,
 --     not yet wired to theme or the tron_blue override above.
@@ -104,7 +104,7 @@ MyDSL.Theme.defaults = MyDSL.Theme.defaults or {
 ------------------------------------------------------------------------
 -- SECTION 3: NAMED PRESETS
 ------------------------------------------------------------------------
--- Five directions, presented to Steven as an Artifact mockup (2026-07-11)
+-- Five directions, presented to the maintainer as an Artifact mockup (2026-07-11)
 -- plus two adapted from ChatGPT concept renders he supplied the same day.
 -- Each preset is a complete key set (every MyDSL.Theme.defaults key) so
 -- switching presets never leaves a window half-styled from an old theme.
@@ -125,7 +125,7 @@ MyDSL.Theme.presets = MyDSL.Theme.presets or {
     titleFont = "Noto Sans Mono", titleFontSize = 9,
     bgColor        = { r =  11, g =  16, b =  19, a = 242 },
     textColor      = { r = 232, g = 230, b = 224, a = 255 },
-    -- Dimmed 2026-07-11 per Steven ("border thickness, can we make
+    -- Dimmed 2026-07-11 per the maintainer ("border thickness, can we make
     -- slimmer?") -- border was already at 1px, the CSS floor for a
     -- visible solid line, so the fix is a subtler color (was full-
     -- brightness 51,67,74,255) rather than a narrower one.
@@ -222,12 +222,12 @@ MyDSL.Theme.presets = MyDSL.Theme.presets or {
   },
 
   -- ---- D: Obsidian Ember ----------------------------------------------
-  -- Adapted from a ChatGPT concept render Steven supplied 2026-07-11
+  -- Adapted from a ChatGPT concept render the maintainer supplied 2026-07-11
   -- ("Obsidian Ember"). Clean near-black, hairline borders, warm ember
   -- accent -- the cheapest of the ChatGPT directions to build 1:1 since
   -- it needs no new art assets, just color/border/font values.
   -- bgGradient added 2026-08-30 -- picked as one of the "2-3 that round
-  -- it out" release themes, per Steven's request, brought up to the same
+  -- it out" release themes, per the maintainer's request, brought up to the same
   -- full-treatment standard as tron_blue (gradient background + its own
   -- HP/Mana/Move/Improve bar palette, see THEME_BAR_COLORS in
   -- MyDSL_LiveView.lua). Subtle near-black-to-warm-ember gradient, not a
@@ -254,7 +254,7 @@ MyDSL.Theme.presets = MyDSL.Theme.presets or {
   },
 
   -- ---- E: Arcane Midnight -----------------------------------------------
-  -- Adapted from a ChatGPT concept render Steven supplied 2026-07-11
+  -- Adapted from a ChatGPT concept render the maintainer supplied 2026-07-11
   -- ("Arcane Midnight v2"). Deep indigo/violet, distinct from every other
   -- preset's blue/teal/amber families.
   -- bgGradient added 2026-08-30 -- the other "round it out" release
@@ -280,7 +280,7 @@ MyDSL.Theme.presets = MyDSL.Theme.presets or {
   },
 
   -- ---- F: Tron Blue -----------------------------------------------------
-  -- Added 2026-08-30, per Steven's direct ask ("a shiny tron blue theme").
+  -- Added 2026-08-30, per the maintainer's direct ask ("a shiny tron blue theme").
   -- Near-black base with sharp corners (radius=2, the lowest of any preset
   -- here besides terminal_purist's 0 -- Tron's whole aesthetic is angular
   -- grid lines, not soft rounding) and a bright electric-cyan accent doing
@@ -290,7 +290,7 @@ MyDSL.Theme.presets = MyDSL.Theme.presets or {
   -- programs/vehicles are consistently orange against the protagonist
   -- side's cyan, so an orange warnColor reads as "authentically Tron,"
   -- not an arbitrary color choice.
-  -- Deepened 2026-08-30 per Steven's direct follow-up ("it needs to be a
+  -- Deepened 2026-08-30 per the maintainer's direct follow-up ("it needs to be a
   -- darker deeper blue") -- the first pass's titleBgColor was the bright
   -- accent cyan itself (0,180,255) at ~35% alpha, which reads as a
   -- washed-out MEDIUM blue on a title bar rather than a deep one (visible
@@ -302,12 +302,12 @@ MyDSL.Theme.presets = MyDSL.Theme.presets or {
   -- slightly deeper cyan-blue (10,150,220). titleColor/highlightColor
   -- (the actual glow accents) are untouched -- those should stay bright,
   -- that contrast against the now-darker surfaces IS the glassy look.
-  -- Tuned 2026-08-30 via the live interactive preview artifact (Steven
+  -- Tuned 2026-08-30 via the live interactive preview artifact (the maintainer
   -- dragged swatches against a real recreation of this preset's own CSS,
   -- then handed back the exact resulting hex values -- no more guess-
   -- and-screenshot rounds). borderColor/titleColor/titleBgColor were the
   -- three RGB values that changed from the prior deepening pass.
-  -- FULL REWRITE 2026-08-30, same day, per Steven's "now that you know
+  -- FULL REWRITE 2026-08-30, same day, per the maintainer's "now that you know
   -- all items" ask: "a dark blue cradient with a plash of electic neon
   -- blue, make it a whole teme look." bgGradient (new preset key, see
   -- panelCSS()'s own comment) replaces the old flat near-black bgColor --
@@ -343,11 +343,11 @@ MyDSL.Theme.presets = MyDSL.Theme.presets or {
   },
 
   -- ---- G: Muted Scroll Nature --------------------------------------------
-  -- Added 2026-08-30, per Steven's direct ask ("another muted scroll
+  -- Added 2026-08-30, per the maintainer's direct ask ("another muted scroll
   -- nature theme"). Deep olive-bark background rather than a literal
   -- bright parchment cream -- a light background would fight readability
   -- and contrast against every other preset here, and "muted" was
-  -- Steven's own explicit word, so the parchment/nature feel comes from
+  -- the maintainer's own explicit word, so the parchment/nature feel comes from
   -- warm tan text and earthy border/accent tones sitting on a dark base,
   -- not from a bright page-colored background.
   -- bgGradient added 2026-08-30, same "full release theme" parity pass
@@ -376,7 +376,7 @@ MyDSL.Theme.presets = MyDSL.Theme.presets or {
 
   -- ---- H: Leatherbound Library --------------------------------------
   -- Added 2026-08-30, a distinct theme from muted_scroll_nature per
-  -- Steven's own split ("nature theme AND scroll/library themed" as two
+  -- the maintainer's own split ("nature theme AND scroll/library themed" as two
   -- separate presets, not one). Where nature is outdoors/earthy, this is
   -- indoors/bookish: dark aged-wood and worn leather, brass fittings,
   -- cream parchment text, a deep banker's-lamp green for "good" (a real,
@@ -403,7 +403,7 @@ MyDSL.Theme.presets = MyDSL.Theme.presets or {
   },
 
   -- ---- I: Pink Pastel -------------------------------------------------
-  -- Added 2026-08-30, per Steven's direct ask ("one pink pastle
+  -- Added 2026-08-30, per the maintainer's direct ask ("one pink pastle
   -- themed"). Deliberately NOT a literal light/cream pastel background
   -- -- every DSL color (bright yellows, whites, cyans) is tuned for a
   -- dark console, and a light background would wash all of it out or
@@ -434,7 +434,7 @@ MyDSL.Theme.presets = MyDSL.Theme.presets or {
   },
 
   -- ---- Shattered Moonlight (MyDSL signature theme) ---------------------
-  -- Added 2026-08-30, per Steven's direct ask: "design a MyDSL theme...
+  -- Added 2026-08-30, per the maintainer's direct ask: "design a MyDSL theme...
   -- think our philosophy our styles our charcaters and dsl colors...
   -- blow my mind." Not a generic palette -- built from three things
   -- already real in this project, not invented for this preset:
@@ -488,7 +488,7 @@ MyDSL.Theme.presets = MyDSL.Theme.presets or {
   },
 
   -- ---- Rainbow (theme-builder tool) --------------------------------
-  -- Added 2026-08-30, per Steven: "that is so fun i want you to leave
+  -- Added 2026-08-30, per the maintainer: "that is so fun i want you to leave
   -- that in as a test theme for anyone that wants to build a theme."
   -- Companion to `theme debug rainbow` (which maps NATIVE Mudlet chrome
   -- selector-by-selector) -- this one is a real, selectable theme that
@@ -584,7 +584,7 @@ local function THEME_FILE()
 end
 
 -- Shipped default -- was refined_convergence through the whole "release
--- themes" pass; promoted to shattered_moonlight 2026-08-30 per Steven's
+-- themes" pass; promoted to shattered_moonlight 2026-08-30 per the maintainer's
 -- own live-test confirmation ("all thmes cycled and default will be
 -- shattered moonlight" -- MyDSL Test/notes.json), after cycling all 12
 -- presets live via `theme next`. `theme reset` (resetToDefault() below)
@@ -674,7 +674,7 @@ function MyDSL.Theme.setTheme(name)
   return true
 end
 
--- stepTheme(delta) -- added 2026-08-30, per Steven ("add a theme
+-- stepTheme(delta) -- added 2026-08-30, per the maintainer ("add a theme
 -- next/prev command to walk through themes?"). Walks presetOrder
 -- (the same real, stable order 'theme list' already shows), wrapping
 -- at both ends so "next" from the last theme reaches the first and vice
@@ -697,7 +697,7 @@ function MyDSL.Theme.stepTheme(delta)
   return name
 end
 
--- resetToDefault() -- added 2026-08-30, per Steven ("there should also
+-- resetToDefault() -- added 2026-08-30, per the maintainer ("there should also
 -- be a restore to mudlet defauls"). A single escape hatch for someone
 -- who's been trying themes (rainbow included) and wants back to a known-
 -- safe baseline in one step, rather than remembering both `theme set`
@@ -718,7 +718,7 @@ end
 
 ------------------------------------------------------------------------
 -- appStyleSheetCSS(name) / applyAppStyleSheet() -- added 2026-08-30, per
--- Steven ("anyway to target the grey mudlet ui parts, like the tabs and
+-- the maintainer ("anyway to target the grey mudlet ui parts, like the tabs and
 -- the minimap grey areas, scroll bars etc?"). Every other function in
 -- this file styles individual MyDSL windows via setUserWindowStyleSheet
 -- (a real, per-window hook) -- but Mudlet's own native chrome (Chat's
@@ -728,7 +728,7 @@ end
 -- (TLuaInterpreterUI.cpp: `qApp->setStyleSheet(styleSheet)`) to be
 -- WHOLE-APPLICATION scope -- one Qt stylesheet string for literally
 -- every widget in the process, not additive with anything else. Scoped
--- deliberately narrow here (only the exact widget classes Steven named:
+-- deliberately narrow here (only the exact widget classes the maintainer named:
 -- QTabBar, QComboBox + its popup, QScrollBar, QToolButton/QPushButton
 -- for the map's own +/-/menu controls) rather than restyling every Qt
 -- widget in the app -- an unstyled widget class is simply untouched by
@@ -736,7 +736,7 @@ end
 -- other chrome it doesn't name. Reapplied on every theme switch (from
 -- setTheme() above) and on load (from loadActive() below) so app chrome
 -- always matches the active MyDSL window theme, not just window borders.
--- Widened 2026-08-30, same live session, per Steven's direct follow-up
+-- Widened 2026-08-30, same live session, per the maintainer's direct follow-up
 -- from a screenshot ("we need to include the rest of the grey areas
 -- from mudlet ui... keep it thematic. shrink the width of the main
 -- screen scroll bar"). Added: QMenuBar/QMenu (the top menu bar and
@@ -878,7 +878,7 @@ function MyDSL.Theme.appStyleSheetCSS(name)
   )
 end
 
--- chromeMode -- added 2026-08-30 per Steven ("once we decide on a couple
+-- chromeMode -- added 2026-08-30 per the maintainer ("once we decide on a couple
 -- themes... have one that if 'full' it will include mudlet ui items,
 -- and 'ui' version that is just themeing the MyDSL UI and restores/
 -- keeps the default or previous mudlet theme. so 2 versions of each
@@ -895,11 +895,11 @@ end
 -- widget to native platform styling, and nothing in this codebase calls
 -- setAppStyleSheet() other than MyDSL.Theme itself (confirmed), so this
 -- is a genuine restore, not an approximation.
--- Default "full" -- matches what Steven has actively been testing and
+-- Default "full" -- matches what the maintainer has actively been testing and
 -- approving all this session; switch to "ui" any time with
 -- `theme chrome ui`.
 -- Shipped default promoted to "ui" 2026-08-30 alongside the active-theme
--- default above -- matches Steven's own confirmed live pairing
+-- default above -- matches the maintainer's own confirmed live pairing
 -- (shattered_moonlight + chromeMode ui).
 MyDSL.Theme.chromeMode = MyDSL.Theme.chromeMode or "ui"
 
@@ -919,7 +919,7 @@ function MyDSL.Theme.setChromeMode(mode)
   return true
 end
 
--- debugRainbowCSS() / setDebugRainbow() -- added 2026-08-30, per Steven's
+-- debugRainbowCSS() / setDebugRainbow() -- added 2026-08-30, per the maintainer's
 -- direct ask ("map, research all the options that we can color, then
 -- make a theme that has a different color in a fashion you can track
 -- with screenshots. so you can map the theme areas?"), then KEPT IN
@@ -932,7 +932,7 @@ end
 -- other half -- NATIVE Mudlet chrome, which is not part of any preset's
 -- own key set.
 --
--- CONFIRMED RESULTS, live-tested 2026-08-30 on Steven's system (not
+-- CONFIRMED RESULTS, live-tested 2026-08-30 on the maintainer's system (not
 -- theoretical -- read from his own rainbow screenshot), kept here so a
 -- future theme builder doesn't have to re-discover this:
 --   REAL, styleable via setAppStyleSheet(): QMenuBar (top menu bar),
@@ -1062,7 +1062,7 @@ end
 -- declarations only (no selector) -- this is what a Label's
 -- setStyleSheet() needs, and it's what LiveView/AlterformView/TickView's
 -- own background Labels use it for.
--- bgGradient -- optional preset key added 2026-08-30, per Steven's tron_blue
+-- bgGradient -- optional preset key added 2026-08-30, per the maintainer's tron_blue
 -- rewrite ask ("a dark blue cradient with a splash of electic neon
 -- blue"). {from={r,g,b,a}, to={r,g,b,a}} -- top-to-bottom, same real Qt
 -- QLinearGradient mechanism MyDSL_LiveView.lua's styleBarFill() already
@@ -1095,7 +1095,7 @@ end
 -- and Colored" -- final locked spec, 2026-08-26, replacing an earlier
 -- "Direction A+" attempt (flatten the native bar to a blank sliver, add
 -- a SEPARATE themed Geyser.Label underneath for the real title). Live on
--- Steven's own machine that showed two stacked title-like elements at
+-- the maintainer's own machine that showed two stacked title-like elements at
 -- once, not one: the flatten step's setTitle("") never actually blanked
 -- Mudlet's native title text (untested edge case, turned out not to
 -- work), so the full default native title AND the new Label both
@@ -1115,7 +1115,7 @@ end
 -- "Location") is the caller's job via the normal, documented
 -- winObj:setTitle(realText) -- this function only returns the coloring.
 --
--- Renders while a QDockWidget is docked (confirmed on Steven's own
+-- Renders while a QDockWidget is docked (confirmed on the maintainer's own
 -- screenshots -- dark-tinted, not default OS grey); native OS chrome
 -- can take over once floated/detached, a Qt docked-vs-floating
 -- distinction (independently corroborated via Qt's own forum/docs,
@@ -1123,7 +1123,7 @@ end
 -- a floated window and on a real Windows/macOS machine before treating
 -- the platform question as fully closed, per Claude Desktop's own
 -- caveat, but no longer a purely-theoretical risk either.
--- padding tightened 4px->2px vertical 2026-08-30, per Steven's notes.json
+-- padding tightened 4px->2px vertical 2026-08-30, per the maintainer's notes.json
 -- ("is it possible to make the userwindow titles bars thinner?"), then
 -- halved again to 1px same day per his direct follow-up ("even a little
 -- smaller wold be nice *half the current size with the font adjusted to
@@ -1207,7 +1207,7 @@ end
 -- SECTION 10.5: CUSTOM PRESET MANAGEMENT
 ------------------------------------------------------------------------
 -- newCustom/setCustomKey/deleteCustom/previewText -- added 2026-08-25
--- per Steven ("i wan to be able to customize the theme in the ui").
+-- per the maintainer ("i wan to be able to customize the theme in the ui").
 -- Deliberately in-Mudlet, command-driven (no color-picker widget exists
 -- in Mudlet's own Lua API), matching this file's existing "theme
 -- override" alias's r,g,b syntax rather than inventing a second one.
@@ -1392,7 +1392,7 @@ if not MyDSL.Theme._aliasesInstalled then
     end
   end)
 
-  -- "theme next/prev" -- added 2026-08-30, per Steven ("add a theme
+  -- "theme next/prev" -- added 2026-08-30, per the maintainer ("add a theme
   -- next/prev command to walk through themes?"). Walks MyDSL.Theme
   -- .presetOrder (the same stable, real display order 'theme list'
   -- already uses), wrapping around both ends.
@@ -1401,7 +1401,7 @@ if not MyDSL.Theme._aliasesInstalled then
     cecho("\n<green>[MyDSL] Theme set to '" .. tostring(name) .. "'.\n")
   end)
 
-  -- "theme reset" -- added 2026-08-30, per Steven ("there should also be
+  -- "theme reset" -- added 2026-08-30, per the maintainer ("there should also be
   -- a restore to mudlet defauls"). See MyDSL.Theme.resetToDefault()'s
   -- own comment above for the full writeup.
   tempAlias("^theme reset$", function()
@@ -1409,7 +1409,7 @@ if not MyDSL.Theme._aliasesInstalled then
     cecho("\n<green>[MyDSL] Theme reset -- 'refined_convergence' + chrome 'ui' (native Mudlet UI back to its own default look).\n")
   end)
 
-  -- "theme chrome full/ui" -- added 2026-08-30, per Steven's "2 versions
+  -- "theme chrome full/ui" -- added 2026-08-30, per the maintainer's "2 versions
   -- of each theme" ask. See MyDSL.Theme.chromeMode's own comment above
   -- for the full design writeup.
   tempAlias("^theme chrome (full|ui)$", function()

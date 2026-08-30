@@ -3,7 +3,7 @@
 -- =============================================================================
 -- Ported 2026-07-07 as part of the PNP/EMCO cannibalization pass (Phase D),
 -- from DSL_PNP_Character.disarm.lua, .spellup.lua, and .standup.lua.
--- Approved features only, per Steven's explicit review (2026-07-07):
+-- Approved features only, per the maintainer's explicit review (2026-07-07):
 --   - Rearm: BOTH the auto-trigger-on-disarm AND the manual "rearm" alias
 --   - Standup: auto-trigger on knockdown
 --   - Spellup: user types "bless all"/"fireproof <slot>" once, then it
@@ -13,7 +13,7 @@
 --
 -- This module SENDS real game commands, unlike MyDSL_DataLayer.lua (Layer 1,
 -- passive-only). That's intentional here: rearm/standup fire on a passive
--- combat event with zero typed input (Steven's explicit call, since a
+-- combat event with zero typed input (the maintainer's explicit call, since a
 -- disarmed/knocked-down player needs faster reaction than typing allows);
 -- spellup's loop is still gated behind an explicit user-typed "bless"/
 -- "fireproof" command to start. Reads equipment data from
@@ -32,7 +32,7 @@ CA.config = CA.config or {
   -- Gates ONLY the passive disarm/knockdown triggers below (auto-rearm,
   -- auto-standup) -- never the always-available manual "rearm" alias,
   -- which stays an explicit player action regardless of this flag.
-  -- Added 2026-08-26 per Steven ("make it toggle just in case") --
+  -- Added 2026-08-26 per the maintainer ("make it toggle just in case") --
   -- docs/MYDSL_1.0_MODULE_REDESIGN.md #27 flagged these as the one
   -- always-on-with-no-toggle case left after the 1.0 mandate. Default
   -- true preserves the original 2026-07-07 sign-off behavior unchanged.
@@ -129,7 +129,7 @@ end
 ------------------------------------------------------------------------
 -- VISION CHECK  (blind / no light / can see)
 ------------------------------------------------------------------------
--- CONFIRMED 2026-07-07 against a real live GMCP dump Steven captured
+-- CONFIRMED 2026-07-07 against a real live GMCP dump the maintainer captured
 -- in-game (`lua display(gmcp)` while actually blinded): gmcp.room_data.room
 -- becomes the literal string "darkness" -- exactly the same value PNP's
 -- own text-prompt parsing checked (dslpnp.prompt.room == "darkness"), just
@@ -407,7 +407,7 @@ CA._triggers.lightOut = tempRegexTrigger([[^[\w\s]+ flickers and goes out.$]], f
 
 -- Standup
 CA._triggers.knockdown = tempRegexTrigger([[^.+ knocking you senseless.$]], function() if CA.config.auto_recover then MyDSL.CharacterAssist.standup() end end)
--- Second, distinct knockdown form -- found 2026-07-08, per Steven ("stand
+-- Second, distinct knockdown form -- found 2026-07-08, per the maintainer ("stand
 -- does not work with character assist after being knocked down"): real
 -- text confirmed from logs is "<actor> bumps into you causing you to lose
 -- your balance." followed by "You sit down." -- a completely different
@@ -495,7 +495,7 @@ CA._aliases.rearm = tempAlias([[^rearm$]], [[MyDSL.CharacterAssist.rearm("full")
 CA._aliases.setSpell = tempAlias([[^setspell (\w+) (\w+)\s?([\w\s]*)$]], [[MyDSL.CharacterAssist.setSpellInfo(matches[2], matches[3], matches[4])]])
 -- Bare "setspell" (no args) didn't match the pattern above, so it fell
 -- through to the server as "Huh?" with no feedback -- confirmed live
--- 2026-07-16 (Steven tried it by itself). setSpellInfo() already has a
+-- 2026-07-16 (the maintainer tried it by itself). setSpellInfo() already has a
 -- real usage message for malformed args; this just makes it reachable
 -- for the zero-arg case too.
 CA._aliases.setSpellUsage = tempAlias([[^setspell$]], [[MyDSL.CharacterAssist.setSpellInfo()]])

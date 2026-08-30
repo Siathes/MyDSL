@@ -3,7 +3,7 @@
   Subtle main-console background tint that gradients with DSL's own
   in-game clock and current weather.
 
-  Built 2026-08-30 per Steven's direct ask: "is there a way to set the
+  Built 2026-08-30 per the maintainer's direct ask: "is there a way to set the
   background color of the main screen during day and night? or even a
   very subtle image for the background of day and night to track
   visually?" -- followed by the concrete spec: "something that get full
@@ -23,7 +23,7 @@
     real weather taxonomy (MW.weatherCategory(), extracted from
     buildWeatherText()'s WEATHER_KEYWORDS) rather than re-parsing
     MyDSL.State.weather.description with a second keyword list -- "syncs
-    with moon weather" per Steven's own words, not a coincidence.
+    with moon weather" per the maintainer's own words, not a coincidence.
   - Confirmed real Mudlet API before writing anything: setBackgroundColor
     (windowName, r, g, b, [alpha]) and getBackgroundColor([windowName])
     both exist (TLuaInterpreterUI.cpp, fetched directly from Mudlet's own
@@ -38,7 +38,7 @@
     compositing behavior (same class of "unreliable, don't lean on it"
     caution as the background-image note above), and keeps the result
     fully deterministic/testable.
-  - REDESIGNED 2026-08-30, same day, twice: first per Steven's own
+  - REDESIGNED 2026-08-30, same day, twice: first per the maintainer's own
     follow-up found in MyDSL Test's notes.json ("mydsl ambient will have
     to be much more subtle") -- strength values roughly halved. Then per
     his direct simplification request: "pick some subte but distinct
@@ -108,7 +108,7 @@ end
 ------------------------------------------------------------------------
 -- Weather palette -- ONE subtle, distinct base color per weather category
 -- (see the header comment's 2026-08-30 redesign note). Subjective color
--- choices, first pass -- adjustable later if Steven wants different
+-- choices, first pass -- adjustable later if the maintainer wants different
 -- ones, but each is a deliberate, weather-appropriate choice, not a
 -- placeholder.
 ------------------------------------------------------------------------
@@ -166,7 +166,7 @@ function AB.computeColor(totalMin, category, baseColor)
 end
 
 ------------------------------------------------------------------------
--- Fade -- added 2026-08-30 per Steven ("it will also need to fade
+-- Fade -- added 2026-08-30 per the maintainer ("it will also need to fade
 -- between colors so its not jarring"). Every apply() picks a fresh
 -- target and steps the real console color toward it over
 -- DSL_AMBIENT_FADE_SECONDS rather than snapping instantly -- matters

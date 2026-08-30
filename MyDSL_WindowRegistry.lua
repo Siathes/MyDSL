@@ -71,7 +71,7 @@ local function STATE_FILE()
 end
 
 -- DOCK_INIT_FILE / WINDOW_INITIAL_DOCK -- fixes the real "fresh profile:
--- every window piles up on the right" bug reported by Steven. Root cause
+-- every window piles up on the right" bug reported by the maintainer. Root cause
 -- (traced into Mudlet's own C++ source, Host::openWindow()): a dock
 -- widget that has NEVER existed before in this profile's history is
 -- unconditionally created in Qt::RightDockWidgetArea, and Geyser's
@@ -239,19 +239,19 @@ local function applyTheme(windowName, winObj)
     -- Visual pass v2, "One Bar, Renamed and Colored" (locked spec,
     -- 2026-08-26) -- supersedes an earlier "Direction A+" attempt that
     -- flattened this bar to a blank sliver and added a SEPARATE themed
-    -- Label underneath for the real title. Live on Steven's machine that
+    -- Label underneath for the real title. Live on the maintainer's machine that
     -- showed two stacked title-like elements (the flatten step's
     -- setTitle("") never actually blanked Mudlet's native title text, so
     -- both the full default title AND the new Label rendered at once) --
     -- his verdict: one bar, not two, colored, labeled with the window's
     -- real short name. The Label mechanism is gone entirely; titleBarCSS()
     -- now carries the accent coloring that Label used to (confirmed
-    -- against Steven's own screenshots -- what he saw rendering "colored/
+    -- against the maintainer's own screenshots -- what he saw rendering "colored/
     -- tinted" was that Label, not this bar) directly onto the one bar
     -- that remains, and each View file calls winObj:setTitle("Combat")/
     -- etc. with the real short name -- the normal documented setTitle()
     -- path, not the untested setTitle("") edge case that broke.
-    -- REAL BUG found live 2026-08-26 (3rd round on this feature; Steven's
+    -- REAL BUG found live 2026-08-26 (3rd round on this feature; the maintainer's
     -- screenshot showed zero coloring anywhere, not just "too dim"):
     -- panelCSS() returns BARE declarations with no selector at all --
     -- confirmed via Qt's own stylesheet-syntax docs that this specific
@@ -300,7 +300,7 @@ end
 -- Without the guard, every reload would set all obj fields to nil,
 -- making the registry think windows haven't been created yet.
 
--- REAL BUG, found live 2026-07-19 (Steven: "that script blanks my main
+-- REAL BUG, found live 2026-07-19 (the maintainer: "that script blanks my main
 -- window, i had to disable" -- right after MyDSL_Leveling.lua added a new
 -- MyDSL_Leveling registry entry below): this table used to be built with
 -- `MyDSL.Windows.registry = MyDSL.Windows.registry or { ...literal... }` --
@@ -328,7 +328,7 @@ local DEFAULT_REGISTRY = {
   MyDSL_Location         = { obj=nil, type="UserWindow", visible=true,  created=false },
   MyDSL_Live             = { obj=nil, type="UserWindow", visible=true,  created=false },
   MyDSL_Tick             = { obj=nil, type="UserWindow", visible=true,  created=false },
-  -- Changed to Container 2026-07-11, per Steven ("alterform window change
+  -- Changed to Container 2026-07-11, per the maintainer ("alterform window change
   -- to same as moonweather, we will keep it inside the main window for
   -- layout cleanness") -- was a detachable UserWindow like Tick; now
   -- anchored inside the main console like MyDSL_MoonWeather, whose own
@@ -338,7 +338,7 @@ local DEFAULT_REGISTRY = {
   MyDSL_History          = { obj=nil, type="UserWindow", visible=true,  created=false },
   MyDSL_Scan             = { obj=nil, type="UserWindow", visible=true,  created=false },
   MyDSL_Group            = { obj=nil, type="UserWindow", visible=true,  created=false },
-  -- Renamed from MyDSL_Target 2026-07-11, per Steven ("change target
+  -- Renamed from MyDSL_Target 2026-07-11, per the maintainer ("change target
   -- window to focus to match commands") -- registry key now matches the
   -- window's own title/command surface ("focus <verb>"); the Lua module
   -- (MyDSL.Target/MyDSL.TargetView) keeps its established internal name,
@@ -713,7 +713,7 @@ end
 ------------------------------------------------------------------------
 -- SECTION 8b: FONT-SIZE PERSISTENCE (profile-level, not character-bound)
 ------------------------------------------------------------------------
--- Added 2026-07-11, per Steven ("the fonts should be saving like theme or
+-- Added 2026-07-11, per the maintainer ("the fonts should be saving like theme or
 -- window manager whatever tracks that... per profile not user, remember
 -- for the layout") -- consolidates what used to be N independent
 -- per-module bespoke font config files (MyDSL_TargetView.lua's own
@@ -726,7 +726,7 @@ end
 -- Real motivation, not just consistency: both of the old per-module
 -- implementations already had the standard "re-load once MyDSL.character.
 -- identified fires" pattern (confirmed structurally identical to
--- MyDSL_ChatWrapper.lua's own, which IS confirmed working) -- but Steven
+-- MyDSL_ChatWrapper.lua's own, which IS confirmed working) -- but the maintainer
 -- twice reported the font settings still not surviving a reload even
 -- after that fix, and a root cause was never conclusively found despite
 -- extensive testing (see docs/CHANGELOG.md, "Round 10"). Removing the
@@ -739,7 +739,7 @@ end
 
 MyDSL.Windows.fontSizes = MyDSL.Windows.fontSizes or {}
 
--- REAL BUG, found live 2026-07-11 (Steven's direct question: "are the
+-- REAL BUG, found live 2026-07-11 (the maintainer's direct question: "are the
 -- settings loading at creating from save files or they saving and never
 -- reading/updating?" -- confirmed via the new 3-way diagnostic showing
 -- disk=nil despite the file genuinely having the right data on disk).
@@ -949,7 +949,7 @@ local function patchUserWindowConstructor()
   MyDSL.Windows._constructorPatched = true
 end
 
--- Simplified 2026-07-08, per Steven: the custom capture-into-percentages-
+-- Simplified 2026-07-08, per the maintainer: the custom capture-into-percentages-
 -- and-write-our-own-file approach (previously Steps 1-2 here) is dropped
 -- in favor of just Mudlet's own native saveWindowLayout()/saveProfile() --
 -- "its not woking right and i dont want to have that fight again."
@@ -1011,7 +1011,7 @@ MyDSL.Windows.loadState()
 MyDSL.Windows.ensureAll()
 if loadWindowLayout then loadWindowLayout() end
 
--- Bug found live 2026-08-29 (Steven: help window "currently starts opened
+-- Bug found live 2026-08-29 (the maintainer: help window "currently starts opened
 -- on my second screen, it needs to start closed till called"): the native
 -- loadWindowLayout() call above restores whatever floating/visible state
 -- a window last had in the SHARED windowLayout.dat (see this file's own

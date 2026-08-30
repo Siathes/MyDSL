@@ -1,7 +1,7 @@
 -- =============================================================================
 -- MyDSL_Help.lua  --  Layer 3: In-UI help system
 -- =============================================================================
--- Per Steven's ask (2026-07-15): a 3-level help system for DSL2 itself (the
+-- Per the maintainer's ask (2026-07-15): a 3-level help system for DSL2 itself (the
 -- observer UI, not DSL's own game helpfiles -- those are separate, already
 -- vendored in DSL_Helpfiles/).
 --   1. Main console (MyDSL.help(), "mydsl help"): title + one-liner per
@@ -11,7 +11,7 @@
 --      the actual help." A "Browse all modules" link at the top instead
 --      opens the window to the overview/breadth page.
 --   3. Overview page: every module, grouped by category, one-liner each,
---      still clickable -- the "breadth" Steven asked for.
+--      still clickable -- the "breadth" the maintainer asked for.
 --   4. Module detail page: full command list + examples, the most verbose
 --      level -- reached by clicking a module from either the main console
 --      or the overview page.
@@ -26,7 +26,7 @@
 -- useCurrentFormat, not "underline" -- always pass true or the decho color
 -- codes get discarded (same bug already found/fixed in GroupView/TargetView).
 --
--- Colors: light-yellow body text (Steven's ask, no existing tag for this --
+-- Colors: light-yellow body text (the maintainer's ask, no existing tag for this --
 -- introduced here), reusing the link-blue and gold-accent tags already
 -- established in MyDSL_PromptSetup.lua rather than inventing new meanings.
 -- =============================================================================
@@ -275,7 +275,7 @@ MyDSL.Help.modules = {
     summary = "Displays a character portrait image, auto-looked-up by character name.",
     commands = {
       { cmd = "mydsl portrait status / show / hide / refresh", desc = "Standard window controls.", example = "mydsl portrait show" },
-      { cmd = "mydsl portrait set <path> / clear", desc = "Force an explicit image, or clear the override.", example = "mydsl portrait set portraits/kien.png" },
+      { cmd = "mydsl portrait set <path> / clear", desc = "Force an explicit image, or clear the override.", example = "mydsl portrait set portraits/yourcharacter.png" },
       { cmd = "mydsl portrait font <n> / frame <on|off> / fit <stretch|contain|cover|fill>", desc = "Display tuning.", example = "mydsl portrait fit stretch" },
       { cmd = "mydsl portrait dir [path]", desc = "Show or set the portrait image directory.", example = "mydsl portrait dir" },
       { cmd = "mydsl portrait name <charname>", desc = "Load a specific character's portrait.", example = "mydsl portrait name MyCharacter" },
@@ -357,7 +357,7 @@ MyDSL.Help.modules = {
       { cmd = "mydsl help", desc = "This help system.", example = "mydsl help" },
       { cmd = "mydsl log <on|off>", desc = "Window-logging master switch.", example = "mydsl log on" },
       { cmd = "mydsl log <category> <on|off>", desc = "Per-category logging. Categories: combat, chat, history (on by default); group, righthere, focus, playersnear (debug-only, off by default).", example = "mydsl log combat off" },
-      { cmd = "mydsl who <name>", desc = "DslColors' known-person info (passthrough to `dslcolor show`).", example = "mydsl who kien" },
+      { cmd = "mydsl who <name>", desc = "DslColors' known-person info (passthrough to `dslcolor show`).", example = "mydsl who playername" },
       { cmd = "mydsl test", desc = "Smoke test: module load / window / character-binding status.", example = "mydsl test" },
       { cmd = "toggle <module>", desc = "PNP's universal on/off switch (combat, affects, moons, ...).", example = "toggle affects" },
       { cmd = "mydsl layout save", desc = "Save current window positions/visibility (per profile).", example = "mydsl layout save" },
@@ -387,7 +387,7 @@ MyDSL.Help.modules = {
   -- ---- Automation / Assist ----
   -- Unlike every other module listed here, MyDSL_Leveling.lua SENDS real
   -- game commands -- an explicit, narrow exception to this project's
-  -- normal passive-observation-only rule (Steven, 2026-07-19; see that
+  -- normal passive-observation-only rule (the maintainer, 2026-07-19; see that
   -- file's own header comment and docs/TODO.md's DECISIONS RECORDED
   -- section). A future MyDSL_Questing.lua will join this same category.
   { key = "leveling", title = "Leveling", category = "Automation / Assist", window = "MyDSL_Leveling",
@@ -604,7 +604,7 @@ MyDSL._aliases.help = tempAlias(
   [[if MyDSL and MyDSL.help then MyDSL.help() end]]
 )
 
--- "mydsl" bare (no sub-command) also opens help -- Steven, 2026-08-29:
+-- "mydsl" bare (no sub-command) also opens help -- the maintainer, 2026-08-29:
 -- "mydsl by itself should also open help". Every other "mydsl <verb> ..."
 -- alias in the codebase requires at least one word after "mydsl", so this
 -- doesn't collide with any of them.

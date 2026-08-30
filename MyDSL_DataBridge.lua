@@ -110,7 +110,7 @@ function MyDSL.DB.sync()
   MyDSL.DB.score.armorMagic  = sc.armor_magic
   MyDSL.DB.score.items       = sc.items
   MyDSL.DB.score.max_items   = sc.max_items
-  -- Real-time position, per Steven ("liveview pos'n doesnt update on
+  -- Real-time position, per the maintainer ("liveview pos'n doesnt update on
   -- changing without score, it should update with the gmcp"). char.posn
   -- (MyDSL_DataLayer.lua's new posn text-trigger set + GMCP is_flying,
   -- added 2026-07-12) updates instantly as it happens; sc.position (the
@@ -143,7 +143,7 @@ function MyDSL.DB.sync()
 
   -- Gap 1 confirmed NOT a bug: DataLayer maps gmcp.room_data.room → State.room.name.
   -- Gap 2 fixed: 'area' never existed in DataLayer — replaced with 'sector'.
-  -- Real bug fixed 2026-07-11, found via Steven's report that LiveView's
+  -- Real bug fixed 2026-07-11, found via the maintainer's report that LiveView's
   -- exits line "changes from original game text to white text": this
   -- unconditionally rebuilt the whole DB.room table on every sync() call,
   -- silently wiping exitsColoredSource/exitsColoredUpdatedAt/exitsLine --
@@ -216,7 +216,7 @@ function MyDSL.DB.sync()
   -- Consumers iterate: for name, entry in pairs(MyDSL.DB.affects) do
   MyDSL.DB.affects = (MyDSL.State.affects and MyDSL.State.affects.active) or {}
 
-  -- DB.improve — added 2026-07-07, per Steven (LiveView's Improve bar,
+  -- DB.improve — added 2026-07-07, per the maintainer (LiveView's Improve bar,
   -- already built, was waiting on this).
   -- last_updated added 2026-07-11: `text` used to be pre-formatted here as a
   -- static snapshot ("skill 91% (12m)") that never changed between actual

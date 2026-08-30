@@ -75,7 +75,7 @@ M.config.w = M.config.w or 380
 M.config.h = M.config.h or 280
 -- Default changed 2026-07-12 to "contain" then same day to "stretch" --
 -- see containImageHTML()/stretchImageHTML() above, matching
--- MyDSL_PortraitView.lua's identical fix. Steven tried contain
+-- MyDSL_PortraitView.lua's identical fix. the maintainer tried contain
 -- (letterboxed) live and preferred the image filling the whole window
 -- exactly ("i prefer the old images stretching to fill, not fond of this
 -- border lookin location and portrait"). cover still exists but uses the
@@ -133,7 +133,7 @@ end
 -- `mydsl location map <room> = <path>` both capture their argument
 -- verbatim via a raw regex group (see the `tempAlias`/`locationCommand`
 -- dispatch below) -- nothing anywhere in this file ever stripped
--- surrounding quotes. Steven's own reported case ("mydsl location set
+-- surrounding quotes. the maintainer's own reported case ("mydsl location set
 -- "A Sloped Hall.png"" -- it looks like it set it, but it is not
 -- displaying") is exactly this: the real file `A Sloped Hall.png`
 -- (confirmed on disk, no quotes) never matched the constructed path
@@ -292,7 +292,7 @@ function M.saveProfiles()
   return saveTable(M.profileFile(), data)
 end
 
--- Real gap found live 2026-08-30 (Steven, "MyDSL Test" notes.json: "need
+-- Real gap found live 2026-08-30 (the maintainer, "MyDSL Test" notes.json: "need
 -- to normalize those exits like live window (consistent)"). getRoomExits()
 -- returns an unordered table (pairs() gives no guaranteed order), so some
 -- sort was always needed for a stable display -- but plain table.sort()
@@ -411,7 +411,7 @@ end
 -- stock's own check_room() -- that only ever wrote it once and never
 -- again, the actual root cause of a real "mapper not following" bug
 -- confirmed and fixed the same day. use_description_matching itself
--- defaults off for now (Steven's own call on when it's safe to re-enable
+-- defaults off for now (the maintainer's own call on when it's safe to re-enable
 -- per-profile); this field still gets populated/healed either way, so
 -- this file's own "description:" info display isn't affected by that
 -- setting.
@@ -463,7 +463,7 @@ function M.currentRoomName()
 end
 
 function M.fileForRoom(room)
-  -- Preferred filename convention, changed 2026-07-12 per Steven ("id
+  -- Preferred filename convention, changed 2026-07-12 per the maintainer ("id
   -- like to be able to match the room name and file without appending _
   -- for spaces, then rename all the files to match"). Was underscore-
   -- joined + alphanumeric-only; now the literal room name (spaces,
@@ -481,13 +481,13 @@ function M.fileForRoom(room)
 end
 
 -- fileForRoomVariant(room, index) / nextAvailableFilename(room) -- added
--- 2026-07-19, per Steven ("can we set filename since it will be in the
+-- 2026-07-19, per the maintainer ("can we set filename since it will be in the
 -- same location as others, and can it auto increment in the style we
 -- did before... until no file is present then ask?"). Reuses the exact
 -- naming CONVENTION the old text-heuristic variant system used ("Room
 -- Name (2).png", "(3).png", ...) -- that part of the old design was
 -- fine, only the guessing-which-visit-is-which-variant part was fragile
--- and got replaced by room-ID keying. This just tells Steven which
+-- and got replaced by room-ID keying. This just tells the maintainer which
 -- filename is free to save a new picture under; it doesn't create or
 -- reserve anything by itself.
 function M.fileForRoomVariant(room, index)
@@ -584,7 +584,7 @@ end
 -- Room-ID-keyed picture assignment -- replaces the 2026-07-17 text-
 -- heuristic variant system entirely, added 2026-07-19.
 ------------------------------------------------------------------------
--- Per Steven ("i think i would like to simplify this ... assign it a
+-- Per the maintainer ("i think i would like to simplify this ... assign it a
 -- room picture (automatically where possible, manual where duplicates
 -- arise)"). The old system guessed whether two visits to a same-named
 -- room were "the same variant" from description/exits text -- fragile by
@@ -650,7 +650,7 @@ function M.pathForRoomId(roomId, name)
     end
   end
 
-  -- Real bug fixed 2026-07-19, per Steven (6 real "The Tail of the Stone
+  -- Real bug fixed 2026-07-19, per the maintainer (6 real "The Tail of the Stone
   -- Dragon" rooms -- the first auto-claimed correctly, but the second
   -- just said "no picture assigned" instead of finding the already-
   -- existing "(2)" file left over from the old variant system). The
@@ -790,7 +790,7 @@ local function containImageHTML(label, path)
     math.max(0, math.floor((boxH - dispH) / 2)), cssPath(path), dispW, dispH)
 end
 
--- stretchImageHTML(label, path) -- added 2026-07-12, per Steven ("i prefer
+-- stretchImageHTML(label, path) -- added 2026-07-12, per the maintainer ("i prefer
 -- the old images stretching to fill, not fond of this border lookin
 -- location and portrait") -- same fix as MyDSL_PortraitView.lua's
 -- function of the same name: fills the whole label exactly (no
@@ -841,7 +841,7 @@ function M.clear(caption)
   M.ensureUI()
   if not (M.ui and M.ui.image and M.ui.caption) then return end
   M.applyBaseStyle()
-  -- Real bug found 2026-07-16 (investigating Steven's "something has
+  -- Real bug found 2026-07-16 (investigating the maintainer's "something has
   -- changed in location and portrait" report): this never actually
   -- cleared M.ui.image, only updated the caption text -- entering a room
   -- with no picture right after one that HAD a picture left the previous
@@ -860,7 +860,7 @@ function M.render(path, caption, source, room, missingCaption)
 
   caption = caption or ""
   if not path or not exists(path) then
-    -- missingCaption -- added 2026-07-17, per Steven ("mydsl location
+    -- missingCaption -- added 2026-07-17, per the maintainer ("mydsl location
     -- message needs to not goto main display but the location window").
     -- Lets a caller (M.refresh()'s new-variant notice) show its own
     -- specific text on the window's own caption label instead of this
@@ -903,7 +903,7 @@ function M.render(path, caption, source, room, missingCaption)
       rendered = true
     end
   elseif M.config.fit == "stretch" or M.config.fit == "fill" then
-    -- Real fix 2026-07-12, per Steven ("i prefer the old images stretching
+    -- Real fix 2026-07-12, per the maintainer ("i prefer the old images stretching
     -- to fill, not fond of this border lookin location and portrait") --
     -- see stretchImageHTML()'s comment above.
     local html = stretchImageHTML(M.ui.image, path)
@@ -1002,7 +1002,7 @@ function M.setByName(room)
   return M.render(path, M.captionForRoom(data, path, source), source, room)
 end
 
--- setImage(input) -- "manual where duplicates arise" (per Steven). Updated
+-- setImage(input) -- "manual where duplicates arise" (per the maintainer). Updated
 -- 2026-07-19 to actually persist: it used to only force the display for
 -- the current moment (M.manualPath was never read back by anything, a
 -- dead field even before this change), so the same "no picture assigned"
@@ -1015,7 +1015,7 @@ end
 -- roompics directory every other picture already lives in, via
 -- M.resolveImageInput()) instead of requiring a full absolute path --
 -- matches M.refresh()'s own suggested-filename message exactly, so
--- Steven can copy-paste the filename it already showed him.
+-- the maintainer can copy-paste the filename it already showed him.
 function M.setImage(input)
   local path = M.resolveImageInput(input)
   if not path then
@@ -1180,14 +1180,14 @@ function M.status()
   ))
 end
 
--- info() -- "mydsl location info", added 2026-07-19 per Steven's ask for
+-- info() -- "mydsl location info", added 2026-07-19 per the maintainer's ask for
 -- "all room info" to be accessible. Everything here (name/description/
 -- exits/terrain/area) already lives in the Mudlet mapper's own map.dat,
 -- keyed by room ID (the DSL_Generic_Mapper fork populates it on every
 -- room already) -- this just surfaces it directly rather than
 -- duplicating it into a separate database. The Location window's own
 -- caption line deliberately stays compact (name + area/terrain/exits
--- only, per Steven's original "reduce vertical spacing" ask); this
+-- only, per the maintainer's original "reduce vertical spacing" ask); this
 -- command is for when the full text is actually wanted.
 function M.info()
   local data = M.roomData()

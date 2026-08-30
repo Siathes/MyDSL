@@ -47,7 +47,7 @@ end
 -- Scan window fills passively via DataLayer appendBuffer (game colors preserved).
 -- RightHere is rebuilt from State.scan.rightHere as clickable target links.
 
--- FIX 2026-08-29, per Steven live-test note ("right here" shows in
+-- FIX 2026-08-29, per the maintainer live-test note ("right here" shows in
 -- window also named "Right Here"): dropped the redundant "Right Here:"
 -- header text -- the window's own title bar already says that (see
 -- MyDSL.Windows.getTitle(RH_WIN, "Right Here") below).
@@ -71,7 +71,7 @@ function SV.renderRightHere()
     local cnt = entry.count or 1
     local count_str = cnt > 1
       and string.format(" <255,204,68>×%d<r>", cnt) or ""
-    -- Known/Seen/Unknown badge -- added 2026-07-12, per Steven ("as we
+    -- Known/Seen/Unknown badge -- added 2026-07-12, per the maintainer ("as we
     -- identify mobs, it should create a table to look up and find more
     -- accurate tags for targets"). Adapted from a prior working
     -- implementation found in the DSL1 sibling profile
@@ -185,7 +185,7 @@ function SV.ensureUI()
   -- profile-level store MyDSL_History/MyDSL_Focus already use. Was:
   -- Scan had no explicit size at all (inherited theme default),
   -- RightHere was hardcoded to 9 with no way to change it.
-  -- Fallback defaults updated 2026-08-23 to match Steven's real
+  -- Fallback defaults updated 2026-08-23 to match the maintainer's real
   -- long-tuned live sizes (MyDSL_windowfonts.lua: Scan=7, RightHere=8),
   -- confirmed via a full settings-vs-defaults audit -- these only ever
   -- applied to a brand-new window with nothing saved yet, but a genuine
@@ -213,7 +213,7 @@ function SV.init()
   )
 
   -- Decrement/clear the dying mob's RightHere entry -- added 2026-07-16,
-  -- per Steven ("proceed" on the investigated cause of Murder/Consider/
+  -- per the maintainer ("proceed" on the investigated cause of Murder/Consider/
   -- Order-All -> "They're not here" reports). Real gap found: identical
   -- mobs collapse into ONE RightHere entry with a `count` field
   -- (parseLookHereLine(), MyDSL_DataLayer.lua), but nothing ever
@@ -331,7 +331,7 @@ end
 ------------------------------------------------------------------------
 
 -- Renamed 2026-07-11, command-surface retrofit (docs/TODO.md "OPEN —
--- Command-surface retrofit"), per Steven. Dropped the "mydsl" prefix --
+-- Command-surface retrofit"), per the maintainer. Dropped the "mydsl" prefix --
 -- confirmed bare "scan"/"scan <dir>" is the real DSL command
 -- (DSL_Helpfiles/scan.txt), but "gag"/"ungag" aren't valid directions, so
 -- no functional collision. ("mydsl righthere dump" below is left alone --

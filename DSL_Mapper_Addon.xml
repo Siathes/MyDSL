@@ -98,7 +98,7 @@ registerAnonymousEventHandler("sysUninstallPackage", "dslMapperAddonInstallUnins
 -- This layer only adds DSL text patterns, GMCP assist, passive sector metadata,
 -- passive door-state feeding, and tiny debug/status helpers.
 -- ============================================================================
--- REAL BUG found 2026-08-30, via Steven's own report ("still not
+-- REAL BUG found 2026-08-30, via the maintainer's own report ("still not
 -- updating terrain") turning up an empty mapper_desync_log.txt despite
 -- the diagnostic logging added earlier the same day: `profilePath` was
 -- referenced (map.dsl.logDesync(), map.export_area(), map.import_area())
@@ -147,7 +147,7 @@ function map.dsl.echo(msg)
   cecho("\n&lt;yellow&gt;[DSL Generic Mapper] &lt;reset&gt; " .. tostring(msg) .. "\n")
 end
 
--- dsl_ud(rid, key, placeholder) -- real bug found via Steven's own
+-- dsl_ud(rid, key, placeholder) -- real bug found via the maintainer's own
 -- "dslroom raw" output ("Room weight: 1 (source=, samples=, avg
 -- cost=0.0)"): getRoomUserData() returns an EMPTY STRING for an unset
 -- key, not nil -- so plain tostring(getRoomUserData(...)) silently
@@ -272,7 +272,7 @@ function map.dsl.normalizeSector(value)
   if value:find("mountains", 1, true) then return "mountain" end
   if value:find("very icy", 1, true) then return "ice" end
   if value:find("undetermined", 1, true) then return "unknown" end
-  -- Real gap found live 2026-07-18, per Steven ("is there a terrain
+  -- Real gap found live 2026-07-18, per the maintainer ("is there a terrain
   -- color for air? its not adding it to the mapper") -- confirmed via
   -- his own log: DSL's real response to "terrain" while flying/airborne
   -- is "There is no terrain, your in the air!!!" -- a completely
@@ -285,7 +285,7 @@ function map.dsl.normalizeSector(value)
   return value
 end
 
--- REAL BUG found 2026-08-30 (Steven: "i also dont see players near you
+-- REAL BUG found 2026-08-30 (the maintainer: "i also dont see players near you
 -- highlighting on the map" -- tracing that led here): registered
 -- handlers ALWAYS receive the event name as their first argument in
 -- Mudlet (confirmed against wiki.mudlet.org's own Event Engine manual,
@@ -439,7 +439,7 @@ end
 -- plausibly still be describing the PREVIOUS room.
 local DSL_GMCP_ROOMDATA_TIMEOUT = 2
 
--- roomLooksStale(rid) -- real bug reported by Steven: walking into a room
+-- roomLooksStale(rid) -- real bug reported by the maintainer: walking into a room
 -- Generic Mapper fails to resolve/create leaves map.currentRoom stuck on
 -- the PREVIOUS room, so a GMCP or "terrain" payload describing the room
 -- the player actually just entered gets filed onto that stale room's data
@@ -478,7 +478,7 @@ function map.dsl.roomLooksStale(rid)
   return roomName ~= "" and roomName ~= gmcpName
 end
 
--- Desync logger + checker -- added 2026-08-30 per Steven ("debug data
+-- Desync logger + checker -- added 2026-08-30 per the maintainer ("debug data
 -- first", then "do all recommended" once told this architecture can't
 -- reuse DSL_Generic_Mapper.xml's check_room()/move_map()/find_me()-level
 -- logging: those are stock-private locals here, unreachable from an
@@ -490,7 +490,7 @@ end
 -- ever used defensively before (block a color/terrain write onto the
 -- wrong room), never logged as a finding in its own right. Always-on,
 -- not gated behind "map config debug true" -- same reasoning as the
--- other file: Steven shouldn't have to remember to flip that on before
+-- other file: the maintainer shouldn't have to remember to flip that on before
 -- every session just so a rare desync gets caught when it happens.
 function map.dsl.logDesync(msg)
   local ok, f = pcall(io.open, profilePath .. "/mapper_desync_log.txt", "a")
@@ -508,7 +508,7 @@ end
 -- happens to win that race. A 1-second grace period gives stock's own
 -- resolution time to finish first; a genuine desync is not a timing
 -- fluke and is still just as visible a full second later.
--- Widened 2026-08-30 (same day, Steven confirmed "the dot never moves at
+-- Widened 2026-08-30 (same day, the maintainer confirmed "the dot never moves at
 -- all" -- option 1 of 3) to log EVERY check, not just a mismatch. A
 -- silent "nothing logged" result was ambiguous between "no bug" and "the
 -- check never saw good data to compare in the first place" (e.g. GMCP
@@ -624,7 +624,7 @@ function map.dsl.onRoomData()
   tempTimer(1, [[if map and map.dsl and map.dsl.checkRoomDesync then map.dsl.checkRoomDesync() end]])
 end
 
--- DSL_SECTOR_ENV_IDS / DSL_SECTOR_ENV_COLORS -- per Steven ("hook up all
+-- DSL_SECTOR_ENV_IDS / DSL_SECTOR_ENV_COLORS -- per the maintainer ("hook up all
 -- the features we can... the terrain and room weights"), and per this
 -- fork's own scope doc, which already flagged this as the intended next
 -- step (item 7's own comment: "Support terrain coloring... later"). This
@@ -662,7 +662,7 @@ for k in pairs(DSL_SECTOR_ENV_IDS) do DSL_SECTOR_NAMES_SORTED[#DSL_SECTOR_NAMES_
 table.sort(DSL_SECTOR_NAMES_SORTED)
 
 -- Logs any registration failure -- added 2026-08-30, same investigation
--- as applySectorColor()/applyRoomMetadata() above (Steven: "mapper isnt
+-- as applySectorColor()/applyRoomMetadata() above (the maintainer: "mapper isnt
 -- applying the terrain color... see red boxes instead of forest"). If
 -- setCustomEnvColor() itself never actually registers a color for an
 -- envID (this runs once, from install(), before any real color-writing
@@ -683,7 +683,7 @@ function map.dsl.registerEnvColors()
   end
 end
 
--- dsl.terrain_locked -- per Steven ("this needs to get set once then have
+-- dsl.terrain_locked -- per the maintainer ("this needs to get set once then have
 -- to be manually changed"): once a room's terrain/color has been set by
 -- EITHER auto-detection (GMCP or the "terrain" command) or the manual
 -- "rt"/"room terrain" alias below, applyRoomMetadata()/onTerrainLine()
@@ -701,7 +701,7 @@ end
 
 -- applySectorColor(rid, sector) -- color only, from the known DSL
 -- sector. Room WEIGHT is handled separately below by
--- captureMovePoints()/applyMoveCost() -- per Steven's explicit
+-- captureMovePoints()/applyMoveCost() -- per the maintainer's explicit
 -- correction ("dont make up weights, the room weight should be added as
 -- a player walks through and uses movement points to determine"), weight
 -- must come from real observed movement-point cost, not a guessed
@@ -716,7 +716,7 @@ end
 -- next auto-color pass. Accepted, pre-existing tradeoff, unrelated to the
 -- lock added here.
 -- Logs its own outcome unconditionally, and now returns whether color was
--- ACTUALLY applied -- both added 2026-08-30, per Steven ("mapper isnt
+-- ACTUALLY applied -- both added 2026-08-30, per the maintainer ("mapper isnt
 -- applying the terrain color on first build or revisits. see red boxes
 -- on mini map instead of forest"). Two real bugs found together here:
 -- (1) several silent no-op points existed (unrecognized sector string ->
@@ -950,7 +950,7 @@ end
 -- handlers for one raiseEvent call in registration order, not through the
 -- event/timer queue. The deferral bought nothing but one extra Qt
 -- event-loop round-trip of latency on every single move.
--- announceAreaChange(rid) -- per Steven's MyDSL notes 2026-08-24
+-- announceAreaChange(rid) -- per the maintainer's MyDSL notes 2026-08-24
 -- ("mapper should announce entering/exiting a named area map...
 -- Althainia, Death's Corridor"). map.currentArea is already tracked by
 -- stock Generic Mapper's own set_room() on every real room change (see
@@ -985,7 +985,7 @@ end
 -- anything in this codebase.
 -- Self-heals a room's stored description on every successful visit --
 -- added 2026-08-30, the real fix behind flipping use_description_matching
--- off, per Steven ("we want to store the description and be able to
+-- off, per the maintainer ("we want to store the description and be able to
 -- track rooms that have the same name but different descriptions.
 -- thats why it was turned on"). Stock's own check_room() (private,
 -- unreachable here) is the actual reason that goal broke: it WRITES a
@@ -1008,7 +1008,7 @@ end
 -- healing only works with matching off, which is why the default stays
 -- off rather than flipping this back on automatically.
 --
--- One accepted tradeoff, same one Steven's original goal already implied
+-- One accepted tradeoff, same one the maintainer's original goal already implied
 -- accepting: with matching off, if two genuinely DIFFERENT rooms happen
 -- to share the same name AND exits, stock's own name+exits match can't
 -- tell them apart, so a visit to one can overwrite the other's stored
@@ -1074,7 +1074,7 @@ function map.dsl.onTerrainLine(text)
   map.dsl.last_terrain_text = text
   local rid = map.currentRoom
   -- Corruption + lock guards -- see roomLooksStale()/terrainLocked() above.
-  -- This is the exact function Steven's report implicated most directly:
+  -- This is the exact function the maintainer's report implicated most directly:
   -- typing "terrain" while map.currentRoom is stuck on a stale room used
   -- to file the real room's terrain onto the wrong one with no protection
   -- at all.
@@ -1172,7 +1172,7 @@ function map.dsl.onDoorLine(text)
   if dir and state then map.dsl.setGenericDoor(dir, state) end
 end
 
--- highlightPlayersNear(list) -- per Steven's MyDSL notes ("mapper:
+-- highlightPlayersNear(list) -- per the maintainer's MyDSL notes ("mapper:
 -- highlight other players' rooms (from the where command) on the map...
 -- multiple possibilities highlighted when room names are ambiguous").
 -- `list` is a {name=, room=}-shaped array raised by MyDSL_DataLayer.lua's
@@ -1192,7 +1192,7 @@ end
 -- (roomID -&gt; roomName), not a plain array -- iterate with pairs() over
 -- the keys, not ipairs() over values, or every match is silently missed.
 -- Colors picked by DSL_COLOR_DB relationship now, not one flat color --
--- added 2026-08-30 per Steven's redesign ask ("id like them a little
+-- added 2026-08-30 per the maintainer's redesign ask ("id like them a little
 -- smaller and connected to dslcolor relationship of friend and enemy
 -- and neutral for coloring"). DSL_COLOR_DB (a real global, set by
 -- DslColors_Core_v1_0.xml, a separate native Script -- confirmed no
@@ -1220,7 +1220,7 @@ local function dsl_playerHighlightColor(name)
   return DSL_PLAYER_HIGHLIGHT_NEUTRAL
 end
 
--- Radius -- fixed twice same day. First fix (2026-08-30, Steven: "the
+-- Radius -- fixed twice same day. First fix (2026-08-30, the maintainer: "the
 -- markers yellow circles of the players near you are to large"):
 -- confirmed against Mudlet's own real C++ source
 -- (TLuaInterpreterMapper.cpp's highlightRoom(), T2DMap.cpp's rendering)
@@ -1228,13 +1228,13 @@ end
 -- width -- `roomRadius = (highlightRadius * mRoomWidth) / 2.0` -- NOT
 -- pixels. The old value (25) meant a 12.5-room-width radius, explaining
 -- why entire screenfuls of the map turned solid yellow. Dropped to 1.2,
--- then per Steven's direct follow-up ("id like them a little smaller")
+-- then per the maintainer's direct follow-up ("id like them a little smaller")
 -- dropped again to 0.7 -- smaller than one room's own box, a marker
 -- rather than an area fill.
 local DSL_PLAYER_HIGHLIGHT_RADIUS = 0.7
 
 -- Redesigned 2026-08-30, replacing the same-day fade-based version
--- (removed): Steven explicitly asked to drop the fade -- "id like it to
+-- (removed): the maintainer explicitly asked to drop the fade -- "id like it to
 -- not fade actuall and turn on and off with any where command, auto or
 -- manual" -- plus reported "the player markers do not fade or disappear
 -- currently" against that version regardless. Back to the simpler
@@ -1288,7 +1288,7 @@ function map.dsl.install()
     -- REVERSED 2026-08-30 -- this used to force description matching ON
     -- ("DSL repeated room names are common"), but that's now a confirmed
     -- root cause of the real "mapper not following" report, not a
-    -- theoretical risk: Steven's own live `map debug` trace showed EVERY
+    -- theoretical risk: the maintainer's own live `map debug` trace showed EVERY
     -- automatic room resolution failing with "Room N rejected:
     -- description mismatch" -> "Room not found in map database" on
     -- ordinary, correctly-captured moves (name+exits both matched fine
@@ -1306,7 +1306,7 @@ function map.dsl.install()
     -- map.prompt.description has already been cleared, quietly skipping
     -- the same check rather than passing it). A silent, permanent lockout
     -- is a far worse failure mode than the duplicate-room-name edge case
-    -- this was meant to guard against, so default it off. Steven can
+    -- this was meant to guard against, so default it off. the maintainer can
     -- still opt back in per-profile with `map config
     -- use_description_matching` if a real same-name-same-exits collision
     -- ever shows up in practice.
@@ -1318,7 +1318,7 @@ function map.dsl.install()
     -- reload/reconnect), silently reverting a player's own "map config
     -- search_on_look true" with no message. Now it only sets the default
     -- once.
-    -- stretch_map defaults off, added 2026-08-30 per Steven ("what are the
+    -- stretch_map defaults off, added 2026-08-30 per the maintainer ("what are the
     -- settings to turn of the shifting of the rooms when mapping... i
     -- want those as default"). Stock's own real help text (map.help.config)
     -- confirms this is exactly that setting: "When adding a new room that
@@ -1352,12 +1352,12 @@ function map.dsl.install()
     "^gmcp event &lt;gmcp%.remove_affect&gt; display%(gmcp%) to see the full content$",
     "^%[ INFO %].*$",
     "^%[  OK  %].*$",
-    -- Real bug found live 2026-08-30 via screenshot (Steven: "something
+    -- Real bug found live 2026-08-30 via screenshot (the maintainer: "something
     -- happened to make the room name capture fail, see the screenshot it
     -- got some prompt info in it"). mapper_desync_log.txt pinned the exact
     -- moment: stock resolved a brand-new room (id 1102) with name literally
     -- set to "==-Night Time - 5:30am :: [The Western-Most Point of
-    -- Arkania] :: [NSW-NW-SW-SE]-==" -- Kien's own configured DSL prompt
+    -- Arkania] :: [NSW-NW-SW-SE]-==" -- the test character's own configured DSL prompt
     -- line (MyDSL_PromptSetup.lua's promptString) -- while fresh GMCP one
     -- second later reported the real name, "A Trail Near the Ocean".
     -- Stock's private raw-text room-name scan (see this file's own
@@ -1425,7 +1425,7 @@ function map.dsl.roomRaw()
     end
     return
   end
-  -- One-stop room report -- per Steven ("can i view room info in this
+  -- One-stop room report -- per the maintainer ("can i view room info in this
   -- package? like description name weights terrain features etc").
   -- map.roomLook() (the native "rl"/"room look" command) already shows
   -- name, area, coordinates, weight, environment color, description,

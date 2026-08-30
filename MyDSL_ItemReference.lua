@@ -25,7 +25,7 @@ local IR_WIN = "MyDSL_ItemReference"
 local IR_MC  = "MyDSL_ItemReference_MC"
 
 -- getFontSize(IR_WIN, 8) fallback below: updated 2026-08-23 from 9 to 8
--- to match Steven's real long-tuned live size (MyDSL_windowfonts.lua),
+-- to match the maintainer's real long-tuned live size (MyDSL_windowfonts.lua),
 -- confirmed via a full settings-vs-defaults audit -- this fallback only
 -- ever applies to a brand-new window with nothing saved yet, but a
 -- genuine fresh install was shipping the wrong size until re-tuned.
@@ -67,7 +67,7 @@ function IR.render(name)
   if MyDSL.ItemLore and MyDSL.ItemLore.get then
     rec = MyDSL.ItemLore.get(itemKey(name))
   end
-  -- Bug found live 2026-08-29 (Steven: "after a cast ident item, then if i
+  -- Bug found live 2026-08-29 (the maintainer: "after a cast ident item, then if i
   -- click an item it only updates the name, not the info"): this fallback
   -- used to apply unconditionally, so clicking any item with no DB record
   -- yet redrew the PREVIOUS identify's stats under the newly-clicked
@@ -77,7 +77,7 @@ function IR.render(name)
     rec = MyDSL.State.itemlore
   end
 
-  -- Rule lines removed 2026-07-16, per Steven ("remove some vertical
+  -- Rule lines removed 2026-07-16, per the maintainer ("remove some vertical
   -- spacing... to reduce the amount that need to scroll"), same treatment
   -- as Bestiary/Focus the same day.
   decho(IR_MC, string.format("<255,255,153>%s<r>\n", name))
@@ -148,7 +148,7 @@ function IR.render(name)
   end
 
   -- Spell charges (wand) / spell list (potion/pill/scroll)
-  -- Fixed 2026-07-18, real bug found live (Steven's screenshot: "Charges:
+  -- Fixed 2026-07-18, real bug found live (the maintainer's screenshot: "Charges:
   -- nil of level nil 'color spray'"). This line assumed spellCharges
   -- always has all three fields, true only for a real in-game `identify`
   -- capture -- since scrape-imported records can now populate spellCharges
@@ -175,7 +175,7 @@ function IR.render(name)
   end
 
   -- Affects (the real bonuses/enchants -- identify-only, never from lore).
-  -- Two per line, 2026-07-16, per Steven ("make 2 columns... reduce the
+  -- Two per line, 2026-07-16, per the maintainer ("make 2 columns... reduce the
   -- amount that need to scroll") -- a full side-by-side column redesign
   -- of the whole window risks looking worse without live iteration, but
   -- pairing affects (usually the longest repeating list in a record) cuts

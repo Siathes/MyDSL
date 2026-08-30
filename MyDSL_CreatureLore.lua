@@ -1,7 +1,7 @@
 -- =============================================================================
 -- MyDSL_CreatureLore.lua  --  Persistent, cross-session creature-lore DB
 -- =============================================================================
--- New 2026-07-11, per Steven ("creaturelore should be persistent and
+-- New 2026-07-11, per the maintainer ("creaturelore should be persistent and
 -- tabled... so we can recall creatures for information and to populate the
 -- focus window with any creature we have lored over any session").
 --
@@ -73,9 +73,9 @@ end
 local FIELDS = {
   "name", "race", "alignmentText", "sex", "gold", "silver", "hp", "magic",
   "damage", "damageType", "immunities", "resists", "vulns", "affects",
-  -- Added 2026-07-11 per Steven ("offensive tactics and level of the
+  -- Added 2026-07-11 per the maintainer ("offensive tactics and level of the
   -- mobs") -- trainingCycle is DSL's own "cycle of training" number,
-  -- what Steven's asking for as "level."
+  -- what the maintainer's asking for as "level."
   "tactics", "trainingCycle",
 }
 
@@ -98,7 +98,7 @@ function CL.merge(rec)
 end
 
 -- hasLore(rec) / knownState(key) / markSeen(key, name) -- added 2026-07-12,
--- per Steven ("as we identify mobs, it should create a table to look up
+-- per the maintainer ("as we identify mobs, it should create a table to look up
 -- and find more accurate tags for targets... mob names are the most
 -- important"). Adapted from a prior working implementation found in the
 -- DSL1 sibling profile (MyDSL.CreatureDB/MyDSL.TargetCompact, embedded in
@@ -146,7 +146,7 @@ function CL.markSeen(key, name)
   CL.save()
 end
 
--- importScraped(path) -- added 2026-07-12, per Steven ("can you populate
+-- importScraped(path) -- added 2026-07-12, per the maintainer ("can you populate
 -- the bestiary from the website
 -- https://shatteredarchive.com/library/view-beastiary . there are items
 -- on the website and maps as well. we will try to scrape it for more info
@@ -164,7 +164,7 @@ end
 -- website. Also, unlike merge() (which only checks the official FIELDS
 -- list), this never overwrites ANY existing field at all, official or
 -- not (e.g. a real capture's own firstSeen/lastSeen timestamps) -- only
--- fills genuinely empty gaps. Per Steven's explicit choice, scraped-only
+-- fills genuinely empty gaps. Per the maintainer's explicit choice, scraped-only
 -- creatures count as "known" the same as personally-lored ones (no new
 -- badge state) -- hasLore()/knownState() don't need any changes, since
 -- they already just check for the presence of real stat fields

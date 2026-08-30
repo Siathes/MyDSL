@@ -255,7 +255,7 @@ function V.ensureUI()
 
   V.ui.panel  = Geyser.Label:new({ name = V.name .. "_Panel",  x = 0, y = 0, width = "100%", height = "100%" }, V.ui.win)
   V.ui.title  = Geyser.Label:new({ name = V.name .. "_Title",  x = 0, y = "4%", width = "100%", height = "14%" }, V.ui.win)
-  -- Layout matched to AlterformView's 2026-07-12 rework, per Steven
+  -- Layout matched to AlterformView's 2026-07-12 rework, per the maintainer
   -- ("move the timer to a more visible location like bottom above the
   -- cycle counter... move tick timer countdown lower like alterforms"):
   -- tube shrunk (52% -> 38% tall, same 3%-top/3%-bottom inset for fill)

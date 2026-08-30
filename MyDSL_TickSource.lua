@@ -157,7 +157,7 @@ function T.updateTimer()
   safeRaise("MyDSL.Timers.Pulse")
   safeRaise("MyDSL.Timers.Updated")
 
-  -- MyDSL.Timers.Slow -- added 2026-07-11, per Steven's "can we pull all
+  -- MyDSL.Timers.Slow -- added 2026-07-11, per the maintainer's "can we pull all
   -- timers off one tick" question. T.loop() fires every 0.25s so TickView's
   -- own progress-bar animation stays smooth, but that's overkill for any
   -- listener that only displays whole-second/whole-minute values (Affects

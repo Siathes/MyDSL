@@ -976,7 +976,7 @@ end</script>
 				<script>-- rt or room terrain [v&lt;room id&gt;] &lt;terrain name&gt; -- manually set
 -- a room's terrain/color and lock it so map.dsl's own auto-detection
 -- (applyRoomMetadata()/onTerrainLine()) never silently overwrites it
--- again -- mirrors the "rw" alias's manual weight lock, per Steven
+-- again -- mirrors the "rw" alias's manual weight lock, per the maintainer
 -- ("this needs to get set once then have to be manually changed").
 
 local room = matches[2] and tonumber(matches[2]) or map.currentRoom
@@ -5774,7 +5774,7 @@ function map.dsl.echo(msg)
   cecho("\n&lt;yellow&gt;[DSL Generic Mapper] &lt;reset&gt; " .. tostring(msg) .. "\n")
 end
 
--- dsl_ud(rid, key, placeholder) -- real bug found via Steven's own
+-- dsl_ud(rid, key, placeholder) -- real bug found via the maintainer's own
 -- "dslroom raw" output ("Room weight: 1 (source=, samples=, avg
 -- cost=0.0)"): getRoomUserData() returns an EMPTY STRING for an unset
 -- key, not nil -- so plain tostring(getRoomUserData(...)) silently
@@ -5899,7 +5899,7 @@ function map.dsl.normalizeSector(value)
   if value:find("mountains", 1, true) then return "mountain" end
   if value:find("very icy", 1, true) then return "ice" end
   if value:find("undetermined", 1, true) then return "unknown" end
-  -- Real gap found live 2026-07-18, per Steven ("is there a terrain
+  -- Real gap found live 2026-07-18, per the maintainer ("is there a terrain
   -- color for air? its not adding it to the mapper") -- confirmed via
   -- his own log: DSL's real response to "terrain" while flying/airborne
   -- is "There is no terrain, your in the air!!!" -- a completely
@@ -6051,7 +6051,7 @@ end
 -- plausibly still be describing the PREVIOUS room.
 local DSL_GMCP_ROOMDATA_TIMEOUT = 2
 
--- roomLooksStale(rid) -- real bug reported by Steven: walking into a room
+-- roomLooksStale(rid) -- real bug reported by the maintainer: walking into a room
 -- Generic Mapper fails to resolve/create leaves map.currentRoom stuck on
 -- the PREVIOUS room, so a GMCP or "terrain" payload describing the room
 -- the player actually just entered gets filed onto that stale room's data
@@ -6076,11 +6076,11 @@ local DSL_GMCP_ROOMDATA_TIMEOUT = 2
 -- already printed in a previous session's log. Zero evidence of genuine
 -- GMCP-vs-display formatting drift for a real room name.
 
--- Desync logger -- added 2026-08-30 per Steven ("debug data first") to
+-- Desync logger -- added 2026-08-30 per the maintainer ("debug data first") to
 -- pin down the real "mapper not following" report: map.currentRoom
 -- silently stuck on a room the player already left, no error shown.
 -- Unlike map.echo(..., true), this is NOT gated behind
--- "map config debug true" -- Steven shouldn't have to remember to flip
+-- "map config debug true" -- the maintainer shouldn't have to remember to flip
 -- that on before every session just so a rare desync gets caught when
 -- it happens. Always-on, but writes to its own file instead of the
 -- visible console, so it never spams normal play. Wired into the three
@@ -6194,7 +6194,7 @@ function map.dsl.onRoomData()
   -- Do not raise onNewRoom here. GMCP assists Generic Mapper but does not create rooms/links directly.
 end
 
--- DSL_SECTOR_ENV_IDS / DSL_SECTOR_ENV_COLORS -- per Steven ("hook up all
+-- DSL_SECTOR_ENV_IDS / DSL_SECTOR_ENV_COLORS -- per the maintainer ("hook up all
 -- the features we can... the terrain and room weights"), and per this
 -- fork's own scope doc, which already flagged this as the intended next
 -- step (item 7's own comment: "Support terrain coloring... later"). This
@@ -6237,7 +6237,7 @@ function map.dsl.registerEnvColors()
   end
 end
 
--- dsl.terrain_locked -- per Steven ("this needs to get set once then have
+-- dsl.terrain_locked -- per the maintainer ("this needs to get set once then have
 -- to be manually changed"): once a room's terrain/color has been set by
 -- EITHER auto-detection (GMCP or the "terrain" command) or the manual
 -- "rt"/"room terrain" alias below, applyRoomMetadata()/onTerrainLine()
@@ -6255,7 +6255,7 @@ end
 
 -- applySectorColor(rid, sector) -- color only, from the known DSL
 -- sector. Room WEIGHT is handled separately below by
--- captureMovePoints()/applyMoveCost() -- per Steven's explicit
+-- captureMovePoints()/applyMoveCost() -- per the maintainer's explicit
 -- correction ("dont make up weights, the room weight should be added as
 -- a player walks through and uses movement points to determine"), weight
 -- must come from real observed movement-point cost, not a guessed
@@ -6433,7 +6433,7 @@ end
 -- handlers for one raiseEvent call in registration order, not through the
 -- event/timer queue. The deferral bought nothing but one extra Qt
 -- event-loop round-trip of latency on every single move.
--- announceAreaChange(rid) -- per Steven's MyDSL notes 2026-08-24
+-- announceAreaChange(rid) -- per the maintainer's MyDSL notes 2026-08-24
 -- ("mapper should announce entering/exiting a named area map...
 -- Althainia, Death's Corridor"). map.currentArea is already tracked by
 -- stock Generic Mapper's own set_room() on every real room change (see
@@ -6467,7 +6467,7 @@ function map.dsl.onTerrainLine(text)
   map.dsl.last_terrain_text = text
   local rid = map.currentRoom
   -- Corruption + lock guards -- see roomLooksStale()/terrainLocked() above.
-  -- This is the exact function Steven's report implicated most directly:
+  -- This is the exact function the maintainer's report implicated most directly:
   -- typing "terrain" while map.currentRoom is stuck on a stale room used
   -- to file the real room's terrain onto the wrong one with no protection
   -- at all.
@@ -6559,7 +6559,7 @@ function map.dsl.onDoorLine(text)
   if dir and state then map.dsl.setGenericDoor(dir, state) end
 end
 
--- highlightPlayersNear(list) -- per Steven's MyDSL notes ("mapper:
+-- highlightPlayersNear(list) -- per the maintainer's MyDSL notes ("mapper:
 -- highlight other players' rooms (from the where command) on the map...
 -- multiple possibilities highlighted when room names are ambiguous").
 -- `list` is a {name=, room=}-shaped array raised by MyDSL_DataLayer.lua's
@@ -6683,7 +6683,7 @@ function map.dsl.roomRaw()
     end
     return
   end
-  -- One-stop room report -- per Steven ("can i view room info in this
+  -- One-stop room report -- per the maintainer ("can i view room info in this
   -- package? like description name weights terrain features etc").
   -- map.roomLook() (the native "rl"/"room look" command) already shows
   -- name, area, coordinates, weight, environment color, description,

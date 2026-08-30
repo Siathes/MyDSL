@@ -7,14 +7,14 @@
 -- MyDSL_ChatWrapper.lua). Updated 2026-07-17: this used to read the bare
 -- global demonnic.chat (EMCO's own historical convention, inherited from
 -- the separate EMCOChat package this project no longer depends on) --
--- per Steven ("everything under MyDSL namespace"), now reads
+-- per the maintainer ("everything under MyDSL namespace"), now reads
 -- MyDSL.Chat.emco directly instead.
 -- =============================================================================
 
 MyDSL              = MyDSL              or {}
 MyDSL.ChatTriggers = MyDSL.ChatTriggers or {}
 
--- Per-channel gag/show toggle, added 2026-08-26 per Steven ("there
+-- Per-channel gag/show toggle, added 2026-08-26 per the maintainer ("there
 -- should be a gag and show for each channel and a fallback show if
 -- anything breaks or turns off") -- this file previously had ZERO way to
 -- turn off routing/gagging for any channel (docs/MYDSL_1.0_MODULE_
@@ -57,9 +57,9 @@ deregisterTriggers()
 -- `gag` defaults to true (route to the tab AND remove from main console,
 -- the original behavior). Pass false to still route to the tab but leave
 -- the line visible on the main console too -- added 2026-07-11 per
--- Steven ("want says, tells, shouts, yell to echo and not be gagged").
+-- the maintainer ("want says, tells, shouts, yell to echo and not be gagged").
 
--- NC (NAMECHAR) -- added 2026-07-17, real bug found live: Steven's own
+-- NC (NAMECHAR) -- added 2026-07-17, real bug found live: the maintainer's own
 -- diagnosis ("Iler'yx clan gossip wasnt captured into chat window, think
 -- safe to assum its the name breaking capture") was exactly right. Every
 -- route() pattern below used [^']+/[^']* for the speaker-name zone (the
@@ -114,7 +114,7 @@ end
 
 -- 2026-07-06, third pass: passes one and two (log-corpus guessing, then
 -- native-XML ground truth) both used a narrow "(?: \([^)]+\))?" group for
--- the optional "(Language)" tag. Steven flagged a real gap that exposed:
+-- the optional "(Language)" tag. the maintainer flagged a real gap that exposed:
 -- DSL_Helpfiles/voicetype.txt confirms 21 distinct voice types (Soft,
 -- Raspy, Low toned, Growlingly, Husky, ...), and real corpus text shows
 -- their phrasing is irregular -- "says softly", "says in a raspy voice",
@@ -137,7 +137,7 @@ end
 -- gossip), but the general form costs nothing to apply everywhere as
 -- future-proofing.
 
--- 2026-07-11: real bug found and fixed, root-caused from Steven's report
+-- 2026-07-11: real bug found and fixed, root-caused from the maintainer's report
 -- of a recurring stray "S" line and duplicate chat lines. This file's OWN
 -- comments already documented the real native pattern as fully anchored
 -- ("^\a?You tell .+\s+'.*'$"), but every route() call here was UNANCHORED
@@ -181,7 +181,7 @@ end
 -- The leading "\a?" is a real optional BEL control character DSL
 -- sometimes prefixes these lines with (confirmed in the native XML,
 -- unrelated to any HTML-log extraction artifact).
--- gag=false 2026-07-11 per Steven: wants tells to echo on main console too.
+-- gag=false 2026-07-11 per the maintainer: wants tells to echo on main console too.
 -- "(?!the group)" added 2026-07-17 -- real bug found during the NC
 -- regression check: "You tell the group 'yep'" matched BOTH this pattern
 -- AND the Group pattern below (this one never excluded "the group"
@@ -228,7 +228,7 @@ route("City", [[^\a?]] .. NC .. [[+ (?:clan )?gossips]] .. NC .. [[*']])
 -- with-name form and the original no-name form in case DSL ever omits it.
 route("City", [[^\a?(?:]] .. NC .. [[+ )?(?:OOC )?Kingdom: ']])
 
--- Area/kingdom-named channel -- added 2026-07-17, per Steven ("thaxanos
+-- Area/kingdom-named channel -- added 2026-07-17, per the maintainer ("thaxanos
 -- chat to be captured to chat window"), confirmed via a live screenshot
 -- (MyDSL profile, standing in "Southern Gate of Thaxanos"): a completely
 -- different real format from the "Kingdom: '...'" one above --
@@ -254,7 +254,7 @@ route("City", [[^\a?(?:]] .. NC .. [[+ )?(?:OOC )?Kingdom: ']])
 -- shape, "(Imm) <Name> Bloodbath: '...'", which would otherwise also
 -- match. Single-screenshot evidence only (no raw session log exists yet
 -- for the new MyDSL profile, and this exact format has zero occurrences
--- anywhere in the older DSL2 corpus either) -- needs Steven's live
+-- anywhere in the older DSL2 corpus either) -- needs the maintainer's live
 -- confirmation like every other unconfirmed item this pass.
 local AREA_NAME = [[[A-Za-z][A-Za-z']*(?: [A-Za-z][A-Za-z']*)*]]
 route("City", [[^\a?\((?!Imm\))]] .. AREA_NAME .. [[\)\s+]] .. AREA_NAME .. [[:\s+.+$]])
@@ -267,9 +267,9 @@ route("City", [[^\a?\((?!Imm\))]] .. AREA_NAME .. [[\)\s+]] .. AREA_NAME .. [[:\
 -- confirmed native, and a real bug in the first rewrite: that version's
 -- "\w+ yells .../\w+ shouts ..." patterns required the literal -s form
 -- even for "You", so "You yell '...'"/"You shout '...'" never matched.
--- gag=false 2026-07-11 per Steven for say/shout/yell specifically (not
+-- gag=false 2026-07-11 per the maintainer for say/shout/yell specifically (not
 -- whisper at the time -- he hadn't asked for that one yet and it seemed
--- arguably more private). Superseded 2026-08-29: Steven's own default-
+-- arguably more private). Superseded 2026-08-29: the maintainer's own default-
 -- gag-state note explicitly lists "Local is yells/tells/whispers and
 -- such" as the not-gagged group -- whisper now matches its 3 siblings.
 route("Local", [[^\a?(?:You say|]] .. NC .. [[+ says)]] .. NC .. [[*']], false)

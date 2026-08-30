@@ -1,10 +1,10 @@
 <?xml version='1.0' encoding='utf-8'?>
 <!--
-  MyDSL_PersonalAliases.xml: Steven's own hand-built top-level "Aliases"
+  MyDSL_PersonalAliases.xml: the maintainer's own hand-built top-level "Aliases"
   group, extracted verbatim from the live MyDSL profile on 2026-08-23.
 
   Found during a full native-content inventory of the live profile (per
-  Steven: "check all the changes i made in game to triggers and scripts
+  the maintainer: "check all the changes i made in game to triggers and scripts
   as well before losing them"), this is a genuine, real backup gap that
   predates this file. build_mydsl_package.py only ever captures Scripts,
   Triggers, and Keys tagged with packageName="MyDSL_Full" (i.e. content

@@ -1,10 +1,10 @@
 -- =============================================================================
 -- MyDSL_AutoWhere.lua  --  Layer 3: state-aware periodic `where` polling
 -- =============================================================================
--- Replaces Steven's own native "(autowhere) AutoWhere" alias (native XML,
+-- Replaces the maintainer's own native "(autowhere) AutoWhere" alias (native XML,
 -- current/*.xml -- a plain send("where") on a fixed 20s tempTimer(), no
 -- state awareness at all, previously "his own alias, not ours" per
--- docs/TODO.md). Per Steven (2026-07-16): "roll autowhere into mydsl but
+-- docs/TODO.md). Per the maintainer (2026-07-16): "roll autowhere into mydsl but
 -- improve it so it pays attention to states like sleeping, fighting,
 -- blind etc (any time it doesnt work)".
 --
@@ -17,7 +17,7 @@
 -- not to play" precedent -- not a new exception to "never send automatic
 -- game commands."
 --
--- IMPORTANT MANUAL STEP, same class as the dofile() gotcha: Steven's
+-- IMPORTANT MANUAL STEP, same class as the dofile() gotcha: the maintainer's
 -- native "(autowhere) AutoWhere" alias (current/*.xml) needs to be
 -- disabled or deleted via Mudlet's Alias Editor. If both it and this
 -- module stay active, "autowhere on/off/status" fires BOTH (Mudlet runs
@@ -38,7 +38,7 @@ AW.config = AW.config or { enabled = false, interval = 20 }
 
 -- Skip conditions -- ordered list of named checks. Each returns true if
 -- `where` should be SKIPPED this tick. Sleeping/fighting/blind are per
--- Steven's own direct in-game knowledge (2026-07-16), not independently
+-- the maintainer's own direct in-game knowledge (2026-07-16), not independently
 -- log-corpus-confirmed the way most of this profile's other patterns
 -- are -- add more here if another state turns out to matter too.
 local SKIP_CHECKS = {
@@ -101,7 +101,7 @@ function AW.status()
   end
 end
 
--- Reuses the exact same alias vocabulary as Steven's native version
+-- Reuses the exact same alias vocabulary as the maintainer's native version
 -- ("autowhere on|off|status"), per CLAUDE.md's command-surface mandate --
 -- no muscle-memory change for switching to this replacement.
 MyDSL._aliases = MyDSL._aliases or {}

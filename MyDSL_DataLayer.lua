@@ -7,7 +7,7 @@
 -- <section>.updated", "Some.Named.Function") and read MyDSL.State[section]
 -- directly -- the decided 1.0 standard (docs/MYDSL_1.0_PHILOSOPHY.md,
 -- Principle 3). The old MyDSL.on(section, fn) direct-Lua-callback API was
--- removed 2026-08-26, per Steven ("remove api") -- see MyDSL.emit()'s own
+-- removed 2026-08-26, per the maintainer ("remove api") -- see MyDSL.emit()'s own
 -- comment below.
 -- =============================================================================
 
@@ -78,17 +78,17 @@ local function safeFileName(s)
 end
 
 -- Master + per-category toggle for MyDSL.logWindow(), added 2026-07-05 per
--- Steven ("i dont think we need to log players near you, can you make
+-- the maintainer ("i dont think we need to log players near you, can you make
 -- logging toggleable?"). Toggle via aliases: "mydsl log on"/"mydsl log off"
 -- (master), "mydsl log <category> on"/"mydsl log <category> off"
 -- (per-category) -- see Section 10.
 --
--- Defaults reworked 2026-07-07 per Steven: combat/chat/history are useful
+-- Defaults reworked 2026-07-07 per the maintainer: combat/chat/history are useful
 -- to actually review later, so those stay on. Every other per-window log
 -- is debug-only -- off by default, opt-in when actually debugging that
 -- specific window, not something worth the disk churn during normal
 -- play. All of them remain individually toggleable regardless of default.
--- Corrected 2026-08-24, re-confirmed against Steven's still-open TODO.md
+-- Corrected 2026-08-24, re-confirmed against the maintainer's still-open TODO.md
 -- ask ("stop logging anything except combat/main window/chat and
 -- history... others dont seem needed"): `target`/`scan`/`bloodbath`
 -- were dead entries -- no current code calls MyDSL.logWindow() with any
@@ -100,7 +100,7 @@ end
 -- rendering). Meanwhile `focus` (MyDSL_TargetView.lua's real, active
 -- log category) was MISSING from this list entirely -- so Focus/Target
 -- updates were logging by default this whole time, contradicting
--- Steven's own stated wish, simply because the category got renamed
+-- the maintainer's own stated wish, simply because the category got renamed
 -- from `target` to `focus` at some point and this list was never
 -- updated to match. Removed the 3 dead entries, added the 1 real
 -- missing one.
@@ -122,7 +122,7 @@ MyDSL.LogConfig = MyDSL.LogConfig or {
 -- (already gitignored -- runtime data, not source, and git doesn't track
 -- empty dirs so a fresh checkout won't have these -- lfs.mkdir()/mkdir -p
 -- below handles that, same pattern as MyDSL_AffectsView.lua/
--- MyDSL_ChatWrapper.lua). Character-bound as of 2026-07-05 (per Steven --
+-- MyDSL_ChatWrapper.lua). Character-bound as of 2026-07-05 (per the maintainer --
 -- a shared file across characters got confusing once more than one
 -- character is tested in the same day, which already happened). One file
 -- per character per day, so it rotates naturally instead of growing forever.
@@ -393,7 +393,7 @@ end
 
 -- wordSet(s) -- helper for bestFuzzyMatch()'s token-overlap tier below.
 --
--- "-ish" stripping added 2026-08-30, real gap found live (Steven: item
+-- "-ish" stripping added 2026-08-30, real gap found live (the maintainer: item
 -- identify not connecting "a strange greenish herb" in inventory to
 -- ItemLore's own captured object name "herb green"). Confirmed real via
 -- log corpus, not guessed: `exam strange` and `exam greenish` both
@@ -431,7 +431,7 @@ end
 -- returned match unchanged). Returns the winning candidate table, or nil
 -- if nothing scored, or the top score was tied between two+ candidates.
 --
--- Token-overlap tier added 2026-08-30, real bug found live (Steven: "c
+-- Token-overlap tier added 2026-08-30, real bug found live (the maintainer: "c
 -- ident pants... items arent persisting after identifying"): DSL's
 -- inventory/equipment short description can reorder or insert words
 -- around identify's own canonical object name (confirmed real, same
@@ -509,14 +509,14 @@ MyDSL.State.scan         = MyDSL.State.scan         or {  -- text: nearby entiti
 MyDSL.State.creaturelore = MyDSL.State.creaturelore or { last_updated = 0 }  -- text: creature lore block
 -- (2026-07-11: the session-only MyDSL.State.creatureLoreCache this comment
 -- used to describe has been superseded by the real, persistent, disk-backed
--- MyDSL.CreatureLore DB -- see MyDSL_CreatureLore.lua -- per Steven's
+-- MyDSL.CreatureLore DB -- see MyDSL_CreatureLore.lua -- per the maintainer's
 -- follow-up the same day: "creaturelore should be persistent and tabled...
 -- so we can recall creatures for information... over any session," not
 -- just the current one.)
 MyDSL.State.equipment    = MyDSL.State.equipment    or { last_updated = 0 }  -- text: worn/wielded equipment by slot
 MyDSL.State.inventory    = MyDSL.State.inventory    or { last_updated = 0, items = {} }  -- text: carried items ("i"/"inv")
 -- Manual ground-item-to-inventory/equipment overrides, keyed by ground
--- item key -- per Steven ("best effort mapping is fine, maybe a manual
+-- item key -- per the maintainer ("best effort mapping is fine, maybe a manual
 -- map option"). Deliberately NOT part of MyDSL.State.scan (which resets
 -- on every beginLook()/beginScan()) -- a manual correction should survive
 -- room changes and re-looks, not just the one room it was set in.
@@ -620,7 +620,7 @@ end
 --
 -- The old MyDSL.on(section, callback) direct-Lua-callback API (an
 -- in-memory listener list, dispatched synchronously from inside this
--- same function) was removed 2026-08-26, per Steven ("remove api") --
+-- same function) was removed 2026-08-26, per the maintainer ("remove api") --
 -- docs/MYDSL_1.0_MODULE_REDESIGN.md #1 confirmed MyDSL_MovementSounds.lua
 -- was the only real caller of the paired Get/Set API, and MyDSL_Leveling
 -- .lua (the only real MyDSL.on() caller) was ported to the standard
@@ -636,7 +636,7 @@ end
 -- SECTION 6: BULK STATE WRITER
 ------------------------------------------------------------------------
 -- MyDSL.get()/MyDSL.set() (the old Get/Set indirection API) removed
--- 2026-08-26 per Steven ("remove api") -- docs/MYDSL_1.0_MODULE_REDESIGN.md
+-- 2026-08-26 per the maintainer ("remove api") -- docs/MYDSL_1.0_MODULE_REDESIGN.md
 -- #1 confirmed MyDSL_MovementSounds.lua was the only real caller
 -- project-wide (ported to read MyDSL.State directly, same lookup this
 -- API always did with one extra indirection); every other module
@@ -776,7 +776,7 @@ MyDSL._handlers.login_data = registerAnonymousEventHandler(
     if name and name ~= "" then
       MyDSL.Data[name] = MyDSL.Data[name] or {}
       MyDSL.restoreChar(name)
-      -- Fixed 2026-07-07, per Steven: every character-bound settings file
+      -- Fixed 2026-07-07, per the maintainer: every character-bound settings file
       -- (chat_settings/MyDSL_layout/MyDSL_windowstate/TargetView/
       -- AffectsView/CombatView/History font configs) resolves its path
       -- via a charName() that falls back to "Unknown" until GMCP
@@ -964,7 +964,7 @@ MyDSL._handlers.saveFlushOnExit = registerAnonymousEventHandler(
   function() if MyDSL._pendingDiskSave then flushSaveToDisk() end end
 )
 
--- REAL BUG, found live 2026-07-11 (Steven: "are the settings loading at
+-- REAL BUG, found live 2026-07-11 (the maintainer: "are the settings loading at
 -- creating from save files or they saving and never reading/updating?"):
 -- Mudlet's real table.load(file, target) does NOT return the loaded
 -- table -- confirmed directly in Mudlet's own bundled source

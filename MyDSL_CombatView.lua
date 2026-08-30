@@ -50,7 +50,7 @@ if CV.config.show_condition    == nil then CV.config.show_condition    = false e
 if CV.config.summarize_damage  == nil then CV.config.summarize_damage  = true  end
 if CV.config.dam_format        == nil then CV.config.dam_format        = "%a%r %n %v %t (%d)" end
 if CV.config.summary_format    == nil then CV.config.summary_format    = "%a%r %n %v %t (%d)" end
--- fontSize -- 2026-07-07 per Steven ("battle text needs to be a little
+-- fontSize -- 2026-07-07 per the maintainer ("battle text needs to be a little
 -- smaller 8?"): default already matched what he asked for, but it was a
 -- bare hardcoded literal with no way to change/persist it. Wired into the
 -- same per-window font-persistence pattern every other window uses
@@ -237,7 +237,7 @@ function CV.init()
       x = 0, y = 0, width = "100%", height = "100%",
       wrapWidth = 400,
       fontSize  = CV.config.fontSize,
-      -- scrollBar=false, fixed 2026-07-11 per Steven ("combat window has
+      -- scrollBar=false, fixed 2026-07-11 per the maintainer ("combat window has
       -- a scroll bar now, please remove") -- this was actually the
       -- original, never-touched value from Combat's very first version
       -- (2026-06-04), missed by the 2026-07-11 pass that removed
@@ -430,7 +430,7 @@ CV._aliases.combatHide = tempAlias(
   end]])
 
 -- Direct implementation of the raw/condensed/gag 3-way main-console mode
--- Steven described (2026-07-05), mapped onto PNP's actual two independent
+-- the maintainer described (2026-07-05), mapped onto PNP's actual two independent
 -- flags (see the round-flush handler's header comment in DataLayer for the
 -- full mapping):
 --   raw       -- gag_combat=false, summarize_damage=false: every raw swing

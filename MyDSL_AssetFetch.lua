@@ -6,7 +6,7 @@
 -- on-demand from a GitHub Release instead. Portraits are deliberately NOT
 -- offered here: character portraits are personal, not shared assets.
 --
--- STRICTLY OPT-IN, per Steven (2026-08-29): "if we add the sounds and extra
+-- STRICTLY OPT-IN, per the maintainer (2026-08-29): "if we add the sounds and extra
 -- files for mydsl there should be an option to import not a default on."
 -- Nothing in this file runs automatically -- every fetch is a player-typed
 -- command. Uses downloadFile()/unzipAsync(), both confirmed against

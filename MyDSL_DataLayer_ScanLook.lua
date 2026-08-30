@@ -55,7 +55,7 @@ end
 -- the ITEM LORE section further down), so it lives in core rather than
 -- being duplicated or forcing both domains into one file.
 
--- resolveMobName(key, capturedName) -- added 2026-07-12, per Steven ("mob
+-- resolveMobName(key, capturedName) -- added 2026-07-12, per the maintainer ("mob
 -- names are the most important... if we need to use an identifier alias,
 -- where we look then creaturelore, that could be an option"). Confirmed
 -- via corpus research that a room's `look` text usually already matches
@@ -69,16 +69,16 @@ end
 -- "known" (real lore data) match -- never guesses between multiple
 -- possible creaturelore entries sharing a generic prefix (e.g. several
 -- different "gnome ..." types) since that's not actually resolvable from
--- a generic captured name alone -- per Steven ("if we are unable to guess
+-- a generic captured name alone -- per the maintainer ("if we are unable to guess
 -- then a generic is better than none").
 --
 -- Broadened 2026-07-16: the exact-key check above already covered the
 -- case where `look`'s text happens to normalize to the identical key
--- CreatureLore was populated under. It never covered Steven's own example
+-- CreatureLore was populated under. It never covered the maintainer's own example
 -- ("a gnome" vs. a CreatureLore entry keyed "gnome machinist") since those
 -- are two different keys -- exact match can't find that, only a fuzzy one
 -- can. Tries the current room's own `scan` capture first (scan.byName --
--- per Steven, "using the propper scan name" -- small, same-room-visit,
+-- per the maintainer, "using the propper scan name" -- small, same-room-visit,
 -- least likely to collide with an unrelated same-prefix creature type),
 -- then falls back to the full CreatureLore DB only if nothing in-room
 -- matched. Still refuses to guess on a tie (bestFuzzyMatch's own rule) --
@@ -179,7 +179,7 @@ function MyDSL.beginScan(mode, direction)
   end)
 end
 
--- applyScanBadgeHover(row) -- added 2026-07-16, per Steven ("scan window
+-- applyScanBadgeHover(row) -- added 2026-07-16, per the maintainer ("scan window
 -- should show seen/known flags"). RightHere already shows a visible
 -- [Known]/[Seen]/[Unknown] badge (SV.renderRightHere(), MyDSL_ScanView.lua)
 -- because that panel is decho-built from scratch every time. The Scan
@@ -301,7 +301,7 @@ end
 ------------------------------------------------------------------------
 -- 9o.1  LOOK -- refresh RightHere from a full room look, not just scan
 ------------------------------------------------------------------------
--- Fixed 2026-07-07, per Steven: "RightHere should update on look too, not
+-- Fixed 2026-07-07, per the maintainer: "RightHere should update on look too, not
 -- just scan." `look`'s room-content lines use a different, plainer format
 -- than scan's ("<Name> is here[, <status>].", optionally prefixed with a
 -- "(<Flag>) " tag) -- confirmed real text from log/2026-07-07#18-29-43.html:
@@ -356,7 +356,7 @@ local function isLookFixtureLine(line)
       or line:match("floats above the ground%f[%A]") ~= nil
       -- Three more added 2026-07-21, found via a full-codebase audit
       -- prompted by the "Several small desks" fix earlier the same day
-      -- (Steven: "we seem to be regressing to errors we fixed... would
+      -- (the maintainer: "we seem to be regressing to errors we fixed... would
       -- it improve if we used a newer ai agent?" -- answer was no, the
       -- gap is systematic re-checking, not model capability; this audit
       -- is that re-check). Same bug class as every fix above and
@@ -390,7 +390,7 @@ local function isLookFixtureLine(line)
 end
 
 -- extractGroundItemName(line) / MyDSL.captureGroundItem(line) -- added
--- 2026-07-16 for ground-vs-inventory item linking (Steven: "the item on
+-- 2026-07-16 for ground-vs-inventory item linking (the maintainer: "the item on
 -- the ground needs a map to the inventory/equipment"). Only ever called
 -- after isLookFixtureLine() has already confirmed one of its suffixes is
 -- present -- strips the same leading parenthetical tags and trailing
@@ -434,10 +434,10 @@ end
 -- buildItemStatsSuffix(rec) -- extracted 2026-07-18. Every item-hover
 -- call site (ground item, equipment, inventory, container-holds) had its
 -- own copy-pasted version of this exact stat-formatting logic -- found
--- while investigating Steven's "some have click for item reference, and
+-- while investigating the maintainer's "some have click for item reference, and
 -- some have stats, how do we populate the hover tip with stats": all four
 -- copies only showed damage info when rec.damageDice was present (real
--- in-game `identify` data only). Steven's own ItemLore DB (checked
+-- in-game `identify` data only). the maintainer's own ItemLore DB (checked
 -- directly) confirms the bulk scrape import already ran successfully
 -- (6,085 items with itemType, 1,562 with armorClass) -- but the scrape's
 -- weapon records only ever have rec.damageAvg (a precomputed average,
@@ -464,7 +464,7 @@ function MyDSL.buildItemStatsSuffix(rec)
     out = out .. string.format(" -- AC %s/%s/%s/%s",
       tostring(ac.pierce), tostring(ac.bash), tostring(ac.slash), tostring(ac.magic))
   end
-  -- spellCharges/spellList -- added 2026-07-18, per Steven ("the platinum
+  -- spellCharges/spellList -- added 2026-07-18, per the maintainer ("the platinum
   -- wand is missing the actual spell it uses magic missle lvl(30)").
   -- charges/level are shown only when known -- a scrape-imported record
   -- only ever has the bare spell name (see IL.importScraped()'s spellInfo
@@ -491,7 +491,7 @@ end
 -- touching its visible text. Only attaches a hover when a resolution
 -- actually exists (manual override, ItemLore DB hit, or an unambiguous
 -- fuzzy match) -- the real fraction of ground items with no resolution
--- at all (per Steven's own "best effort" framing) get no hover, not a
+-- at all (per the maintainer's own "best effort" framing) get no hover, not a
 -- fabricated one.
 function MyDSL.applyGroundItemHover(name, key)
   if not (selectString and setLink) then return end
@@ -514,7 +514,7 @@ end
 -- isCharmedStatusLine() for charmed/summoned pets' varying idle-action
 -- verbs ("sloshes around here.", "follows their client." with no "here"
 -- anchor at all -- see git history for the full original writeup; this is
--- what Steven meant by "the space after certain followers"). That version
+-- what the maintainer meant by "the space after certain followers"). That version
 -- only checked for a literal "(Charmed)" tag. Confirmed live 2026-07-09
 -- via screenshot: "A dark elven commoner stands around looking bored."
 -- and "The dark elven scout slips in and out from the shadows unheard."
@@ -577,7 +577,7 @@ local function isUnparsedPresenceLine(line)
 end
 
 function MyDSL.beginLook()
-  -- REAL GOTCHA, found live 2026-07-12 -- Steven discovered GMCP is not
+  -- REAL GOTCHA, found live 2026-07-12 -- the maintainer discovered GMCP is not
   -- enabled by default for newly created DSL characters (confirmed on
   -- one character: traced a full real play session, autowhere/improve/scan/look
   -- all working normally, but zero MyDSL debug output past boot and zero
@@ -730,7 +730,7 @@ function MyDSL.parseLookHereLine(line)
     MyDSL.CreatureLore.markSeen(key, name)
   end
   local dispName = is_mob and resolveMobName(key, name) or name
-  -- Fixed 2026-07-08, per Steven ("not updating correctly on mob
+  -- Fixed 2026-07-08, per the maintainer ("not updating correctly on mob
   -- counts"): this used to unconditionally overwrite scan.rightHere[key]
   -- with a fresh count=1 table every time, so a room with 3 identical
   -- mobs (e.g. "A gnome in a protective heat suit is studying here."
@@ -764,7 +764,7 @@ end
 ------------------------------------------------------------------------
 -- 9o.2  PLAYERS NEAR YOU
 ------------------------------------------------------------------------
--- Fixed 2026-07-05, per Steven: "Players near you:" (fired every ~20s by
+-- Fixed 2026-07-05, per the maintainer: "Players near you:" (fired every ~20s by
 -- his own autowhere-style alias, not part of this project) was flowing
 -- untouched into main console -- MyDSL.Route.players() already existed in
 -- RouteHelper (auto-creates the MyDSL_PlayersNear MiniConsole) but was
@@ -796,7 +796,7 @@ local function isPlayersNearBodyLine(line)
   return true
 end
 
--- routePlayersNearBodyLine(line) -- added 2026-07-12, per Steven
+-- routePlayersNearBodyLine(line) -- added 2026-07-12, per the maintainer
 -- ("playersnearyou: can we reduce the space between the players name and
 -- the room, make the text tighter together for a smaller window without
 -- losing the coloring of the players name?"). DSL's own wide column-
@@ -805,7 +805,7 @@ end
 -- changes how much of that whitespace gets carried over, not the name or
 -- room text itself.
 --
--- REAL BUG, found live 2026-07-12 via screenshot (Steven: "players near
+-- REAL BUG, found live 2026-07-12 via screenshot (the maintainer: "players near
 -- you has room names in it"): the first version of this function called
 -- selectSection()/copy()/con:appendBuffer() TWICE (once for the name,
 -- once for the room), with a con:echo("  ") in between to join them on
@@ -841,7 +841,7 @@ local function routePlayersNearBodyLine(line)
 end
 
 -- parsePlayersNearBodyLine(line) -- structured name+room extraction, per
--- Steven's MyDSL notes ("mapper: highlight other players' rooms from the
+-- the maintainer's MyDSL notes ("mapper: highlight other players' rooms from the
 -- where command"). Same split this function's raw-text sibling above
 -- already relies on (confirmed real DSL column-padded shape); this just
 -- ALSO keeps the two parts instead of only using them to tighten
@@ -855,7 +855,7 @@ local function parsePlayersNearBodyLine(line)
   return { name = name, room = trim(room) }
 end
 
--- FIX 2026-08-29, per Steven live-test note ("players near you shows in
+-- FIX 2026-08-29, per the maintainer live-test note ("players near you shows in
 -- window also named players near you"): this used to copy/route the
 -- literal "Players near you:" header line into MyDSL_PlayersNear before
 -- capturing body lines, duplicating the window's own title ("Players
@@ -976,7 +976,7 @@ MyDSL._triggers.playersNearStart = tempRegexTrigger(
   end
 )
 
--- REAL BUG, found live 2026-07-12 via log-corpus grep (Steven: "something
+-- REAL BUG, found live 2026-07-12 via log-corpus grep (the maintainer: "something
 -- broke the autowhere alias and it now displays none instead of gaging
 -- it"): confirmed against log/2026-07-12#09-01-16.html that DSL's `where`
 -- command has TWO distinct response shapes -- the "Players near you:"
@@ -984,7 +984,7 @@ MyDSL._triggers.playersNearStart = tempRegexTrigger(
 -- nearby, but a bare, standalone "None" line with NO header at all when
 -- nobody is. The trigger above only ever matches the header, so the
 -- no-one-nearby case was never captured/routed -- it fell straight
--- through into the main console untouched every ~20s (Steven's own
+-- through into the main console untouched every ~20s (the maintainer's own
 -- autowhere alias, not part of this project, sends `where` on that
 -- cadence). Not actually specific to any one room, despite how it first
 -- looked live -- confirmed via corpus grep this fires constantly

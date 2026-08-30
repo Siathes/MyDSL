@@ -63,7 +63,7 @@ P.config.debug = P.config.debug == true
 P.config.enabled = P.config.enabled ~= false
 P.config.frame = P.config.frame ~= false
 -- Default changed 2026-07-12 to "contain" then same day to "stretch" --
--- see containImageHTML()/stretchImageHTML() above. Steven tried contain
+-- see containImageHTML()/stretchImageHTML() above. the maintainer tried contain
 -- (letterboxed) live and preferred the image filling the whole window
 -- exactly ("i prefer the old images stretching to fill, not fond of this
 -- border lookin location and portrait"), even with minor distortion.
@@ -521,7 +521,7 @@ function P.ensureWindow()
     P.state.windowReady = true
   end
 
-  -- Real bug fix 2026-08-30 (Steven, live screenshot): a solid black bar
+  -- Real bug fix 2026-08-30 (the maintainer, live screenshot): a solid black bar
   -- was rendering between the native title bar and the portrait image.
   -- Root cause: the 2026-08-26 "Direction A+" pass reserved the top 10%
   -- of several windows' content area for a MyDSL.Windows.ensureHeader()
@@ -666,8 +666,8 @@ local function imageStyleContainAfterSetBackground()
   ]]
 end
 
--- containImageHTML(path) -- added 2026-07-12, real bug fix. Steven: "the
--- portrait is supposed to shrink kien's .png to fit the window." The old
+-- containImageHTML(path) -- added 2026-07-12, real bug fix. the maintainer: "the
+-- portrait is supposed to shrink the character's .png to fit the window." The old
 -- imageStyleFill()/border-image renderer below doesn't actually scale a
 -- picture to fit its box at all -- CSS border-image paints into the
 -- border area (a 9-slice UI-frame technique), not the label's content area,
@@ -699,7 +699,7 @@ local function containImageHTML(label, path)
     math.max(0, math.floor((boxH - dispH) / 2)), cssPath(path), dispW, dispH)
 end
 
--- stretchImageHTML(label, path) -- added 2026-07-12, per Steven ("i prefer
+-- stretchImageHTML(label, path) -- added 2026-07-12, per the maintainer ("i prefer
 -- the old images stretching to fill, not fond of this border lookin
 -- location and portrait") -- he tried "contain" (letterboxed, whole image
 -- visible) and preferred the image filling the whole window exactly, even
@@ -781,7 +781,7 @@ function P.renderImage(path, reason)
       rendered = true
     end
   elseif renderFit == "stretch" or renderFit == "fill" then
-    -- Real fix 2026-07-12, per Steven ("i prefer the old images stretching
+    -- Real fix 2026-07-12, per the maintainer ("i prefer the old images stretching
     -- to fill, not fond of this border lookin location and portrait") --
     -- see stretchImageHTML()'s comment above.
     local html = stretchImageHTML(P.label, path)

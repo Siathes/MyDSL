@@ -80,7 +80,7 @@ function MyDSL.parseCreatureLoreLine(line)
   -- Alignment: real phrasing varies more than the raw capture used to
   -- keep -- confirmed via log-corpus grep across many creatures: "a good
   -- soul.", "a more neutral soul." (filler "more"), "a evil and corrupt
-  -- soul." (extra qualifier after "evil"). Narrowed 2026-07-11 per Steven
+  -- soul." (extra qualifier after "evil"). Narrowed 2026-07-11 per the maintainer
   -- ("only need to capture the good evil neutral for align") -- search
   -- the captured phrase for whichever of the 3 real keywords is present,
   -- instead of storing the whole variable phrase verbatim.
@@ -112,7 +112,7 @@ function MyDSL.parseCreatureLoreLine(line)
   local h = line:match("^The base health of this creature is%s+(%d+)%.")
   if h then r.hp = tonumber(h) end
 
-  -- Added 2026-07-11, per Steven's TargetView redesign ("should show the
+  -- Added 2026-07-11, per the maintainer's TargetView redesign ("should show the
   -- stats we collect with creaturelore") -- confirmed real via log-corpus
   -- grep + DSL_Helpfiles/creaturelore.txt ("physical and magical health,
   -- level of training, weapon damage type, immunities and resistances,
@@ -145,7 +145,7 @@ function MyDSL.parseCreatureLoreLine(line)
   if aff then r.affects = splitWords(aff) end
 
   -- Offensive Tactics + training cycle ("level") -- added 2026-07-11, per
-  -- Steven ("we arent capturing the offensive tactics and level of the
+  -- the maintainer ("we arent capturing the offensive tactics and level of the
   -- mobs (level is IC cycles of training)"). Both confirmed real via
   -- log-corpus grep across many creatures:
   --   "Offensive Tactics:bash disarm dodge parry trip assist_vnum"
@@ -166,7 +166,7 @@ function MyDSL.endCreatureLore()
   MyDSL.State.creaturelore.last_updated = os.time()
   -- Merge into the persistent DB (MyDSL_CreatureLore.lua) if it's loaded.
   --
-  -- REAL BUG, found live 2026-07-11 (Steven: "doesnt look like its auto
+  -- REAL BUG, found live 2026-07-11 (the maintainer: "doesnt look like its auto
   -- updating stats"): this used to ALSO write to
   -- MyDSL.State.creatureLoreCache[key] here -- a session-only cache that
   -- got superseded by the real persistent DB earlier the same day. Its

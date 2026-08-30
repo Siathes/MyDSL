@@ -23,7 +23,7 @@ TV._aliases  = {}
 TV._mc       = TV._mc or {}   -- persists to avoid duplicate MiniConsole creation
 TV._consider_lines = {}       -- cleared on target change, appended by captureConsider
 
--- Window / MiniConsole names -- renamed 2026-07-11 per Steven ("change
+-- Window / MiniConsole names -- renamed 2026-07-11 per the maintainer ("change
 -- target window to focus to match commands"): the window's own visible
 -- title/registry identity now matches its "focus <verb>" command surface,
 -- same precedent MyDSL_CreatureReference.lua already set (window titled
@@ -39,7 +39,7 @@ local TARGET_MC  = "MyDSL_Focus_MC"
 -- Config with defaults; loadConfig() may override mob_buttons/
 -- player_buttons/custom_actions from disk (character-bound -- different
 -- characters may reasonably want different button loadouts).
--- order_attack ("Order All") made a default 2026-07-05 per Steven -- was
+-- order_attack ("Order All") made a default 2026-07-05 per the maintainer -- was
 -- opt-in only; swapped in for "glance" (redundant with consider/look).
 TV.config = TV.config or {
   mob_buttons    = { "murder", "consider", "order_attack", "creaturelore", "rescue", "flee" },
@@ -50,24 +50,24 @@ TV.config.custom_actions = TV.config.custom_actions or {}
 -- one of 11 windows with no way to customize its title).
 TV.config.title = TV.config.title or "Focus"
 -- fontSize -- moved 2026-07-11 to MyDSL.Windows' shared, PROFILE-level
--- (not character-bound) font-size store, per Steven ("the fonts should
+-- (not character-bound) font-size store, per the maintainer ("the fonts should
 -- be saving like theme or window manager whatever tracks that... per
 -- profile not user, remember for the layout"). Previously had its own
 -- bespoke character-bound file + a "re-load once character is known"
 -- handler, structurally identical to MyDSL_ChatWrapper.lua's own
--- (confirmed-working) pattern -- but Steven repeatedly reported it still
+-- (confirmed-working) pattern -- but the maintainer repeatedly reported it still
 -- not surviving a reload, and no root cause was ever conclusively found
 -- despite extensive testing. Removing the character-name dependency
 -- entirely removes that whole class of timing bug, whether or not it was
 -- really the cause. 11 matched the value that was hardcoded before any
--- of this existed; updated to 9 on 2026-08-23 to match Steven's real
+-- of this existed; updated to 9 on 2026-08-23 to match the maintainer's real
 -- long-tuned live size (MyDSL_windowfonts.lua's MyDSL_Focus entry),
 -- confirmed via a full settings-vs-defaults audit -- this fallback only
 -- ever applies to a brand-new window with nothing saved yet, but a
 -- genuine fresh install was shipping the wrong size until re-tuned.
 TV.config.fontSize = MyDSL.Windows.getFontSize(TARGET_WIN, 9)
 
--- TV.defaults -- added 2026-07-11, per Steven's "there should be a clear
+-- TV.defaults -- added 2026-07-11, per the maintainer's "there should be a clear
 -- button" ask. Deliberately a fresh literal every load (NOT "TV.defaults or
 -- {...}") since TV itself persists across script reloads (MyDSL.TargetView
 -- = MyDSL.TargetView or {}) -- if this used the same or-pattern as
@@ -89,7 +89,7 @@ end
 -- useCurrentFormat flag, not "underline" as the name suggests -- false
 -- makes Mudlet ignore the decho color codes already in `text` and apply
 -- its own default blue/underlined hyperlink style instead, which is
--- exactly the "still blue and underlined" symptom Steven kept reporting
+-- exactly the "still blue and underlined" symptom the maintainer kept reporting
 -- for the Rescue/cure-spell buttons. Every call site in this file (and
 -- MyDSL_GroupView.lua's equivalent) was passing false; only
 -- MyDSL_ScanView.lua's RightHere links passed true, which is why those
@@ -192,7 +192,7 @@ TV.actions = {
     tooltip = "Get creature lore (opens reference window)",
   },
   -- Color changed 2026-07-07 (rescue + all cure_* actions below) from the
-  -- old pale blue-violet "170,170,255" per Steven: "really need to change
+  -- old pale blue-violet "170,170,255" per the maintainer: "really need to change
   -- the blue actions in the windows i cant read them the contrast is
   -- terrible, i use the hover text to tell what they are on my monitor."
   -- Left the mob/player type-indicator blue (ScanView/TargetView's
@@ -307,7 +307,7 @@ TV.actions = {
 
 
 ------------------------------------------------------------------------
--- User-defined custom actions -- added 2026-07-11, per Steven: "all the
+-- User-defined custom actions -- added 2026-07-11, per the maintainer: "all the
 -- buttons should be user configurable... even non standard commands like
 -- scan, look, get item etc." The fixed TV.actions catalog above only ever
 -- covered PNP-style combat/cure verbs -- this lets a button be set to
@@ -341,7 +341,7 @@ local function applyCustomActions()
   end
 end
 
--- TV.listActions() -- added 2026-08-29, per Steven's GroupView/TargetView
+-- TV.listActions() -- added 2026-08-29, per the maintainer's GroupView/TargetView
 -- button-UX review ("I want to make changing buttons easier for the
 -- user"). The real friction wasn't the assignment mechanism itself
 -- (`focus mobset/playerset <6 keys>`, `group quickset <2 keys>`) but that
@@ -375,7 +375,7 @@ function TV.defineAction(key, label, color, template)
 end
 
 -- Reset a button set back to the true original defaults -- the "clear
--- button" Steven asked for. MyDSL.copyArray() (MyDSL_DataLayer.lua, added
+-- button" the maintainer asked for. MyDSL.copyArray() (MyDSL_DataLayer.lua, added
 -- 2026-07-11, code-review reuse finding) copies the values, not the
 -- reference, so a later mobset/playerset call can't accidentally mutate
 -- TV.defaults itself.
@@ -452,7 +452,7 @@ end
 
 
 ------------------------------------------------------------------------
--- Group-member safety check -- 2026-07-07, per Steven: "clicked bear from
+-- Group-member safety check -- 2026-07-07, per the maintainer: "clicked bear from
 -- group, got bear in target window but it should not have the kill
 -- option, those should change when group members are selected, so i dont
 -- attack a follower/group member." Checked by name against the live group
@@ -578,7 +578,7 @@ local function listField(label, tbl, color)
   return string.format("<136,136,136>%s: <68,68,68>(none)<r>", label)
 end
 
--- conditionBarColor -- added 2026-07-11 per Steven ("should have
+-- conditionBarColor -- added 2026-07-11 per the maintainer ("should have
 -- healthbars that work on the enemies health message"), colored by the
 -- same 7-tier order MyDSL.getTargetCondition() returns (7=excellent,
 -- 1=awful). Real live combat-condition data only -- never fabricated;
@@ -608,7 +608,7 @@ local function healthFraction(percentStr, order)
 end
 
 ------------------------------------------------------------------------
--- Graphical buttons -- added 2026-07-11, per Steven ("could we make a
+-- Graphical buttons -- added 2026-07-11, per the maintainer ("could we make a
 -- mor graphical focus window... maybe research buttons in mudlet
 -- manual?"). Confirmed via Mudlet's own bundled source (GeyserButton.lua/
 -- GeyserLabel.lua) that Geyser.Label has real native click support
@@ -619,14 +619,14 @@ end
 -- version: the container type is unrelated, any Geyser container
 -- (including this window's existing UserWindow) can parent a Button.
 -- Kept as a UserWindow, NOT converted to Adjustable.Container, per
--- Steven's explicit "keep it as-is for now."
+-- the maintainer's explicit "keep it as-is for now."
 --
 -- The [M]/[P] toggle, [X] clear, and the 6 action-grid slots are now real
 -- Geyser.Button widgets, created ONCE in TV.init() and updated in place
 -- by render() (label/color/tooltip/click-handler/visibility), instead of
 -- being re-emitted as dechoLink() text every redraw. Everything else
 -- (identity text, creaturelore stats, consider-lines) stays exactly as
--- it was, in plain MiniConsoles -- per Steven ("just the buttons").
+-- it was, in plain MiniConsoles -- per the maintainer ("just the buttons").
 ------------------------------------------------------------------------
 
 -- actionButtonCSS(colorRGB) -- a dark pill with a colored border, in the
@@ -652,7 +652,7 @@ local function btnHTML(text, colorRGB, fontPt)
 end
 
 ------------------------------------------------------------------------
--- Nameplate -- added 2026-07-11, per Steven ("instead of the healthbar
+-- Nameplate -- added 2026-07-11, per the maintainer ("instead of the healthbar
 -- on a new line, can it overlay the mobs name and the mob name be
 -- centered in the bar"). The header's plain-text name line is now a
 -- Geyser.Label (like the buttons -- full CSS support confirmed via
@@ -724,16 +724,16 @@ function TV.render()
   local t = MyDSL.State.target
 
   -- Nameplate: name (+ relation tag + live percent) centered on top of a
-  -- real colored health-fill background -- merged 2026-07-11 per Steven
+  -- real colored health-fill background -- merged 2026-07-11 per the maintainer
   -- ("instead of the healthbar on a new line, can it overlay the mobs
   -- name and the mob name be centered in the bar"), superseding the
   -- earlier separate plain-text header console + separate "HP:" stats
   -- row. [M]/[P]/[X] are real Button widgets (see above), positioned to
-  -- the LEFT of the nameplate in the same row -- per Steven's earlier
+  -- the LEFT of the nameplate in the same row -- per the maintainer's earlier
   -- "mob/player and clear button should be on left side." The "[img]"
-  -- icon placeholder stays removed (per Steven, "remove the image
+  -- icon placeholder stays removed (per the maintainer, "remove the image
   -- option").
-  -- REAL BUG, broke profile load live 2026-07-11 (Steven's screenshot +
+  -- REAL BUG, broke profile load live 2026-07-11 (the maintainer's screenshot +
   -- error paste): "attempt to call method 'setState' (a nil value)" at
   -- this block. `:setState()` only exists on Geyser.Button (its own
   -- state-machine method, confirmed in GeyserButton.lua -- Geyser.Button.
@@ -805,7 +805,7 @@ function TV.render()
   -- Race/Align/Lvl/Base-HP/Magic/Dmg/Tactics/Immune/Resist/Vuln/Affects.
   -- Align narrowed to just good/evil/neutral, and Lvl (DSL's own "cycle
   -- of training" number) + Tactics (Offensive Tactics list) added
-  -- 2026-07-11 per Steven ("only need to capture the good evil neutral
+  -- 2026-07-11 per the maintainer ("only need to capture the good evil neutral
   -- for align... we arent capturing the offensive tactics and level of
   -- the mobs"). Kills/Avg XP/Last XP deliberately omitted -- confirmed
   -- via codebase grep that nothing anywhere currently tracks per-creature
@@ -817,7 +817,7 @@ function TV.render()
     local lore = MyDSL.CreatureLore and MyDSL.CreatureLore.get(tKey)
 
     if lore then
-      -- Rule line removed 2026-07-16, per Steven ("focus needs... lose
+      -- Rule line removed 2026-07-16, per the maintainer ("focus needs... lose
       -- the ---- lines for more space").
       -- Real bug, found live 2026-07-12 via screenshot ("Race: tinker
       -- gnomeLvl: 45", no space at all): %-12s only guarantees a MINIMUM
@@ -866,13 +866,13 @@ end
 
 function TV.init()
   -- Ensure the Focus UserWindow exists. Kept a UserWindow, NOT converted
-  -- to Adjustable.Container, per Steven's explicit "keep it as-is for
+  -- to Adjustable.Container, per the maintainer's explicit "keep it as-is for
   -- now" when asked whether graphical buttons required that change (they
   -- don't -- confirmed via Mudlet's own source that any Geyser container
   -- can parent a Button, same as this UserWindow already parents its
   -- MiniConsoles).
   local targetWin = MyDSL.Windows.ensure(TARGET_WIN)
-  -- Fixed 2026-07-11, per Steven ("fix all window titles/names").
+  -- Fixed 2026-07-11, per the maintainer ("fix all window titles/names").
   -- Visual pass v2 "One Bar, Renamed and Colored" (locked spec,
   -- 2026-08-26) -- applyTheme() colors it; text set again below, after
   -- loadConfig() runs, in case a saved custom title exists.
@@ -880,7 +880,7 @@ function TV.init()
 
   -- Layout (percent of the window): header row y=0-10%, button grid two
   -- rows y=11-20% / 21-30%, stats console y=32-100%. Button-grid height
-  -- halved 2026-07-11 per Steven ("we need to reduce those buttons by
+  -- halved 2026-07-11 per the maintainer ("we need to reduce those buttons by
   -- half") -- the first graphical-button pass used the same 17%-per-row
   -- height the old dechoLink() text rows happened to occupy, which turned
   -- out to visually dominate the window and crowd the stats console below
@@ -896,7 +896,7 @@ function TV.init()
   end
   if TV._mc.stats then TV._mc.stats:setFontSize(TV.config.fontSize) end
 
-  -- Adaptive word wrap, per Steven ("focus needs wrapping text for
+  -- Adaptive word wrap, per the maintainer ("focus needs wrapping text for
   -- stats") -- same real Mudlet API already proven working for History
   -- (MyDSL_RouteHelper.lua). The constructor above already takes a
   -- fontSize option, but the very next line's redundant setFontSize()
@@ -908,7 +908,7 @@ function TV.init()
 
   -- Theme-driven background/font for the stats console. fontSize is the
   -- persisted user override (TV.config.fontSize, added 2026-07-11 per
-  -- Steven -- "i need to be able to adjust the font like other windows"),
+  -- the maintainer -- "i need to be able to adjust the font like other windows"),
   -- passed through as styleConsole()'s fontSizeOverride exactly like
   -- CombatView's CV.config.fontSize, so a theme switch changes color/
   -- font-family without clobbering a size the user explicitly set. The
@@ -918,7 +918,7 @@ function TV.init()
     MyDSL.Theme.styleConsole(TV._mc.stats, TARGET_WIN, TV.config.fontSize)
   end
 
-  -- Graphical buttons + nameplate -- added 2026-07-11, per Steven ("could
+  -- Graphical buttons + nameplate -- added 2026-07-11, per the maintainer ("could
   -- we make a mor graphical focus window... maybe research buttons in
   -- mudlet manual?" / "Just the buttons, keep it as-is for now" /
   -- "instead of the healthbar on a new line, can it overlay the mobs
@@ -963,7 +963,7 @@ function TV.init()
     function() TV.render() end
   )
 
-  -- REAL BUG, found live 2026-07-11 from Steven's screenshot + real
+  -- REAL BUG, found live 2026-07-11 from the maintainer's screenshot + real
   -- logs during an actual fight ("bar isnt working during a fight
   -- either"): TV.render() was ONLY ever triggered by target/lore/theme
   -- changes -- nothing re-rendered when combat-condition data itself
@@ -997,7 +997,7 @@ function TV.init()
     function() TV.render() end
   )
 
-  -- Auto-advance/clear on target death -- added 2026-07-11, per Steven's
+  -- Auto-advance/clear on target death -- added 2026-07-11, per the maintainer's
   -- explicit choice when asked directly ("Auto-advance to next mob in
   -- room" over "always just clear"). Listens for the dedicated
   -- MyDSL.combat.died event (MyDSL_DataLayer.lua's parseCombatDeathLine(),
@@ -1145,18 +1145,18 @@ function TV.init()
   )
 
   -- Aliases -- renamed 2026-07-11, command-surface retrofit (docs/TODO.md
-  -- "OPEN — Command-surface retrofit"), per Steven: "consistent across all
+  -- "OPEN — Command-surface retrofit"), per the maintainer: "consistent across all
   -- commands, and human speak/readable (in the same style as DSL
   -- commands)." Dropped the "mydsl" prefix, but NOT onto bare "target" --
   -- confirmed via DSL_Helpfiles/target.txt this collides with a real
   -- swashbuckler combat skill ("target head/body/legs"); a bare
   -- "^target (.+)$" catch-all would have silently swallowed that skill
   -- before it ever reached the server. Renamed the whole module's command
-  -- root to "focus" instead (Steven's choice, confirmed no collision in
+  -- root to "focus" instead (the maintainer's choice, confirmed no collision in
   -- DSL_Helpfiles) -- applied consistently to every sub-command, not just
   -- the one that had to change, per the "consistent across all commands"
   -- ask. Old "mydsl target ..." forms are gone, not kept as a fallback --
-  -- this is for general use, not just Steven's own muscle memory.
+  -- this is for general use, not just the maintainer's own muscle memory.
   --
   -- TV._focusReserved -- fixed 2026-07-11, code-review finding: this used
   -- to be a table hardcoded INSIDE the "focus (.+)$" catch-all's own alias
@@ -1228,7 +1228,7 @@ function TV.init()
       end
     ]]
   )
-  -- "reset" variants added 2026-07-11, per Steven's "clear button" ask --
+  -- "reset" variants added 2026-07-11, per the maintainer's "clear button" ask --
   -- separate exact-match aliases, not a conflict with the 6-arg patterns
   -- above since "reset" alone never satisfies six \S+ groups. (mobset/
   -- playerset already reserved above -- "focus mobset reset"'s first word
@@ -1253,7 +1253,7 @@ function TV.init()
       end
     ]]
   )
-  -- Define/overwrite a custom action -- added 2026-07-11, per Steven:
+  -- Define/overwrite a custom action -- added 2026-07-11, per the maintainer:
   -- "even non standard commands like scan, look, get item etc." Label
   -- must be quoted (allows spaces); command is everything after the
   -- color and may contain %t for the target's name, or nothing for a
@@ -1299,7 +1299,7 @@ function TV.init()
   )
   TV._focusReserved.status = true
 
-  -- "focus font <n>" -- added 2026-07-11 per Steven ("i need to be able
+  -- "focus font <n>" -- added 2026-07-11 per the maintainer ("i need to be able
   -- to adjust the font like other windows"), matching CombatView's
   -- "mydsl combat font <n>" alias, just under this module's own "focus"
   -- command root.
@@ -1345,7 +1345,7 @@ end
 
 ------------------------------------------------------------------------
 -- setFont(size)  —  change + persist the Target window's font size
--- Added 2026-07-11 per Steven ("i need to be able to adjust the text size
+-- Added 2026-07-11 per the maintainer ("i need to be able to adjust the text size
 -- in the target window like other windows"), matching CombatView's
 -- CV.setFont() exactly.
 ------------------------------------------------------------------------
@@ -1401,7 +1401,7 @@ function TV.status()
        "; current=" .. tostring(tName) ..
        "; is_mob=" .. tostring(MyDSL.State.target and MyDSL.State.target.is_mob) .. "\n")
 
-  -- HP-bar diagnostic -- added 2026-07-11 per Steven ("healthbar is still
+  -- HP-bar diagnostic -- added 2026-07-11 per the maintainer ("healthbar is still
   -- missing"): getTargetCondition() only shows a bar when this target has
   -- a live entry in MyDSL.State.combat.active, and there's no way to see
   -- that table's real state from the UI otherwise. Prints the exact key
@@ -1420,7 +1420,7 @@ function TV.status()
          "; getTargetCondition=" .. tostring(label) .. "/" .. tostring(percent) .. "/" .. tostring(order) .. "\n")
   end
 
-  -- Font-size 3-way diagnostic -- added 2026-07-11, per Steven ("are the
+  -- Font-size 3-way diagnostic -- added 2026-07-11, per the maintainer ("are the
   -- settings loading at creating from save files or they saving and
   -- never reading/updating?"). Reports the SAME value at 3 different
   -- points in the pipeline, so a live run pinpoints exactly which stage

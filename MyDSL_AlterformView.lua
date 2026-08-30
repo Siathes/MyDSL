@@ -3,7 +3,7 @@
   MyDSL AlterformView v1
   ----------------------------------------------------------------------
   Small standalone countdown window for the "alterform" affect, meant to
-  sit beside MyDSL_Tick -- added 2026-07-11, per Steven ("create an
+  sit beside MyDSL_Tick -- added 2026-07-11, per the maintainer ("create an
   alterform timer like tick to go beside it when we have the alterform
   affect"). Structurally mirrors MyDSL_TickView.lua closely (same panel/
   tube/fill/seconds/detail shape) so the two read as a matched pair, with
@@ -34,7 +34,7 @@ F.config = F.config or {}
 F.config.shown = F.config.shown ~= false
 F.config.font = tonumber(F.config.font or 9) or 9
 F.config.debug = F.config.debug == true
--- Warning/danger sound before Alterform falls off, per Steven's MyDSL
+-- Warning/danger sound before Alterform falls off, per the maintainer's MyDSL
 -- notes ("warning + sound before it falls off (countdown from the last
 -- 5 ticks, warning at 10 ticks left)"). F.palette() already implements
 -- exactly these two thresholds visually (color-only, since 2026-07-11)
@@ -237,7 +237,7 @@ function F.palette(cycles, active)
   }
 end
 
--- ensureUI() -- changed 2026-07-11 to an Adjustable.Container, per Steven
+-- ensureUI() -- changed 2026-07-11 to an Adjustable.Container, per the maintainer
 -- ("alterform window change to same as moonweather, we will keep it
 -- inside the main window for layout cleanness"). Mirrors
 -- MyDSL_MoonWeather.lua's _buildUI() exactly: builds its own container
@@ -274,8 +274,8 @@ function F.ensureUI()
   F.ui.win = container
   pcall(function() F.ui.win:setTitle(" ") end)   -- minimize title bar chrome, same as MoonWeather
 
-  -- REAL BUG, found live 2026-07-12 (Steven: "the min/close buttons were
-  -- off till kien loaded in then they appeared again"): this module
+  -- REAL BUG, found live 2026-07-12 (the maintainer: "the min/close buttons were
+  -- off till the character loaded in then they appeared again"): this module
   -- builds and locks its own container directly, bypassing
   -- MyDSL.Windows.ensure() -- but never told the registry, so
   -- registry[F.name].obj stayed nil forever. MyDSL.Windows.show()/hide()
@@ -291,7 +291,7 @@ function F.ensureUI()
     if entry then entry.obj = container; entry.created = true end
   end
 
-  -- REAL BUG, found live 2026-07-12 (Steven: "you can see the min/close
+  -- REAL BUG, found live 2026-07-12 (the maintainer: "you can see the min/close
   -- buttons"): the constructor's old "lockStyle = 'padding'" field did
   -- nothing at all -- confirmed by reading Mudlet's actual bundled
   -- GeyserAdjustableContainer.lua: a container is only ever locked at
@@ -302,7 +302,7 @@ function F.ensureUI()
   -- visible).
   --
   -- SECOND REAL BUG, found live 2026-07-12 (same day, in MyDSL_MoonWeather
-  -- .lua's identical pattern, Steven: "since we locked the window i cant
+  -- .lua's identical pattern, the maintainer: "since we locked the window i cant
   -- resize... to fit all the text"): calling lockContainer("light") here
   -- was wrongly documented as only hiding the min/restore/close labels --
   -- that's just the *visual style*. Mudlet's own doc comment on
@@ -321,7 +321,7 @@ function F.ensureUI()
 
   F.ui.panel  = Geyser.Label:new({ name = F.name .. "_Panel",  x = 0, y = 0, width = "100%", height = "100%" }, F.ui.win)
   F.ui.title  = Geyser.Label:new({ name = F.name .. "_Title",  x = 0, y = "4%", width = "100%", height = "14%" }, F.ui.win)
-  -- Layout reworked 2026-07-12, per Steven ("move the timer to a more
+  -- Layout reworked 2026-07-12, per the maintainer ("move the timer to a more
   -- visible location like bottom above the cycle counter"): tube
   -- shrunk (52% -> 38% tall, same 3%-top/3%-bottom inset for fill) to
   -- make room for the countdown text as its own distinct row clear of
@@ -418,7 +418,7 @@ function F.render(reason)
   F.ui.seconds:echo("<center>" .. remText .. "</center>")
   F.ui.detail:echo("<center>" .. detail .. "</center>")
 
-  -- Auto-hide when not active -- added 2026-07-11, per Steven ("alterform
+  -- Auto-hide when not active -- added 2026-07-11, per the maintainer ("alterform
   -- window should only display when its active"). Overrides the initial
   -- design (always-visible dim "OFF" state, "stale data beats spam") on
   -- his explicit direction for this one window. F.config.shown remains
@@ -569,7 +569,7 @@ function F.boot()
   F.installHandlers()
   F.ensureUI()
   -- Force-unlock on every boot (script reload), not just first creation.
-  -- Fixed 2026-07-12, per Steven's identical complaint about MoonWeather
+  -- Fixed 2026-07-12, per the maintainer's identical complaint about MoonWeather
   -- ("since we locked the window i cant resize... to fit all the text"):
   -- F.ensureUI()'s container-build code (where the lockContainer fix
   -- lives) only runs once -- the container is a Geyser object that

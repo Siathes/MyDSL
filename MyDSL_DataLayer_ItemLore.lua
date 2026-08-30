@@ -53,7 +53,7 @@ local function itemKey(name)
 end
 
 -- MyDSL.resolveItemLoreRecord(itemName) -- added 2026-08-30, real bug
--- found live (Steven: "c ident pants... items arent persisting after
+-- found live (the maintainer: "c ident pants... items arent persisting after
 -- identifying"). identify persisted the record correctly (confirmed
 -- directly in itemlore_db.lua), but every click-hover site below
 -- (equipment/others'-equipment/inventory/container) looked the record up
@@ -99,7 +99,7 @@ end
 -- water" <-> "A decanter of endless water lies here."); the rest
 -- (independently-phrased ground flavor text, e.g. "a shaping mallet" vs.
 -- "a mallet used to shape metal") correctly score 0 and return nil rather
--- than guessing -- best-effort only, per Steven ("best effort mapping is
+-- than guessing -- best-effort only, per the maintainer ("best effort mapping is
 -- fine, maybe a manual map option").
 function MyDSL.resolveGroundItem(key)
   local ground = MyDSL.State.scan and MyDSL.State.scan.groundItems and MyDSL.State.scan.groundItems[key]
@@ -137,7 +137,7 @@ function MyDSL.resolveGroundItem(key)
 end
 
 -- MyDSL.setGroundItemOverride(groundText, targetText) -- the "manual map
--- option" Steven asked for, for the real fraction of items where the
+-- option" the maintainer asked for, for the real fraction of items where the
 -- automatic fuzzy match correctly declines (no shared substring) but the
 -- player knows for certain it's the same item. Keyed by the ground text's
 -- own itemKey() so it applies to every future sighting of that same
@@ -214,7 +214,7 @@ end
 -- is type food, extra flags none." -- same reasoning as CreatureLore's
 -- "Creature: X  Race: Y" first line.
 
--- Identify source-scoping -- real bug found 2026-08-24, per Steven
+-- Identify source-scoping -- real bug found 2026-08-24, per the maintainer
 -- ("if someone posts an identified item, the item reference captures
 -- that for its info, but its enchanted and not the normal stats, need
 -- a way to seperate or just not replace the info unless self
@@ -483,7 +483,7 @@ end
 ------------------------------------------------------------------------
 -- 9p.2  OTHER CHARACTERS'/CREATURES' EQUIPMENT ("<Name> is using:")
 ------------------------------------------------------------------------
--- Added 2026-07-19, per Steven ("integrate the eq of others hover text
+-- Added 2026-07-19, per the maintainer ("integrate the eq of others hover text
 -- note") -- confirmed real format via log corpus for both a mob
 -- ("Brash is using:", log/2026-07-16#18-07-53.html) and a real player/
 -- dragon character ("Qinrathaz is using:",
@@ -552,7 +552,7 @@ end
 ------------------------------------------------------------------------
 -- 9q  INVENTORY  ("i"/"inv")
 ------------------------------------------------------------------------
--- Added 2026-07-16, per Steven ("you should be able to hover over
+-- Added 2026-07-16, per the maintainer ("you should be able to hover over
 -- inventory items not just equipment"). Didn't exist at all before this --
 -- confirmed via grep. Same begin/body/end shape as equip capture above,
 -- fires on "You are carrying:", ends on the first blank line. Each line
@@ -567,7 +567,7 @@ local inventoryBlankStreak = 0
 -- reasoning as MyDSL.beginContainerHolds() below (see its comment for the
 -- full writeup): a large "you are carrying" listing can paginate exactly
 -- like a large container, and a single blank line is not a reliable
--- end-of-listing signal in that case. Preventive hardening -- Steven's
+-- end-of-listing signal in that case. Preventive hardening -- the maintainer's
 -- own carried inventory in the confirmed real capture was short enough
 -- not to paginate, so this specific failure mode isn't directly proven
 -- for inventory yet, but the mechanism (and the fix) is identical.
@@ -610,7 +610,7 @@ function MyDSL.parseInventoryLine(line)
   local key = itemName:lower():gsub("^[Aa]n? ", ""):gsub("^[Tt]he ", "")
   inventoryBlock[key] = { item = itemName, flags = flags, count = tonumber(count) or 1 }
 
-  -- Hover/click -- fixed 2026-07-18, real bug found live (Steven: "does
+  -- Hover/click -- fixed 2026-07-18, real bug found live (the maintainer: "does
   -- not work on... my direct inventory 'you are carrying'"). This
   -- function's own header comment already claimed hover was added here
   -- 2026-07-16 ("you should be able to hover over inventory items not
@@ -642,7 +642,7 @@ end
 ------------------------------------------------------------------------
 -- 9q.1  CONTAINER HOLDS  ("exam <container>" / "look in <container>")
 ------------------------------------------------------------------------
--- Added 2026-07-17, per Steven ("item identification should work in
+-- Added 2026-07-17, per the maintainer ("item identification should work in
 -- donation pits and bins... pattern might be 'holds:'"). Confirmed via
 -- corpus grep: every container (donation pits/bins, satchels, bindles,
 -- backpacks, thief bags, pockets) prints this exact same shape after
@@ -654,7 +654,7 @@ end
 -- Each contained item line is the same "(N) [tags] name" shape
 -- MyDSL.parseInventoryLine() already handles. An older corpus sample
 -- (log/2026-07-03..07-07) showed an extra trailing "-[level] flags,stats"
--- suffix (e.g. "an academy diploma -[0] M,MD,4Wis,4Con") -- per Steven,
+-- suffix (e.g. "an academy diploma -[0] M,MD,4Wis,4Con") -- per the maintainer,
 -- that was injected by an old native trigger that's since been removed,
 -- not real DSL server text; confirmed absent from every current-corpus
 -- example (log/2026-07-16 onward, e.g. "A Robe of Many Pockets holds:" /
@@ -664,7 +664,7 @@ end
 local containerBlock = { items = {} }
 local containerBlankStreak = 0
 
--- Fixed 2026-07-18, real bug found live (Steven: "check mydsl log i dont
+-- Fixed 2026-07-18, real bug found live (the maintainer: "check mydsl log i dont
 -- get hover over click on the items in the bin im looking at" -- a fresh
 -- raw-text capture of "exam bin" confirmed it): real DSL output for a
 -- large container has a BLANK LINE immediately after "<Name> holds:",
@@ -793,7 +793,7 @@ MyDSL._triggers.containerHoldsStart = tempRegexTrigger(
   end
 )
 
--- "search <container>" -- added 2026-07-18, per Steven ("the item
+-- "search <container>" -- added 2026-07-18, per the maintainer ("the item
 -- reference doest seem to get the search list. 'your search of a bin
 -- finds:' can see sample of a scroll of identity in logs"). A real,
 -- different command from `exam`/`look in` (confirmed via a fresh log

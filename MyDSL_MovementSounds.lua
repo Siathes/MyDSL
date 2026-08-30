@@ -52,7 +52,7 @@ local function dataGet(section, field)
   -- Preferred source: MyDSL.State directly. Was the deprecated
   -- MyDSL.get()/MyDSL.set() API's one remaining real caller project-wide
   -- (docs/MYDSL_1.0_MODULE_REDESIGN.md #1) -- removed 2026-08-26 per
-  -- Steven ("remove api"); MyDSL.get(section, field) was always exactly
+  -- the maintainer ("remove api"); MyDSL.get(section, field) was always exactly
   -- this same lookup, just through an extra indirection.
   if MyDSL and MyDSL.State and MyDSL.State[section] then
     local v = MyDSL.State[section][field]
@@ -207,7 +207,7 @@ function MyDSL.MoveSound.status()
   cecho(" <cyan>sector=<white>" .. tostring(sector) .. "\n")
 end
 
--- setEnabled()/toggle() -- real gap fix, 2026-08-26, per Steven ("yes add
+-- setEnabled()/toggle() -- real gap fix, 2026-08-26, per the maintainer ("yes add
 -- toggle"): config.enabled was checked at the top of play() but nothing
 -- anywhere ever let a player actually set it false -- confirmed zero
 -- aliases in this whole file (docs/MYDSL_1.0_MODULE_REDESIGN.md #14).

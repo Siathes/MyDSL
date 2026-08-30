@@ -35,13 +35,13 @@ L.config.shown = L.config.shown ~= false
 L.config.font = tonumber(L.config.font or 10) or 10
 L.config.titleFont = tonumber(L.config.titleFont or 12) or 12
 L.config.barFont = tonumber(L.config.barFont or 9) or 9
--- Added 2026-07-11, per Steven ("let me be able to adjust the text size...
+-- Added 2026-07-11, per the maintainer ("let me be able to adjust the text size...
 -- informational text, title text, terrain text, any others you have
 -- separate"): infoFont covers the identity/info/attribute rows (was a
 -- fixed font+3 offset with no independent setting); terrainFont covers
 -- roomMeta specifically (was tied to the base font). titleFont/barFont
 -- were already independently adjustable (mydsl live titlefont/barfont).
--- Default lowered 13 -> 9, 2026-08-29: baked in per Steven's live-test
+-- Default lowered 13 -> 9, 2026-08-29: baked in per the maintainer's live-test
 -- request ("visual settings... that are set now, those need to be
 -- defaults") -- 9 is what he actually set via `mydsl live infofont 9`
 -- during the MyDSL Test session.
@@ -198,7 +198,7 @@ local function styleDivider()
   ]], color)
 end
 
--- styleBarBack() -- theme-aware, added 2026-08-30 per Steven's tron_blue
+-- styleBarBack() -- theme-aware, added 2026-08-30 per the maintainer's tron_blue
 -- follow-up ("maybe change the hp/mana/move bar to something similar but
 -- more glassy looking"). The bar TRACK (housing), not the colored FILL,
 -- now reads the active theme's own bgColor/borderColor -- HP/Mana/Move's
@@ -226,7 +226,7 @@ local function styleBarBack()
 end
 
 local function styleBarFill(c1, c2, c3)
-  -- Reverted 2026-07-11, per Steven ("the bar style/look has changed from
+  -- Reverted 2026-07-11, per the maintainer ("the bar style/look has changed from
   -- the previous, i prefer the previous style"): v1A15 briefly rounded
   -- only the left corners (5px 0 0 5px) for a "growing bar" look, but at
   -- 100% fill (the common case) the square right corners sat visibly
@@ -249,13 +249,13 @@ end
 -- bar layout (label, then track, then value, all in one row -- replaces
 -- the old centered-text-on-the-fill look, which had nowhere to put a
 -- label at all).
--- +1pt 2026-07-11, per Steven ("can the font be increased by 1 for the
+-- +1pt 2026-07-11, per the maintainer ("can the font be increased by 1 for the
 -- information not the room info") -- these two plus the identity/info/
 -- attribute rows below are "the information"; roomTitle/roomMeta/
 -- exitsCon (the room name/terrain/exits) are deliberately left alone.
 
 -- THEME_BAR_COLORS -- added 2026-08-30 for tron_blue specifically (per
--- Steven's direct follow-up, "id like to change the hp/mana/move into
+-- the maintainer's direct follow-up, "id like to change the hp/mana/move into
 -- tron colors appropriate or look, research tron themes"), renamed +
 -- extended to every theme SAME DAY once he asked for a full "release
 -- themes" pass ("now that you know all items... make it a whole teme
@@ -269,7 +269,7 @@ end
 -- resolve THEME_BAR_COLORS as an undefined global instead.
 --
 -- tron_blue -- HP/Move from a documented Tron Legacy palette (huehive.co,
---   Neon Blue #00A3E0 / Neon Green #00FF00); Mana tuned by Steven
+--   Neon Blue #00A3E0 / Neon Green #00FF00); Mana tuned by the maintainer
 --   directly via the live interactive preview artifact (a yellow ->
 --   orange -> red fire gradient, replacing the initial Electric Purple
 --   research pick); Improve reuses that freed-up Electric Purple
@@ -360,7 +360,7 @@ local function styleBarNum()
   ]], math.max(6, (tonumber(L.config.barFont) or 8) + 2))
 end
 
--- styleBarNumCentered() -- Improve-bar-only, added 2026-07-12 per Steven
+-- styleBarNumCentered() -- Improve-bar-only, added 2026-07-12 per the maintainer
 -- ("the improve bar need to be shrunk horizontally to allow the text to
 -- display... or put the text on the improve bar (prefer text on the
 -- improve bar, that was the old design)"). The Improve bar's num field
@@ -368,9 +368,9 @@ end
 -- uses, but Improve's text ("<skill> NN%") routinely runs longer than
 -- HP/Mana/Move's plain percentages and was clipping past the window edge.
 -- Rather than just widen that side slot, this restores the pre-v1A15
--- centered-text-on-the-fill look Steven asked for, Improve-only —
+-- centered-text-on-the-fill look the maintainer asked for, Improve-only —
 -- transparent background so the gradient fill shows through underneath.
--- Text color themed 2026-08-30 per Steven ("find a nice tron purple feel
+-- Text color themed 2026-08-30 per the maintainer ("find a nice tron purple feel
 -- for the improve bar and text"), generalized same day alongside every
 -- other theme's own Improve palette (THEME_BAR_COLORS above) -- this
 -- function is only ever used for the Improve bar (see the ternary at its
@@ -456,7 +456,7 @@ local function exitsText(exits)
   return tostring(exits or "--")
 end
 
--- improveLiveText() -- added 2026-07-11, per Steven: the "(<N> online
+-- improveLiveText() -- added 2026-07-11, per the maintainer: the "(<N> online
 -- minutes to improvement)" value from `improve` (see DSL_Helpfiles/improve
 -- improvement.txt + the confirmed real status line in DataLayer's
 -- parseImproveStatusLine()) is a countdown to the NEXT percentage tick, not
@@ -480,7 +480,7 @@ local function improveLiveText(imp)
   return base .. string.format(" (%dm%02ds)", mins, secs)
 end
 
--- ageText(createdTs) -- added 2026-07-12, per Steven ("looks at score
+-- ageText(createdTs) -- added 2026-07-12, per the maintainer ("looks at score
 -- creation date and uses in-game time to tell you when your ingame
 -- birthday is and ingame age"). DSL's real-time-to-game-time ratio and
 -- calendar shape aren't documented anywhere (checked DSL_Helpfiles and
@@ -494,7 +494,7 @@ end
 -- against their source log files' real mtimes (trimmed mean of the
 -- middle 70%, discarding outliers from AFK/offline gaps where the game
 -- clock kept advancing but wasn't observed as often) -- ~35 real minutes
--- = 1 in-game day. Steven explicitly confirmed "approximate" is fine
+-- = 1 in-game day. the maintainer explicitly confirmed "approximate" is fine
 -- (in-game day/month *names* aren't continuous across resets, so this
 -- deliberately reports elapsed duration, not an absolute in-game date).
 local REAL_MINUTES_PER_GAME_DAY = 35
@@ -575,7 +575,7 @@ function L.data()
     combat = live.combat,
     stance = score.stance or live.stance,
     language = score.language or live.language,
-    -- REAL BUG, found 2026-07-12 (Steven: "the ready flag does not
+    -- REAL BUG, found 2026-07-12 (the maintainer: "the ready flag does not
     -- update when fighting for example"): all 3 read from `live` (=
     -- MyDSL.DB.live), which only ever has hp/maxhp/mana/maxmana/move/
     -- maxmove/name/level (see MyDSL_DataBridge.lua's MyDSL.DB.live
@@ -594,7 +594,7 @@ function L.data()
     chamber = score.chamber,
 
     -- Added 2026-07-11: the "populate Live with the score info" pass,
-    -- per Steven's own hand-sketched layout (Downloads/"liveview layout").
+    -- per the maintainer's own hand-sketched layout (Downloads/"liveview layout").
     -- All of these read from MyDSL.DB.score, correct end-to-end since
     -- today's MyDSL_DataBridge.lua fix (hit/dam/armor were silently nil
     -- before that -- wrong key names -- see docs/CHANGELOG.md).
@@ -623,7 +623,7 @@ function L.data()
   }
 end
 
--- v1A15 layout -- rebuilt 2026-07-11 per Steven's own hand-sketched design
+-- v1A15 layout -- rebuilt 2026-07-11 per the maintainer's own hand-sketched design
 -- (Downloads/"liveview layout"), refined through several Artifact passes.
 -- Fits the window's CONFIRMED real pixel size (974x186 via "mydsl live
 -- status") without resizing it -- this replaces v1A14's wide left/right
@@ -633,10 +633,10 @@ end
 --              bank/gold/silver/qpoints
 --   RIGHT col: STR+Armor, INT+Hit/Dam, WIS+Stance, DEX+TNL, CON, gap,
 --              Improve bar
--- No more compact/full mode -- per Steven, "i dont think we need a
+-- No more compact/full mode -- per the maintainer, "i dont think we need a
 -- compact ful anymore, this will be the standard layout for now."
 local ROW_Y = { 33, 42, 51, 60, 69, 78, 87 }
--- 8 -> 8.7, 2026-07-11 per Steven ("size the text and spacing to make it
+-- 8 -> 8.7, 2026-07-11 per the maintainer ("size the text and spacing to make it
 -- look more filled") -- row SLOTS (ROW_Y) are unchanged, each row just
 -- uses more of its own 9%-wide slot instead of leaving a bigger gap.
 local ROW_H = 8.7
@@ -661,7 +661,7 @@ function L.ensureUI()
 
   -- Header: room title, then terrain+exits on one line, then a rule.
   -- Widened 2026-07-12 from 80% to 96% (matching the row below's/hRule's
-  -- own established 2%-margin convention in this same file), per Steven
+  -- own established 2%-margin convention in this same file), per the maintainer
   -- ("room title line wraps, it needs to not, and spread across the top
   -- row, that's why its so long") -- the title had 20% of the row sitting
   -- unused next to it the whole time, forcing splitRoomName() below to
@@ -678,7 +678,7 @@ function L.ensureUI()
 
   -- LEFT column: bars (rows 1-3), identity (row 5), info grids (rows 6-7).
   L.ui.bars = {}
-  -- Track widened 2026-07-11 (28 -> 36), per Steven ("expand the health/
+  -- Track widened 2026-07-11 (28 -> 36), per the maintainer ("expand the health/
   -- mana/move bars horizontally to fill in more space between their name
   -- and numbers") -- label narrowed slightly (7 -> 5, "Mana" doesn't need
   -- 7%) and the small inter-element gaps removed (label/track/num now sit
@@ -699,7 +699,7 @@ function L.ensureUI()
   L.ui.attrDex = Geyser.Label:new({ name=L.name.."_AttrDex", x="61%", y=tostring(ROW_Y[4]).."%", width="37%", height=tostring(ROW_H).."%" }, L.ui.win)
   L.ui.attrCon = Geyser.Label:new({ name=L.name.."_AttrCon", x="61%", y=tostring(ROW_Y[5]).."%", width="37%", height=tostring(ROW_H).."%" }, L.ui.win)
   -- Row 6 on this side, previously left blank per the sketch, now used
-  -- for dragon Vitality, added 2026-07-12 per Steven ("dragon vitality
+  -- for dragon Vitality, added 2026-07-12 per the maintainer ("dragon vitality
   -- stat next for dragons/qinrathaz only... below con in the stats
   -- window"). Left blank (empty echo) for non-dragon characters, same
   -- as it always was -- see render() below.
@@ -708,7 +708,7 @@ function L.ensureUI()
   -- track's right edge) so the text overlays the bar itself instead of
   -- sitting in a slot too narrow for "<skill> NN%" -- see
   -- styleBarNumCentered()'s comment above for the full reasoning. Track
-  -- widened 2026-07-12 (18 -> 26) per Steven, now that the countdown text
+  -- widened 2026-07-12 (18 -> 26) per the maintainer, now that the countdown text
   -- ("<skill> NN% (Mm SSs)") is longer and the overlay had room to grow --
   -- runs to 98%, matching the STR/INT/WIS/DEX/CON column's right edge
   -- (x=61%, width=37%) directly above it.
@@ -808,7 +808,7 @@ local function infoStyle(color, weight)
 end
 
 
--- terrainColor(t) -- added 2026-07-11, per Steven ("have the terrain text
+-- terrainColor(t) -- added 2026-07-11, per the maintainer ("have the terrain text
 -- color adjust to terrain type (if we know them, if not something nice
 -- other than what it is)"). Keyword-matched against real DSL terrain/
 -- sector words; unrecognized terrain gets a fallback distinct from the
@@ -845,7 +845,7 @@ end
 
 
 -- Threshold raised 2026-07-12 from 34 to 60 (roomTitle itself widened from
--- 80%->96% the same day -- see that widget's own comment) -- per Steven,
+-- 80%->96% the same day -- see that widget's own comment) -- per the maintainer,
 -- who wants real room names to just fit on one line, not deliberately
 -- break onto a second line before they need to. Every real room name
 -- observed live this session (e.g. "A Path To The Mystic Crystal Fields",
@@ -903,7 +903,7 @@ function L.setBarPercent(key, percent, text)
   bar.num:echo(html(text or ""))
 end
 
--- resizeExitsCon(charCount) -- added 2026-07-11, per Steven ("the exit bar
+-- resizeExitsCon(charCount) -- added 2026-07-11, per the maintainer ("the exit bar
 -- border removed or have it adapt to the size of the exit"). MiniConsole
 -- has no setStyleSheet (confirmed earlier this session -- Geyser.Window
 -- defines it, MiniConsole doesn't inherit or override it), so there's no
@@ -969,7 +969,7 @@ end
 -- keeps the widget count reasonable for ~8 new rows of data.
 ------------------------------------------------------------------------
 
--- infoFontPt() -- real bug fixed 2026-07-11, per Steven ("font didnt
+-- infoFontPt() -- real bug fixed 2026-07-11, per the maintainer ("font didnt
 -- change that i noticed"): kv()/identityLine()/attrLine() only ever set
 -- color/font-weight inline and relied on the widget's own setStyleSheet()
 -- for font SIZE -- but Qt's rich-text renderer (what :echo() with HTML
@@ -990,12 +990,12 @@ local function kv(key, value, valueColor)
          "<span style='font-size:" .. sz .. "pt; color:" .. (valueColor or "#e8e6e0") .. "; font-weight:bold;'>" .. html(value) .. "</span>"
 end
 
--- SPACER -- widened 2026-07-11, per Steven ("size the text and spacing to
+-- SPACER -- widened 2026-07-11, per the maintainer ("size the text and spacing to
 -- make it look more filled") -- was 3-4 &nbsp;s between fields, now 5, to
 -- match the larger text without fields crowding each other.
 local SPACER = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
 
--- fullnessColor(cur, max) -- added 2026-07-11, per Steven ("objects like
+-- fullnessColor(cur, max) -- added 2026-07-11, per the maintainer ("objects like
 -- item weight need to go red when close to max"). Same 2-tier warning
 -- shape AffectsView's colorForDuration() already uses elsewhere in this
 -- codebase (amber approaching, red at/near the limit) -- applied here to
@@ -1010,7 +1010,7 @@ local function fullnessColor(cur, max)
 end
 
 -- identityLine(d) -- level, name, READY/FIGHTING status, class, alignment
--- (colored good/evil/neutral), god. "*" in Steven's sketch = this status
+-- (colored good/evil/neutral), god. "*" in the maintainer's sketch = this status
 -- marker (confirmed -- an earlier pass briefly misread it as character
 -- flags before he corrected that).
 local function identityLine(d)
@@ -1043,10 +1043,10 @@ local function identityLine(d)
     table.insert(parts, "<span style='font-size:" .. sz .. "pt; color:#d9a259;'>" .. html(d.god) .. "</span>")
   end
 
-  -- Age, added 2026-07-12 per Steven -- fits in the row's freed space
+  -- Age, added 2026-07-12 per the maintainer -- fits in the row's freed space
   -- now that god only shows the name (see the Religion: parsing fix in
   -- MyDSL_DataLayer.lua), not the full "-=- the God of ..." title.
-  -- Font size fixed same day (Steven: "the age text is too small and
+  -- Font size fixed same day (the maintainer: "the age text is too small and
   -- should match the rest of the font size for live info text") -- was
   -- pillSz (the smaller READY/FIGHTING badge size), now sz like every
   -- other field on this row (level/name/class/align/god).
@@ -1058,7 +1058,7 @@ local function identityLine(d)
   return table.concat(parts, SPACER)
 end
 
--- posnColor(posn) -- a little more color variety per Steven ("color need
+-- posnColor(posn) -- a little more color variety per the maintainer ("color need
 -- to increase"): Flying reads as an active/notable state, Sitting/
 -- Resting/Sleeping as passive/vulnerable, Standing as the plain default.
 local function posnColor(posn)
@@ -1095,7 +1095,7 @@ end
 
 -- attrLine(label, cur, base, extraHtml) -- "STR 25 (25)      <extra>"
 -- extraHtml is whatever combat/status info is paired with that
--- particular attribute row per Steven's sketch (Armor on STR, Hit/Dam on
+-- particular attribute row per the maintainer's sketch (Armor on STR, Hit/Dam on
 -- INT, Stance on WIS, TNL on DEX, nothing on CON).
 local function attrLine(label, cur, base, extraHtml)
   local sz = infoFontPt()
@@ -1107,7 +1107,7 @@ local function attrLine(label, cur, base, extraHtml)
   return left
 end
 
--- stanceColor(stance) -- added 2026-07-11, per Steven ("color need to
+-- stanceColor(stance) -- added 2026-07-11, per the maintainer ("color need to
 -- increase"): Offensive/Defensive are the two real DSL stance values that
 -- carry meaning at a glance; anything else stays neutral.
 local function stanceColor(stance)
@@ -1127,7 +1127,7 @@ local function signColor(n)
   return "#e8e6e0"
 end
 
--- hitDamValue(base, practiced) -- added 2026-07-11, per Steven ("hit and
+-- hitDamValue(base, practiced) -- added 2026-07-11, per the maintainer ("hit and
 -- dmage should have the B: P: when available"), matching the real `score`
 -- command's own "HitRoll: B:27  P:37" labeling exactly. Falls back to just
 -- the practiced value if base isn't known for some reason.
@@ -1142,7 +1142,7 @@ function L.render(reason)
   if not L.ensureUI() then return end
   local d = L.data()
 
-  -- Real bug fixed 2026-07-11, per Steven ("Room Name Changed to white"):
+  -- Real bug fixed 2026-07-11, per the maintainer ("Room Name Changed to white"):
   -- this hardcoded color:#ffd166 inline, competing with applyStyles()'s
   -- titleColorCSS() already set on the widget itself -- the two disagreed
   -- and the room name rendered white instead of the theme's gold/amber/
@@ -1166,7 +1166,7 @@ function L.render(reason)
   L.setBar("mana", d.mana, d.maxmana, fmtNum(d.mana) .. "/" .. fmtNum(d.maxmana) .. " (" .. tostring(math.floor(pct(d.mana,d.maxmana)*100+0.5)) .. "%)")
   L.setBar("move", d.move, d.maxmove, fmtNum(d.move) .. "/" .. fmtNum(d.maxmove) .. " (" .. tostring(math.floor(pct(d.move,d.maxmove)*100+0.5)) .. "%)")
 
-  -- Real bug fixed 2026-07-12, found live (Steven: "i dont see the
+  -- Real bug fixed 2026-07-12, found live (the maintainer: "i dont see the
   -- countdown now, just skill and percent"): L.data() already computes
   -- the live-ticking "(Mm SSs)" countdown into d.improveText via
   -- improveLiveText() (see its own comment above, added 2026-07-11 for
@@ -1182,7 +1182,7 @@ function L.render(reason)
   if L.ui.infoLine2 then L.ui.infoLine2:echo(infoLine2(d)) end
 
   -- Attribute rows (right column), each paired with whatever combat/
-  -- status info Steven's sketch put beside it.
+  -- status info the maintainer's sketch put beside it.
   if L.ui.attrStr then
     local armorExtra = ""
     if d.armorPierce or d.armorBash or d.armorSlash or d.armorMagic then
@@ -1210,7 +1210,7 @@ function L.render(reason)
     L.ui.attrDex:echo(attrLine("DEX", d.dex, d.dexBase, tnlExtra))
   end
   if L.ui.attrCon then L.ui.attrCon:echo(attrLine("CON", d.con, d.conBase, "")) end
-  -- Dragon-only, added 2026-07-12 per Steven. No base/current split (real
+  -- Dragon-only, added 2026-07-12 per the maintainer. No base/current split (real
   -- `stat` output is just "Vit: 20", not "Vit: 20(25)") -- attrValue()
   -- already handles a nil base by falling back to the bare number.
   -- Blank for every non-dragon character, same as this row always was,
@@ -1291,7 +1291,7 @@ function L.setBarFont(size)
   ce("barFont=" .. tostring(size))
 end
 
--- setInfoFont()/setTerrainFont() -- added 2026-07-11, per Steven ("let me
+-- setInfoFont()/setTerrainFont() -- added 2026-07-11, per the maintainer ("let me
 -- be able to adjust the text size... informational text... terrain text,
 -- any others you have separate").
 function L.setInfoFont(size)
@@ -1329,7 +1329,7 @@ end
 
 function L.status()
   local d = L.data()
-  -- Real pixel footprint, added 2026-07-11 (per Steven, "is there a
+  -- Real pixel footprint, added 2026-07-11 (per the maintainer, "is there a
   -- command to get you the dimensions?") -- get_width()/get_height() are
   -- real Geyser.Window methods returning the CURRENT on-screen pixel size
   -- (not the "34%"/"13%" config strings, which are relative to whatever

@@ -55,7 +55,7 @@ end
 
 
 ------------------------------------------------------------------------
--- Config persistence -- added 2026-07-11, per Steven wanting the quick
+-- Config persistence -- added 2026-07-11, per the maintainer wanting the quick
 -- buttons manually configurable "even the group buttons." quickset
 -- already existed (see the alias section below) but had NO persistence
 -- at all -- GV.config.quickActions only ever lived in memory, silently
@@ -186,7 +186,7 @@ function GV.render()
     gvLog(mc, string.format("<%s>[%-3s]<r> ", tag_color, m.class))
 
     -- Name: clickable to set Target; mobs warm tan, players near-white.
-    -- Column width narrowed 20 -> 14 chars, 2026-07-16, per Steven
+    -- Column width narrowed 20 -> 14 chars, 2026-07-16, per the maintainer
     -- ("reduce space in group window between name and stats") -- 20 was
     -- always padding out to a full 20 characters even for short player
     -- names (e.g. short ones), leaving a large visible gap before hp%; still
@@ -211,7 +211,7 @@ function GV.render()
     -- Quick-action buttons — reuse TV.actions entries.
     -- Exception: rescue is skipped for Mob rows — DSL rescue only works player→player
     -- or pet→player, never player→mob (confirmed live: "rescue bear" always fails;
-    -- "order bear rescue kien" succeeds).
+    -- "order bear rescue <player>" succeeds).
     for _, key in ipairs(GV.config.quickActions) do
       if key == "rescue" and m.is_mob then
         -- skip: rescue cannot target mobs, even charmed pets
@@ -427,7 +427,7 @@ end
 ------------------------------------------------------------------------
 
 -- Renamed 2026-07-11, command-surface retrofit (docs/TODO.md "OPEN —
--- Command-surface retrofit"), per Steven: "consistent across all
+-- Command-surface retrofit"), per the maintainer: "consistent across all
 -- commands, and human speak/readable." Dropped the "mydsl" prefix --
 -- confirmed bare "group" is safe (real DSL "group" command is always
 -- typed with no arguments in every real usage seen; these all require
@@ -457,7 +457,7 @@ tempAlias("^group quickset reset$",
     MyDSL.GroupView._saveConfig()
     echo("Group quick buttons reset to defaults.\n")
   end]])
--- "group actions" -- added 2026-08-29, per Steven's button-UX review
+-- "group actions" -- added 2026-08-29, per the maintainer's button-UX review
 -- ("make changing buttons easier for the user"). Delegates to
 -- MyDSL.TargetView.listActions() rather than a separate copy -- same
 -- shared TV.actions/custom_actions registry "group quickset" already

@@ -101,7 +101,7 @@ function MyDSL.parseScoreLine(line)
   local v  -- reused temp
 
   -- Created: <weekday> <month> <day> <hh:mm:ss> <year>  -- added
-  -- 2026-07-12 for LiveView's in-game age display, per Steven. Real
+  -- 2026-07-12 for LiveView's in-game age display, per the maintainer. Real
   -- current format confirmed in docs/DSL_CommandRef.md and live corpus
   -- (e.g. "Created: Wed May 21 15:20:26 2025", from a real captured score
   -- output). A bare numeric fallback ("Created:  07.28.2024", no
@@ -225,7 +225,7 @@ function MyDSL.parseScoreLine(line)
   v = line:match("TNL:%s*(%d+)");         if v then scoreBlock.tnl      = tonumber(v) end
   -- Align: stops at double-space so "Prestige hours: 460" on the same line is excluded
   v = line:match("Align:%s*(.-)%s%s");    if v then scoreBlock.align    = trim(v) end
-  -- Dragon-only, added 2026-07-12 per Steven ("for dragons/Qin only, we
+  -- Dragon-only, added 2026-07-12 per the maintainer ("for dragons/Qin only, we
   -- need the chamber stat for breath weapon shown in score as
   -- Chamber:"). Real format confirmed via corpus grep: same DEX/Align
   -- row, dragon-only variant that replaces the non-dragon "Prestige
@@ -240,7 +240,7 @@ function MyDSL.parseScoreLine(line)
   v = line:match("Pos'n:%s*(%S+)");       if v then scoreBlock.position = trim(v) end
   v = line:match("Stance:%s*(%S+)");       if v then scoreBlock.stance      = v end
   v = line:match("Speaking:%s*(%S+)");    if v then scoreBlock.language   = v end
-  -- Fixed 2026-07-12, per Steven (LiveView identity row overflowing):
+  -- Fixed 2026-07-12, per the maintainer (LiveView identity row overflowing):
   -- real format is "Religion: Cliath -=- the God of Creation -=-"
   -- (confirmed via corpus grep across every god name seen: Cliath/
   -- Devion/Dragoth/Drakkara/Fatale/Kwainin/Nadrik/Raije/Zandrey/
@@ -443,7 +443,7 @@ end
 --   "==-Night Time - 5:00am :: [room] :: [exits]-=="
 --   "==-Day Time - 10:30am :: ..."
 --   "==-Dawn - 6:00am :: ..."
--- Period confirmed from live session (Steven, 2026-06-30): Night Time, Dawn, Day Time.
+-- Period confirmed from live session (the maintainer, 2026-06-30): Night Time, Dawn, Day Time.
 
 function MyDSL.parsePromptLine(line)
   local period = line:match("^==%-(%a[%a%s]+) %- %d+:%d+%a+ :: ")
@@ -471,7 +471,7 @@ local _weatherWords = {
   "thunder", "lightning", "overcast", "chilly", "sleet",
 }
 
--- extractWindClause(text) -- added 2026-07-12, per Steven ("wind should
+-- extractWindClause(text) -- added 2026-07-12, per the maintainer ("wind should
 -- be captured. clouds, clear, rain, gold [cold] breeze, temperate wind,
 -- etc"). Pulls just the wind portion out of a weather sentence, if
 -- present. Real corpus-confirmed shape (96 samples across the full
@@ -687,7 +687,7 @@ function MyDSL.parseImproveLine(line)
   end
 end
 
--- parseImproveStatusLine() -- added 2026-07-07, per Steven (wants a
+-- parseImproveStatusLine() -- added 2026-07-07, per the maintainer (wants a
 -- LiveView bar showing remaining time for the skill being improved).
 -- A DIFFERENT real message from the completion line above -- the response
 -- to typing "improve" (no args): a status snapshot with a countdown.
@@ -798,7 +798,7 @@ MyDSL._triggers.promptLine = tempRegexTrigger(
 ------------------------------------------------------------------------
 -- Sunrise / Sunset triggers
 ------------------------------------------------------------------------
--- Confirmed exact text from live session (Steven, 2026-06-30):
+-- Confirmed exact text from live session (the maintainer, 2026-06-30):
 --   "The sun rises in the east."  — at ~6:30am game time
 --   "The night has begun."        — night transition (plain text, triggerable)
 -- Note: "* * * * * Night folds the land in shadow * * * * *" is a cecho line — NOT triggerable.
@@ -841,7 +841,7 @@ MyDSL._triggers.weather = tempRegexTrigger(
   end
 )
 
--- Rare edge case, found live 2026-07-12 (Steven: "Rain falls steadily
+-- Rare edge case, found live 2026-07-12 (the maintainer: "Rain falls steadily
 -- from the clouded sky. and a cold gentle breeze blows in from the
 -- north."): DSL occasionally joins the precipitation and wind clauses
 -- with a period instead of a comma, splitting what's normally one
@@ -867,7 +867,7 @@ MyDSL._triggers.weatherWindContinuation = tempRegexTrigger(
 ------------------------------------------------------------------------
 -- Pos'n (physical position) -- real-time text triggers
 ------------------------------------------------------------------------
--- Added 2026-07-12, per Steven ("liveview pos'n doesnt update on
+-- Added 2026-07-12, per the maintainer ("liveview pos'n doesnt update on
 -- changing without score, it should update with the gmcp... check
 -- sibling profiles and other liveview scripts, this was active once
 -- before and update the character position as it happened"). LiveView's
@@ -907,7 +907,7 @@ MyDSL._triggers.weatherWindContinuation = tempRegexTrigger(
 -- ground." -> is_flying flipping to true in the very same capture).
 --
 -- setPosn(value) does NOT trust a trigger's text match as the final
--- word -- per Steven ("id prefer that the trigger patterns be the point
+-- word -- per the maintainer ("id prefer that the trigger patterns be the point
 -- to check gmcp, not make its own decision to avoid the issues with
 -- room descriptions or other cross contamination. so stand trigger
 -- fires, check gmcp for the change and update"). GMCP's char_data has no
@@ -951,7 +951,7 @@ MyDSL._triggers.posnStopRest     = tempRegexTrigger([[^You stop resting\.$]],   
 ------------------------------------------------------------------------
 -- Wimpy -- real-time text trigger, same shape as Pos'n above
 ------------------------------------------------------------------------
--- Added 2026-07-12, per Steven ("wimpy should update when its changed as
+-- Added 2026-07-12, per the maintainer ("wimpy should update when its changed as
 -- well and gmcp, or how it collects info. but also with the manual
 -- wimpy command"). MyDSL.DB.score.wimpy (MyDSL_DataBridge.lua) already
 -- prefers char.wimpy (GMCP) over the text-parsed score.wimpy fallback --
@@ -974,20 +974,20 @@ MyDSL._triggers.wimpySet = tempRegexTrigger(
 ------------------------------------------------------------------------
 -- Dragon Vitality -- text trigger on the `stat` command's output
 ------------------------------------------------------------------------
--- Added 2026-07-12, per Steven ("dragon vitality stat next for dragons/
+-- Added 2026-07-12, per the maintainer ("dragon vitality stat next for dragons/
 -- qinrathaz only, see help files for dragon vitality if needed at it
 -- below con in the stats window"). DSL_Helpfiles/dragons.txt confirms:
 -- "Dragons will lose vitality with every death though not alterforms.
 -- When a dragon's vitality is gone, the dragon will permanently die" --
 -- a dragon-only permadeath-countdown stat, not present for any other
--- race. Real format confirmed from Steven's own cecho breadcrumb in
+-- race. Real format confirmed from the maintainer's own cecho breadcrumb in
 -- log/2026-07-07#20-17-54.html (typed `stat` on a dragon character):
 -- "Str: 72(80)  Int: 60(72)  Wis: 60(72)  Dex: 60(60)  Con: 66(82)
 -- Vit: 20" -- captures just the trailing "Vit: N", which only appears
 -- at all for dragon characters (confirmed no "Vit:" field anywhere in
 -- non-dragon corpus samples), so this naturally never fires/populates
 -- for anyone else -- no race check needed. Character-bound via
--- MyDSL.update("char", ...), same persistence as posn/wimpy, since Steven
+-- MyDSL.update("char", ...), same persistence as posn/wimpy, since the maintainer
 -- noted this can only really be confirmed by watching it live (changes
 -- on a PK death), not re-testable on demand -- stale-but-persisted beats
 -- blank between sessions.
@@ -1023,7 +1023,7 @@ MyDSL._triggers.groupStart = tempRegexTrigger(
 ------------------------------------------------------------------------
 -- Improve triggers -- wired 2026-07-07 (both parse functions existed but
 -- nothing called them; see parseImproveLine/parseImproveStatusLine above).
--- Per Steven: keep this one specifically, feeds a LiveView bar.
+-- Per the maintainer: keep this one specifically, feeds a LiveView bar.
 ------------------------------------------------------------------------
 
 MyDSL._triggers.improveComplete = tempRegexTrigger(

@@ -71,7 +71,7 @@ MyDSL.Layout.defaults = MyDSL.Layout.defaults or {
 
   -- MyDSL_Alterform: added 2026-07-11, sits directly right of Tick (same
   -- narrow-strip shape) -- this default only matters for a first-ever
-  -- boot; like every other window here, Steven's real live positions come
+  -- boot; like every other window here, the maintainer's real live positions come
   -- from Mudlet's own native dock-state save, not these fractional
   -- defaults (see MyDSL_WindowRegistry.lua's constructor-patch comment).
   -- Corrected 2026-08-24: this is actually type="Container" in
@@ -92,7 +92,7 @@ MyDSL.Layout.defaults = MyDSL.Layout.defaults or {
   -- before this, same exact bug class as MyDSL_ItemReference's own fix
   -- above (see that entry's comment): fell back to the generic
   -- "5%,5%,35%,30%" default, which reads as "popping up large" on first
-  -- creation before shrinking down once docked (Steven, from a real
+  -- creation before shrinking down once docked (the maintainer, from a real
   -- screenshot: "help reappeared and is back in my dock after popping up
   -- large"). Real live position lands as a thin strip directly above
   -- Chat, so default it there instead of the oversized fallback -- only
@@ -112,7 +112,7 @@ MyDSL.Layout.defaults = MyDSL.Layout.defaults or {
   -- 2026-07-16, had no LayoutEngine entry at all before this (fell back
   -- to the generic "5%,5%,35%,30%" default, which is also why it landed
   -- tabbed alongside the much larger Scan/Combat/Bestiary group instead
-  -- of anywhere near this corner). Per Steven ("compact... to fit in the
+  -- of anywhere near this corner). Per the maintainer ("compact... to fit in the
   -- top left corner... some items will have to scroll, I understand,
   -- just trying to reduce the amount that need to scroll") -- deliberately
   -- small (comparable to Portrait/Location's own footprint), scrolling
@@ -206,7 +206,7 @@ end
 -- This is a local variable — it never needs to be accessed from outside
 -- this file. Declaring it local keeps the global namespace clean.
 
--- Reverted 2026-07-08, per Steven: layout is per-profile again, not
+-- Reverted 2026-07-08, per the maintainer: layout is per-profile again, not
 -- per-character -- "we will keep it layout per profile and use lua
 -- saveWindowLayout() ... i dont want to have that fight again." The
 -- percentage-based positions here now only matter for a window's very

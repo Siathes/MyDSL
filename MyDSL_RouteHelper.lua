@@ -15,19 +15,19 @@ MyDSL = MyDSL or {}
 MyDSL.Route = MyDSL.Route or {}
 
 -- Per-window font size override -- default 9 for anything not listed here.
--- History dropped to 8 2026-07-05, then to 7 2026-07-07 per Steven ("history
+-- History dropped to 8 2026-07-05, then to 7 2026-07-07 per the maintainer ("history
 -- text 7"). Persistence moved 2026-07-11 to MyDSL.Windows' shared,
 -- PROFILE-level (not character-bound) font-size store
--- (MyDSL_WindowRegistry.lua) -- per Steven ("the fonts should be saving
+-- (MyDSL_WindowRegistry.lua) -- per the maintainer ("the fonts should be saving
 -- like theme or window manager whatever tracks that... per profile not
 -- user, remember for the layout"). This used to be its own bespoke
 -- character-bound file + "re-load once character is known" handler,
 -- structurally identical to the confirmed-working MyDSL_ChatWrapper.lua
--- pattern -- but Steven reported it still not surviving a reload (same
+-- pattern -- but the maintainer reported it still not surviving a reload (same
 -- report as MyDSL_TargetView.lua's font, fixed the same way), so both
 -- moved to the shared mechanism together, removing the character-name
 -- dependency (and that whole class of timing bug) entirely.
--- Real bug found 2026-07-18, per Steven ("playersnear you font setting
+-- Real bug found 2026-07-18, per the maintainer ("playersnear you font setting
 -- not persisting"): MyDSL_PlayersNear got its own "mydsl playersnear
 -- font <n>" command 2026-07-16 (below), which correctly writes through
 -- to MyDSL.Windows.setFontSize()'s real disk-backed store -- same
@@ -40,7 +40,7 @@ MyDSL.Route = MyDSL.Route or {}
 -- table was first written (2026-07-05/07); PlayersNear's font command
 -- was added later without updating this seed to match.
 -- MyDSL_PlayersNear's fallback updated 2026-08-23 from 9 to 8 to match
--- Steven's real long-tuned live size (MyDSL_windowfonts.lua), confirmed
+-- the maintainer's real long-tuned live size (MyDSL_windowfonts.lua), confirmed
 -- via a full settings-vs-defaults audit -- this fallback only ever
 -- applies to a brand-new window with nothing saved yet, but a genuine
 -- fresh install was shipping the wrong size until re-tuned by hand.
@@ -50,7 +50,7 @@ local FONT_SIZE_OVERRIDES = {
 }
 
 -- Display titles for windows this file creates via WindowRegistry --
--- added 2026-07-11, per Steven ("fix all window titles/names"). These
+-- added 2026-07-11, per the maintainer ("fix all window titles/names"). These
 -- windows previously never got a title set anywhere, so they showed
 -- Mudlet's raw default ("User window - DSL2 - MyDSL_History") instead of
 -- matching Live/Tick/Portrait/Location's "-= Name =-" convention.
@@ -97,7 +97,7 @@ local function getOrCreateConsole(windowName)
   -- own background color underneath as a visible seam (the console
   -- paints its own solid background via setColor() below, separate from
   -- the panel behind it) -- looked like a second border line moving, not
-  -- text gaining margin against one continuous border. Steven confirmed
+  -- text gaining margin against one continuous border. the maintainer confirmed
   -- that's not what he wanted ("if just the border can be adjusted to
   -- move the text than i dont want it"). Checked for a real fix and
   -- confirmed there isn't a cheap one: Geyser.MiniConsole doesn't
@@ -107,9 +107,9 @@ local function getOrCreateConsole(windowName)
   -- margin primitive either -- true "text inset, same background" needs
   -- either prepending real space characters to every routed line (a
   -- much bigger, more invasive change touching every Route.to() call
-  -- site) or accepting the seam. Backed out entirely pending Steven's
+  -- site) or accepting the seam. Backed out entirely pending the maintainer's
   -- call on which tradeoff he wants.
-  -- scrollBar=false 2026-07-11, per Steven ("remove scroll bars from
+  -- scrollBar=false 2026-07-11, per the maintainer ("remove scroll bars from
   -- history and playersn near you (consistent)") -- matches Scan/RightHere/
   -- Target/Group, which never had one.
   local con = Geyser.MiniConsole:new({
@@ -134,7 +134,7 @@ local function getOrCreateConsole(windowName)
       con:setFontSize(fontSize)
       con:setColor(0, 0, 0)
     end
-    -- History-only, added 2026-07-12 per Steven ("history needs adaptive
+    -- History-only, added 2026-07-12 per the maintainer ("history needs adaptive
     -- word wrap, so it text wraps with the size of the window"). Real
     -- Mudlet API, confirmed via its bundled GeyserMiniConsole.lua:
     -- enableAutoWrap() sets self.autoWrap=true and computes wrapAt from
@@ -143,7 +143,7 @@ local function getOrCreateConsole(windowName)
     -- recalls resetAutoWrap() automatically whenever the window resizes,
     -- so a resize keeps it correct with no extra wiring needed here.
     -- History-only, not applied to the other routed windows (Combat/
-    -- Scan/Group/PlayersNear/RightHere) -- Steven's ask was specific to
+    -- Scan/Group/PlayersNear/RightHere) -- the maintainer's ask was specific to
     -- History, and those other windows' short structured lines don't
     -- have the same wrapping problem.
     if windowName == "MyDSL_History" then
@@ -191,7 +191,7 @@ end
 -- content at all, see MyDSL_MudletAPIReference.md).
 --
 -- 2026-07-15: a moveCursor()+insertText() 1-character left-margin attempt
--- was tried and reverted same day -- Steven confirmed live it produced no
+-- was tried and reverted same day -- the maintainer confirmed live it produced no
 -- visible change at all (text still flush against the edge), and the ask
 -- itself was dropped as not worth chasing further ("this is not a big
 -- enough issue to chase... we will stick with text on the left edge").
@@ -275,7 +275,7 @@ function MyDSL.Route.setPlayersNearTitle(title) setRoutedTitle("MyDSL_PlayersNea
 -- 2026-07-06. Every other routed/module window has its own "mydsl <name>
 -- font <n>" alias (chat/live/tickview all confirmed); History only had a
 -- fixed FONT_SIZE_OVERRIDES entry with no way to change it in-game.
--- Confirmed real gap: Steven typed "mydsl history font 9" twice in logged
+-- Confirmed real gap: the maintainer typed "mydsl history font 9" twice in logged
 -- sessions and got "Huh?" both times.
 function MyDSL.Route.setHistoryFont(size)
   size = tonumber(size)
@@ -320,7 +320,7 @@ MyDSL._aliases.historyTitle = tempAlias(
 )
 
 -- MyDSL.Route.historyStatus() + "mydsl history status" -- added
--- 2026-07-11, per Steven ("are the settings loading at creating from
+-- 2026-07-11, per the maintainer ("are the settings loading at creating from
 -- save files or they saving and never reading/updating?"). Same 3-way
 -- diagnostic as "focus status"'s font section: disk (re-read fresh from
 -- MyDSL_windowfonts.lua, not memory), memory (FONT_SIZE_OVERRIDES.
@@ -353,7 +353,7 @@ MyDSL._aliases.historyStatus = tempAlias(
   [[MyDSL.Route.historyStatus()]]
 )
 
--- PlayersNear command set -- added 2026-07-16, per Steven ("playersnearyou
+-- PlayersNear command set -- added 2026-07-16, per the maintainer ("playersnearyou
 -- window need same options as other windows/help want to change font").
 -- Same shape as History's font+status above (both are routed passive
 -- windows with no dedicated module file); show/hide are thin wrappers

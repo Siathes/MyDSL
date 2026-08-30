@@ -32,7 +32,7 @@ local function trim(s) return s and s:match("^%s*(.-)%s*$") or "" end
 -- on every gmcp.char_data packet, once per combat round).
 --
 -- Rewritten 2026-07-05 to port DSL_PNP_Battle.lua's actual display/format
--- logic close to verbatim (per Steven: "make it work like PNP, then discuss
+-- logic close to verbatim (per the maintainer: "make it work like PNP, then discuss
 -- the additions"), instead of the from-scratch condensed-table format this
 -- module invented earlier. What's ported: the dam_info severity/decoration
 -- table, battle_format() token substitution, the per-swing live-window
@@ -59,7 +59,7 @@ local DAM_LADDER_ORDER = {
 }
 
 -- Colors below are PNP's exact color_table RGB values (DSL_PNP_Support.lua),
--- confirmed 2026-07-11 per Steven's "match PNP for community recognition"
+-- confirmed 2026-07-11 per the maintainer's "match PNP for community recognition"
 -- request -- our previous values were our own softer/pastel guesses.
 local DSL_LT_RED = "255,0,0"
 local DSL_WHITE  = "192,192,192"
@@ -169,7 +169,7 @@ end
 -- "nasty's...And...(18.5)" suffix that turned out to be OUR OWN severity-
 -- score decorator leaking into the log, not raw DSL text, so matched on
 -- the clean prefix instead of that artifact). The other 4 rungs have no
--- direct self-phrased corpus example (Steven/his characters haven't
+-- direct self-phrased corpus example (the maintainer/his characters haven't
 -- logged taking that much damage yet) -- inferred via the same
 -- consistent grammatical transformation, confirmed consistent across
 -- every rung that DOES have direct evidence.
@@ -231,7 +231,7 @@ local CONDITION_ORDER = {
 -- MyDSL.Affects.getRemaining(): returns nil if no live combat-condition
 -- data exists for this name (never fought this session, or DSL hasn't
 -- sent a condition line yet), otherwise (label, percentRangeText, order).
--- This is the REAL "enemy health message" data Steven asked for -- not
+-- This is the REAL "enemy health message" data the maintainer asked for -- not
 -- creaturelore's static "base health" stat, which is a fixed per-species
 -- number, not the current fight's damage state.
 function MyDSL.getTargetCondition(name)
@@ -438,7 +438,7 @@ function MyDSL.parseCombatConditionLine(line)
 
   -- PNP's battle_data.screen_condition/window_condition equivalent -- a
   -- single pending note, flushed alongside the next round summary.
-  -- "has" inserted 2026-07-16, per Steven ("missing the word 'has'
+  -- "has" inserted 2026-07-16, per the maintainer ("missing the word 'has'
   -- between mob name and state") -- confirmed live via log/*.html:
   -- "A gray wolf cub big wounds [30-49%]" read with no connecting verb
   -- at all between name and label.
@@ -454,7 +454,7 @@ function MyDSL.parseCombatConditionLine(line)
   -- specifically because the round-flush handler below is about to decho
   -- its own colored copy of the same condition info -- confirmed this is
   -- PNP's own original behavior too (DSL_PNP_Battle.lua, identical
-  -- formula), not a MyDSL-introduced bug, but Steven reported it live as
+  -- formula), not a MyDSL-introduced bug, but the maintainer reported it live as
   -- an unwanted duplicate ("one we create and one from the game... if
   -- its just a duplicate line lets not duplicate it") and asked for it
   -- fixed here specifically, diverging from PNP on this one point.
@@ -486,7 +486,7 @@ function MyDSL.parseCombatDeathLine(line)
   local tKey   = normalizeKey(trim(name))
   local snap   = snapshotFight(tKey)
   if snap then raiseEvent("MyDSL.combat.ended", snap) end
-  -- Dedicated death event -- added 2026-07-11, per Steven ("then clear
+  -- Dedicated death event -- added 2026-07-11, per the maintainer ("then clear
   -- target, or populate with next in room mob from scan" once the
   -- current Focus target dies). Raised independent of whether
   -- snapshotFight() found an active-combat entry -- our own damage
@@ -605,7 +605,7 @@ end
 -- location-broadcast prefix. This was briefly "fixed" 2026-07-09 to accept
 -- that prefix (real, confirmed via sibling-profile logs -- every combat
 -- line fought in the Coliseum carries one), but reverted same-day per
--- Steven: Coliseum combat (and the Algoron Combat League event) is
+-- the maintainer: Coliseum combat (and the Algoron Combat League event) is
 -- explicitly OUT of scope for this regular single-target combat tracker --
 -- it's planned as its own later module (a large window with 4 floating
 -- cardinal-direction sub-windows matching the Coliseum's wall echoes).
@@ -613,7 +613,7 @@ end
 -- this tracker today, so it stays as-is on purpose -- don't "fix" this
 -- again without building/coordinating with that module first.
 local DAMAGE_VERBS = "miss|scratch|graze|hit|injure|wound|maul|decimate|devastate|maim|MUTILATE|DISEMBOWEL|DISMEMBER|MASSACRE|MANGLE|DEMOLISH|DEVASTATE|OBLITERATE|ANNIHILATE|ERADICATE|GHASTLY|HORRID|DREADFUL|HIDEOUS|INDESCRIBABLE|UNSPEAKABLE"
--- REAL BUG, found live 2026-07-20 (Steven, via the actual Olyndros
+-- REAL BUG, found live 2026-07-20 (the maintainer, via the actual Olyndros
 -- session log, flagged as "combat remains in the main window, the
 -- readicates and others should be going to combat with the condenser"):
 -- this trigger's own final group used to require the line to end in one
@@ -639,9 +639,9 @@ local DAMAGE_VERBS = "miss|scratch|graze|hit|injure|wound|maul|decimate|devastat
 -- comes from a fixed per-verb DAM_INFO[verb].score lookup, not parsed
 -- from this text -- so passing a "(340)"-shaped punct through is safe,
 -- nothing depends on it being exactly "."/"!".
--- REAL BUG, found live 2026-07-25 (Steven, via a real Olyndros leveling
+-- REAL BUG, found live 2026-07-25 (the maintainer, via a real Olyndros leveling
 -- session): even after the 2026-07-20 fix above (matching the "(340)"
--- damage-number ending), Steven's own note says "damage still appearing
+-- damage-number ending), the maintainer's own note says "damage still appearing
 -- in main window and not being moved to combat" -- and the log confirms
 -- it: every single swing this session printed completely raw, verbatim
 -- game text with real, varying damage numbers (297, 167.5, 173...), which
@@ -799,7 +799,7 @@ MyDSL._triggers.procUnholy = tempRegexTrigger(
   "^You feel a surge of ([\\w\\-\\s,']+)'s unholy wrath race through your body",
   function() if MyDSL and MyDSL.parseCombatProcLine then MyDSL.parseCombatProcLine("U") end end)
 
--- Sharp: confirmed via Steven 2026-07-09 (from a Discord question) --
+-- Sharp: confirmed via the maintainer 2026-07-09 (from a Discord question) --
 -- the Sharp weapon flag just adds bonus damage and never echoes anything
 -- at all, so there's no trigger text to write, ever. Not a gap, working
 -- as intended -- no action needed.
@@ -839,7 +839,7 @@ MyDSL._triggers.procPoisonTick = tempRegexTrigger(
 -- means PNP's actual out-of-box default (gag_combat=true, gag_non_damage=
 -- true, summarize_damage=true) already gives exactly a "condensed" mode:
 -- raw per-swing lines hidden, one aggregate sentence per round shown. The
--- 3-way raw/condensed/gag toggle Steven described maps directly onto these
+-- 3-way raw/condensed/gag toggle the maintainer described maps directly onto these
 -- two flags -- raw: gag_combat=false, summarize_damage=false; condensed:
 -- gag_combat=true, summarize_damage=true (the PNP default); gag: both true/
 -- false respectively (summarize_damage=false, nothing to main at all).

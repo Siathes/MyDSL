@@ -1,22 +1,22 @@
 -- =============================================================================
 -- MyDSL_PromptSetup.lua  --  One-click DSL prompt setup for brand-new characters
 -- =============================================================================
--- Added 2026-07-09 per Steven: wants Steven's chosen `prompt <format>` string
+-- Added 2026-07-09 per the maintainer: wants the maintainer's chosen `prompt <format>` string
 -- applied to every freshly-rolled character, instead of typing it by hand
 -- each time. CLAUDE.md's philosophy is explicit and non-negotiable here:
 -- "Any game command sent by a module must be user-initiated (alias or
 -- click)" -- a hook that fires the moment character creation finishes and
--- sends the command with zero action from Steven would violate that
+-- sends the command with zero action from the maintainer would violate that
 -- directly, so this detects the moment and offers a one-click link instead
 -- of sending anything on its own. Confirmed via AskUserQuestion 2026-07-09:
--- Steven picked "detect + clickable link" over a fully-automatic send.
+-- the maintainer picked "detect + clickable link" over a fully-automatic send.
 --
 -- Anchor: "The Gray Mist of Nothingness" -- the character-birth cutscene
 -- room ("You are born now, to the World of Algoron..."). NOT the "WELCOME
 -- TO DARK & SHATTERED LANDS (DSL)" banner that was the first idea -- PNP's
 -- own DSL_PNP_Character.lua names that trigger "Login Trigger" and confirms
 -- it fires on every login, existing characters included, which would nag
--- Steven every session instead of just once at creation. Corpus-checked:
+-- the maintainer every session instead of just once at creation. Corpus-checked:
 -- "Gray Mist of Nothingness" appears in the one fresh-character-creation
 -- log from 2026-07-09 and in zero other logs across the whole recent
 -- history (established characters never see it) --
@@ -30,7 +30,7 @@ MyDSL.PromptSetup  = MyDSL.PromptSetup  or {}
 
 local PS = MyDSL.PromptSetup
 
--- Steven's exact chosen format string (2026-07-09) -- verbatim, not
+-- the maintainer's exact chosen format string (2026-07-09) -- verbatim, not
 -- reconstructed, since a single wrong {code/%code would silently break it.
 PS.promptString = [[prompt {B[{R%h{G/%H{GHP{x {B| {C%m{c/%M{CM{x {B| {G%v{y/%V{yMV{x {B]{x {B[{x {Y%S{x {B|{x %a {B| {G%l{x {B|{x {p%f{x {B]{x%c{B==-{x%d {g- %t{x {B:: [{W%r{x{B] :: [{x%e{x{B]-=={x%c]]
 

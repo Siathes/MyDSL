@@ -5,7 +5,7 @@
 -- deliberately sends automatic game commands (movement, "kill <mob>",
 -- "drop <n> silver", optional buff-reapply) -- an explicit, narrow exception
 -- to the project's normal "passive observation only" rule, granted by
--- Steven: "the no automation is suspended for thes modules, they will be
+-- the maintainer: "the no automation is suspended for thes modules, they will be
 -- outside addons for the ui, for the specific task of automating these
 -- features." Scope is limited to this file and a future MyDSL_Questing.lua
 -- -- see docs/TODO.md's DECISIONS RECORDED section. Every other module in
@@ -21,7 +21,7 @@
 -- fork's map.speedwalk()/getPath().
 --
 -- Session control is deliberately just start/resume/pause/stop, per
--- Steven (2026-07-20): "whatever timer stops combat is not useful, just
+-- the maintainer (2026-07-20): "whatever timer stops combat is not useful, just
 -- keep walking and fighting till you get back to the start point and
 -- give report like in PNP, we only need the pause resume and stop, not
 -- a fallback safety timer or whatever it is." An earlier version had a
@@ -39,7 +39,7 @@ local L = MyDSL.Leveling
 -- Safe-reload: kill old handlers/triggers/aliases on every load, same
 -- boilerplate as every other MyDSL Layer 3 module (TargetView,
 -- CombatView, CharacterAssist). No timer to kill here -- the failsafe
--- timer this once had was removed entirely 2026-07-20, per Steven.
+-- timer this once had was removed entirely 2026-07-20, per the maintainer.
 for _, id in pairs(L._handlers or {}) do pcall(killAnonymousEventHandler, id) end
 for _, id in pairs(L._triggers or {}) do pcall(killTrigger, id) end
 for _, id in pairs(L._aliases  or {}) do pcall(killAlias, id) end
@@ -65,12 +65,12 @@ local function ce(msg)
   local line = "<cyan>[MyDSL.Leveling]<reset> " .. tostring(msg)
   cecho("\n" .. line .. "\n")
   -- Also mirror into Leveling's own status window -- wired up 2026-08-23,
-  -- per Steven ("wire it up"). L.log()/L._mc.log existed since this file's
+  -- per the maintainer ("wire it up"). L.log()/L._mc.log existed since this file's
   -- first commit but nothing ever called L.log(), so the window was
   -- permanently blank; every run's status only ever reached the main
   -- console. Kept both (not moved, per this project's "move text, don't
   -- replace it" principle only applies to text the GAME sends -- this is
-  -- our own status output, and Steven's ask was to ALSO show it in the
+  -- our own status output, and the maintainer's ask was to ALSO show it in the
   -- dedicated window, not relocate it away from the main console).
   if L.log then L.log(line) end
 end
@@ -105,7 +105,7 @@ local function dataDir() return join(profileDir(), "MyDSL") end
 -- Claude.ai/Claude Desktop review, both hit the same "known false alarm"
 -- test failure on their own machines and correctly traced it to this).
 -- The seed-file fallback below used to hardcode a literal absolute path
--- specific to Steven's own machine
+-- specific to the maintainer's own machine
 -- ("/home/owner/.config/mudlet/profiles/DSL2/MyDSL/..."). That's real
 -- and necessary in spirit -- this addon is deliberately dofile()'d from
 -- an absolute path into the DSL2 repo from inside the MyDSL play
@@ -156,7 +156,7 @@ end
 
 -- onceDataLayerReady() (guarded a load-order race against MyDSL.on(),
 -- see docs/CHANGELOG.md 2026-07-21) removed 2026-08-26 along with
--- MyDSL.on() itself, per Steven ("port if it doesnt break anything").
+-- MyDSL.on() itself, per the maintainer ("port if it doesnt break anything").
 -- The replacement, registerAnonymousEventHandler("MyDSL.scan.updated",
 -- "MyDSL.Leveling.onScanUpdated") below, doesn't need this guard at all
 -- -- Mudlet resolves the named target function at EVENT-FIRE time, not
@@ -256,7 +256,7 @@ end
 -- pre-converted, mirroring CreatureLore's own two-stage scrape->live-db
 -- pattern. Never overwrites an area the user already has (so re-running
 -- "mydsl leveling import" after hand-editing mobs is always safe).
--- REAL BUG, found live 2026-07-19 (Steven: "mydsl leveling import looks
+-- REAL BUG, found live 2026-07-19 (the maintainer: "mydsl leveling import looks
 -- like it died or never triggered" -- no output at all, not an error).
 -- Two compounding causes: (1) the default path used getMudletHomeDir(),
 -- which resolves to whichever profile is CURRENTLY RUNNING the script,
@@ -334,7 +334,7 @@ end
 -- SECTION 3: SESSION STATE (non-persisted)
 ------------------------------------------------------------------------
 
--- No failsafe/timeout field, by design, per Steven ("whatever timer
+-- No failsafe/timeout field, by design, per the maintainer ("whatever timer
 -- stops combat is not useful... we only need the pause resume and
 -- stop, not a fallback safety timer or whatever it is") -- removed
 -- 2026-07-20 along with the timer mechanism itself. state is only ever
@@ -351,7 +351,7 @@ L.session = L.session or {
   hpThreshold       = 30,   -- percent; 0 disables
   buffs             = {},   -- {fury=cmd, haste=cmd, detects=cmd, sanc=cmd}
   -- "order all kill <target>" instead of a direct "kill <target>" --
-  -- per Steven's own MyDSL notes ("an order all kill option instead of
+  -- per the maintainer's own MyDSL notes ("an order all kill option instead of
   -- direct attack, for classes where thats the right opener"): DSL's
   -- real `order` command (DSL_Helpfiles/order.txt, confirmed) orders
   -- every charmed follower/pet to act, which is the correct opener for
@@ -369,7 +369,7 @@ L.session = L.session or {
 
 function L.ensureUI()
   local win = MyDSL.Windows and MyDSL.Windows.ensure(WIN)
-  -- REAL BUG, found live 2026-07-19 (Steven: "that script blanks my main
+  -- REAL BUG, found live 2026-07-19 (the maintainer: "that script blanks my main
   -- window") -- root cause was MyDSL_WindowRegistry.lua's own registry
   -- table skipping newly-added keys on an in-session reload (fixed there,
   -- see that file's comment), which meant Windows.ensure() returned nil
@@ -414,7 +414,7 @@ function L.hide() if MyDSL.Windows then MyDSL.Windows.hide(WIN) end end
 -- confirmed real, already in production (its own "room find"/"rf" alias
 -- drives it the same way from an arbitrary current room via getPath()).
 --
--- REDESIGNED 2026-07-20, per Steven ("its to many steps to start"): the
+-- REDESIGNED 2026-07-20, per the maintainer ("its to many steps to start"): the
 -- original design required a SECOND explicit "start <area>" call to
 -- confirm arrival before "resume" would work -- one command to kick off
 -- navigation, wait, then another to confirm you're actually there. Now
@@ -428,7 +428,7 @@ function L.hide() if MyDSL.Windows then MyDSL.Windows.hide(WIN) end end
 -- happen. Room-id caching (for next time's speedwalk) is now
 -- opportunistic inside resume() instead of gating the whole flow.
 
--- REAL BUG, found live 2026-07-21 (Steven: "the path even seems
+-- REAL BUG, found live 2026-07-21 (the maintainer: "the path even seems
 -- incorrect", confirmed via log: "(mapper): (error): No path to chosen
 -- room found."). map.speedwalk() fails by echoing to the map console
 -- itself, not by raising a Lua error -- so the pcall() below always
@@ -480,11 +480,11 @@ local function sendStep(token)
   end
 end
 
--- report() -- a fuller end-of-run summary, per Steven ("give report like
+-- report() -- a fuller end-of-run summary, per the maintainer ("give report like
 -- in PNP") replacing the old one-line "pass complete. N killed, M xp."
 -- Shown once, when a full lap of the area's dirs list completes (walking
 -- + fighting the whole way through without stopping in between, exactly
--- as Steven asked -- "just keep walking and fighting till you get back
+-- as the maintainer asked -- "just keep walking and fighting till you get back
 -- to the start point").
 local function formatDuration(seconds)
   seconds = math.max(0, math.floor(seconds))
@@ -558,7 +558,7 @@ end
 -- including after movement, not just a manual "look") that AlexK's own
 -- original capture trigger used.
 --
--- Shared-risk note (per Steven, 2026-07-19): this depends entirely on
+-- Shared-risk note (per the maintainer, 2026-07-19): this depends entirely on
 -- MyDSL_DataLayer.lua's isUnparsedPresenceLine()/parseLookHereLine(),
 -- hardened three separate times (2026-07-08/09) for charmed/summoned-
 -- follower idle-line phrasing that kept evading enumeration, finally
@@ -569,7 +569,7 @@ end
 -- live testing, fix it at the shared DataLayer level (benefits every
 -- module reading scan.rightHere), not with a local workaround here.
 --
--- Ported off the deprecated MyDSL.on() API 2026-08-26, per Steven ("port
+-- Ported off the deprecated MyDSL.on() API 2026-08-26, per the maintainer ("port
 -- if it doesnt break anything") -- registerAnonymousEventHandler +
 -- reading MyDSL.State.scan directly is the same standard pattern
 -- MyDSL_CharacterAssist.lua's own "MyDSL.char.updated" handler already
@@ -583,7 +583,7 @@ function MyDSL.Leveling.onScanUpdated()
   local area = L.areas[L.session.areaKey]
   if not area then return end
 
-  -- REAL BUG, found live 2026-07-20 (Steven: "it did not engage the
+  -- REAL BUG, found live 2026-07-20 (the maintainer: "it did not engage the
   -- enemies", confirmed via the Olyndros session log -- a full 12-step
   -- pass through "philosophy" completed with 0 kills despite every room
   -- showing real, enabled mobs, e.g. "(Golden Aura) A gnome student is
@@ -618,7 +618,7 @@ registerAnonymousEventHandler("MyDSL.scan.updated", "MyDSL.Leveling.onScanUpdate
 -- SECTION 8: COMBAT LOOP
 ------------------------------------------------------------------------
 
--- REAL BUG, found live 2026-07-25, per Steven's own MyDSL-profile notes
+-- REAL BUG, found live 2026-07-25, per the maintainer's own MyDSL-profile notes
 -- ("target window not populating when im in combat, should become the
 -- target im fighting, have all the mob info etc."). Confirmed against
 -- this exact Olyndros leveling session's own log: zero Focus/TargetView
@@ -667,13 +667,13 @@ end)
 -- All corpus-confirmed real DSL text (grepped log/ directly, not
 -- invented) -- see docs/DSL_CommandRef.md.
 
--- REDESIGNED 2026-07-20, per Steven ("also fix what you can... check
+-- REDESIGNED 2026-07-20, per the maintainer ("also fix what you can... check
 -- open combat issues"; "just keep walking and fighting till you get
 -- back to the start point... we only need pause resume and stop, not a
 -- fallback safety timer or whatever it is"): a flee used to stop the
 -- whole run outright. Fleeing usually drops you in a random adjacent
 -- room, which desyncs from the area's own fixed dirs list -- but per
--- Steven's own explicit "just keep going" preference, that's an
+-- the maintainer's own explicit "just keep going" preference, that's an
 -- acceptable tradeoff (the worst case is a few harmless failed-move
 -- messages until the path naturally reconverges or the player steps in
 -- with pause/stop) rather than a hard stop on every flee.
@@ -737,7 +737,7 @@ end
 -- since MyDSL.State.char.hp/.max_hp are already flowing (update("char",
 -- ...) calls MyDSL.emit("char") on every gmcp.char_data event).
 --
--- Ported off the deprecated MyDSL.on() API 2026-08-26, per Steven ("port
+-- Ported off the deprecated MyDSL.on() API 2026-08-26, per the maintainer ("port
 -- if it doesnt break anything") -- see onScanUpdated()'s comment above
 -- for the same reasoning.
 function MyDSL.Leveling.onCharUpdated()
@@ -812,7 +812,7 @@ end
 -- SECTION 12: AREA MANAGEMENT COMMANDS
 ------------------------------------------------------------------------
 
--- REDESIGNED 2026-07-20, per Steven's own MyDSL-profile notes ("mydsl
+-- REDESIGNED 2026-07-20, per the maintainer's own MyDSL-profile notes ("mydsl
 -- leveling areas needs a cleaner display, it is very spaced out and
 -- doesnt need the [MyDSL.Leveing] line start"): ce() prepends a blank
 -- line and the "[MyDSL.Leveling]" tag to EVERY call, so calling it once
@@ -1016,7 +1016,7 @@ end
 
 -- Auto-seeds the area DB on a genuinely fresh profile (0 areas known) so
 -- a new install doesn't need a manual "mydsl leveling import" first --
--- Steven, MyDSL Test/notes.json (2026-08-30): "called for a mydsl
+-- the maintainer, MyDSL Test/notes.json (2026-08-30): "called for a mydsl
 -- leveling import. this should just be seeded in the install already."
 -- Safe to call unconditionally on every boot: importSeedAreas() only
 -- ever ADDS areas not already present (see its own comment above), and

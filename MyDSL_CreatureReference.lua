@@ -34,7 +34,7 @@ local CR_WIN = "MyDSL_CreatureReference"
 local CR_MC  = "MyDSL_CreatureReference_MC"
 
 -- getFontSize(CR_WIN, 8) fallback below: updated 2026-08-23 from 9 to 8
--- to match Steven's real long-tuned live size (MyDSL_windowfonts.lua),
+-- to match the maintainer's real long-tuned live size (MyDSL_windowfonts.lua),
 -- confirmed via a full settings-vs-defaults audit -- this fallback only
 -- ever applies to a brand-new window with nothing saved yet, but a
 -- genuine fresh install was shipping the wrong size until re-tuned.
@@ -77,7 +77,7 @@ function CR.render(name)
     rec = MyDSL.State.creaturelore
   end
 
-  -- Name header. Dash rule lines removed 2026-07-16, per Steven ("remove
+  -- Name header. Dash rule lines removed 2026-07-16, per the maintainer ("remove
   -- the --- lines in bestiary to save space") -- hrule() had no other
   -- callers left, so removed it too rather than leave dead code.
   decho(CR_MC, string.format("<255,204,68>%s<r>\n", name))
@@ -89,7 +89,7 @@ function CR.render(name)
   end
 
   -- Race / Level / Alignment -- Lvl (DSL's own "cycle of training"
-  -- number) added 2026-07-11 per Steven ("we arent capturing the...
+  -- number) added 2026-07-11 per the maintainer ("we arent capturing the...
   -- level of the mobs (level is IC cycles of training)"); align narrowed
   -- to just good/evil/neutral the same day, per his "align field needs
   -- tweaking" -- both fields come from the same MyDSL.CreatureLore DB
@@ -101,7 +101,7 @@ function CR.render(name)
     "<136,136,136>Race: <204,204,204>%-12s <136,136,136>Lvl: <204,204,204>%-4s <136,136,136>Align: <204,204,204>%s<r>\n",
     race_str, lvl_str, align_str))
 
-  -- HP. Kills/Avg XP/Last XP dropped 2026-07-16, per Steven ("bestiary
+  -- HP. Kills/Avg XP/Last XP dropped 2026-07-16, per the maintainer ("bestiary
   -- window not showing health and xp"). Investigated: HP already works
   -- correctly whenever a creature has real creaturelore data (reads
   -- straight off rec.hp, populated from "The base health of this
@@ -141,7 +141,7 @@ function CR.render(name)
       decho(CR_MC, string.format("<136,136,136>%-12s<68,68,68>(none)<r>\n", label))
     end
   end
-  -- Offensive Tactics -- added 2026-07-11 per Steven ("we arent capturing
+  -- Offensive Tactics -- added 2026-07-11 per the maintainer ("we arent capturing
   -- the offensive tactics... of the mobs").
   listLine("Tactics:",    rec.tactics,    "255,204,68")
   listLine("Immunities:", rec.immunities, "68,204,170")
@@ -187,7 +187,7 @@ function CR.onLoreUpdate()
 end
 
 -- onTargetUpdate() -- added 2026-07-12, real bug found live via screenshot
--- (Steven: "the targetview bestiary stats updated from creaturelore but
+-- (the maintainer: "the targetview bestiary stats updated from creaturelore but
 -- the bestiary window shows no health/mana. is creaturelore saving to the
 -- right place?"). Traced: CreatureLore.db WAS saving correctly the whole
 -- time (confirmed directly reading MyDSL/creaturelore_db.lua -- the
@@ -213,7 +213,7 @@ end
 ------------------------------------------------------------------------
 -- show() / hide()
 ------------------------------------------------------------------------
--- Real bug, found live 2026-07-12 (Steven: "bestiary show doesnt work,
+-- Real bug, found live 2026-07-12 (the maintainer: "bestiary show doesnt work,
 -- no window i can see"): both of these (and the auto-show above) used to
 -- call the raw Geyser window object's own :show()/:hide() directly,
 -- never touching MyDSL.Windows.registry[CR_WIN].visible -- the exact
@@ -302,7 +302,7 @@ function CR.ensureUI()
   local loreFont = MyDSL.Windows.getFontSize(CR_WIN, 8)
   if CR._mc.lore then CR._mc.lore:setFontSize(loreFont) end
 
-  -- Adaptive word wrap, per Steven ("bestiary... needs word wrap") --
+  -- Adaptive word wrap, per the maintainer ("bestiary... needs word wrap") --
   -- same real Mudlet API already proven working for History
   -- (MyDSL_RouteHelper.lua). Shared helper (MyDSL_WindowRegistry.lua)
   -- handles the "must run after setFontSize()" ordering and the
@@ -343,10 +343,10 @@ function CR.init()
   )
 
   -- Aliases -- renamed 2026-07-11, command-surface retrofit (docs/TODO.md
-  -- "OPEN — Command-surface retrofit"), per Steven. Dropped the "mydsl"
-  -- prefix. CORRECTED same day, per Steven: originally renamed to bare
+  -- "OPEN — Command-surface retrofit"), per the maintainer. Dropped the "mydsl"
+  -- prefix. CORRECTED same day, per the maintainer: originally renamed to bare
   -- "lore <name>" on the reasoning that real DSL "lore" (DSL_Helpfiles/
-  -- lore.txt) has no typed syntax to collide with -- Steven pointed out
+  -- lore.txt) has no typed syntax to collide with -- the maintainer pointed out
   -- that's the wrong bar: "lore" is still real DSL vocabulary (a skill
   -- name), and claiming it for something else is exactly the confusion
   -- this retrofit is supposed to avoid, syntax collision or not. Renamed
