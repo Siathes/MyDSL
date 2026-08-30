@@ -50,6 +50,7 @@ Verification after building (always do both before shipping):
 """
 
 import argparse
+import datetime
 import glob
 import os
 import re
@@ -475,18 +476,52 @@ def main():
     ET.parse(tmp_xml_path)
     print("XML well-formed: OK")
 
-    # config.lua manifest -- optional per Mudlet's own source
-    # (Host::installPackage() falls back to sanitizePackageName(fileName)
-    # when it's absent, which already resolves to "MyDSL_Full" for us) but
-    # added anyway per Steven's own ask for the package to declare its
-    # identity explicitly rather than rely on the archive's filename never
-    # changing. Confirmed format directly in Host::getPackageConfig(): a
-    # sandboxed Lua chunk exposing one global, `mpackage`.
-    config_lua = 'mpackage = "MyDSL_Full"\n'
+    # config.lua manifest. Originally just `mpackage` (Host::installPackage()
+    # falls back to sanitizePackageName(fileName) when it's absent, which
+    # already resolves to "MyDSL_Full" for us) -- extended 2026-08-29 with
+    # the full metadata field set, confirmed directly against Mudlet's own
+    # real source (Mudlet-5.0.0 tag: Host::getPackageConfig(),
+    # dlgPackageManager.cpp, and dlgPackageExporter.cpp -- the code behind
+    # Mudlet's own official "Export as package" dialog, the strongest
+    # confirmation available for what a well-formed config.lua should
+    # contain) while building DSL_Mapper_Addon.mpackage -- see
+    # docs/MUDLET_PACKAGING_REFERENCE.md's "Package metadata (config.lua)"
+    # section for the full writeup, this is the same field set applied here.
+    # `key = [[value]]` (Lua long-string, not `"..."`) matches
+    # dlgPackageExporter.cpp's own appendToDetails() exactly.
+    package_icon = os.path.join(REPO_ROOT, "DSL_Mapper_Addon_Icon.png")
+    package_icon_name = os.path.basename(package_icon)
+    package_created = datetime.date.today().isoformat()
+    package_description = (
+        "The full MyDSL suite: a modular passive-observation UI for "
+        "Dark and Shattered Lands (DSL). Combat tracking, group/target "
+        "windows, chat, mapper, creature/item reference, character "
+        "assist, and more -- all Mudlet native content plus this "
+        "project's own Lua modules, bundled into one package.\n\n"
+        "Part of the MyDSL project."
+    )
+
+    def lua_field(key, value):
+        return f"{key} = [[{value}]]\n" if value else ""
+
+    config_lua = (
+        lua_field("mpackage", "MyDSL_Full")
+        + lua_field("author", "Siathes")
+        + lua_field("icon", package_icon_name)
+        + lua_field("title", "MyDSL")
+        + lua_field("description", package_description)
+        + lua_field("version", "1.0.0")
+        + lua_field("helpURL", "https://github.com/Siathes/MyDSL")
+        + lua_field("created", package_created)
+    )
 
     with zipfile.ZipFile(args.out, "w", zipfile.ZIP_DEFLATED) as zf:
         zf.write(tmp_xml_path, arcname="MyDSL_Full.xml")
         zf.writestr("config.lua", config_lua)
+        if os.path.exists(package_icon):
+            zf.write(package_icon, arcname=f".mudlet/Icon/{package_icon_name}")
+        else:
+            print(f"WARNING: {package_icon} not found -- package built with no icon")
     os.remove(tmp_xml_path)
 
     print(f"Wrote {args.out}")

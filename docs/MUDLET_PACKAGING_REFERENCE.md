@@ -116,6 +116,112 @@ be.
   Key Bindings are still sitting on old nested corruption from before
   this fix existed.
 
+## Package metadata (config.lua) — confirmed 2026-08-29, real source
+
+Added while building `DSL_Mapper_Addon.mpackage` and then backported
+into `build_mydsl_package.py`. Confirmed directly against Mudlet's own
+real source (`Mudlet-5.0.0` tag), not assumed or taken from a forum
+post: `src/Host.cpp` (`Host::getPackageConfig()`), `src/
+dlgPackageManager.cpp` (how the Package Manager UI reads and displays
+it), and — the strongest confirmation available — `src/
+dlgPackageExporter.cpp`, the code behind Mudlet's **own official
+"Export as package" dialog**, which is the ground truth for what a
+well-formed `config.lua` should contain.
+
+**`config.lua` is not limited to `mpackage`.** `getPackageConfig()`
+runs the whole chunk in a sandboxed Lua state, then captures *every*
+string global left in `_G` (minus `_VERSION`) into `Host::mPackageInfo`
+— a `QMap<QString, QString>` keyed by package name. Any string global
+you set becomes a real, readable field.
+
+**The canonical field set**, taken directly from what
+`dlgPackageExporter.cpp` itself writes for every package a human
+exports through Mudlet's UI:
+
+```lua
+mpackage     = [[YourPackageName]]
+author       = [[Your Name]]
+icon         = [[icon-filename.png]]
+title        = [[Short display title]]
+description  = [[Markdown-formatted description. Supports **bold**,
+etc. A literal $packagePath token gets replaced with the installed
+package's own data directory if you need to reference a bundled file.]]
+version      = [[1.0.0]]
+helpURL      = [[https://example.com/docs]]
+dependencies = [[other_package_name,another_one]]
+created      = [[2026-08-29]]
+```
+
+Use Lua's `key = [[value]]` long-string format (not `"..."`), matching
+`dlgPackageExporter.cpp`'s own `appendToDetails()` exactly — handles
+embedded quotes and multi-line text with no escaping needed, as long as
+the value itself never contains the literal sequence `]]`.
+
+- `title`/`description`/`icon`/`helpURL`/`version` are all read and
+  displayed by the Package Manager UI (`dlgPackageManager.cpp`) —
+  `description` is rendered as **Markdown**.
+- `dependencies` is **informational only** — confirmed zero enforcement
+  logic anywhere in `Host.cpp`. Declaring it accurately is good
+  practice (shows in the UI) but doesn't gate install or block a
+  missing dependency.
+- `icon` is a **bare filename**, not a path. The actual image file must
+  be bundled inside the `.mpackage` zip at
+  **`.mudlet/Icon/<filename>`** (relative to the zip root) — confirmed
+  in both `dlgPackageManager.cpp` (how it's read back:
+  `<installedPackageDir>/.mudlet/Icon/<filename>`) and
+  `dlgPackageExporter.cpp`'s `copyIconToTmp()` (how the official
+  exporter writes it in). Get this path wrong and the icon silently
+  doesn't show — no error.
+
+## Install/uninstall hooks — confirmed 2026-08-29, from Mudlet's own best-practices page
+
+Source: `wiki.mudlet.org/w/Manual:Best_Practices`, fetched directly (not
+paraphrased from a search summary — direct `WebFetch` 403s from this
+sandbox on that domain, use the `r.jina.ai/` proxy prefix instead, e.g.
+`https://r.jina.ai/https://wiki.mudlet.org/w/Manual:Best_Practices`).
+
+- *"hook into the sysInstallPackage event to give some introductory
+  text about the package they just installed."* Confirmed in
+  `Host.cpp`: `sysInstallPackage` fires with the real package name as
+  `arg[1]`, only for an actual **package** install (there are sibling
+  events for modules: `sysInstallModule`, `sysSyncInstallModule`) — not
+  on every script reload. Guard on the exact package name so the
+  handler doesn't fire for every package a player has installed.
+- *"undo any UI changes on uninstall: set borders back, hide the UI,
+  etc."* `sysUninstallPackage` fires the same way. Real, documented Lua
+  functions for tearing down `addMapEvent()` registrations specifically:
+  **`removeMapEvent(displayName)`** and **`removeMapMenu(uniqueName)`**
+  (the latter also removes any children registered under it as a
+  parent) — confirmed directly in `src/TLuaInterpreterMapper.cpp`. An
+  earlier guess at the function name (`deleteMapEvent`) was wrong and
+  was checked against real source before use, not shipped on a guess.
+- *"when adding customisation triggers to the generic mapper, add them
+  outside of the `generic_mapper` folder"* — the same wiki page,
+  word-for-word confirming the finding that drove
+  `docs/MAPPER_REDESIGN.md`'s entire existence. Cross-referenced here so
+  it isn't only findable via the mapper-specific doc.
+
+**Both hooks matter for any package that registers global state**
+(event handlers, map menu items, Geyser windows) — not mapper-specific.
+`DSL_Mapper_Addon.xml` implements both as the reference example. A
+`local function` used as the second argument to
+`registerAnonymousEventHandler` is silently never found (it looks the
+name up in `_G`) — a real bug caught this way this session, confirmed
+via test + targeted revert. Always use a real global function for any
+event handler, never `local`.
+
+**`MyDSL_Full` — known gap, not yet closed.** Confirmed via grep: no
+`sysInstallPackage`/`sysUninstallPackage` handler exists anywhere in
+the current MyDSL codebase. The install-welcome half is straightforward
+to add (see `build_mydsl_package.py`'s own `config.lua` generation,
+updated this session with the full metadata set above). The
+uninstall-cleanup half is a much larger undertaking for `MyDSL_Full`
+specifically than it was for `DSL_Mapper_Addon` — dozens of modules,
+many registered event handlers, Geyser windows, native content — a
+shallow "kill a couple of handlers" version would be misleading about
+what actually gets cleaned up. Not built this session; flagged here as
+a real, scoped-but-deferred item rather than silently skipped.
+
 ## Checklist before every package delivery
 
 1. Run `build_mydsl_package.py`, confirm the printed script/trigger/key
@@ -135,3 +241,11 @@ be.
    (Triggers, Aliases, Keys, Scripts) after an install, check for a
    `MyDSL_Full`-named group nested inside another one before assuming
    it's a code bug in the addon itself.
+5. **Added 2026-08-29**: confirm `config.lua`'s full metadata is present
+   and correct (`unzip -p MyDSL_Full.mpackage config.lua`) — `title`,
+   `description`, `icon`, `version`, `helpURL` at minimum. Confirm the
+   icon file is actually bundled at `.mudlet/Icon/<filename>` (`unzip -l`)
+   and that the `icon` field's value matches that filename exactly, not
+   a path. After install, check the Package Manager entry actually shows
+   the icon/title/description — a wrong path shows no icon with no
+   error, easy to miss without checking.
