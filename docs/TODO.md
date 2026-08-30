@@ -82,6 +82,34 @@ question, folded in per Steven 2026-08-29 rather than a separate check.
       "MyDSL Test"), then delete the now-unneeded profiles. Needs real
       scoping before work starts — this is a large, structural,
       GUI-driven undertaking.
+- [ ] **Portrait window "black title bar" (Steven, 2026-08-29 live-test
+      note)** — reported but not reproduced in the session's own
+      screenshots (Portrait's title bar rendered themed/tan like every
+      other window there). `MyDSL_PortraitView.lua` does go through the
+      normal `MyDSL.Windows.ensure()` → `applyTheme()` path (confirmed by
+      reading `getWindowEntry()`/`getWindowObject()` — no bypass found),
+      so this isn't the same "duplicate window, never registered" bug
+      class as MoonWeather/AlterformView. Needs a fresh screenshot of the
+      actual black bar to pin down (a 1px seam at a specific theme, or
+      something zoom-level-dependent that isn't visible in the existing
+      captures). One real, unrelated dead-code finding while checking this:
+      `MyDSL_PortraitView.lua` calls `MyDSL.Windows.ensureHeader(...)`
+      twice, a function that doesn't exist anywhere in the codebase —
+      harmless (falls through to its own `else` branch both times) but
+      worth deleting next time this file is touched.
+- [ ] **Mapper "not following room movement" (Steven, 2026-08-29 live-test
+      note, marked top priority in the moment)** — likely already
+      resolved by itself: the note was written right after a fresh
+      install, and `[DSL Mapper Addon]`'s own boot message says it needs
+      Mudlet's native Generic Mapper opened once first ("this addon
+      doesn't include a copy of it"). Later screenshots from the *same*
+      session (`Screenshot_20260829_222048.png` → `_234141.png`) show the
+      minimap's room name changing between captures, i.e. tracking
+      correctly — consistent with Steven having opened the Map widget
+      once in between. Needs one explicit live re-check next session
+      (walk a few rooms right after a fresh install, before touching the
+      Map widget, to confirm whether it's really fixed by "open Map once"
+      or a real regression) before this can be closed.
 - [ ] **DslColors — make Census genuinely useful, document it.** The
       "integrate + toggle" and "fix known bugs" parts of this pass are
       done (2026-08-29 — see `docs/CHANGELOG.md`: master `dslcolor
