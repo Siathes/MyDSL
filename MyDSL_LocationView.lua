@@ -397,14 +397,24 @@ end
 -- PRIMARY source, not the last-resort fallback: it's the only source
 -- that carries roomId, which real picture assignment (M.pathForRoomId())
 -- needs, and it reads name/description/exits straight from the Mudlet
--- mapper's own per-room userdata -- the DSL_Generic_Mapper fork already
--- captures a real description into `getRoomUserData(id, "description")`
--- for every room (map.configs.use_description_matching is forced on by
--- default), anchored directly to the resolved room ID at capture time,
--- not derived from a fragile backward text scan the way this file's own
--- retired capture was. `dsl.normalized_sector` is the fork's real
--- confirmed field name for terrain (the old "terrain"/"sector" guesses
--- here never matched anything real).
+-- mapper's own per-room userdata, anchored directly to the resolved room
+-- ID at capture time, not derived from a fragile backward text scan the
+-- way this file's own retired capture was. `dsl.normalized_sector` is
+-- the fork's real confirmed field name for terrain (the old "terrain"/
+-- "sector" guesses here never matched anything real).
+--
+-- Corrected 2026-08-30 (was stale since v0.2.10, this comment used to
+-- say "use_description_matching is forced on by default" -- no longer
+-- true, see docs/TODO.md's mapper item): `getRoomUserData(id,
+-- "description")` is now kept current by `map.dsl.syncRoomDescription()`
+-- (DSL_Mapper_Addon.xml) on every successful room resolution, NOT by
+-- stock's own check_room() -- that only ever wrote it once and never
+-- again, the actual root cause of a real "mapper not following" bug
+-- confirmed and fixed the same day. use_description_matching itself
+-- defaults off for now (Steven's own call on when it's safe to re-enable
+-- per-profile); this field still gets populated/healed either way, so
+-- this file's own "description:" info display isn't affected by that
+-- setting.
 local function roomDataFromMapper()
   local id = mapperRoomId()
   if not id then return nil end
