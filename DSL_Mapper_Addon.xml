@@ -99,7 +99,7 @@ registerAnonymousEventHandler("sysUninstallPackage", "dslMapperAddonInstallUnins
 -- passive door-state feeding, and tiny debug/status helpers.
 -- ============================================================================
 map.dsl = map.dsl or {}
-map.dsl.version = "0.2.7"
+map.dsl.version = "0.2.8"
 map.dsl.base = "Generic Mapper 2.1.8"
 map.dsl.gmcp = map.dsl.gmcp or {}
 map.dsl.line_buffer = map.dsl.line_buffer or {}
@@ -444,6 +444,46 @@ function map.dsl.roomLooksStale(rid)
   return roomName ~= "" and roomName ~= gmcpName
 end
 
+-- Desync logger + checker -- added 2026-08-30 per Steven ("debug data
+-- first", then "do all recommended" once told this architecture can't
+-- reuse DSL_Generic_Mapper.xml's check_room()/move_map()/find_me()-level
+-- logging: those are stock-private locals here, unreachable from an
+-- addon layered on top through public functions and events only, per
+-- this file's own header. This is the addon-compatible equivalent,
+-- built entirely from what IS public: roomLooksStale() above already
+-- detects the exact symptom (map.currentRoom's stored name no longer
+-- matches where fresh GMCP says the player actually is) -- it was only
+-- ever used defensively before (block a color/terrain write onto the
+-- wrong room), never logged as a finding in its own right. Always-on,
+-- not gated behind "map config debug true" -- same reasoning as the
+-- other file: Steven shouldn't have to remember to flip that on before
+-- every session just so a rare desync gets caught when it happens.
+function map.dsl.logDesync(msg)
+  local ok, f = pcall(io.open, profilePath .. "/mapper_desync_log.txt", "a")
+  if ok and f then
+    f:write(os.date("%Y-%m-%d %H:%M:%S") .. "  " .. tostring(msg) .. "\n")
+    f:close()
+  end
+end
+
+-- Called on a short defer from onRoomData(), not inline -- GMCP and
+-- stock's own text-trigger-driven room resolution are two independent
+-- event streams reacting to the same server output, with no guaranteed
+-- ordering between them. Checking the instant GMCP arrives would flag a
+-- normal, fast, SUCCESSFUL move as a false-positive desync any time GMCP
+-- happens to win that race. A 1-second grace period gives stock's own
+-- resolution time to finish first; a genuine desync is not a timing
+-- fluke and is still just as visible a full second later.
+function map.dsl.checkRoomDesync()
+  if not map.currentRoom or not map.roomexists or not map.roomexists(map.currentRoom) then return end
+  if not map.dsl.roomLooksStale(map.currentRoom) then return end
+  local rd = map.dsl.gmcp and map.dsl.gmcp.room_data
+  map.dsl.logDesync(string.format(
+    "STUCK: map.currentRoom=%s stored_name=%q but fresh GMCP says the player is actually in %q -- " ..
+    "stock's own room resolution silently failed to follow a real move",
+    tostring(map.currentRoom), tostring(getRoomName(map.currentRoom)), tostring(rd and rd.room)))
+end
+
 function map.dsl.beforeExits(exits)
   map.prompt = map.prompt or {}
   exits = tostring(exits or ""):trim()
@@ -524,6 +564,7 @@ function map.dsl.onRoomData()
   map.dsl.gmcp.sector = rd.sector
   map.dsl.gmcp.normalized_sector = map.dsl.normalizeSector(rd.sector)
   -- Do not raise onNewRoom here. GMCP assists Generic Mapper but does not create rooms/links directly.
+  tempTimer(1, [[if map and map.dsl and map.dsl.checkRoomDesync then map.dsl.checkRoomDesync() end]])
 end
 
 -- DSL_SECTOR_ENV_IDS / DSL_SECTOR_ENV_COLORS -- per Steven ("hook up all

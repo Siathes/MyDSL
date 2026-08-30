@@ -119,8 +119,29 @@ question, folded in per Steven 2026-08-29 rather than a separate check.
          an equivalent event-driven desync check for `DSL_Mapper_Addon.xml`
          (compare `map.currentRoom` before/after a captured move command
          fires and stock's own new-room event, since the addon can't hook
-         `check_room` directly) — not built yet, pending Steven's answer
-         on the architecture question above.
+         `check_room` directly) — **built 2026-08-30** (`DSL_Mapper_Addon.xml`
+         v0.2.8): `map.dsl.checkRoomDesync()`, deferred 1s off every
+         `gmcp.room_data` event to let stock's own text-trigger
+         resolution finish first (avoids flagging a normal fast move as
+         a false positive from event-ordering), reuses the existing
+         `roomLooksStale()` check (already trusted for color-write
+         gating) and logs to the same `mapper_desync_log.txt` via the
+         same `map.dsl.logDesync()` pattern. `DSL_Mapper_Addon.mpackage`
+         rebuilt. Still needs Steven to actually install it in `MyDSL`
+         (see below) before it can catch anything there.
+      3. **`MyDSL` migration to the new architecture — prepared, not
+         executed.** Steven said "do all recommended" to migrating
+         `MyDSL` off the old fork. Deliberately did NOT do this via raw
+         XML surgery on his live-play profile the way the check_room
+         diagnostic edit was done — swapping one whole native package
+         for another touches Mudlet's own package bookkeeping (not just
+         `current/*.xml`), and `MyDSL` has his real character/map data,
+         unlike disposable `MyDSL Test`. Needs Steven, in the `MyDSL`
+         profile: Package Manager → uninstall `DSL_Generic_Mapper` →
+         install the freshly-built `DSL_Mapper_Addon.mpackage`
+         (v0.2.8, includes the new desync checker). Mudlet's own Generic
+         Mapper (built-in) must already be enabled — it should be, since
+         `DSL_Generic_Mapper` was a fork of it, not a replacement.
       2. **This specific 2026-08-30 episode explained, not a code bug**:
          confirmed directly in the raw session log — mid-session, with no
          typed command around it, `MyDSL Test` silently loaded
