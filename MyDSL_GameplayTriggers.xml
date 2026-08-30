@@ -2560,7 +2560,6 @@ raiseEvent("onRandomMove")
 						<name>The sun slowly disappears in the west.</name>
 						<script>playSoundFile(getMudletHomeDir() .. "/Sounds/Atmosphere_Sunset.MP3")
 MyDSL.Route.history()
-cecho("\n&lt;red&gt;* * * * * * * * @@@ ROAR @@@ * * * * * * * *&lt;reset&gt;\n")
 send("roar")</script>
 						<triggerType>0</triggerType>
 						<conditonLineDelta>0</conditonLineDelta>
@@ -2640,7 +2639,6 @@ cecho("\n&lt;yellow&gt;* * * * * * * * Day arrives across Algoron * * * * * * * 
 						<name>The sun rises in the east.</name>
 						<script>playSoundFile(getMudletHomeDir() .. "/Sounds/Atmosphere_Sunrise.MP3")
 MyDSL.Route.history()
-cecho("\n&lt;red&gt;* * * * * * * * @@@ ROAR @@@ * * * * * * * *&lt;reset&gt;\n")
 send("roar")</script>
 						<triggerType>0</triggerType>
 						<conditonLineDelta>0</conditonLineDelta>
