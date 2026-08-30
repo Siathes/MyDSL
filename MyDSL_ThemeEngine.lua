@@ -227,16 +227,28 @@ MyDSL.Theme.presets = MyDSL.Theme.presets or {
   -- programs/vehicles are consistently orange against the protagonist
   -- side's cyan, so an orange warnColor reads as "authentically Tron,"
   -- not an arbitrary color choice.
+  -- Deepened 2026-08-30 per Steven's direct follow-up ("it needs to be a
+  -- darker deeper blue") -- the first pass's titleBgColor was the bright
+  -- accent cyan itself (0,180,255) at ~35% alpha, which reads as a
+  -- washed-out MEDIUM blue on a title bar rather than a deep one (visible
+  -- in his own screenshot). Real Tron aesthetic is deep-near-black glass
+  -- surfaces with a bright neon glow only on edges/text, not a mid-
+  -- brightness fill -- titleBgColor is now a genuinely dark navy base
+  -- (10,30,70) at higher opacity (a solid deep panel, not a thin wash),
+  -- borderColor pulled back from pure neon (0,200,255) to a richer,
+  -- slightly deeper cyan-blue (10,150,220). titleColor/highlightColor
+  -- (the actual glow accents) are untouched -- those should stay bright,
+  -- that contrast against the now-darker surfaces IS the glassy look.
   tron_blue = {
     font = "Noto Sans Mono", fontSize = 9,
     titleFont = "Noto Sans Mono", titleFontSize = 9,
-    bgColor        = { r =   6, g =  10, b =  16, a = 245 },
+    bgColor        = { r =   4, g =   7, b =  12, a = 248 },
     textColor      = { r = 210, g = 240, b = 245, a = 255 },
-    borderColor    = { r =   0, g = 200, b = 255, a = 200 },
+    borderColor    = { r =  10, g = 150, b = 220, a = 210 },
     borderSize     = 1,
     radius         = 2,
     titleColor     = { r =  80, g = 230, b = 255, a = 255 },
-    titleBgColor   = { r =   0, g = 180, b = 255, a =  90 },
+    titleBgColor   = { r =  10, g =  30, b =  70, a = 170 },
     highlightColor = { r = 140, g = 255, b = 255, a = 255 },
     dimColor       = { r =  90, g = 120, b = 140, a = 255 },
     warnColor      = { r = 255, g = 110, b =  40, a = 255 },
@@ -408,8 +420,94 @@ function MyDSL.Theme.setTheme(name)
   end
   MyDSL.Theme.active = name
   MyDSL.Theme.saveActive()
+  MyDSL.Theme.applyAppStyleSheet()
   raiseEvent("MyDSL.theme.changed", name)
   return true
+end
+
+------------------------------------------------------------------------
+-- appStyleSheetCSS(name) / applyAppStyleSheet() -- added 2026-08-30, per
+-- Steven ("anyway to target the grey mudlet ui parts, like the tabs and
+-- the minimap grey areas, scroll bars etc?"). Every other function in
+-- this file styles individual MyDSL windows via setUserWindowStyleSheet
+-- (a real, per-window hook) -- but Mudlet's own native chrome (Chat's
+-- tab bar, the map's Area combobox/buttons, any scrollbar) has no
+-- per-widget hook at all; the only lever Mudlet exposes for it is
+-- setAppStyleSheet(), confirmed via Mudlet's own source
+-- (TLuaInterpreterUI.cpp: `qApp->setStyleSheet(styleSheet)`) to be
+-- WHOLE-APPLICATION scope -- one Qt stylesheet string for literally
+-- every widget in the process, not additive with anything else. Scoped
+-- deliberately narrow here (only the exact widget classes Steven named:
+-- QTabBar, QComboBox + its popup, QScrollBar, QToolButton/QPushButton
+-- for the map's own +/-/menu controls) rather than restyling every Qt
+-- widget in the app -- an unstyled widget class is simply untouched by
+-- a stylesheet that never mentions it, so this can't break dialogs or
+-- other chrome it doesn't name. Reapplied on every theme switch (from
+-- setTheme() above) and on load (from loadActive() below) so app chrome
+-- always matches the active MyDSL window theme, not just window borders.
+function MyDSL.Theme.appStyleSheetCSS(name)
+  local function c(key) return MyDSL.Theme.colorToCSS(MyDSL.Theme.presets[name] and MyDSL.Theme.presets[name][key] or MyDSL.Theme.defaults[key]) end
+  return string.format([[
+    QTabBar::tab {
+      background: %s;
+      color: %s;
+      border: 1px solid %s;
+      padding: 4px 10px;
+    }
+    QTabBar::tab:selected {
+      background: %s;
+      color: %s;
+      border: 1px solid %s;
+    }
+    QComboBox {
+      background: %s;
+      color: %s;
+      border: 1px solid %s;
+      padding: 2px 6px;
+    }
+    QComboBox QAbstractItemView {
+      background: %s;
+      color: %s;
+      selection-background-color: %s;
+      selection-color: %s;
+      border: 1px solid %s;
+    }
+    QScrollBar:vertical, QScrollBar:horizontal {
+      background: %s;
+      border: none;
+    }
+    QScrollBar::handle:vertical, QScrollBar::handle:horizontal {
+      background: %s;
+      border-radius: 4px;
+    }
+    QScrollBar::add-line, QScrollBar::sub-line {
+      background: none;
+      border: none;
+    }
+    QToolButton, QPushButton {
+      background: %s;
+      color: %s;
+      border: 1px solid %s;
+      border-radius: 3px;
+    }
+    QToolButton:hover, QPushButton:hover {
+      background: %s;
+    }
+  ]],
+    c("bgColor"), c("dimColor"), c("borderColor"),
+    c("titleBgColor"), c("titleColor"), c("borderColor"),
+    c("bgColor"), c("textColor"), c("borderColor"),
+    c("bgColor"), c("textColor"), c("titleBgColor"), c("titleColor"), c("borderColor"),
+    c("bgColor"),
+    c("borderColor"),
+    c("bgColor"), c("textColor"), c("borderColor"),
+    c("titleBgColor")
+  )
+end
+
+function MyDSL.Theme.applyAppStyleSheet()
+  local ok = pcall(setAppStyleSheet, MyDSL.Theme.appStyleSheetCSS(MyDSL.Theme.active))
+  if not ok then debugc("[MyDSL] ThemeEngine: setAppStyleSheet failed") end
 end
 
 
@@ -912,6 +1010,12 @@ if not MyDSL.Theme._aliasesInstalled then
   MyDSL.Theme._aliasesInstalled = true
 end
 
+
+-- Applied here, not from inside loadActive() itself -- loadActive() is
+-- called near the top of this file (right after saveActive()), before
+-- appStyleSheetCSS()/applyAppStyleSheet() are even defined further down.
+-- This is the real end of the file, after every function exists.
+MyDSL.Theme.applyAppStyleSheet()
 
 ------------------------------------------------------------------------
 -- LOAD CONFIRMATION

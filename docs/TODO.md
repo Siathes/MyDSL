@@ -795,21 +795,28 @@ one at a time:
          per-line decoration — sidesteps line-editing entirely.
       Needs Steven's input on which direction, or a live test of option 1
       before committing to it.
-- [ ] **Theme default + a new "tron blue" palette — idea, not scoped.**
-      Steven, `MyDSL Test/notes.json` (2026-08-30): "find one of the
-      themes i liked and make it default, and parity across modules. if
-      you can think of a new one that matches or MyDSL style and
-      features/functions like that cool package icon you made go for it
-      and add one more. do a research for a pallet that would stand out
-      maybe in the tron blue style." Three separate asks bundled: (1)
-      which existing `MyDSL_ThemeEngine.lua` preset does Steven actually
-      mean by "one of the themes i liked" — needs his own pick, not a
-      guess; (2) a "parity across modules" audit — confirm every window
-      actually reads its colors from the active theme rather than a
-      hardcoded value (some UserWindow-vs-Container styling gaps are
-      already on record elsewhere in this file); (3) a genuinely new
-      "tron blue" preset — needs a real palette research pass before
-      building, same standard as every other design decision here.
+- [ ] **Theme default + "parity across modules" — 2 of 3 asks done, one
+      still open.** Steven, `MyDSL Test/notes.json` (2026-08-30): "find
+      one of the themes i liked and make it default, and parity across
+      modules... do a research for a pallet that would stand out maybe
+      in the tron blue style." Three asks: (1) **which existing preset
+      Steven means by "one of the themes i liked" — still needs his own
+      pick**, not a guess, before anything can be set as default. (2)
+      **tron_blue built** (plus a second new preset, muted_scroll_nature,
+      per his own explicit "actually make 2 new ones" follow-up), then
+      **deepened same live session** after his direct feedback ("it
+      needs to be a darker deeper blue") — see `docs/CHANGELOG.md`'s
+      2026-08-30 entries for the full trace, including the HP/Mana/Move
+      bar "glassy" theming and the new `setAppStyleSheet()`-based app-
+      chrome pass (tabs/comboboxes/scrollbars) built from the same
+      screenshot follow-up. Needs live confirm — can't verify Mudlet's
+      own chrome rendering without a screenshot. (3) **"parity across
+      modules" audit — still not done**: confirm every window actually
+      reads its colors from the active theme rather than a hardcoded
+      value (the LiveView bar-track fix above is one real instance of
+      this same gap, found and fixed along the way — there may be
+      others; some UserWindow-vs-Container styling gaps are already on
+      record elsewhere in this file too).
 - [ ] **Skill-based affect tracking (e.g. `hide`)** — Steven, "MyDSL Test"
       `notes.json`: "its a skill not a cast, need a method for tracking
       skills like spells?" `MyDSL_AffectsView.lua`'s tracking today is

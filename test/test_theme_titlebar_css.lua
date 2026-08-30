@@ -82,8 +82,8 @@ MyDSL.Theme.setTheme("tron_blue")
 local titleBar4 = MyDSL.Theme.titleBarCSS("MyDSL_Combat")
 check("titleBarCSS text color for tron_blue is its titleColor (80,230,255)",
   contains(titleBar4, "color: rgba(80,230,255,1.00)"))
-check("titleBarCSS background for tron_blue is titleBgColor (0,180,255 @ 90/255)",
-  contains(titleBar4, "background-color: rgba(0,180,255,0.35)"))
+check("titleBarCSS background for tron_blue is titleBgColor (10,30,70 @ 170/255, deepened per Steven's direct follow-up)",
+  contains(titleBar4, "background-color: rgba(10,30,70,0.67)"))
 
 -- ---- muted_scroll_nature: titleColor 196,180,110, titleBgColor 120,110,60 @ 90/255 ----
 

@@ -198,12 +198,31 @@ local function styleDivider()
   ]], color)
 end
 
+-- styleBarBack() -- theme-aware, added 2026-08-30 per Steven's tron_blue
+-- follow-up ("maybe change the hp/mana/move bar to something similar but
+-- more glassy looking"). The bar TRACK (housing), not the colored FILL,
+-- now reads the active theme's own bgColor/borderColor -- HP/Mana/Move's
+-- fill colors (L.colorSet()) stay hardcoded red/blue/green on purpose
+-- (universal at-a-glance meaning, shouldn't shift with theme), but the
+-- glass housing around them now matches whichever theme is active. This
+-- is what actually delivers "glassy" for tron_blue specifically (a deep
+-- near-black track with a glowing cyan edge) while also being a real
+-- parity improvement for every other preset, not a tron-only special
+-- case. Falls back to the original fixed slate colors if ThemeEngine
+-- isn't loaded for any reason.
 local function styleBarBack()
-  return [[
-    background-color: #10171b;
-    border: 1px solid #43545c;
+  local bg, border = "#10171b", "#43545c"
+  if MyDSL.Theme and MyDSL.Theme.get and MyDSL.Theme.colorToCSS then
+    local ok1, bgColor = pcall(MyDSL.Theme.get, L.name, "bgColor")
+    local ok2, borderColor = pcall(MyDSL.Theme.get, L.name, "borderColor")
+    if ok1 and bgColor then bg = MyDSL.Theme.colorToCSS(bgColor) end
+    if ok2 and borderColor then border = MyDSL.Theme.colorToCSS(borderColor) end
+  end
+  return string.format([[
+    background-color: %s;
+    border: 1px solid %s;
     border-radius: 5px;
-  ]]
+  ]], bg, border)
 end
 
 local function styleBarFill(c1, c2, c3)
