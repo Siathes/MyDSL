@@ -113,6 +113,21 @@ only hold what git history and the code can't already tell you.** That's:
    in chat (confirmed real, non-trivial content found there 2026-08-23
    after a ~1-month gap in this repo's own commit history). Reconcile
    anything found into `docs/TODO.md`, don't let it sit unread.
+   **Also check `MyDSL Test/notes.json`** (added 2026-08-30) — Mudlet's
+   own built-in Notepad file, a completely different mechanism from
+   `notes_utf8.txt` above and easy to miss for exactly that reason (a
+   real gameplay bug report sat there unread for part of a session before
+   being found). `MyDSL Test` is a deliberately disposable
+   reinstall-test profile — a reinstall wipes this file with no backup
+   anywhere, so read and reconcile it *every time it might have new
+   content*, not just at session start: right after any live-play/test
+   pass in that profile and always before a reinstall. Confirmed real
+   loss already happened at least once (a `MyDSL_Test_baseline_before_
+   packages.md`, `~/Downloads`, shows this profile name has been
+   reinstalled since at least 2026-07-07; nothing in git history ever
+   mentions `notes.json` before 2026-08-30, so any notes written in an
+   earlier instance are gone for good) — this rule exists so it doesn't
+   happen again.
 5. Check `HANDOFF.md` (repo root) — added 2026-08-23 as a rolling
    mailbox between this session and Claude Desktop (an independent
    reviewer, connected read-only via GitHub; Steven relays between the
