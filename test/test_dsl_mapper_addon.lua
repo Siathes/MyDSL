@@ -217,5 +217,56 @@ if map.dsl and map.dsl.install then
     map.configs.dsl_generic_mapper_seen == true)
 end
 
+------------------------------------------------------------------------
+-- applySectorColor()/applyRoomMetadata() terrain-lock fix -- added
+-- 2026-08-30 per Steven ("mapper isnt applying the terrain color on
+-- first build or revisits. see red boxes on mini map instead of
+-- forest"). Real bug: applyRoomMetadata() used to lock a room's terrain
+-- as "done" based on whether the sector STRING normalized to something
+-- recognized, not whether applySectorColor() actually succeeded at
+-- coloring it -- so a room that hit a silent setRoomEnv() failure got
+-- permanently locked in its broken (uncolored/default-red) state, with
+-- no future visit ever able to retry it. applySectorColor() now returns
+-- true/false for real success, and the lock only gets written on true.
+------------------------------------------------------------------------
+if map.dsl and map.dsl.applySectorColor then
+  _G.__rooms[10] = { exists = true, userdata = {}, env = 0 }
+  map.roomexists = map.roomexists or function(id) return _G.roomexists(id) == 1 end
+
+  check("applySectorColor() returns true and colors a recognized sector",
+    map.dsl.applySectorColor(10, "forest") == true and getRoomEnv(10) == 23)
+
+  check("applySectorColor() returns false for an unrecognized sector string (no envID match)",
+    map.dsl.applySectorColor(10, "some_weird_unmapped_text") == false)
+
+  check("applySectorColor() returns false for sector == 'unknown'",
+    map.dsl.applySectorColor(10, "unknown") == false)
+
+  if map.dsl.applyRoomMetadata then
+    -- Simulate the real failure mode: GMCP room_data present and fresh,
+    -- but its sector text doesn't normalize to anything this addon
+    -- recognizes -- applySectorColor() will return false, and the room
+    -- must NOT get terrain-locked, so a later visit (once the real cause
+    -- is fixed, or GMCP sends something recognizable) can still retry it.
+    _G.__rooms[11] = { exists = true, userdata = {}, env = 0 }
+    map.currentRoom = 11
+    map.dsl.gmcp = { room_data = { sector = "totally_unrecognized_sector_text" }, room_data_time = os.time() }
+    map.dsl.applyRoomMetadata()
+    check("a room whose sector never resolves to a real color does NOT get terrain-locked",
+      getRoomUserData(11, "dsl.terrain_locked") ~= "true")
+
+    -- Now the success path: a real, recognized sector should both color
+    -- the room AND lock it, same as before this fix for the case that
+    -- actually works.
+    _G.__rooms[12] = { exists = true, userdata = {}, env = 0 }
+    map.currentRoom = 12
+    map.dsl.gmcp = { room_data = { sector = "forest" }, room_data_time = os.time() }
+    map.dsl.applyRoomMetadata()
+    check("a room with a real recognized sector gets colored", getRoomEnv(12) == 23)
+    check("a room with a real recognized sector DOES get terrain-locked (unchanged success-path behavior)",
+      getRoomUserData(12, "dsl.terrain_locked") == "true")
+  end
+end
+
 print(string.format("\n%d failure(s)", failures))
 os.exit(failures == 0 and 0 or 1)

@@ -54,6 +54,47 @@ Mudlet 4.22's real native mapper features (Configure Areas dialog, exit
 locking, label-color handling) are reachable — same version-upgrade
 question, folded in per Steven 2026-08-29 rather than a separate check.
 
+- [ ] **Mapper: terrain color not applying, "red boxes instead of
+      forest" — real bug found + fixed 2026-08-30, needs live confirm.**
+      Steven's own live-test report after the public mapper addon
+      release: "mapper isnt applying the terrain color on first build or
+      revisits. see red boxes on mini map instead of forest." Traced two
+      real bugs together: (1) several silent no-op points in
+      `applySectorColor()` (an unrecognized sector string never even
+      attempts `setRoomEnv()`; the call itself was `pcall`-wrapped with
+      no logging on failure) — Mudlet's own default/uncolored room
+      environment IS red by its stock factory preset, matching the
+      symptom exactly. (2) the real one: `applyRoomMetadata()` and
+      `onTerrainLine()` both locked a room's terrain as permanently
+      "done" based on whether the sector STRING normalized to something
+      recognized, not whether the color actually applied — so a room
+      that hit any silent failure got stuck in its broken (red) state
+      forever, with no future visit ever able to retry it. Explains
+      "first build or revisits" both failing identically. Fixed:
+      `applySectorColor()` now returns real success/failure (checks
+      `getRoomEnv()` actually changed after `setRoomEnv()`, not just that
+      the call didn't error), and both callers only write the
+      `dsl.terrain_locked` lock on confirmed success. Also added
+      unconditional diagnostic logging (reusing the existing
+      `mapper_desync_log.txt`/`logDesync()` mechanism from the earlier
+      mapper investigation) at every bail-out point in
+      `applyRoomMetadata()` (no GMCP room_data ever received, stale GMCP,
+      `roomLooksStale()`, already-locked) plus `registerEnvColors()`
+      itself, so if this ISN'T the whole story, the next test will show
+      exactly which step is actually failing. 6 new regression tests
+      (`test_dsl_mapper_addon.lua`). `DSL_Mapper_Addon.mpackage` rebuilt
+      (v0.2.12), **published to the existing public GitHub release**
+      (`mapper-addon-v0.2.11` tag — same tag, updated asset, since this
+      is a bugfix on the just-released public version, not worth a
+      whole new tag for). Needs Steven to reinstall and confirm terrain
+      color now applies; if it still doesn't, `mapper_desync_log.txt`
+      will show exactly why for the first time.
+- [ ] **AffectsView: right-click track/untrack on a spell — Steven asked
+      for recommended options, not yet designed or built.** "can we
+      rightclick add to tracked untrack (any recommend options) on the
+      spell." Needs a concrete proposal (context-menu items, what
+      "recommended" tracking defaults would look like) before building —
+      see the reply given when this was asked for the actual pitch.
 - [ ] **Native-content full consolidation — Steven's own words: "this is a
       high priority to get back to a solid baseline of everything in the
       package."** Merges three related asks from this pass into one

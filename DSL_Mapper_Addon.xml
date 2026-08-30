@@ -99,7 +99,7 @@ registerAnonymousEventHandler("sysUninstallPackage", "dslMapperAddonInstallUnins
 -- passive door-state feeding, and tiny debug/status helpers.
 -- ============================================================================
 map.dsl = map.dsl or {}
-map.dsl.version = "0.2.11"
+map.dsl.version = "0.2.12"
 map.dsl.base = "Generic Mapper 2.1.8"
 map.dsl.gmcp = map.dsl.gmcp or {}
 map.dsl.line_buffer = map.dsl.line_buffer or {}
@@ -627,9 +627,25 @@ local DSL_SECTOR_NAMES_SORTED = {}
 for k in pairs(DSL_SECTOR_ENV_IDS) do DSL_SECTOR_NAMES_SORTED[#DSL_SECTOR_NAMES_SORTED + 1] = k end
 table.sort(DSL_SECTOR_NAMES_SORTED)
 
+-- Logs any registration failure -- added 2026-08-30, same investigation
+-- as applySectorColor()/applyRoomMetadata() above (Steven: "mapper isnt
+-- applying the terrain color... see red boxes instead of forest"). If
+-- setCustomEnvColor() itself never actually registers a color for an
+-- envID (this runs once, from install(), before any real color-writing
+-- happens), every later setRoomEnv(rid, envID) call would "succeed" at
+-- the room-assignment level while still rendering with no real color --
+-- a failure mode the fixes above can't detect on their own, since they
+-- only check whether setRoomEnv() took, not whether the environment ID
+-- they assigned actually has a color behind it.
 function map.dsl.registerEnvColors()
   for envID, rgba in pairs(DSL_SECTOR_ENV_COLORS) do
-    pcall(setCustomEnvColor, envID, rgba[1], rgba[2], rgba[3], rgba[4])
+    local ok = pcall(setCustomEnvColor, envID, rgba[1], rgba[2], rgba[3], rgba[4])
+    if not ok and map.dsl.logDesync then
+      map.dsl.logDesync(string.format("registerEnvColors: setCustomEnvColor(%d, ...) FAILED", envID))
+    end
+  end
+  if map.dsl.logDesync then
+    map.dsl.logDesync(string.format("registerEnvColors: registered %d environment colors", table.size and table.size(DSL_SECTOR_ENV_COLORS) or 14))
   end
 end
 
@@ -665,13 +681,51 @@ end
 -- manual UI recolor could still get reverted by a *future unlocked* room's
 -- next auto-color pass. Accepted, pre-existing tradeoff, unrelated to the
 -- lock added here.
+-- Logs its own outcome unconditionally, and now returns whether color was
+-- ACTUALLY applied -- both added 2026-08-30, per Steven ("mapper isnt
+-- applying the terrain color on first build or revisits. see red boxes
+-- on mini map instead of forest"). Two real bugs found together here:
+-- (1) several silent no-op points existed (unrecognized sector string ->
+-- no envID match -> setRoomEnv() never called at all; setRoomEnv() itself
+-- pcall-wrapped with no logging on failure) -- Mudlet's own default
+-- environment (an uncolored room) IS red by its stock factory preset,
+-- which matches the reported symptom exactly. (2) applyRoomMetadata()
+-- (below) was locking a room's terrain as "done" based on whether the
+-- SECTOR STRING was recognized, not whether this function actually
+-- succeeded at applying a color -- so a room that hit any of these
+-- silent failures got permanently locked in its broken, uncolored state,
+-- explaining why revisits never fixed it either. Returning a real
+-- success/failure result lets the caller lock only on genuine success.
 function map.dsl.applySectorColor(rid, sector)
-  if not rid or not sector or sector == "unknown" then return end
-  if not map.roomexists or not map.roomexists(rid) then return end
-  local envID = DSL_SECTOR_ENV_IDS[sector]
-  if envID and getRoomEnv(rid) ~= envID then
-    pcall(setRoomEnv, rid, envID)
+  if not rid or not sector or sector == "unknown" then
+    if map.dsl.logDesync then
+      map.dsl.logDesync(string.format(
+        "applySectorColor: bailed early -- rid=%s sector=%s (nil/unknown, no color applied)",
+        tostring(rid), tostring(sector)))
+    end
+    return false
   end
+  if not map.roomexists or not map.roomexists(rid) then return false end
+  local envID = DSL_SECTOR_ENV_IDS[sector]
+  if not envID then
+    if map.dsl.logDesync then
+      map.dsl.logDesync(string.format(
+        "applySectorColor: room=%s sector=%q has NO matching envID in DSL_SECTOR_ENV_IDS -- " ..
+        "normalizeSector() returned an unrecognized value, no color applied",
+        tostring(rid), tostring(sector)))
+    end
+    return false
+  end
+  if getRoomEnv(rid) == envID then return true end
+  local ok = pcall(setRoomEnv, rid, envID)
+  local applied = ok and getRoomEnv(rid) == envID
+  if map.dsl.logDesync then
+    map.dsl.logDesync(string.format(
+      "applySectorColor: room=%s sector=%q envID=%d setRoomEnv() pcall=%s, room env now=%s -> %s",
+      tostring(rid), tostring(sector), envID, tostring(ok), tostring(getRoomEnv(rid)),
+      applied and "OK" or "FAILED"))
+  end
+  return applied
 end
 
 -- setManualTerrain(rid, sectorInput) -- backs the "rt"/"room terrain"
@@ -786,7 +840,12 @@ function map.dsl.applyRoomMetadata()
   setRoomUserData(rid, "dsl.last_seen", tostring(os.time()))
   map.dsl.last_room_apply = rid
   local rd = map.dsl.gmcp and map.dsl.gmcp.room_data or nil
-  if not rd then return end
+  if not rd then
+    if map.dsl.logDesync then
+      map.dsl.logDesync("applyRoomMetadata: bailed -- no gmcp.room_data ever received this session")
+    end
+    return
+  end
   -- Same staleness guard as beforeExits() -- fixed 2026-07-19 (code
   -- review): without this, a room_data payload that's still describing
   -- the PREVIOUS room (GMCP hasn't sent a fresh one yet for this arrival)
@@ -795,12 +854,32 @@ function map.dsl.applyRoomMetadata()
   -- above are visit bookkeeping, correct regardless of GMCP freshness.
   local rdFresh = map.dsl.gmcp.room_data_time
     and (os.time() - map.dsl.gmcp.room_data_time) &lt;= DSL_GMCP_ROOMDATA_TIMEOUT
-  if not rdFresh then return end
+  if not rdFresh then
+    if map.dsl.logDesync then
+      map.dsl.logDesync(string.format(
+        "applyRoomMetadata: bailed -- gmcp.room_data is stale (age=%s, timeout=%ds)",
+        tostring(map.dsl.gmcp.room_data_time and (os.time() - map.dsl.gmcp.room_data_time)),
+        DSL_GMCP_ROOMDATA_TIMEOUT))
+    end
+    return
+  end
   -- Corruption + lock guards -- see roomLooksStale()/terrainLocked() above.
   -- Both must be checked before touching ANY of the room's terrain/sector/
   -- color fields below, not just the color write.
-  if map.dsl.roomLooksStale(rid) then return end
-  if map.dsl.terrainLocked(rid) then return end
+  if map.dsl.roomLooksStale(rid) then
+    if map.dsl.logDesync then
+      map.dsl.logDesync(string.format("applyRoomMetadata: bailed -- room=%s roomLooksStale()", tostring(rid)))
+    end
+    return
+  end
+  if map.dsl.terrainLocked(rid) then
+    if map.dsl.logDesync then
+      map.dsl.logDesync(string.format(
+        "applyRoomMetadata: bailed -- room=%s already terrain-locked (env=%s)",
+        tostring(rid), tostring(getRoomEnv(rid))))
+    end
+    return
+  end
   local sector = map.dsl.normalizeSector(rd.sector)
   if rd.room then dsl_setIfChanged(rid, "dsl.gmcp_room", tostring(rd.room)) end
   if rd.sector then dsl_setIfChanged(rid, "dsl.gmcp_sector", tostring(rd.sector)) end
@@ -815,8 +894,16 @@ function map.dsl.applyRoomMetadata()
       dsl_setIfChanged(rid, "dsl.sector_conflict", "false")
     end
   end
-  map.dsl.applySectorColor(rid, sector)
-  if sector ~= "unknown" then setRoomUserData(rid, "dsl.terrain_locked", "true") end
+  -- Lock only on a CONFIRMED successful color application -- fixed
+  -- 2026-08-30 (see applySectorColor()'s own comment above). This used to
+  -- lock whenever `sector ~= "unknown"`, regardless of whether
+  -- applySectorColor() actually managed to color the room -- a room that
+  -- hit a silent setRoomEnv() failure got locked in its broken (default
+  -- red) state forever, with no future visit ever able to retry it.
+  local applied = map.dsl.applySectorColor(rid, sector)
+  if applied then
+    setRoomUserData(rid, "dsl.terrain_locked", "true")
+  end
 end
 
 -- Called inline, not deferred -- fixed 2026-07-19 (PVP perf audit). This
@@ -942,8 +1029,14 @@ function map.dsl.onTerrainLine(text)
       -- player typing "terrain" manually should get the same auto-color
       -- benefit as GMCP-derived sector data. Weight is unaffected here --
       -- it only comes from real observed movement-point cost.
-      map.dsl.applySectorColor(rid, getRoomUserData(rid, "dsl.normalized_sector"))
-      setRoomUserData(rid, "dsl.terrain_locked", "true")
+      -- Lock only on confirmed success -- same 2026-08-30 fix as
+      -- applyRoomMetadata() above, same bug (was locking unconditionally
+      -- whenever the sector STRING normalized, regardless of whether
+      -- setRoomEnv() actually took).
+      local applied = map.dsl.applySectorColor(rid, getRoomUserData(rid, "dsl.normalized_sector"))
+      if applied then
+        setRoomUserData(rid, "dsl.terrain_locked", "true")
+      end
     end
   end
 end
