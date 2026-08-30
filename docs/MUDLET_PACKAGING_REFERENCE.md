@@ -268,3 +268,33 @@ a real, scoped-but-deferred item rather than silently skipped.
    ~1.4MB means it has the real data; a few hundred bytes means it's
    still the empty post-reinstall map) — don't overwrite newer session
    data with an older snapshot.
+7. **Added 2026-08-30, before reinstalling MyDSL_Full into the `MyDSL`
+   profile specifically (not a fresh profile)**: two of the three
+   native-origin groups the build script pulls in
+   (`get_native_trigger_groups()`'s `NATIVE_TRIGGER_PACKAGE_NAMES`) are
+   tracked under their OWN separate `packageName` tags in `MyDSL`'s live
+   XML — `"DslColors v1.0 Triggers"` is `packageName=DslColors_v1_0`,
+   `"MyDSL_GameplayTriggers"` is `packageName=MyDSL_GameplayTriggers` —
+   NOT `packageName=MyDSL_Full`. Confirmed directly by grepping `MyDSL`'s
+   own `current/*.xml`. Uninstalling the old `MyDSL_Full` package only
+   removes content tagged `packageName=MyDSL_Full`, so it will NOT touch
+   these two — but installing the new `MyDSL_Full.mpackage` WILL add a
+   fresh nested copy of each (both groups are bundled into the built
+   package so a genuinely fresh profile gets them too), landing inside
+   the new install's own synthetic `MyDSL_Full` folder per the root
+   cause documented above. Real duplication: two live copies of the same
+   trigger group, both firing independently on the same incoming text.
+   **The `Movement` KeyGroup does NOT have this problem** — it's already
+   tagged `packageName=MyDSL_Full` in `MyDSL`'s live XML (confirmed same
+   way), so the standard uninstall-old/install-new cycle replaces it
+   cleanly. The 29 personal aliases (`MyDSL_PersonalAliases.xml`) aren't
+   bundled into the package at all yet (see the native-content
+   consolidation TODO item), so they're unaffected either way.
+   **Procedure**: after installing the new package into `MyDSL`, open
+   the Triggers editor, find the newly-installed `MyDSL_Full` folder,
+   and delete or disable the nested `DslColors v1.0 Triggers`/
+   `MyDSL_GameplayTriggers` children inside it — keep the original,
+   separately-packaged top-level copies. This only applies when
+   installing into `MyDSL` itself (the profile these groups were
+   captured FROM); a fresh profile like `MyDSL Test` has no pre-existing
+   native copies to duplicate against.
