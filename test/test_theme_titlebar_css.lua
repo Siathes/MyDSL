@@ -97,6 +97,16 @@ check("titleBarCSS text color for muted_scroll_nature is its titleColor (196,180
 check("titleBarCSS background for muted_scroll_nature is titleBgColor (120,110,60 @ 90/255)",
   contains(titleBar5, "background-color: rgba(120,110,60,0.35)"))
 
+-- ---- shattered_moonlight (MyDSL signature theme): titleColor 220,225,240 (white moon), titleBgColor 40,10,14 @ 200/255 (red moon) ----
+
+MyDSL.Theme.setTheme("shattered_moonlight")
+
+local titleBarMoon = MyDSL.Theme.titleBarCSS("MyDSL_Combat")
+check("titleBarCSS text color for shattered_moonlight is the white moon (220,225,240)",
+  contains(titleBarMoon, "color: rgba(220,225,240,1.00)"))
+check("titleBarCSS background for shattered_moonlight is the red moon (40,10,14 @ 200/255)",
+  contains(titleBarMoon, "background-color: rgba(40,10,14,0.78)"))
+
 -- ---- rainbow (theme-builder tool): titleColor 255,255,0, titleBgColor 0,102,0 @ 255/255 ----
 
 MyDSL.Theme.setTheme("rainbow")

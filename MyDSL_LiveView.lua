@@ -323,6 +323,17 @@ local THEME_BAR_COLORS = {
     move    = { "#7ae0c0", "#2ab890", "#0f4a3a" },  -- teal (contrast)
     improve = { "#e0a0f0", "#b060d6", "#4a1a5a" },  -- violet-pink (matches highlightColor)
   },
+  -- shattered_moonlight -- the MyDSL signature theme (see this preset's
+  -- own design writeup in MyDSL_ThemeEngine.lua). HP is the red moon
+  -- (danger, rising); Mana is the white moon (arcane moonlight); Move is
+  -- a deep starlit teal (night travel); Improve is starlight gold
+  -- (matches the preset's own highlightColor). No two bars share a hue.
+  shattered_moonlight = {
+    hp      = { "#e0708a", "#c22035", "#4a0a12" },  -- the red moon
+    mana    = { "#f0f2ff", "#c8d0f0", "#4a4f70" },  -- the white moon
+    move    = { "#8ad0c8", "#3a9088", "#123a36" },  -- starlit teal
+    improve = { "#fff0c0", "#e0b840", "#5a4410" },  -- starlight gold
+  },
 }
 
 local function styleBarLabel()

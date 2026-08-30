@@ -433,6 +433,60 @@ MyDSL.Theme.presets = MyDSL.Theme.presets or {
     goodColor      = { r = 150, g = 210, b = 180, a = 255 },
   },
 
+  -- ---- Shattered Moonlight (MyDSL signature theme) ---------------------
+  -- Added 2026-08-30, per Steven's direct ask: "design a MyDSL theme...
+  -- think our philosophy our styles our charcaters and dsl colors...
+  -- blow my mind." Not a generic palette -- built from three things
+  -- already real in this project, not invented for this preset:
+  --
+  -- 1. DSL's own dual-moon mechanic. `MyDSL_MoonWeather.lua` parses two
+  --    real, recurring game lines every session -- "The red moon is..."
+  --    and "The white moon is..." -- DSL's own lore literally has two
+  --    moons. That duality IS this theme: bgGradient is a true night sky
+  --    (near-black fading to a cool indigo-black, not a saturated
+  --    purple like arcane_midnight -- deliberately closer to how a real
+  --    night sky looks than a fantasy "arcane" glow), titleColor is the
+  --    white moon (a cool silver-white glow) sitting on titleBgColor,
+  --    the red moon (a deep blood-red wash) -- the two moons together,
+  --    literally, in the one UI element every window shares.
+  -- 2. DslColors' own real relationship convention, already established
+  --    across this whole suite (DSL_COLOR_DB.relations: friend=green,
+  --    enemy=red, neutral=gold -- see DSL_Mapper_Addon.xml's player-
+  --    highlight colors, the exact same real global). goodColor/
+  --    warnColor here echo that SAME green/red pairing on purpose -- a
+  --    player who already reads friend=green/enemy=red on the map reads
+  --    good/warn text the same way here, one consistent color language
+  --    across the whole project instead of a preset inventing its own.
+  -- 3. highlightColor is warm starlight gold, not a third moon color --
+  --    a deliberate third note so the palette isn't just two-tone. Also
+  --    doubles as the Improve bar's own accent (see THEME_BAR_COLORS in
+  --    MyDSL_LiveView.lua): progress/growth reads as starlight, not
+  --    moonlight or bloodshed.
+  --
+  -- HP = the red moon (danger, rising). Mana = the white moon (arcane
+  -- moonlight). Move = a deep starlit teal (night travel). Improve =
+  -- starlight gold. None of the four bars share a hue -- same design
+  -- discipline as every other release theme this session.
+  shattered_moonlight = {
+    font = "Noto Sans Mono", fontSize = 9,
+    titleFont = "Noto Sans Mono", titleFontSize = 9,
+    bgColor        = { r =   8, g =   8, b =  14, a = 248 },
+    bgGradient     = {
+      from = { r =   5, g =   5, b =   8, a = 248 },
+      to   = { r =  13, g =  13, b =  26, a = 248 },
+    },
+    textColor      = { r = 200, g = 205, b = 215, a = 255 },
+    borderColor    = { r = 140, g = 150, b = 170, a = 190 },
+    borderSize     = 1,
+    radius         = 4,
+    titleColor     = { r = 220, g = 225, b = 240, a = 255 },  -- the white moon
+    titleBgColor   = { r =  40, g =  10, b =  14, a = 200 },  -- the red moon
+    highlightColor = { r = 255, g = 240, b = 200, a = 255 },  -- starlight gold
+    dimColor       = { r = 100, g = 105, b = 120, a = 255 },
+    warnColor      = { r = 200, g =  40, b =  50, a = 255 },  -- echoes DslColors' enemy=red
+    goodColor      = { r = 110, g = 190, b = 120, a = 255 },  -- echoes DslColors' friend=green
+  },
+
   -- ---- Rainbow (theme-builder tool) --------------------------------
   -- Added 2026-08-30, per Steven: "that is so fun i want you to leave
   -- that in as a test theme for anyone that wants to build a theme."
@@ -468,7 +522,7 @@ MyDSL.Theme.presets = MyDSL.Theme.presets or {
 MyDSL.Theme.presetOrder = MyDSL.Theme.presetOrder or {
   "refined_convergence", "terminal_purist", "zoned_hud",
   "obsidian_ember", "arcane_midnight", "tron_blue", "muted_scroll_nature",
-  "library", "pink_pastel", "rainbow",
+  "library", "pink_pastel", "shattered_moonlight", "rainbow",
 }
 
 
