@@ -74,6 +74,18 @@ question, folded in per Steven 2026-08-29 rather than a separate check.
       ("fish"/"wish"/"dish") aren't mangled. 4 new regression tests using
       the real captured strings, `test_itemlore_fuzzy_resolve.lua`. Full
       test suite + `check_known_patterns.py --all` clean.
+- [ ] **Command-line font size grew unexpectedly — new bug report, not
+      investigated yet.** Steven, `MyDSL Test/notes.json` (2026-08-30):
+      "fix the size of the command line font, somehow its big now."
+      Nothing in this session's theme/chrome work deliberately targets
+      the command-line font — `appStyleSheetCSS()`'s QLineEdit selector
+      is the likely culprit (real, in-scope native chrome), but the
+      rainbow-diagnostic screenshot found earlier this session already
+      showed the command-line input as one of the widgets `setAppStyleSheet()`
+      does NOT visibly reach, so the actual cause needs checking against
+      real Mudlet behavior, not assumed from that finding. Check whether
+      it's theme-related (try `theme chrome ui` / `theme reset`) or a
+      separate Mudlet-level setting before making a code change.
 - [ ] **CreatureLore vulnerability field — capture pipeline confirmed
       structurally sound, specific report not yet reproduced.** Steven:
       "creaturelore isnt capturing and updating all fields, example
@@ -830,6 +842,20 @@ one at a time:
       Steven wants as the actual DEFAULT (item 1 above) — still his own
       call, not decided by any of this work. Needs live confirm on all 6
       release themes plus the two new commands.
+      **Widened 2026-08-30, `MyDSL Test/notes.json`**: "the current saved
+      theme and all window positions inclusive of moon/weather widget
+      need to have this default layout" — once Steven picks the default
+      theme (still open above), the shipped default should also capture
+      his current real window layout (positions/sizes, including the
+      Moon/Weather widget) as the fresh-profile starting arrangement, not
+      just a theme choice. Per the window-layout DECISIONS RECORDED note
+      below: `saveWindowLayout()`/`mydsl layout save` already persists
+      exactly this, machine-wide, keyed by profile name — so the real
+      work is capturing Steven's current live arrangement as the new
+      profile-fresh default (likely via `MyDSL_LayoutEngine.lua`'s own
+      per-window defaults table, same mechanism as the `MyDSL_Help`
+      default fixed this session), not building new layout-persistence
+      machinery.
 - [ ] **Skill-based affect tracking (e.g. `hide`)** — Steven, "MyDSL Test"
       `notes.json`: "its a skill not a cast, need a method for tracking
       skills like spells?" `MyDSL_AffectsView.lua`'s tracking today is
@@ -926,6 +952,19 @@ one at a time:
       check across profiles... we've had a couple" — `../PNP1`, `../PNP2`,
       `../DSL1`, etc.) hasn't been done yet, may turn up a second source
       to cross-check the ported patterns against.
+- [ ] **Chat buffer restore-on-toggle** — Steven, `MyDSL Test/notes.json`
+      (2026-08-30): "is there a buffer for chat that can restore previous
+      chat on a toggle?" Not scoped — needs to confirm whether EMCO/the
+      MyDSL_Chat wrapper already retains scrollback while hidden (a
+      `hide`/`show` cycle on a Geyser window doesn't normally destroy its
+      buffer) before assuming this needs new code; may already work and
+      just need confirming live.
+- [ ] **Moon/weather widget: hover tooltip with phase schedule** — Steven,
+      `MyDSL Test/notes.json` (2026-08-30): "is it possible to have a
+      hover ove on the moon/weather that tells the moon schedule for your
+      moon? time till its phases?" Needs `MyDSL_MoonWeather.lua` read
+      first to confirm what phase-timing data it actually derives/stores
+      today (vs. just current state) before scoping a tooltip around it.
 - [ ] **Roller — comparison stats + reconnect timer.** The timer-widget
       half is ready to scope directly: `MyDSL_AlterformView.lua` is a
       ready-made template (standalone Geyser countdown window, sound
