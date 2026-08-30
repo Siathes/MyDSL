@@ -34,10 +34,10 @@ local css = MyDSL.Theme.appStyleSheetCSS("tron_blue")
 check("appStyleSheetCSS targets QTabBar (Chat's own tab bar)", css:find("QTabBar::tab", 1, true) ~= nil)
 check("appStyleSheetCSS targets QComboBox (the map's Area dropdown)", css:find("QComboBox", 1, true) ~= nil)
 check("appStyleSheetCSS targets QScrollBar", css:find("QScrollBar", 1, true) ~= nil)
-check("appStyleSheetCSS embeds tron_blue's real borderColor (10,150,220), not a placeholder",
-  css:find("rgba(10,150,220", 1, true) ~= nil)
-check("appStyleSheetCSS embeds tron_blue's real titleColor (80,230,255)",
-  css:find("rgba(80,230,255", 1, true) ~= nil)
+check("appStyleSheetCSS embeds tron_blue's real borderColor (12,30,162), not a placeholder",
+  css:find("rgba(12,30,162", 1, true) ~= nil)
+check("appStyleSheetCSS embeds tron_blue's real titleColor (98,160,234)",
+  css:find("rgba(98,160,234", 1, true) ~= nil)
 
 local cssOther = MyDSL.Theme.appStyleSheetCSS("muted_scroll_nature")
 check("a different theme produces genuinely different CSS, not the same string reused",

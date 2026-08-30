@@ -285,16 +285,22 @@ MyDSL.Theme.presets = MyDSL.Theme.presets or {
   -- slightly deeper cyan-blue (10,150,220). titleColor/highlightColor
   -- (the actual glow accents) are untouched -- those should stay bright,
   -- that contrast against the now-darker surfaces IS the glassy look.
+  -- Tuned 2026-08-30 via the live interactive preview artifact (Steven
+  -- dragged swatches against a real recreation of this preset's own CSS,
+  -- then handed back the exact resulting hex values -- no more guess-
+  -- and-screenshot rounds). borderColor/titleColor/titleBgColor are the
+  -- only three RGB values that actually changed from the prior deepening
+  -- pass; everything else was already right and confirmed unchanged.
   tron_blue = {
     font = "Noto Sans Mono", fontSize = 9,
     titleFont = "Noto Sans Mono", titleFontSize = 9,
     bgColor        = { r =   4, g =   7, b =  12, a = 248 },
     textColor      = { r = 210, g = 240, b = 245, a = 255 },
-    borderColor    = { r =  10, g = 150, b = 220, a = 210 },
+    borderColor    = { r =  12, g =  30, b = 162, a = 210 },
     borderSize     = 1,
     radius         = 2,
-    titleColor     = { r =  80, g = 230, b = 255, a = 255 },
-    titleBgColor   = { r =  10, g =  30, b =  70, a = 170 },
+    titleColor     = { r =  98, g = 160, b = 234, a = 255 },
+    titleBgColor   = { r =   5, g =  15, b = 104, a = 170 },
     highlightColor = { r = 140, g = 255, b = 255, a = 255 },
     dimColor       = { r =  90, g = 120, b = 140, a = 255 },
     warnColor      = { r = 255, g = 110, b =  40, a = 255 },

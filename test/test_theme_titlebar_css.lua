@@ -75,15 +75,17 @@ check("titleBarCSS text color for obsidian_ember is its titleColor (230,126,60)"
 check("titleBarCSS background for obsidian_ember is titleBgColor, now-visible (230,126,60 @ 90/255)",
   contains(titleBar3, "background-color: rgba(230,126,60,0.35)"))
 
--- ---- tron_blue: titleColor 80,230,255, titleBgColor 0,180,255 @ 90/255 ----
+-- ---- tron_blue: titleColor 98,160,234, titleBgColor 5,15,104 @ 170/255 ----
+-- Tuned via the live interactive preview artifact (Steven dragged
+-- swatches, handed back exact hex values) -- final values, not a guess.
 
 MyDSL.Theme.setTheme("tron_blue")
 
 local titleBar4 = MyDSL.Theme.titleBarCSS("MyDSL_Combat")
-check("titleBarCSS text color for tron_blue is its titleColor (80,230,255)",
-  contains(titleBar4, "color: rgba(80,230,255,1.00)"))
-check("titleBarCSS background for tron_blue is titleBgColor (10,30,70 @ 170/255, deepened per Steven's direct follow-up)",
-  contains(titleBar4, "background-color: rgba(10,30,70,0.67)"))
+check("titleBarCSS text color for tron_blue is its titleColor (98,160,234)",
+  contains(titleBar4, "color: rgba(98,160,234,1.00)"))
+check("titleBarCSS background for tron_blue is titleBgColor (5,15,104 @ 170/255)",
+  contains(titleBar4, "background-color: rgba(5,15,104,0.67)"))
 
 -- ---- muted_scroll_nature: titleColor 196,180,110, titleBgColor 120,110,60 @ 90/255 ----
 

@@ -301,20 +301,21 @@ end
 
 -- TRON_BAR_COLORS -- added 2026-08-30, per Steven's direct follow-up
 -- ("id like to change the hp/mana/move into tron colors appropriate or
--- look, research tron themes"). Real research, not invented: fetched a
--- documented Tron Legacy palette (huehive.co) -- Neon Blue #00A3E0,
--- Electric Purple #A500FF, Neon Green #00FF00 are all real, named colors
--- from that palette, not guessed. Assigned one each to HP/Mana/Move so
--- all three stay visually distinct (the bar's own text label already
--- disambiguates them too, so exact hue no longer needs to carry the
--- entire "which stat is this" job the way red/blue/green universally
--- does for every OTHER preset). Each is a light/mid/dark triplet for
--- styleBarFill()'s existing 3-stop gradient sheen -- light = brightened
--- toward white, dark = the same hue driven down toward black, mid = the
--- real researched hex itself.
+-- look, research tron themes"). HP/Move started from a documented Tron
+-- Legacy palette (huehive.co) -- Neon Blue #00A3E0, Neon Green #00FF00.
+-- Mana's own hue was then tuned by Steven directly via the live
+-- interactive preview artifact (dragged swatches against a real
+-- recreation of this gradient, handed back exact hex values) -- a
+-- yellow -> orange -> red fire gradient, replacing the initial Electric
+-- Purple research pick with his own preferred look. All three stay
+-- visually distinct (the bar's own text label already disambiguates
+-- them too, so exact hue no longer needs to carry the entire "which
+-- stat is this" job the way red/blue/green universally does for every
+-- OTHER preset). Each is a light/mid/dark triplet for styleBarFill()'s
+-- existing 3-stop gradient sheen.
 local TRON_BAR_COLORS = {
   hp   = { "#78d2f5", "#00a3e0", "#003c5a" },  -- Neon Blue
-  mana = { "#d278ff", "#a500ff", "#3c006e" },  -- Electric Purple
+  mana = { "#f6d32d", "#ff7800", "#e01b24" },  -- yellow -> orange -> red
   move = { "#8cff8c", "#00ff00", "#005a00" },  -- Neon Green
 }
 
