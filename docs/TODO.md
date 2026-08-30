@@ -402,8 +402,28 @@ one at a time:
 ---
 
 ## OPEN — Design ideas, not yet scoped
-- [x] **Autologin — real redesign, BUILT 2026-08-30, needs live
-      confirmation.** Popup-setup approach rejected by Steven ("lose the
+- [ ] **Autologin — HELD OUT of `MyDSL_Full.mpackage` 2026-08-30, per
+      Steven** ("remove autologin from the package, we will come back to
+      it... currently not working there is an issue with the way it
+      enters the password. store it and we will come back to it").
+      Source is untouched in git and still fully functional in DSL2's own
+      dev profile — `MyDSL_Login` is now in `build_mydsl_package.py`'s
+      new `PAUSED_SCRIPTS` set (distinct from `RETIRED_SCRIPTS`, which
+      means gone-for-good; this means "don't ship yet") and excluded from
+      every path that could bundle it (the primary dofile list, the
+      native-only recovery fallback, and the never-wired git-file
+      fallback — first pass only caught the primary list, a real bug
+      caught by testing before shipping: script count didn't actually
+      drop until all three were covered). `MyDSL_Full.mpackage` rebuilt
+      (40 scripts, was 41), copied to `~/Downloads/`. One known minor
+      leftover: `MyDSL_Help.lua`'s own `mydsl login` command listing
+      still describes it, since the module itself isn't deleted — just a
+      stale help entry in this build, not a functional issue, left alone
+      for a temporary hold. Remove the `PAUSED_SCRIPTS` entry once the
+      same-line-capture fix (see below) is confirmed working live.
+      Original entry, still relevant background on the fix already
+      shipped in source even though not currently packaged: popup-setup
+      approach rejected by Steven ("lose the
       autologin, it makes it more combesom. unless you can pitch an
       actual functioning one from logs"). Rebuilt `MyDSL_Login.lua`
       around the real navigation sequence, cross-checked against an old

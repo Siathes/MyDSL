@@ -85,6 +85,25 @@ RETIRED_SCRIPTS = {
     "MyDSL_RawCapture",  # removed 2026-08-27, per Steven -- zero dependents
 }
 
+# Scripts held BACK from the package temporarily -- source stays fully
+# intact in git and in DSL2's own dofile list (so `dofile("MyDSL_Login.lua")`
+# in DSL2's own Script Editor still runs it there), just excluded from
+# what gets bundled into MyDSL_Full.mpackage for now. Distinct from
+# RETIRED_SCRIPTS on purpose: that set means "gone, git-tracked source
+# deleted"; this one means "still being worked on, don't ship it broken
+# in the meantime." Remove an entry once it's confirmed working and
+# ready to ship again -- don't let this become a second permanent list.
+PAUSED_SCRIPTS = {
+    # 2026-08-30, per Steven: real bug found in his own first live test --
+    # a same-line self-capture race corrupted his credentials file (see
+    # docs/TODO.md's autologin item and MyDSL_Login.lua's own design note
+    # 10). That specific bug is fixed and passes the full test suite, but
+    # Steven asked for it held out of the shipped package until he's had
+    # a chance to confirm the fix live himself ("remove autologin from
+    # the package, we will come back to it... store it").
+    "MyDSL_Login",
+}
+
 # Root-level MyDSL_*.lua files that are pure table.save() data dumps (a
 # player's own persisted settings), not real modules with logic -- must
 # never get treated as a dofile-able Script. Found accidentally
@@ -369,6 +388,12 @@ def main():
     dofiles = get_dofile_list(dofile_source)
     print(f"{len(dofiles)} dofile scripts found")
 
+    paused_found = {name for name, _ in dofiles} & PAUSED_SCRIPTS
+    if paused_found:
+        print(f"NOTE: holding back paused script(s), not bundling: {sorted(paused_found)} "
+              "-- see PAUSED_SCRIPTS at the top of this file.")
+        dofiles = [(name, path) for name, path in dofiles if name not in PAUSED_SCRIPTS]
+
     native_only = get_native_only_scripts(native_source)
     dofile_names = {name for name, _ in dofiles}
     extra_names = set(native_only) - dofile_names
@@ -378,6 +403,18 @@ def main():
         print(f"NOTE: skipping retired script(s), not bundling: {sorted(retired_found)} "
               "-- see RETIRED_SCRIPTS at the top of this file.")
         extra_names -= RETIRED_SCRIPTS
+
+    # Same as RETIRED_SCRIPTS immediately above -- without this, a paused
+    # script that's still present as a native Script in the LIVE MyDSL
+    # profile (true here: MyDSL_Login was dofile-wired there before being
+    # paused) shows up in `extra_names` as "native-only", and the recovery
+    # step just below would silently read it fresh from disk and re-bundle
+    # it anyway -- exactly the bug caught by testing this fix before
+    # shipping it (first pass filtered `dofiles` but not `extra_names`,
+    # script count didn't drop at all).
+    paused_in_native = extra_names & PAUSED_SCRIPTS
+    if paused_in_native:
+        extra_names -= PAUSED_SCRIPTS
 
     # An "extra" name that turns out to match a real git-tracked .lua file
     # in this repo isn't native-only at all -- it's a dofile that just
@@ -424,7 +461,7 @@ def main():
     never_wired = []
     for rel_path in sorted(git_files):
         name = os.path.splitext(os.path.basename(rel_path))[0]
-        if name in dofile_names or name in RETIRED_SCRIPTS or name in EXCLUDED_DATA_FILES:
+        if name in dofile_names or name in RETIRED_SCRIPTS or name in EXCLUDED_DATA_FILES or name in PAUSED_SCRIPTS:
             continue
         never_wired.append((name, os.path.join(REPO_ROOT, rel_path)))
     if never_wired:
