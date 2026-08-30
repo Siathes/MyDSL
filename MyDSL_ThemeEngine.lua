@@ -583,7 +583,15 @@ local function THEME_FILE()
   return getMudletHomeDir() .. "/MyDSL_theme_settings.lua"
 end
 
-MyDSL.Theme.active = MyDSL.Theme.active or "refined_convergence"
+-- Shipped default -- was refined_convergence through the whole "release
+-- themes" pass; promoted to shattered_moonlight 2026-08-30 per Steven's
+-- own live-test confirmation ("all thmes cycled and default will be
+-- shattered moonlight" -- MyDSL Test/notes.json), after cycling all 12
+-- presets live via `theme next`. `theme reset` (resetToDefault() below)
+-- still restores refined_convergence -- that's the deliberately safe
+-- "restore to Mudlet defaults" baseline, a different thing from the
+-- fresh-install starting theme changed here.
+MyDSL.Theme.active = MyDSL.Theme.active or "shattered_moonlight"
 
 -- REAL BUG, found live 2026-07-11: Mudlet's real table.load(file, target)
 -- does not return anything -- it unpickles INTO an explicit second-
@@ -890,7 +898,10 @@ end
 -- Default "full" -- matches what Steven has actively been testing and
 -- approving all this session; switch to "ui" any time with
 -- `theme chrome ui`.
-MyDSL.Theme.chromeMode = MyDSL.Theme.chromeMode or "full"
+-- Shipped default promoted to "ui" 2026-08-30 alongside the active-theme
+-- default above -- matches Steven's own confirmed live pairing
+-- (shattered_moonlight + chromeMode ui).
+MyDSL.Theme.chromeMode = MyDSL.Theme.chromeMode or "ui"
 
 function MyDSL.Theme.applyAppStyleSheet()
   local css = (MyDSL.Theme.chromeMode == "full") and MyDSL.Theme.appStyleSheetCSS(MyDSL.Theme.active) or ""

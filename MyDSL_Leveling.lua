@@ -1014,13 +1014,25 @@ end
 -- SECTION 14: BOOT
 ------------------------------------------------------------------------
 
+-- Auto-seeds the area DB on a genuinely fresh profile (0 areas known) so
+-- a new install doesn't need a manual "mydsl leveling import" first --
+-- Steven, MyDSL Test/notes.json (2026-08-30): "called for a mydsl
+-- leveling import. this should just be seeded in the install already."
+-- Safe to call unconditionally on every boot: importSeedAreas() only
+-- ever ADDS areas not already present (see its own comment above), and
+-- this only fires when the count is 0, so a player who deleted every
+-- area on purpose won't have them silently reappear on the next reload.
 function L.boot()
   L.loadAreas()
+  local count = 0
+  for _ in pairs(L.areas or {}) do count = count + 1 end
+  if count == 0 then
+    L.importSeedAreas()
+    for _ in pairs(L.areas or {}) do count = count + 1 end
+  end
   L.ensureUI()
   L.makeAliases()
-  echo("[MyDSL] Leveling loaded (" .. (function()
-    local n = 0; for _ in pairs(L.areas or {}) do n = n + 1 end; return n
-  end)() .. " areas known -- 'mydsl leveling import' to load seed data if 0).\n")
+  echo("[MyDSL] Leveling loaded (" .. count .. " areas known).\n")
 end
 
 L.boot()

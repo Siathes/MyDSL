@@ -27,6 +27,12 @@ dofile("MyDSL_ThemeEngine.lua")
 check("module load applies an app stylesheet immediately (chrome matches the active theme from the start)",
   #appliedCSS >= 1)
 
+-- Shipped default promoted to "ui" 2026-08-30, per Steven's live-test
+-- confirmation that shattered_moonlight + chrome ui is his actual pick
+-- (MyDSL Test/notes.json). Checked here, before anything below mutates
+-- chromeMode via setChromeMode().
+check("chromeMode defaults to 'ui'", MyDSL.Theme.chromeMode == "ui")
+
 ------------------------------------------------------------------------
 -- appStyleSheetCSS() embeds the real theme colors
 ------------------------------------------------------------------------
@@ -46,6 +52,7 @@ check("a different theme produces genuinely different CSS, not the same string r
 ------------------------------------------------------------------------
 -- setTheme() re-applies the app stylesheet on every switch
 ------------------------------------------------------------------------
+MyDSL.Theme.setChromeMode("full")
 appliedCSS = {}
 MyDSL.Theme.setTheme("tron_blue")
 check("setTheme() calls setAppStyleSheet() again so native chrome follows the switch",
@@ -59,7 +66,6 @@ check("the CSS applied on switch matches this theme's own appStyleSheetCSS()",
 -- look, touching only MyDSL's own windows (via the existing per-window
 -- setUserWindowStyleSheet() path, unaffected by this setting).
 ------------------------------------------------------------------------
-check("chromeMode defaults to 'full'", MyDSL.Theme.chromeMode == "full")
 
 appliedCSS = {}
 MyDSL.Theme.setChromeMode("ui")

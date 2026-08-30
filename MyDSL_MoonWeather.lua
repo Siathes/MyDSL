@@ -282,21 +282,20 @@ function MW.cyclesNow()
   return math.max(0, MW._lunar.anchor_cycles - elapsed_ticks)
 end
 
-function MW.countdownStr()
-  local cycles = MW.cyclesNow()
-  if not cycles then return nil end
-  local cyc_int = math.floor(cycles)
-  -- Real fix 2026-07-12, per Steven ("the timer is not correct"). The old
-  -- formula here (hours = floor(cyc/2), half whenever cyc is odd) is NOT
-  -- how DSL's own "(N Hours)"/"(N 1/2 Hours)" text actually maps to cycles
-  -- -- confirmed by extracting all 30 distinct real "Cycles remaining X
-  -- (Y Hours)" pairs from the full log/ corpus and checking the mapping
-  -- directly (odd/even cycles alone doesn't determine the half -- e.g. real
-  -- text shows cycles=45→"22 Hours" (no half) but cycles=46→"23 1/2 Hours"
-  -- (has half), the opposite of what odd/even would predict). The real
-  -- pattern repeats every 4 cycles: for cyc mod 4 == 0 or 1, the display is
-  -- a clean whole number; for cyc mod 4 == 2 or 3, it has the extra half.
-  -- Verified against all 30 real corpus samples with zero exceptions.
+-- cyclesToHourStr(cyc_int) -- shared by countdownStr() (current-phase
+-- countdown) and phaseScheduleLines() (whole-cycle schedule) below.
+-- Real fix 2026-07-12, per Steven ("the timer is not correct"). The old
+-- formula here (hours = floor(cyc/2), half whenever cyc is odd) is NOT
+-- how DSL's own "(N Hours)"/"(N 1/2 Hours)" text actually maps to cycles
+-- -- confirmed by extracting all 30 distinct real "Cycles remaining X
+-- (Y Hours)" pairs from the full log/ corpus and checking the mapping
+-- directly (odd/even cycles alone doesn't determine the half -- e.g. real
+-- text shows cycles=45→"22 Hours" (no half) but cycles=46→"23 1/2 Hours"
+-- (has half), the opposite of what odd/even would predict). The real
+-- pattern repeats every 4 cycles: for cyc mod 4 == 0 or 1, the display is
+-- a clean whole number; for cyc mod 4 == 2 or 3, it has the extra half.
+-- Verified against all 30 real corpus samples with zero exceptions.
+local function cyclesToHourStr(cyc_int)
   local q = math.floor(cyc_int / 4)
   local r = cyc_int % 4
   local hours, has_half
@@ -307,8 +306,14 @@ function MW.countdownStr()
     hours = q * 2 + 1
     has_half = true
   end
-  local hour_str = has_half and (hours .. " 1/2h") or (hours .. "h")
-  return string.format("%dcy · %s", cyc_int, hour_str)
+  return has_half and (hours .. " 1/2h") or (hours .. "h")
+end
+
+function MW.countdownStr()
+  local cycles = MW.cyclesNow()
+  if not cycles then return nil end
+  local cyc_int = math.floor(cycles)
+  return string.format("%dcy · %s", cyc_int, cyclesToHourStr(cyc_int))
 end
 
 
@@ -578,6 +583,57 @@ end
 
 local moonDisplayName = { red = "Red Moon", white = "White Moon", black = "Black Moon" }
 
+-- The 8 real phases in their actual real cycle order (Full -> waning down
+-- to Empty -> waxing back up to Full), same order as phaseBonus above --
+-- confirmed against docs/DSL_CommandRef.md's "Moon phases (8 phases)"
+-- section (sourced from the DSL wiki).
+local PHASE_ORDER = {
+  "full", "three_quarter_waning", "half_waning", "crescent_waning",
+  "empty", "crescent_waxing", "half_waxing", "three_quarter_waxing",
+}
+local PHASE_SCHEDULE_LABEL = {
+  full = "Full", three_quarter_waning = "3/4 Waning", half_waning = "Half Waning",
+  crescent_waning = "Cres Waning", empty = "Empty", crescent_waxing = "Cres Waxing",
+  half_waxing = "Half Waxing", three_quarter_waxing = "3/4 Waxing",
+}
+-- Wiki-confirmed real per-moon phase length, docs/DSL_CommandRef.md
+-- "Phase cycle lengths (ticks per full phase)" -- each moon advances one
+-- phase every this-many ticks/cycles, constant across all 8 phases.
+local TICKS_PER_PHASE = { red = 90, white = 108, black = 66 }
+
+-- phaseScheduleLines(color, currentPhaseKey, cyclesRemaining)
+-- Returns one line per REMAINING phase this cycle (not the current one),
+-- in order, each with real cycles-until + the same wiki-verified hour
+-- conversion countdownStr() uses. Only meaningful for the moon DSL's own
+-- `lunar` bonus block actually reported cycles_remaining for (the focal
+-- moon) -- the other two moons never get real cycle data from the game.
+function MW.phaseScheduleLines(color, currentPhaseKey, cyclesRemaining)
+  if not currentPhaseKey or not cyclesRemaining then return {} end
+  local ticksPerPhase = TICKS_PER_PHASE[color]
+  if not ticksPerPhase then return {} end
+  local startIdx = nil
+  for i, key in ipairs(PHASE_ORDER) do
+    if key == currentPhaseKey then startIdx = i; break end
+  end
+  if not startIdx then return {} end
+
+  local lines = {}
+  for step = 1, 7 do
+    local idx = ((startIdx - 1 + step) % 8) + 1
+    local key = PHASE_ORDER[idx]
+    local cyc = cyclesRemaining + (step - 1) * ticksPerPhase
+    lines[#lines + 1] = string.format("  %s: %dcy · %s", PHASE_SCHEDULE_LABEL[key], cyc, cyclesToHourStr(cyc))
+  end
+  return lines
+end
+
+-- tooltipText(focal, lunar) -- Steven, MyDSL Test/notes.json (2026-08-30):
+-- "hover works on moon/weather - make text smaller add the times to all
+-- the next phases so the user can see how long till a next specific
+-- phase." Returns real HTML (Qt's tooltip auto-detects rich text) so the
+-- font-size request is honored -- setLabelToolTip()'s text isn't limited
+-- to plain text, confirmed against the same Mudlet source used to verify
+-- the function itself exists.
 function MW.tooltipText(focal, lunar)
   if not lunar then
     return "Moon/Weather -- no lunar data yet this session (run 'lunar')."
@@ -593,11 +649,20 @@ function MW.tooltipText(focal, lunar)
   if #lines == 0 then
     return "Moon/Weather -- no lunar data yet this session (run 'lunar')."
   end
-  local countdown = MW.countdownStr()
-  if countdown then
-    lines[#lines + 1] = "Next phase (yours): " .. countdown
+
+  local focalMoon = lunar[focal]
+  local fileKey = focalMoon and focalMoon.phase and phaseToFile[focalMoon.phase:lower()]
+  if fileKey and focalMoon.cycles_remaining then
+    lines[#lines + 1] = "Next phase (yours): " .. (MW.countdownStr() or "?")
+    lines[#lines + 1] = "Full schedule (yours):"
+    for _, line in ipairs(MW.phaseScheduleLines(focal, fileKey, focalMoon.cycles_remaining)) do
+      lines[#lines + 1] = line
+    end
   end
-  return table.concat(lines, "\n")
+
+  local html = {}
+  for _, line in ipairs(lines) do html[#html + 1] = line:gsub("&", "&amp;"):gsub("<", "&lt;") end
+  return '<div style="font-size:8pt;">' .. table.concat(html, "<br>") .. "</div>"
 end
 
 

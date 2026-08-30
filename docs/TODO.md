@@ -74,9 +74,12 @@ question, folded in per Steven 2026-08-29 rather than a separate check.
       ("fish"/"wish"/"dish") aren't mangled. 4 new regression tests using
       the real captured strings, `test_itemlore_fuzzy_resolve.lua`. Full
       test suite + `check_known_patterns.py --all` clean.
-- [ ] **Command-line font size grew unexpectedly — code-side cause ruled
-      out, 2026-08-30, needs Steven's own live check.** Steven, `MyDSL
-      Test/notes.json`: "fix the size of the command line font, somehow
+- [x] **Command-line font size grew unexpectedly — RESOLVED, not a code
+      issue, confirmed 2026-08-30** ("command line is good again" —
+      `MyDSL Test/notes.json`). Matches the code-side finding below (no
+      MyDSL CSS touches this widget's font) — was a transient Mudlet-
+      level state (setting or zoom), not a bug to fix here. Steven,
+      `MyDSL Test/notes.json`: "fix the size of the command line font, somehow
       its big now." Read `MyDSL.Theme.appStyleSheetCSS()`'s QLineEdit
       block directly (`MyDSL_ThemeEngine.lua:780-787`): it sets
       background/color/border/padding/selection-background-color only —
@@ -140,9 +143,10 @@ question, folded in per Steven 2026-08-29 rather than a separate check.
       already used elsewhere in this codebase for the login-setup
       popup), or would this need a separate small label docked right
       next to the input line instead.
-- [ ] **Mapper: terrain color not applying, "red boxes instead of
-      forest" — real bug found + fixed 2026-08-30, needs live confirm.**
-      Steven's own live-test report after the public mapper addon
+- [x] **Mapper: terrain color not applying, "red boxes instead of
+      forest" — real bug found + fixed 2026-08-30, CONFIRMED live**
+      ("mapper seems to be functioning as expected" — `MyDSL Test/
+      notes.json`). Steven's own live-test report after the public mapper addon
       release: "mapper isnt applying the terrain color on first build or
       revisits. see red boxes on mini map instead of forest." Traced two
       real bugs together: (1) several silent no-op points in
@@ -275,7 +279,8 @@ question, folded in per Steven 2026-08-29 rather than a separate check.
       want those as default") — confirmed via stock's own help text
       this is the room-pushed-to-make-space behavior. 6 new regression
       tests. `DSL_Mapper_Addon.mpackage` rebuilt (v0.2.16), published.
-      Needs Steven to confirm all three live.
+      Confirmed 2026-08-30 ("mapper seems to be functioning as expected"
+      — `MyDSL Test/notes.json`).
 - [x] **Help window doesn't reappear after a manual close — no longer
       reproducing, per Steven's own live report 2026-08-30 + screenshots**
       ("help reappeared and is back in my dock after popping up large").
@@ -549,43 +554,28 @@ item above rather than needing its own decision.)*
 Fixed in code (or already known-good), none of it closed until Steven
 confirms it in-game. Bundle these into upcoming play sessions rather than
 one at a time:
-- [ ] **Ambient background gradient, built + redesigned 3x 2026-08-30,
-      same live session while Steven was actually testing it.** Original
-      ask, then "much more subtle," then "pick some subte but distinct
-      colors for the weather, then have the time of day brighten or
-      darken that color," then "it will also need to fade between colors
-      so its not jarring" — see `docs/CHANGELOG.md`'s three 2026-08-30
-      ambient entries for the full trace. Current shape: one subtle
-      color per weather category, a smooth cosine day/night lightness
-      curve (no fixed dawn/dusk hue anymore), a constant 0.20 blend
-      strength against your real console, and a 10-step 2-second fade
-      between targets. New module `MyDSL_AmbientBackground.lua`, on by
-      default. `mydsl ambient off` reverts to your exact real background,
-      `mydsl ambient status` shows current state. Needs live confirm:
-      does the new single-color-per-weather + brighten/darken model read
-      right, does the fade actually feel smooth (not jarring) on a real
-      weather change, is 0.20 the right constant strength or does it
-      need its own tuning pass.
-- [ ] **Login credential setup popup, built 2026-08-30** (Steven: "add a
-      way for the user to add the login information like a pop up UI for
-      the first setup (i dont want users to have to edit code for basic
-      scripts)"). Mudlet/Geyser has no native text-entry widget (confirmed
-      via grep — none exists anywhere in this codebase or the vendored PNP
-      reference), so a real popup window (`MyDSL_LoginSetup`) now
-      auto-shows once when unconfigured, explains what's needed, and its
-      "Click here" link pre-fills the command line via `appendCmdLine()`
-      with `mydsl login setup <character> <password>` so nothing has to
-      be typed from memory or a text editor — running that command writes
-      `MyDSL_login_credentials.lua` itself. "Don't ask again" persists via
-      a small separate settings file (never touches the credentials file).
-      `mydsl login setup` reopens it any time. `test/test_login_setup.lua`,
-      11 assertions (setup writes a working file, bad input rejected, no
-      password leaks into any echo, dismissal persists across reload).
-      Needs live confirmation the popup actually renders/positions
-      correctly and the command-line pre-fill really works in real Mudlet
-      (the mock can't verify `appendCmdLine`/`clearCmdLine`'s real effect).
-- [ ] **DslColors — 29 titles Steven had already added live promoted to
-      shipped defaults, 2026-08-30.** Found via his own note ("the
+- [ ] **Ambient background gradient — CONFIRMED WORKING live 2026-08-30**
+      ("ambient background is working" — `MyDSL Test/notes.json`), one
+      real follow-up ask still open. Original ask, then "much more
+      subtle," then "pick some subte but distinct colors for the
+      weather, then have the time of day brighten or darken that color,"
+      then "it will also need to fade between colors so its not jarring"
+      — see `docs/CHANGELOG.md`'s three 2026-08-30 ambient entries for
+      the full trace. Current shape: one subtle color per weather
+      category, a smooth cosine day/night lightness curve (no fixed
+      dawn/dusk hue anymore), a constant 0.20 blend strength against your
+      real console, and a 10-step 2-second fade between targets.
+      **Follow-up, same notes.json entry**: "maybe refine the colors to
+      match the weather better, show me ideas visually like themes" —
+      wants the same kind of interactive live-preview artifact built for
+      the theme work (the tron_blue color-picker tool) applied to the
+      6 `WEATHER_PALETTE` colors in `MyDSL_AmbientBackground.lua`, so he
+      can compare/tune options visually before another round-trip of
+      guessing at hex values from a description. Not built yet.
+- [x] **DslColors — 29 titles Steven had already added live promoted to
+      shipped defaults — CONFIRMED live 2026-08-30** ("dsl color is
+      working great and has all adds so far" — `MyDSL Test/notes.json`).
+      Found via his own note ("the
       dslcolors new titles live in the config/settings file") — read
       straight from `DSL_PeopleColors_data.lua`'s persisted
       `DSL_COLOR_DB.titles` table in both `MyDSL` and `MyDSL Test`:
@@ -599,16 +589,28 @@ one at a time:
       treatment "Professor" got 2026-08-29, in both the git-tracked
       reference copy and the live native profile. Needs a live check that
       the colors actually render right for a title in this new batch.
-- [ ] **Leveling module's areas/routes/mobs data — not lost, just not yet
-      copied to the new profile, fixed 2026-08-30.** All 40 areas in the
-      live `MyDSL` profile's `leveling_areas.lua` turned out to be
+- [ ] **Leveling module's areas/routes/mobs data — manual copy fixed
+      2026-08-30, then the real UX gap fixed same day.** All 40 areas in
+      the live `MyDSL` profile's `leveling_areas.lua` turned out to be
       `source = "seed"` — i.e. exactly `MyDSL/leveling_areas_seed.lua`
       (already git-tracked) imported once via `mydsl leveling import`,
       not hand-built beyond that. Copied the file directly into
-      `MyDSL Test/MyDSL/leveling_areas.lua` (pure world/mob reference
-      data, not character-specific, same class as CreatureLore/ItemLore's
-      already-shared DBs). Needs a live check: `mydsl leveling areas`
-      should list all 40 in "MyDSL Test" now.
+      `MyDSL Test/MyDSL/leveling_areas.lua` as a one-time fix.
+      **Steven's real follow-up, `MyDSL Test/notes.json`**: "called for
+      a mydsl leveling import. this should just be seeded in the install
+      already" — the one-time manual copy above wasn't the actual fix,
+      it was papering over `L.boot()` never auto-importing on a genuinely
+      fresh profile (0 areas known), only printing a hint to run the
+      command manually. Fixed: `L.boot()` now calls `importSeedAreas()`
+      automatically exactly once, only when the area count is 0 (a
+      player who deliberately deleted every area won't have them
+      silently reappear on a later reload) — `importSeedAreas()` was
+      already non-destructive/additive-only by design, so this is safe
+      to call unconditionally. 4 new assertions,
+      `test/test_leveling_autoseed.lua`. Needs a live check: a genuinely
+      fresh profile (or `MyDSL Test` after a reinstall) should show all
+      40 areas via `mydsl leveling areas` with zero manual `import`
+      needed.
 - [x] **Item identify not reachable by click — CONFIRMED WORKING live by
       Steven** ("identify item seems to work and persist now"). Root
       cause found + fixed 2026-08-30 (Steven, "MyDSL Test" `notes.json`: "c ident pants...
@@ -625,7 +627,8 @@ one at a time:
       4 click sites (equipment/others'-equipment/inventory/container).
       `test/test_itemlore_fuzzy_resolve.lua`, 8 assertions, all pass; full
       58-suite run clean.
-- [ ] **LocationView's exits normalized to compass order, 2026-08-30**
+- [x] **LocationView's exits normalized to compass order — CONFIRMED live
+      2026-08-30** ("exits display correctly" — `MyDSL Test/notes.json`).
       (Steven: "need to normalize those exits like live window
       (consistent)"). Was alphabetizing (`east north south west`) since
       `getRoomExits()` returns an unordered table; now sorts by compass
@@ -680,13 +683,20 @@ one at a time:
 ---
 
 ## OPEN — Design ideas, not yet scoped
-- [ ] **Autologin — HELD OUT of `MyDSL_Full.mpackage` 2026-08-30, per
-      Steven** ("remove autologin from the package, we will come back to
-      it... currently not working there is an issue with the way it
-      enters the password. store it and we will come back to it").
+- [x] **Autologin — HELD OUT of `MyDSL_Full.mpackage`, confirmed
+      indefinite 2026-08-30, per Steven.** `MyDSL Test/notes.json`: "we
+      are remove the login module, we will revisit this if requested by
+      users" — firmer than the original "we will come back to it" hold;
+      no longer scheduled/expected work, just a source-preserved feature
+      that ships if/when actually asked for. No code change needed —
+      `build_mydsl_package.py`'s existing `PAUSED_SCRIPTS` mechanism
+      (below) already does exactly this: excluded from the shipped
+      package, untouched in git, one command away from re-inclusion.
+      Leaving unchecked would misstate this as still-open follow-up work;
+      it's a settled decision now, not a punch-list item.
       Source is untouched in git and still fully functional in DSL2's own
       dev profile — `MyDSL_Login` is now in `build_mydsl_package.py`'s
-      new `PAUSED_SCRIPTS` set (distinct from `RETIRED_SCRIPTS`, which
+      `PAUSED_SCRIPTS` set (distinct from `RETIRED_SCRIPTS`, which
       means gone-for-good; this means "don't ship yet") and excluded from
       every path that could bundle it (the primary dofile list, the
       native-only recovery fallback, and the never-wired git-file
@@ -697,8 +707,7 @@ one at a time:
       leftover: `MyDSL_Help.lua`'s own `mydsl login` command listing
       still describes it, since the module itself isn't deleted — just a
       stale help entry in this build, not a functional issue, left alone
-      for a temporary hold. Remove the `PAUSED_SCRIPTS` entry once the
-      same-line-capture fix (see below) is confirmed working live.
+      since the module isn't expected to ship soon.
       Original entry, still relevant background on the fix already
       shipped in source even though not currently packaged: popup-setup
       approach rejected by Steven ("lose the
@@ -769,12 +778,13 @@ one at a time:
       structural same-line-race fix shipped, no extra validation layer.
       `MyDSL_Full.mpackage` rebuilt, copied to `~/Downloads/` — confirmed
       the fix's actual text is inside the built package.
-      **Still needs Steven to log in fresh and confirm**: the fixed
-      navigation sequence sends the right commands at the right prompts,
-      first-run capture saves the REAL typed values this time (not
-      prompt text), and `mydsl login off` fully stops everything.
-- [x] **Thinner UserWindow title bars — FIXED 2026-08-30, needs live
-      confirm.** `MyDSL_ThemeEngine.lua`'s `titleBarCSS()` had
+      **Moot as of 2026-08-30**: the whole module is now held out of the
+      shipped package indefinitely (see the "Autologin" entry above), so
+      this live-confirm step isn't blocking anything — revisit if the
+      module ever actually gets un-paused.
+- [x] **Thinner UserWindow title bars — FIXED and CONFIRMED live
+      2026-08-30** ("title bars are thinner and look good" — `MyDSL
+      Test/notes.json`). `MyDSL_ThemeEngine.lua`'s `titleBarCSS()` had
       `padding: 4px 10px` — halved to `2px`, then per Steven's direct
       follow-up ("even a little smaller wold be nice *half the current
       size with the font adjusted to fit") halved again to `1px`
@@ -811,77 +821,33 @@ one at a time:
          per-line decoration — sidesteps line-editing entirely.
       Needs Steven's input on which direction, or a live test of option 1
       before committing to it.
-- [ ] **Theme default + "parity across modules" — 2 of 3 asks done, one
-      still open.** Steven, `MyDSL Test/notes.json` (2026-08-30): "find
-      one of the themes i liked and make it default, and parity across
-      modules... do a research for a pallet that would stand out maybe
-      in the tron blue style." Three asks: (1) **which existing preset
-      Steven means by "one of the themes i liked" — still needs his own
-      pick**, not a guess, before anything can be set as default. (2)
-      **tron_blue built** (plus a second new preset, muted_scroll_nature,
-      per his own explicit "actually make 2 new ones" follow-up), then
-      **deepened same live session** after his direct feedback ("it
-      needs to be a darker deeper blue") — see `docs/CHANGELOG.md`'s
-      2026-08-30 entries for the full trace, including the HP/Mana/Move
-      bar "glassy" theming and the new `setAppStyleSheet()`-based app-
-      chrome pass (tabs/comboboxes/scrollbars) built from the same
-      screenshot follow-up. Needs live confirm — can't verify Mudlet's
-      own chrome rendering without a screenshot. (3) **"parity across
-      modules" audit — still not done**: confirm every window actually
-      reads its colors from the active theme rather than a hardcoded
-      value (the LiveView bar-track fix above is one real instance of
-      this same gap, found and fixed along the way — there may be
-      others; some UserWindow-vs-Container styling gaps are already on
-      record elsewhere in this file too).
-      **2026-08-30, same day: "release themes" pass done.** tron_blue
-      fully rewritten (real gradient background + neon splash, "a whole
-      teme look"), plus 4 more per Steven's direct ask: `library` and
-      `pink_pastel` (new), `obsidian_ember`/`arcane_midnight` (existing,
-      brought up to the same standard) — all 6 now share dedicated
-      HP/Mana/Move/Improve bar palettes and gradient backgrounds. Also
-      added `theme next`/`prev` (walk through themes) and `theme reset`
-      (one-step restore to a safe baseline). A final parity sweep across
-      all 10 presets found and fixed one real gap (muted_scroll_nature's
-      missing bgGradient) before shipping. **Still open**: which theme
-      Steven wants as the actual DEFAULT (item 1 above) — still his own
-      call, not decided by any of this work. Needs live confirm on all 6
-      release themes plus the two new commands.
-      **Widened 2026-08-30, `MyDSL Test/notes.json`**: "the current saved
-      theme and all window positions inclusive of moon/weather widget
-      need to have this default layout" — once Steven picks the default
-      theme (still open above), the shipped default should also capture
-      his current real window layout (positions/sizes, including the
-      Moon/Weather widget) as the fresh-profile starting arrangement, not
-      just a theme choice. Per the window-layout DECISIONS RECORDED note
-      below: `saveWindowLayout()`/`mydsl layout save` already persists
-      exactly this, machine-wide, keyed by profile name — so the real
-      work is capturing Steven's current live arrangement as the new
-      profile-fresh default (likely via `MyDSL_LayoutEngine.lua`'s own
-      per-window defaults table, same mechanism as the `MyDSL_Help`
-      default fixed this session), not building new layout-persistence
-      machinery.
-      **Circumstantial evidence on the still-open "which theme" question,
-      2026-08-30 — not acted on, still needs his explicit pick.** Checked
-      `MyDSL Test/MyDSL_theme_settings.lua` directly: his own currently
-      saved theme there is `shattered_moonlight` with `chromeMode = "ui"`
-      — matches his own "see the screen shot, it looks great" reaction to
-      that theme earlier this session. Strong circumstantial signal for
-      what "one of the themes i liked" means, but deliberately NOT
-      promoted to the shipped code default (`refined_convergence`/`full`
-      in `MyDSL_ThemeEngine.lua`) without him actually saying so — this
-      item has been flagged three separate times as his own call, not a
-      guess to make from inference alone. Also worth noting for the
-      window-positions half above: no `MyDSL_layout.lua` exists yet in
-      either live profile (`getMudletHomeDir() .. "/MyDSL_layout.lua"`,
-      confirmed absent by direct filesystem check) — `mydsl layout save`
-      has never actually been run, so `MyDSL.Layout.defaults` (the coded
-      fallback) is still what's in effect; Mudlet's own native dock-state
-      file (`~/.config/mudlet/windowLayout.dat`) is a separate, binary,
-      Qt-internal mechanism that already auto-restores his current
-      arrangement for a same-named profile but isn't something this
-      codebase can read/export from disk — capturing "current window
-      positions" into new coded defaults needs him to run `mydsl layout
-      save` first, then hand back the resulting file.
+- [x] **Theme default — DECIDED and shipped 2026-08-30.** Steven cycled
+      all 12 presets live via `theme next` and confirmed: "all thmes
+      cycled and default will be shattered moonlight" (`MyDSL Test/
+      notes.json`) — no longer circumstantial, his explicit pick.
+      `MyDSL_ThemeEngine.lua`'s shipped fresh-install default changed from
+      `refined_convergence`/`chromeMode "full"` to `shattered_moonlight`/
+      `chromeMode "ui"` (matching what he'd already saved live). `theme
+      reset` is unchanged — it still restores `refined_convergence`, the
+      deliberately safe "restore to Mudlet defaults" baseline, a
+      different thing from the fresh-install starting theme. All theme
+      tests updated for the new default, full suite passing.
+      **Still open, not part of this decision**: the "parity across
+      modules" audit (confirm every window actually reads its colors
+      from the active theme, not a hardcoded value — the LiveView
+      bar-track fix elsewhere in this file is one real instance of this
+      same gap, found along the way; there may be others) and the
+      window-*positions* half of his "current saved theme and all window
+      positions... need to have this default layout" ask — no
+      `MyDSL_layout.lua` exists yet in either live profile (confirmed
+      absent by direct filesystem check), meaning `mydsl layout save` has
+      never actually been run; capturing his current real window
+      arrangement into `MyDSL_LayoutEngine.lua`'s coded defaults needs
+      him to run that command first and hand back the resulting file —
+      Mudlet's own native dock-state file
+      (`~/.config/mudlet/windowLayout.dat`) auto-restores his current
+      layout for same-named profiles already, but is a separate binary
+      Qt mechanism this codebase can't read/export from.
 - [ ] **Skill-based affect tracking (e.g. `hide`)** — Steven, "MyDSL Test"
       `notes.json`: "its a skill not a cast, need a method for tracking
       skills like spells?" `MyDSL_AffectsView.lua`'s tracking today is
