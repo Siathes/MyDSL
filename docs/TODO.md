@@ -142,21 +142,29 @@ question, folded in per Steven 2026-08-29 rather than a separate check.
          (v0.2.8, includes the new desync checker). Mudlet's own Generic
          Mapper (built-in) must already be enabled — it should be, since
          `DSL_Generic_Mapper` was a fork of it, not a replacement.
-      2. **This specific 2026-08-30 episode explained, not a code bug**:
-         confirmed directly in the raw session log — mid-session, with no
-         typed command around it, `MyDSL Test` silently loaded
+      2. **A real contributing factor found, NOT confirmed as the whole
+         explanation — Steven's own 2026-08-30 pushback: "not confident
+         that just loading a local map is the solution."** Confirmed
+         directly in the raw session log: mid-session, with no typed
+         command around it, `MyDSL Test` silently loaded
          `/MyDSL/map/2026-08-29#19-56-36map.dat` (the *other* profile's
-         map file). Per Steven: this is his own deliberate workaround
-         (`MyDSL_Full.mpackage` doesn't ship map data, so a fresh
-         `MyDSL Test` reinstall starts with an empty map — he manually
-         loads the real `MyDSL` map via the Map widget's `map show` each
-         time). Real, but a footgun: no confirmation dialog, easy to
-         land mid-session, and produces symptoms indistinguishable from
-         a genuine desync bug. Fix (added 2026-08-30): `docs/
+         map file) — Steven's own deliberate workaround for
+         `MyDSL_Full.mpackage` not shipping map data (a fresh `MyDSL
+         Test` reinstall starts with an empty map, so he manually loads
+         the real `MyDSL` map via the Map widget's `map show` each
+         time). Real, and a footgun worth closing regardless (no
+         confirmation dialog, easy to land mid-session) — `docs/
          MUDLET_PACKAGING_REFERENCE.md`'s pre-delivery checklist now has
-         a step to copy the live `MyDSL` map into a freshly-reinstalled
-         `MyDSL Test` proactively, so Steven doesn't need to do this
-         manually going forward.
+         a step to seed a fresh `MyDSL Test` with the live map
+         proactively. But this is NOT to be treated as "bug closed" —
+         Steven is testing this himself via a fresh reinstall rather
+         than accepting the explanation as given. Both desync loggers
+         (`DSL_Generic_Mapper.xml` and `DSL_Mapper_Addon.xml`, see item 1
+         above) stay in place specifically so his next test either
+         produces a `mapper_desync_log.txt` entry (real remaining bug,
+         not just the map-load footgun) or produces nothing (footgun was
+         the whole story). Do not close this item until his test result
+         comes back either way.
 - [ ] **DslColors — make Census genuinely useful, document it.** The
       "integrate + toggle" and "fix known bugs" parts of this pass are
       done (2026-08-29 — see `docs/CHANGELOG.md`: master `dslcolor
