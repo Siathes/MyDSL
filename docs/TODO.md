@@ -476,20 +476,43 @@ one at a time:
       first-run capture saves the REAL typed values this time (not
       prompt text), and `mydsl login off` fully stops everything.
 - [x] **Thinner UserWindow title bars — FIXED 2026-08-30, needs live
-      confirm.** `MyDSL_ThemeEngine.lua`'s `MyDSL.Theme.titleBarCSS()`
-      (the one shared function every docked window's title bar CSS comes
-      from) had `padding: 4px 10px` — halved the vertical component to
-      `2px 10px` (horizontal untouched, that only affects text inset not
-      height). Applies globally, all 5 theme presets, no design decision
-      needed since it's a straightforward "make the existing thing
-      smaller" ask. Tests pass unchanged (none asserted the exact
-      padding value).
-- [ ] **Small icon/indicator for identified items** — Steven, same
-      notes.json: "a small icon or indicator of identified items would
-      be very useful, end of text has a colored small symbol?" Idea: a
-      colored marker appended to an item's display line once
-      `MyDSL.resolveItemLoreRecord()` confirms it's known/identified.
-      Not scoped yet.
+      confirm.** `MyDSL_ThemeEngine.lua`'s `titleBarCSS()` had
+      `padding: 4px 10px` — halved to `2px`, then per Steven's direct
+      follow-up ("even a little smaller wold be nice *half the current
+      size with the font adjusted to fit") halved again to `1px`
+      (horizontal untouched, only affects text inset not height). "Font
+      adjusted to fit" turned out to be a real, concrete fix, not just
+      polish: `titleFont`/`titleFontSize` have existed as real per-theme
+      fields (all 5 presets) since before this function was written, but
+      were never actually wired into the CSS output — dead config. Wired
+      in now (`font-family`/`font-size` in the `QDockWidget::title` rule)
+      — at 1px padding the OS/Qt default title-bar font would otherwise
+      clip against the frame. Applies globally, no design decision
+      needed. Tests pass unchanged.
+- [ ] **Small icon/indicator for identified items — real technical
+      blocker found 2026-08-30, needs a different approach than
+      "append a marker character."** Steven re-raised it directly:
+      "there is not indicator in inventory of an item that has been
+      identified, like pants it persists but no icon." Appending a
+      character to an already-printed line needs `insertText()` after
+      `selectString()` positions the cursor — but that exact class of
+      technique was already tried in this codebase and confirmed NOT to
+      work live: `MyDSL_RouteHelper.lua`'s own comment records a
+      `moveCursor()+insertText()` attempt from 2026-07-15 that "produced
+      no visible change at all," reverted same day. Didn't blindly
+      reattempt a disproven mechanism. Real alternatives, not yet tried
+      live:
+      1. Color/bold the item name's own existing text via
+         `selectString()` + `setFgColor()`/`setBold()` (format-only
+         changes to a selection — the same category of mechanism
+         `setLink()`'s hover/click already proves works reliably here,
+         unlike inserting new characters). Untested for THIS specific
+         purpose; worth a quick live trial before building further.
+      2. A separate small always-visible indicator (e.g. an "N identified
+         items" count somewhere in an existing window) instead of
+         per-line decoration — sidesteps line-editing entirely.
+      Needs Steven's input on which direction, or a live test of option 1
+      before committing to it.
 - [ ] **Skill-based affect tracking (e.g. `hide`)** — Steven, "MyDSL Test"
       `notes.json`: "its a skill not a cast, need a method for tracking
       skills like spells?" `MyDSL_AffectsView.lua`'s tracking today is

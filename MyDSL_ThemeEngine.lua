@@ -479,21 +479,32 @@ end
 -- the platform question as fully closed, per Claude Desktop's own
 -- caveat, but no longer a purely-theoretical risk either.
 -- padding tightened 4px->2px vertical 2026-08-30, per Steven's notes.json
--- ("is it possible to make the userwindow titles bars thinner?") -- the
--- vertical padding is what actually controls the bar's visible thickness;
--- horizontal left untouched since that only affects text inset, not
--- height. Halved rather than removed entirely to keep a safe margin
--- against clipping the title text at any of the 5 theme presets' font
--- sizes.
+-- ("is it possible to make the userwindow titles bars thinner?"), then
+-- halved again to 1px same day per his direct follow-up ("even a little
+-- smaller wold be nice *half the current size with the font adjusted to
+-- fit") -- the vertical padding is what actually controls the bar's
+-- visible thickness; horizontal left untouched since that only affects
+-- text inset, not height.
+--
+-- "font adjusted to fit", same pass: titleFont/titleFontSize have existed
+-- as real per-theme fields (MyDSL.Theme.defaults, all 5 presets) since
+-- before this function was written, but were never actually consumed
+-- anywhere -- dead config. Wired in here now: at 1px padding, the OS/Qt
+-- default title-bar font (typically 12-13px) would clip against the
+-- window frame, so this is the fix "adjusted to fit" was actually asking
+-- for, not a cosmetic extra.
 function MyDSL.Theme.titleBarCSS(windowName)
   local titleColor   = MyDSL.Theme.get(windowName, "titleColor")
   local titleBgColor = MyDSL.Theme.get(windowName, "titleBgColor")
   local border       = MyDSL.Theme.get(windowName, "borderColor")
   local size         = MyDSL.Theme.get(windowName, "borderSize") or 1
+  local titleFont     = MyDSL.Theme.get(windowName, "titleFont") or "Courier New"
+  local titleFontSize = MyDSL.Theme.get(windowName, "titleFontSize") or 9
   return string.format(
-    "QDockWidget::title { background-color: %s; color: %s; border-bottom: %dpx solid %s; padding: 2px 10px; }",
+    "QDockWidget::title { background-color: %s; color: %s; border-bottom: %dpx solid %s; " ..
+    "padding: 1px 10px; font-family: '%s'; font-size: %dpx; }",
     MyDSL.Theme.colorToCSS(titleBgColor), MyDSL.Theme.colorToCSS(titleColor),
-    size, MyDSL.Theme.colorToCSS(border)
+    size, MyDSL.Theme.colorToCSS(border), titleFont, titleFontSize
   )
 end
 
