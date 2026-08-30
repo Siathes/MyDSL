@@ -879,18 +879,30 @@ one at a time:
       modules" audit (confirm every window actually reads its colors
       from the active theme, not a hardcoded value — the LiveView
       bar-track fix elsewhere in this file is one real instance of this
-      same gap, found along the way; there may be others) and the
-      window-*positions* half of his "current saved theme and all window
-      positions... need to have this default layout" ask — no
-      `MyDSL_layout.lua` exists yet in either live profile (confirmed
-      absent by direct filesystem check), meaning `mydsl layout save` has
-      never actually been run; capturing his current real window
-      arrangement into `MyDSL_LayoutEngine.lua`'s coded defaults needs
-      him to run that command first and hand back the resulting file —
-      Mudlet's own native dock-state file
-      (`~/.config/mudlet/windowLayout.dat`) auto-restores his current
-      layout for same-named profiles already, but is a separate binary
-      Qt mechanism this codebase can't read/export from.
+      same gap, found along the way; there may be others).
+      **Window-positions half — real bug found and fixed 2026-08-30,
+      still needs a fresh capture.** Steven: "ive performed mydsl layout
+      save twice, i have also made a lua savewindowlayout() a couple
+      times" — checked disk, still no `MyDSL_layout.lua` anywhere
+      despite "[MyDSL] Layout saved." printing successfully both times.
+      Root cause: `MyDSL.Windows.saveLayout()` (what the alias actually
+      calls) only ever invoked Mudlet's native `saveWindowLayout()`
+      (pixel-based, shared machine-wide, profile-name-scoped — can
+      restore a same-named profile but can never seed a differently-
+      named fresh install), never the portable percentage system.
+      Deeper cause: `MyDSL.Layout.set()` — the function that would
+      persist `MyDSL.Layout.positions` — was never actually called from
+      anywhere in the whole codebase; a real window move never fed back
+      into it. Fixed: `saveLayout()` now also reads every registered
+      window's real current geometry via `getWindowGeometry()`
+      (confirmed real, Mudlet 5.0+, this project's own running version)
+      and feeds it through `MyDSL.Layout.set()`. 6 new regression tests.
+      **His two prior `mydsl layout save` runs still didn't capture
+      anything** (the bug was live then) — needs him to reinstall the
+      updated package and run `mydsl layout save` again once back in
+      Mudlet, then hand back (or let this session read) the resulting
+      `MyDSL_layout.lua` before it can be baked into the shipped
+      defaults.
 - [ ] **Skill-based affect tracking (e.g. `hide`)** — Steven, "MyDSL Test"
       `notes.json`: "its a skill not a cast, need a method for tracking
       skills like spells?" `MyDSL_AffectsView.lua`'s tracking today is
