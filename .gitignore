@@ -128,3 +128,13 @@ __pycache__/
 # his own personal working file rather than merged wholesale, not project
 # source
 docs/myresponses.txt
+
+# .codex/hooks.json + AGENTS.md -- confirmed 2026-08-29 (Steven) these
+# belong to a DIFFERENT project's Codex instance that monitors this
+# profile read-only (no changes made here), not this project's own
+# workflow -- an actual Codex mirror of CLAUDE.md was removed earlier
+# the same session for being stale/unused, this is unrelated and
+# reappears on its own since it's another tool's content, not ours to
+# delete. Ignored so it stops showing as untracked noise every session.
+.codex/
+AGENTS.md
