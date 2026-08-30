@@ -447,10 +447,15 @@ one at a time:
       in plaintext in a handful of old, non-git-tracked profile snapshot
       files (`MyDSL/current/2026-07-17#*.xml`). Left alone per his
       instruction.
-- [ ] **Thinner UserWindow title bars?** — Steven, same notes.json: "is
-      it possible to make the userwindow titles bars thinner?" General
-      polish ask across all `Geyser.UserWindow`-based popups, not scoped
-      yet.
+- [x] **Thinner UserWindow title bars — FIXED 2026-08-30, needs live
+      confirm.** `MyDSL_ThemeEngine.lua`'s `MyDSL.Theme.titleBarCSS()`
+      (the one shared function every docked window's title bar CSS comes
+      from) had `padding: 4px 10px` — halved the vertical component to
+      `2px 10px` (horizontal untouched, that only affects text inset not
+      height). Applies globally, all 5 theme presets, no design decision
+      needed since it's a straightforward "make the existing thing
+      smaller" ask. Tests pass unchanged (none asserted the exact
+      padding value).
 - [ ] **Small icon/indicator for identified items** — Steven, same
       notes.json: "a small icon or indicator of identified items would
       be very useful, end of text has a colored small symbol?" Idea: a

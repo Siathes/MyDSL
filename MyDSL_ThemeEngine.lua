@@ -478,13 +478,20 @@ end
 -- a floated window and on a real Windows/macOS machine before treating
 -- the platform question as fully closed, per Claude Desktop's own
 -- caveat, but no longer a purely-theoretical risk either.
+-- padding tightened 4px->2px vertical 2026-08-30, per Steven's notes.json
+-- ("is it possible to make the userwindow titles bars thinner?") -- the
+-- vertical padding is what actually controls the bar's visible thickness;
+-- horizontal left untouched since that only affects text inset, not
+-- height. Halved rather than removed entirely to keep a safe margin
+-- against clipping the title text at any of the 5 theme presets' font
+-- sizes.
 function MyDSL.Theme.titleBarCSS(windowName)
   local titleColor   = MyDSL.Theme.get(windowName, "titleColor")
   local titleBgColor = MyDSL.Theme.get(windowName, "titleBgColor")
   local border       = MyDSL.Theme.get(windowName, "borderColor")
   local size         = MyDSL.Theme.get(windowName, "borderSize") or 1
   return string.format(
-    "QDockWidget::title { background-color: %s; color: %s; border-bottom: %dpx solid %s; padding: 4px 10px; }",
+    "QDockWidget::title { background-color: %s; color: %s; border-bottom: %dpx solid %s; padding: 2px 10px; }",
     MyDSL.Theme.colorToCSS(titleBgColor), MyDSL.Theme.colorToCSS(titleColor),
     size, MyDSL.Theme.colorToCSS(border)
   )
