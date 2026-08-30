@@ -681,6 +681,58 @@ function MyDSL.Theme.setChromeMode(mode)
   return true
 end
 
+-- debugRainbowCSS() / setDebugRainbow() -- added 2026-08-30, per Steven's
+-- direct ask ("map, research all the options that we can color, then
+-- make a theme that has a different color in a fashion you can track
+-- with screenshots. so you can map the theme areas?"). Real gap found
+-- live: his own screenshots after `theme chrome full` show the menu bar,
+-- icon toolbar, Search/toolbar buttons, and the Wait gauge all STILL
+-- default grey/white, despite appStyleSheetCSS() genuinely including
+-- QMenuBar/QToolBar/QPushButton/QToolButton/QProgressBar rules (verified
+-- directly -- the generated CSS string does contain them). Rather than
+-- guess why (a Linux desktop's native/global-menu theming bypassing Qt
+-- stylesheets for specific widget classes is one real, common cause, but
+-- unconfirmed here), this gives every one of the same rules its OWN
+-- loud, mutually-unmistakable color -- one screenshot then tells us
+-- definitively which selectors actually reach their real widget and
+-- which don't, instead of theorizing further. Diagnostic only -- not a
+-- real preset, not in presetOrder/list, never persisted as the active
+-- theme. `theme debug rainbow` / `theme debug off` (restores whatever
+-- chromeMode+theme were actually active).
+function MyDSL.Theme.debugRainbowCSS()
+  return [[
+    QMenuBar { background: #ff0000; color: #000000; }
+    QMenuBar::item { background: transparent; color: #000000; }
+    QMenuBar::item:selected { background: #800000; color: #ffffff; }
+    QMenu { background: #ff8800; color: #000000; border: 2px solid #000000; }
+    QMenu::item:selected { background: #804400; color: #ffffff; }
+    QToolBar { background: #ffff00; border: none; }
+    QStatusBar { background: #00ff00; color: #000000; }
+    QLineEdit { background: #00ff88; color: #000000; border: 2px solid #000000; }
+    QProgressBar { background: #00ffff; color: #000000; border: 2px solid #000000; }
+    QProgressBar::chunk { background: #008080; }
+    QTabBar::tab { background: #0088ff; color: #ffffff; border: 2px solid #000000; }
+    QTabBar::tab:selected { background: #0000ff; color: #ffffff; }
+    QComboBox { background: #8800ff; color: #ffffff; border: 2px solid #000000; }
+    QComboBox QAbstractItemView { background: #ff00ff; color: #000000; }
+    QScrollBar:vertical, QScrollBar:horizontal { background: #ff0088; border: none; width: 8px; height: 8px; }
+    QScrollBar::handle:vertical, QScrollBar::handle:horizontal { background: #ff1493; }
+    QToolButton, QPushButton { background: #804000; color: #ffffff; border: 2px solid #000000; }
+    QToolButton:hover, QPushButton:hover { background: #d2b48c; }
+  ]]
+end
+
+MyDSL.Theme._debugRainbowActive = MyDSL.Theme._debugRainbowActive or false
+
+function MyDSL.Theme.setDebugRainbow(on)
+  MyDSL.Theme._debugRainbowActive = on and true or false
+  if MyDSL.Theme._debugRainbowActive then
+    pcall(setAppStyleSheet, MyDSL.Theme.debugRainbowCSS())
+  else
+    MyDSL.Theme.applyAppStyleSheet()
+  end
+end
+
 
 ------------------------------------------------------------------------
 -- SECTION 7: ACCESSOR — get(windowName, key)
@@ -1083,6 +1135,44 @@ if not MyDSL.Theme._aliasesInstalled then
   tempAlias("^theme chrome$", function()
     cecho("\n<gold>[MyDSL] Theme chrome mode: <white>" .. MyDSL.Theme.chromeMode
       .. "<gold> (try 'theme chrome full' or 'theme chrome ui')\n")
+  end)
+
+  -- "theme debug rainbow/off" -- see MyDSL.Theme.debugRainbowCSS()'s own
+  -- comment above for the full writeup. The legend printed here is the
+  -- map: which loud color corresponds to which real widget, so a single
+  -- screenshot can be read back unambiguously.
+  tempAlias("^theme debug rainbow$", function()
+    MyDSL.Theme.setDebugRainbow(true)
+    cecho([[
+
+<gold>[MyDSL] Rainbow debug chrome ON -- screenshot now, then 'theme debug off' to restore.
+<white>  Red        <gold>QMenuBar (top menu bar itself)
+<white>  Dark red   <gold>QMenuBar item, when highlighted/open
+<white>  Orange     <gold>QMenu (a dropdown/right-click menu's body)
+<white>  Dark orange<gold>QMenu item, when highlighted
+<white>  Yellow     <gold>QToolBar (the icon toolbar strip)
+<white>  Lime       <gold>QStatusBar (bottom status strip)
+<white>  Spring grn <gold>QLineEdit (command line input, map Search box)
+<white>  Cyan       <gold>QProgressBar (the Wait/Tick gauges)
+<white>  Teal       <gold>QProgressBar's own filled chunk
+<white>  Sky blue   <gold>QTabBar tab, unselected (e.g. Chat's Local/City/...)
+<white>  Navy blue  <gold>QTabBar tab, selected (e.g. Chat's All)
+<white>  Purple     <gold>QComboBox itself (the map's Area dropdown)
+<white>  Magenta    <gold>QComboBox's own open dropdown list
+<white>  Pink       <gold>QScrollBar track
+<white>  Deep pink  <gold>QScrollBar handle (the draggable thumb)
+<white>  Brown      <gold>QToolButton / QPushButton (toolbar icons, Search button)
+<white>  Tan        <gold>QToolButton/QPushButton, on hover
+<gold>  Anything still plain grey/white after this = that widget genuinely
+<gold>  isn't reachable via setAppStyleSheet() on this system -- real
+<gold>  finding, not a bug in the CSS itself.
+]])
+  end)
+
+  tempAlias("^theme debug off$", function()
+    MyDSL.Theme.setDebugRainbow(false)
+    cecho("\n<green>[MyDSL] Rainbow debug chrome OFF -- restored to theme='" .. MyDSL.Theme.active
+      .. "', chrome='" .. MyDSL.Theme.chromeMode .. "'.\n")
   end)
 
   tempAlias("^theme new (.+)$", function()

@@ -323,6 +323,7 @@ MyDSL.Help.modules = {
       { cmd = "theme list", desc = "List available presets (built-in and custom), marking the active one.", example = "theme list" },
       { cmd = "theme set <name>", desc = "Switch the active theme.", example = "theme set obsidian_ember" },
       { cmd = "theme chrome full / ui", desc = "'full' also themes native Mudlet UI (menus, tabs, scrollbars, etc); 'ui' keeps only MyDSL's own windows themed and restores Mudlet's default look everywhere else.", example = "theme chrome ui" },
+      { cmd = "theme debug rainbow / off", desc = "Diagnostic: gives every native-chrome selector its own loud, distinct color, with a legend printed to console -- screenshot it to see exactly which selectors reach their real widget on your system. 'theme debug off' restores your real theme.", example = "theme debug rainbow" },
       { cmd = "theme new <name>", desc = "Clone the active theme into a new custom one and switch to it.", example = "theme new my_theme" },
       { cmd = "theme edit <key> <r,g,b>", desc = "Change one color/font/size on the active theme -- only works on a custom theme (run 'theme new' first). Keys: bgColor, textColor, borderColor, titleColor, titleBgColor, highlightColor, dimColor, warnColor, goodColor, font, titleFont, fontSize, titleFontSize, borderSize, radius.", example = "theme edit titleColor 255,120,40" },
       { cmd = "theme delete <name>", desc = "Delete a custom theme (built-ins can't be deleted).", example = "theme delete my_theme" },
