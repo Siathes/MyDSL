@@ -215,8 +215,15 @@ function MW.setClockAnchor(tickStr)
   MW._clock.anchor_real     = os.time()
 end
 
-function MW.clockStr()
-  if not MW._clock.anchor_real then return "--:--" end
+-- currentGameMinutes() -- extracted 2026-08-30 from clockStr()'s own
+-- interpolation math (no behavior change), so a new consumer (the ambient
+-- background gradient, per Steven's ask) can reuse the exact same tested
+-- DSL-time-from-real-time extrapolation instead of re-deriving it.
+-- Returns a continuous float 0-1439.99... (minutes since DSL midnight),
+-- or nil before any anchor has ever been set (matches clockStr()'s own
+-- "--:--" not-ready state).
+function MW.currentGameMinutes()
+  if not MW._clock.anchor_real then return nil end
   local elapsed  = os.time() - MW._clock.anchor_real
   -- Each GMCP tick advances exactly 30 DSL minutes. Use the live smoothed
   -- tick interval from TickSource to eliminate systematic drift.
@@ -224,7 +231,12 @@ function MW.clockStr()
   local tick_avg = MyDSL.DB and MyDSL.DB.tick and MyDSL.DB.tick.average
   tick_avg = (tick_avg and tick_avg > 10) and tick_avg or 40
   local dsl_elapsed = elapsed * (30 / tick_avg)
-  local total_min   = (MW._clock.anchor_game_min + dsl_elapsed) % (24 * 60)
+  return (MW._clock.anchor_game_min + dsl_elapsed) % (24 * 60)
+end
+
+function MW.clockStr()
+  local total_min = MW.currentGameMinutes()
+  if not total_min then return "--:--" end
   local h24  = math.floor(total_min / 60)
   local min  = math.floor(total_min % 60)
   local ap   = h24 >= 12 and "pm" or "am"
@@ -436,6 +448,23 @@ local function windLabel(windDesc)
   if not temp then return nil end
   local noun = (strength == "moderate") and "Wind" or "Breeze"
   return temp:sub(1, 1):upper() .. temp:sub(2) .. " " .. noun
+end
+
+-- weatherCategory() -- extracted 2026-08-30 from buildWeatherText()'s own
+-- WEATHER_KEYWORDS lookup (no behavior change), so a new consumer (the
+-- ambient background gradient, per Steven's "MATCHES THE WEATHER" ask)
+-- can key off the same confirmed real taxonomy (Clear/Cloudy/Rain/Sleet/
+-- Snow/Storm) instead of re-parsing MyDSL.State.weather.description with
+-- a second, possibly-drifting keyword list. Returns just the label, or
+-- nil if no weather data yet / unrecognized text (never guesses).
+function MW.weatherCategory()
+  local desc = MyDSL.State and MyDSL.State.weather and MyDSL.State.weather.description
+  if not desc or desc == "" then return nil end
+  local lc = desc:lower()
+  for _, entry in ipairs(WEATHER_KEYWORDS) do
+    if lc:find(entry[1], 1, true) then return entry[3] end
+  end
+  return nil
 end
 
 local function buildWeatherText()

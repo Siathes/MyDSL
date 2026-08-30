@@ -309,6 +309,13 @@ MyDSL.Help.modules = {
       { cmd = "mydsl moon gag / ungag", desc = "Suppress/restore raw `lunar` command output on the main console (default off).", example = "mydsl moon gag" },
     },
   },
+  { key = "ambient", title = "Ambient Background", category = "Display & Reference", window = nil,
+    summary = "Subtle main-console background tint that gradients with the DSL clock and current weather -- black at midnight, weather-colored at noon.",
+    commands = {
+      { cmd = "mydsl ambient on / off / toggle", desc = "Enable/disable the tint. Off restores your real console background exactly.", example = "mydsl ambient off" },
+      { cmd = "mydsl ambient status", desc = "Show whether it's on, the detected weather, and your captured base color.", example = "mydsl ambient status" },
+    },
+  },
   { key = "themes", title = "Themes", category = "Display & Reference", window = nil,
     summary = "Named color/font presets applied across every window, plus your own custom ones.",
     commands = {

@@ -516,6 +516,17 @@ item above rather than needing its own decision.)*
 Fixed in code (or already known-good), none of it closed until Steven
 confirms it in-game. Bundle these into upcoming play sessions rather than
 one at a time:
+- [ ] **Ambient background gradient, built 2026-08-30** (Steven: "is there
+      a way to set the background color of the main screen during day and
+      night... full black at midnight, and a subtle but noticeable at its
+      brightest color for noon... syncs [with] moon weather... MATCHES
+      THE WEATHER"). New module `MyDSL_AmbientBackground.lua`, on by
+      default. `mydsl ambient off` reverts to your exact real background
+      if it's too much, `mydsl ambient status` shows current state. Needs:
+      does it actually look right live (color choices are a first-pass
+      guess, not tuned against how it actually reads against real DSL
+      text colors), does the gradient feel smooth across a real session,
+      does `mydsl ambient off` cleanly restore your real background.
 - [ ] **Login credential setup popup, built 2026-08-30** (Steven: "add a
       way for the user to add the login information like a pop up UI for
       the first setup (i dont want users to have to edit code for basic
