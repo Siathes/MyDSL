@@ -94,6 +94,16 @@ function _G.getMudletHomeDir() return "/tmp/claude_mudlet_home" end
 function _G.loadRawFile(...) end
 function _G.saveMap(...) end
 function _G.getMainWindowSize() return 1920, 1080 end
+-- Real Mudlet 5.0+ API (confirmed against TLuaInterpreterUI.cpp):
+-- returns x, y, width, height on success, nil + error string on
+-- failure. Tests populate _G.__windowGeometry[name] = {x=,y=,w=,h=}
+-- to simulate a real window's current on-screen position.
+_G.__windowGeometry = {}
+function _G.getWindowGeometry(name)
+  local g = _G.__windowGeometry[name]
+  if not g then return nil, "window '" .. tostring(name) .. "' does not exist" end
+  return g.x, g.y, g.w, g.h
+end
 function _G.clearWindow(...) end
 function _G.dechoLink(...) end
 function _G.cechoLink(...) end

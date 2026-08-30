@@ -967,9 +967,43 @@ end
 -- already patched onto every window in patchUserWindowConstructor(). A
 -- differently-named profile falls back to the dock-side default
 -- placement below instead.
+-- Real bug, found live 2026-08-30: this function only ever called
+-- Mudlet's native saveWindowLayout() (pixel-based, shared machine-wide,
+-- profile-name-scoped -- see the comment above -- it can make a
+-- SAME-NAMED profile restore this arrangement, but can never seed a
+-- differently-named fresh install's defaults, since that data never
+-- leaves this machine's shared windowLayout.dat). Steven ran "mydsl
+-- layout save" twice expecting it to also write the portable
+-- MyDSL_layout.lua (MyDSL_LayoutEngine.lua's own MyDSL.Layout.positions
+-- system, designed for exactly this) -- it never did, because nothing
+-- in the whole codebase ever actually called MyDSL.Layout.set() from a
+-- real window move; that percentage table has been frozen at its coded
+-- defaults since this file was written, regardless of how the user
+-- actually arranged windows. Fixed: read every registered window's REAL
+-- current pixel geometry via getWindowGeometry() (confirmed real,
+-- Mudlet 5.0+ -- this project's own running version as of 2026-08-30),
+-- convert to the same 0.0-1.0 screen-fraction format MyDSL.Layout
+-- already uses, and feed it through MyDSL.Layout.set() (which validates
+-- and persists to MyDSL_layout.lua itself). Silently skips a window
+-- whose geometry can't be read (e.g. never created this session) or
+-- lands outside 0.0-1.0 (e.g. dragged to a second monitor) -- same
+-- graceful-skip behavior MyDSL.Layout.set() already had.
 function MyDSL.Windows.saveLayout()
   if saveWindowLayout then saveWindowLayout() end
   if saveProfile then saveProfile() end
+
+  if getWindowGeometry and MyDSL.Layout and MyDSL.Layout.set and MyDSL.Windows.registry then
+    local sw, sh = getMainWindowSize()
+    if sw and sw > 0 and sh and sh > 0 then
+      for name, _ in pairs(MyDSL.Windows.registry) do
+        local x, y, w, h = getWindowGeometry(name)
+        if x and y and w and h and w > 0 and h > 0 then
+          MyDSL.Layout.set(name, x / sw, y / sh, w / sw, h / sh)
+        end
+      end
+    end
+  end
+
   cecho("\n<green>[MyDSL] Layout saved.\n")
 end
 
