@@ -460,3 +460,52 @@ auto-packaged, every module has always needed this one-time step. Not
 something to hand-edit into `current/*.xml` directly (that's session-
 managed state, not source of truth) — Steven adds it the same way every
 other module in this project's history was added.
+
+## `map.prompt.hash` is dead code for DSL — confirmed 2026-08-29, corrects an earlier gap
+
+Claude Desktop traced this independently (`map_import_hash_findings.md`,
+delivered to Steven's Downloads) while answering "why won't an old
+`map.dat` load right, and should the hash system come out to fix it."
+**Verdict: leave it alone, it's not the obstacle.** Searched the whole
+repo for anywhere `map.prompt.hash` gets set — nothing does.
+`map.dsl.beforeExits()` is the only function that populates
+`map.prompt` at all, and it only fills `.room`/`.exits`/`.description`
+from GMCP, never `.hash` — because DSL's own GMCP never sends a room
+hash/vnum field to begin with (same finding already in this doc's
+architecture-comparison section). The `if map.prompt.hash then` guards
+in `check_room()`/`create_room()`/`find_link()`/`map.find_me()` always
+fall through — DSL's real room identification has always run on
+name+exits alone. **Now commented in the source itself** (all 4 sites
+in `DSL_Generic_Mapper.xml`) so a future reader doesn't re-spend time on
+this investigation.
+
+**This also means `map.export_area()`/`map.import_area()`'s hash-
+conflict protection (`848c8aa`) is currently dormant** — `setRoomIDbyHash()`
+is only ever called from that import path and `create_room()`'s dead
+branch, so no room created during ordinary DSL play ever gets a native
+hash. Still worth keeping: it's correct, matches upstream, and is cheap
+insurance if that ever changes — removing it would just reopen the door
+for no benefit.
+
+**Correction to this doc's own earlier finding, worth being honest
+about**: the original architecture-comparison pass (above) confirmed
+`getRoomHashByID`/`setRoomIDbyHash`/`getRoomIDbyHash` are real functions
+*used* elsewhere in this file, and treated that as confirming the hash
+mechanism was live. That only checked the functions are called, not
+whether the value they depend on (`map.prompt.hash`) is ever actually
+set — a distinct question, and the one that actually mattered here.
+Recorded as its own lesson: `docs/LESSONS_LEARNED.md`.
+
+**What's actually likely blocking an old `map.dat` load**: Mudlet's own
+native `loadMap()` merges into the existing room database rather than
+replacing it (confirmed against `TRoomDB.cpp`) — an incoming room whose
+ID collides with one already in the profile silently loses, no error.
+Mudlet numbers rooms with small sequential integers, so an old map and
+a live map almost certainly overlap heavily. **Recommended fix, not yet
+tested for real**: don't `loadMap()` an old file into the live profile
+directly — load it into a fresh empty profile first (nothing to
+collide with), then use `map.export_area()`/`map.import_area()` (the
+already-hardened path) to pull specific areas across.
+**Added to today's live-session checklist** if Steven has a real old
+`map.dat` on hand — this settles the collision theory for real instead
+of leaving it as a plausible read of the C++ source.

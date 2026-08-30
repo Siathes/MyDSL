@@ -53,10 +53,13 @@ end)
 -- about the package they just installed" and "undo any UI changes on
 -- uninstall". sysInstallPackage fires (arg[1] = package name) only for
 -- a real package install, not every script reload -- confirmed directly
--- in Host.cpp's installPackage(). removeMapEvent()/removeMapMenu() are
--- the real, documented Lua functions for tearing down addMapEvent
--- registrations (wiki.mudlet.org/w/Manual:Lua_Functions#removeMapEvent /
--- #removeMapMenu, confirmed against TLuaInterpreterMapper.cpp directly).
+-- in Host.cpp's installPackage(). removeMapEvent() is the real Lua
+-- function this file actually calls, for tearing down the addMapEvent
+-- registration below (wiki.mudlet.org/w/Manual:Lua_Functions#removeMapEvent,
+-- confirmed against TLuaInterpreterMapper.cpp directly). removeMapMenu()
+-- is a real sibling function (same file, tears down a submenu and its
+-- children) but this addon has no submenu to remove -- MyDSL_MapperMenu.lua
+-- is the one that would need it, not this file -- so it's not called here.
 ------------------------------------------------------------------------
 
 -- Must be a real global (not local) -- registerAnonymousEventHandler's

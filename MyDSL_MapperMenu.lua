@@ -62,5 +62,18 @@ function MM.eventHandler(event, mapEvent, ...)
   end
 end
 
+-- Uninstall cleanup, added 2026-08-29 per Mudlet's own documented best
+-- practices (see docs/MUDLET_PACKAGING_REFERENCE.md) -- removeMapMenu()
+-- (unlike removeMapEvent()) also removes every child registered under
+-- it as a parent, so this one call tears down the "MyDSL" submenu and
+-- all 3 items in ITEMS together. Confirmed real, real signature, in
+-- TLuaInterpreterMapper.cpp directly.
+function MyDSL.MapperMenu.uninstallHandler(event, packageName)
+  if event == "sysUninstallPackage" and packageName == "MyDSL_Full" then
+    if type(removeMapMenu) == "function" then pcall(removeMapMenu, MM.MENU_PARENT_KEY) end
+  end
+end
+
 registerAnonymousEventHandler("mapAddOnEvent", "MyDSL.MapperMenu.eventHandler")
 registerAnonymousEventHandler("mapOpenEvent", "MyDSL.MapperMenu.eventHandler")
+registerAnonymousEventHandler("sysUninstallPackage", "MyDSL.MapperMenu.uninstallHandler")

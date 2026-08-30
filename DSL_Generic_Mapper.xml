@@ -2966,6 +2966,22 @@ local function check_room(roomID, name, exits, onlyName)
         error("Check Room Error: No ID",2)
     end
     -- check with room hash id
+    -- DSL hardening note (confirmed 2026-08-29, Claude Desktop's own
+    -- independent trace, not assumed): map.prompt.hash is DEAD CODE for
+    -- DSL. Searched the whole repo for anything that ever sets it --
+    -- nothing does. map.dsl.beforeExits() is the only function that
+    -- populates map.prompt at all, and it only fills .room/.exits/
+    -- .description from GMCP, never .hash -- because DSL's own GMCP
+    -- never sends a room hash/vnum field to begin with (confirmed:
+    -- docs/DSL_CommandRef.md, and this file's own "GMCP assists Generic
+    -- Mapper but does not create rooms/links directly" comment further
+    -- down). So this branch (and the same `if map.prompt.hash then`
+    -- check in create_room()/find_link()/map.find_me() below) always
+    -- falls through to the real matching logic -- DSL's actual room
+    -- identification runs on name+exits alone, always has. Harmless,
+    -- not worth removing (matches stock, costs nothing), but don't
+    -- spend time investigating it as a lead for anything -- it never
+    -- engages. Full writeup: docs/MAPPER_REDESIGN.md.
     if map.prompt.hash then
         if map.prompt.hash == getRoomHashByID(roomID) then
             return true
@@ -3055,6 +3071,7 @@ local function create_room(name, exits, dir, coords)
         addRoom(newID)
         setRoomArea(newID, map.currentArea)
         setRoomName(newID, name)
+        -- dead code for DSL, never engages -- see check_room()'s note above
         if map.prompt.hash then
             setRoomIDbyHash(newID, map.prompt.hash)
         end
@@ -3145,7 +3162,8 @@ local function find_link(name, exits, dir, max_distance)
             miny, maxy = y - max_distance, y + max_distance
             minz, maxz = z - max_distance, z + max_distance
         end
-        -- find link from room hash first
+        -- find link from room hash first -- dead code for DSL, never
+        -- engages, see check_room()'s note above
         if map.prompt.hash then
             local room = getRoomIDbyHash(map.prompt.hash)
             if room &gt; 0 then
@@ -3746,6 +3764,7 @@ function map.find_me(name, exits, dir, manual)
     -- if direction of movement is given, narrows down possibilities using previous room info
     if move ~= "recall" then move_queue = {} end
     -- find from room hash id - map.find_me(nil, nil, nil, false)
+    -- dead code for DSL, never engages, see check_room()'s note above
     if map.prompt.hash then
         local room = getRoomIDbyHash(map.prompt.hash)
         if room &gt; 0 then

@@ -113,6 +113,23 @@ before shipping.
 from the Manual, check Mudlet's real source before writing `ipairs()`/
 `pairs()` code against it — a wrong assumption here fails silently.
 
+**Confirming a function is *used* is not the same as confirming the
+value it depends on is ever *populated* — a distinct question, and often
+the one that actually matters.** Confirmed 2026-08-29:
+`getRoomHashByID()`/`setRoomIDbyHash()`/`getRoomIDbyHash()` are real
+functions called in several places in `DSL_Generic_Mapper.xml`, which
+got treated as confirmation the hash-based room-identification
+mechanism was live for DSL. It wasn't — none of those calls fire in
+practice, because `map.prompt.hash` (what they all read) is never set
+anywhere; DSL's own GMCP has no hash/vnum field to populate it from.
+Caught by a second, independent pass that traced the *value*, not just
+grepped for the *function names*.
+**Rule:** "this function is called somewhere" only confirms the call
+site exists, not that the branch is reachable — trace whether the value
+it depends on is ever actually assigned before concluding a mechanism
+is live, especially before treating "it's already used elsewhere" as
+confirmation something works.
+
 **Python's `re` is not real PCRE, and this project has hit real bugs from
 trusting it as a stand-in.** This project has hit 3 real PCRE-vs-Lua/
 Python-pattern-behavior bugs historically; the test suite's own regex

@@ -115,6 +115,30 @@ question, folded in per Steven 2026-08-29 rather than a separate check.
       doesn't exist yet. Steven: "we will do a from scratch and see how it
       unfolds and can be improved" — run the real install, then write
       `INSTALL.md` from what that reveals.
+      **Asset-distribution plan researched 2026-08-29** (Claude Desktop,
+      `asset_distribution_plan.md`, delivered to Steven's Downloads):
+      host `Sounds.zip`/`RoomPics.zip`/`Portraits.zip` as GitHub Release
+      assets on this repo (not Google Drive — its large-file "can't scan
+      for viruses" interstitial breaks a plain `downloadFile()` fetch,
+      confirmed reasoning not just a hunch), fetched via a new `mydsl
+      assets fetch` alias using `downloadFile()` + `unzipAsync()`.
+      **Steven's explicit call, 2026-08-29: this must be an opt-in
+      command the player runs, never an automatic default-on fetch** —
+      confirmed the right call by real folder sizes checked the same
+      day (`du -sh`, live MyDSL profile): Sounds 22MB, portraits 44MB,
+      but **`MyDSL/roompics/` is 1.3GB** — nowhere near something to pull
+      automatically. Also confirmed `unzipAsync()`'s real signature
+      directly from Mudlet's own test suite (`Miscallaneous_spec.lua`,
+      the strongest source available — actual assertions, not docs that
+      could drift): `unzipAsync(archivePath, extractToDirectory)`, 2
+      required args, returns `true` immediately (extraction is async on
+      another thread) then fires `sysUnzipDone`
+      `(event, zipLocation, extractLocation)` or `sysUnzipError`
+      `(event, zipLocation)` — `extractLocation` always comes back with
+      a trailing `/` regardless of what was passed in. Both of Claude
+      Desktop's open unknowns from the plan are now resolved; building
+      the actual `mydsl assets fetch` alias + the 3 release zips is
+      still open, not started.
 
 *(Native-content tracking's Principle-2 question is answered, not open:
 Principle 2 is "Toggleable By Default" — MYDSL_1.0_PHILOSOPHY.md, unrelated
