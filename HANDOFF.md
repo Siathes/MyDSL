@@ -30,40 +30,64 @@ by prompting each with "check repo" plus his own notes.
 
 ## Latest from Claude Code
 
-**2026-08-29 (closed out every item from your HANDOFF_7/asset-plan/hash-findings batch)**
+**2026-08-29 (live Mudlet 5.0 test underway — real install, real bugs found and fixed)**
 
-All real, all acted on:
-- `DSL_Mapper_Addon.xml`'s comment overstatement (credited `removeMapMenu()`
-  as used, only `removeMapEvent()` actually is) — fixed. While there:
-  found `MyDSL_MapperMenu.lua` (the file that DOES register a submenu)
-  had zero uninstall cleanup at all — added it, using `removeMapMenu()`
-  correctly this time (tears down all 3 children in one call).
-- Your `map_import_hash_findings.md` — real, valuable, and it corrected
-  a gap in my own earlier work: I'd confirmed the hash *functions* are
-  used elsewhere in the file and read that as the mechanism being live;
-  never traced whether `map.prompt.hash` itself is ever set. It isn't.
-  Added your finding as inline comments at all 4 check sites in
-  `DSL_Generic_Mapper.xml`, recorded the correction (and the general
-  lesson — confirming a function is called ≠ confirming its input is
-  populated) in `docs/LESSONS_LEARNED.md`. Your `loadMap()`
-  ID-collision theory for old `map.dat` failures is now on today's live
-  test checklist if Steven has a real old file to try it against.
-- `asset_distribution_plan.md`'s two open unknowns, both resolved:
-  `unzipAsync(archivePath, extractDirectory)`'s real 2-arg signature,
-  confirmed directly from Mudlet's own test suite
-  (`Miscallaneous_spec.lua` — actual assertions, stronger than docs);
-  and real folder sizes (`du -sh` on the live MyDSL profile): Sounds
-  22MB, portraits 44MB, **roompics 1.3GB**. Steven's own call, same
-  session: this has to be an explicit opt-in `mydsl assets fetch`
-  command, never automatic — the 1.3GB number makes that obviously
-  correct, not just a preference. Recorded in `docs/TODO.md`; the
-  actual alias + release zips aren't built yet.
+Session moved from research/design into actually installing both
+packages in a fresh "MyDSL Test" profile (Mudlet 5.0.0, confirmed real
+via title bar + `generic_mapper` 2.1.10 matching the tag). Since your
+last read:
 
-Full 56-suite run clean throughout. No ask this round — Steven's live
-Mudlet 5.0 test session is starting now (fresh "MyDSL Test" profile,
-baseline recorded: Mudlet's 6 default packages + `generic_mapper`
-2.1.10, confirmed matching the real `Mudlet-5.0.0` tag). Will report
-back what that turns up.
+- **A full-workspace Lua diagnostic sweep** (Steven asked about VS
+  Code's Problems panel — 5 errors/787 warnings) found 2 real, live
+  bugs: `MyDSL_Chat.lua` had 8 call sites using Python-style `f"..."`
+  string interpolation (doesn't exist in Lua, confirmed crashes on real
+  LuaJIT) — same bug class already found and rejected in the DSL PNP 4
+  package, turned out to be real here too, in error-path/debug-logging
+  lines. `MyDSL_AffectsView.lua` called an undefined `tableCount()` in
+  its status command — fixed to the real `table.size()`. Added a
+  permanent `check_known_patterns.py` rule for the f-string class
+  (tightened after it first false-positived on 6 unrelated lines,
+  caught before shipping). Both fixes rebuilt into `MyDSL_Full.mpackage`
+  before Steven's first real install — the version already in his
+  Downloads at that point still had both bugs, redelivered clean.
+- **Both packages installed cleanly in real Mudlet** — `errors.txt`
+  empty, `[DSL Mapper Addon] Installed.` fired correctly (first
+  real-client confirmation of the `sysInstallPackage` hook, previously
+  only tested in `luajit` mocks), screenshot confirms a clean initial
+  layout.
+- **`build_mydsl_package.py` architecture change, Steven's call**: stop
+  requiring a native dofile Script anywhere before a module gets
+  bundled — now auto-bundles every git-tracked `MyDSL_*.lua` file not
+  yet wired in. Surfaced two real, independent findings while doing it:
+  `MyDSL_Leveling.lua` (1,026 lines, real, actively maintained) had
+  never been in any built package, now fixed as a bonus; and
+  `MyDSL_theme_settings.lua`/`MyDSL_windowfonts.lua` (Steven's personal
+  settings, not code) were accidentally git-tracked and would have been
+  silently bundled as if they were modules — caught before shipping,
+  excluded, `.gitignore` gap fixed, `git rm --cached`'d.
+- Live-test findings tracked in `docs/LIVE_TEST_SESSION_NOTES.md`
+  (new, deliberately a pruned scratchpad not a permanent doc) rather
+  than fixed one at a time — Steven's call, batching small UI/UX polish
+  for one later pass instead of context-switching per item.
+
+Session about to compact on Steven's end — everything committed and
+pushed (`768559f`, `origin/main` even). One loose end, not urgent:
+`.codex/hooks.json`/`AGENTS.md` reappeared untracked (27KB, real
+content, not a stub) after being deliberately removed earlier this
+session as "Codex not in use" — timestamp lines up with this session's
+own work, not something Claude Code did. Waiting on Steven to confirm
+whether Codex is actually back in use before touching it again.
+
+Your prior HANDOFF_7/hash-findings/asset-plan batch: all acted on
+(comment fix + `MyDSL_MapperMenu.lua` uninstall cleanup, hash findings
+recorded in source + `docs/LESSONS_LEARNED.md`, both
+`asset_distribution_plan.md` unknowns resolved) — full detail in
+`docs/MAPPER_REDESIGN.md`/`docs/TODO.md`, not restated here now that
+it's landed.
+
+No ask this round. Steven's mid-live-test (reinstalling with the
+freshly-rebuilt `MyDSL_Full.mpackage` now) and about to compact his
+session — will report back what the reinstall turns up.
 
 ## Latest from Claude Desktop
 
