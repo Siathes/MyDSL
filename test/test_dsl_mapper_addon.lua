@@ -322,12 +322,14 @@ if map.dsl and map.dsl.highlightPlayersNear then
   _G.searchRoom = function(name) return roomsByName[name] or {} end
   local highlightCalls = {}
   _G.highlightRoom = function(rid, fgr, fgg, fgb, bgr, bgg, bgb, radius, a1, a2)
-    highlightCalls[#highlightCalls + 1] = { rid = rid, radius = radius, alpha = a1 }
+    highlightCalls[#highlightCalls + 1] = { rid = rid, radius = radius, alpha = a1, color = { fgr, fgg, fgb } }
     return true
   end
   local unhighlightCalls = {}
   _G.unHighlightRoom = function(rid) unhighlightCalls[#unhighlightCalls + 1] = rid; return true end
-  map.dsl.player_highlights = {}
+  map.dsl.player_highlighted_rooms = {}
+  _G.DSL_COLOR_DB = { relations = { people = { grognak = "enemy", meki = "friend" } } }
+  _G.dslKey = function(s) return s:lower() end
 
   map.dsl.highlightPlayersNear("MyDSL.playersNear.parsed", { { name = "Someone", room = "Town Square" } })
   check("highlightPlayersNear(event, list) reads the real list from the SECOND argument, not the event name",
@@ -337,35 +339,38 @@ if map.dsl and map.dsl.highlightPlayersNear then
   -- the room's own on-screen width (confirmed against Mudlet's real
   -- T2DMap.cpp source: roomRadius = highlightRadius * mRoomWidth / 2.0),
   -- not pixels -- the old value (25) meant a 12.5-room-width radius,
-  -- swallowing whole screenfuls of the map. Locks in a sane radius
-  -- (comparable to a single room's own size) so a future regression
-  -- back to an oversized constant fails this test instead of only
-  -- showing up live.
+  -- swallowing whole screenfuls of the map. Then shrunk again per
+  -- Steven's direct follow-up ("id like them a little smaller"). Locks
+  -- in a sane radius (comparable to or smaller than a single room's own
+  -- size) so a future regression back to an oversized constant fails
+  -- this test instead of only showing up live.
   check("highlight radius is comparable to one room's own size, not dozens of room-widths",
-    highlightCalls[1].radius ~= nil and highlightCalls[1].radius > 0 and highlightCalls[1].radius <= 3)
+    highlightCalls[1].radius ~= nil and highlightCalls[1].radius > 0 and highlightCalls[1].radius <= 1.5)
 
-  -- ---- follow + fade, added 2026-08-30 per Steven's own follow-up
-  -- ("they should also follow to the rooms for their specidifc temporary
-  -- tracking of the players location, but fade when they leave the
-  -- area") -----------------------------------------------------------
+  -- ---- redesigned 2026-08-30: no fade, instant on/off every poll,
+  -- colored by DSL_COLOR_DB relationship -- per Steven's follow-up
+  -- ("id like it to not fade actuall and turn on and off with any where
+  -- command... connected to dslcolor relationship of friend and enemy
+  -- and neutral for coloring") ------------------------------------------
   highlightCalls, unhighlightCalls = {}, {}
-  map.dsl.highlightPlayersNear("MyDSL.playersNear.parsed", { { name = "Someone", room = "Market" } })
-  check("a tracked player's highlight follows them to their new room on the next poll",
-    #highlightCalls == 1 and highlightCalls[1].rid == 21 and highlightCalls[1].alpha == 150)
-  check("the old room's highlight is cleared when following to the new one",
-    #unhighlightCalls >= 1 and unhighlightCalls[1] == 20)
-
-  highlightCalls, unhighlightCalls = {}, {}
-  map.dsl.highlightPlayersNear("MyDSL.playersNear.parsed", {})  -- player dropped out of this poll
-  check("a player missing from one poll gets redrawn at reduced alpha (fading), not removed outright",
-    #highlightCalls == 1 and highlightCalls[1].rid == 21 and highlightCalls[1].alpha == 60)
-  check("still tracked internally while fading", map.dsl.player_highlights["Someone"] ~= nil)
+  map.dsl.highlightPlayersNear("MyDSL.playersNear.parsed", { { name = "Meki", room = "Market" } })
+  check("a friend (DSL_COLOR_DB relation) highlights green", highlightCalls[1] and highlightCalls[1].color[2] > highlightCalls[1].color[1])
+  check("the previous poll's highlight is cleared, not left lingering (no fade)",
+    #unhighlightCalls == 1 and unhighlightCalls[1] == 20)
 
   highlightCalls, unhighlightCalls = {}, {}
-  map.dsl.highlightPlayersNear("MyDSL.playersNear.parsed", {})  -- missing a SECOND consecutive poll
-  check("a player missing from a second consecutive poll is actually removed",
-    #highlightCalls == 0 and map.dsl.player_highlights["Someone"] == nil)
-  check("the faded room's highlight is cleared on final removal", #unhighlightCalls >= 1)
+  map.dsl.highlightPlayersNear("MyDSL.playersNear.parsed", { { name = "Grognak", room = "Town Square" } })
+  check("an enemy (DSL_COLOR_DB relation) highlights red", highlightCalls[1] and highlightCalls[1].color[1] > highlightCalls[1].color[2])
+
+  highlightCalls, unhighlightCalls = {}, {}
+  map.dsl.highlightPlayersNear("MyDSL.playersNear.parsed", { { name = "Someone", room = "Town Square" } })
+  check("no relation on file highlights neutral gold (not friend/enemy green/red)",
+    highlightCalls[1] and highlightCalls[1].color[1] > 200 and highlightCalls[1].color[2] > 180 and highlightCalls[1].color[3] < 100)
+
+  highlightCalls, unhighlightCalls = {}, {}
+  map.dsl.highlightPlayersNear("MyDSL.playersNear.parsed", {})  -- empty where result -- e.g. nobody nearby
+  check("an empty where result turns every highlight off immediately, no lingering/fading",
+    #highlightCalls == 0 and #unhighlightCalls == 1 and #map.dsl.player_highlighted_rooms == 0)
 end
 
 print(string.format("\n%d failure(s)", failures))

@@ -118,7 +118,7 @@ registerAnonymousEventHandler("sysUninstallPackage", "dslMapperAddonInstallUnins
 local profilePath = getMudletHomeDir()
 
 map.dsl = map.dsl or {}
-map.dsl.version = "0.2.14"
+map.dsl.version = "0.2.15"
 map.dsl.base = "Generic Mapper 2.1.8"
 map.dsl.gmcp = map.dsl.gmcp or {}
 map.dsl.line_buffer = map.dsl.line_buffer or {}
@@ -1160,45 +1160,62 @@ end
 -- source, TLuaInterpreterMapper.cpp) is a table keyed BY ROOM ID
 -- (roomID -&gt; roomName), not a plain array -- iterate with pairs() over
 -- the keys, not ipairs() over values, or every match is silently missed.
-local DSL_PLAYER_HIGHLIGHT_RGB = { 255, 220, 60 }  -- gold -- distinct from every sector env color
+-- Colors picked by DSL_COLOR_DB relationship now, not one flat color --
+-- added 2026-08-30 per Steven's redesign ask ("id like them a little
+-- smaller and connected to dslcolor relationship of friend and enemy
+-- and neutral for coloring"). DSL_COLOR_DB (a real global, set by
+-- DslColors_Core_v1_0.xml, a separate native Script -- confirmed no
+-- `local` keyword on its declaration, so it's genuinely readable across
+-- scripts) already tracks this exact relationship at
+-- `DSL_COLOR_DB.relations.people[dslKey(name)]` = "friend" | "enemy"
+-- (absent = neutral, matches DslColors' own "clearing a relation
+-- removes the key entirely" convention). Reuses DslColors' own real
+-- `dslKey()` global for name normalization (lowercase, spaces ->
+-- underscores) instead of a second ad-hoc one. Bright, saturated colors
+-- here rather than DslColors' own enemy_background/friend_background
+-- values (those are deliberately DARK/muted text-background tints, not
+-- meant to read as a standalone map marker).
+local DSL_PLAYER_HIGHLIGHT_FRIEND  = { 80, 220, 90 }   -- green
+local DSL_PLAYER_HIGHLIGHT_ENEMY   = { 220, 60, 60 }   -- red
+local DSL_PLAYER_HIGHLIGHT_NEUTRAL = { 255, 220, 60 }  -- gold (unchanged default)
 
--- REAL BUG found 2026-08-30 (Steven, from a screenshot: "the markers
--- yellow circles of the players near you are to large"). Confirmed
--- against Mudlet's own real C++ source (TLuaInterpreterMapper.cpp's
--- highlightRoom(), T2DMap.cpp's rendering): the radius argument is a
--- multiplier of the room's own on-screen width --
--- `roomRadius = (highlightRadius * mRoomWidth) / 2.0` -- NOT pixels and
--- NOT a small fixed constant. The old value (25) meant a highlight
--- circle 12.5 room-widths in radius, which is why entire screenfuls of
--- the map turned solid yellow instead of marking one room. 1.2 keeps
--- the highlight visibly larger than the room's own box (matching how a
--- room's own shape renders at roughly 1x mRoomWidth) without swallowing
--- its neighbors, closer in scale to how Mudlet renders the player's own
--- current-room indicator.
-local DSL_PLAYER_HIGHLIGHT_RADIUS = 1.2
-
--- Tracked PER PLAYER NAME now, not as one flat room list -- added
--- 2026-08-30 per Steven's follow-up ("they should also follow to the
--- rooms for their specidifc temporary tracking of the players location,
--- but fade when they leave the area"). AutoWhere re-polls "where" every
--- 20s and this handler fires fresh each time, so "follow" is already
--- implicit (each poll redraws wherever a name currently is) -- what was
--- missing was FADE: a name that drops out of one poll (out of `where`
--- range, or simply not answering) used to vanish from the map
--- instantly. Mudlet has no native highlight-fade/animation primitive
--- (confirmed against its real highlightRoom() source -- it's a single
--- static draw call, not a tween), so this fakes a 2-step fade using the
--- same primitive: a name missing from exactly one poll gets redrawn at
--- reduced alpha (a visible "fading" state) instead of removed outright;
--- missing from a SECOND consecutive poll actually removes it. A name
--- that reappears before then is treated as still tracked, no visible
--- flicker.
-map.dsl.player_highlights = map.dsl.player_highlights or {}  -- name -> { rooms = {rid, ...}, fading = bool }
-
-local function dsl_clearPlayerHighlight(entry)
-  if not entry then return end
-  for _, rid in ipairs(entry.rooms) do pcall(unHighlightRoom, rid) end
+local function dsl_playerHighlightColor(name)
+  if DSL_COLOR_DB and DSL_COLOR_DB.relations and DSL_COLOR_DB.relations.people and name then
+    local key = dslKey and dslKey(name) or name:lower()
+    local rel = DSL_COLOR_DB.relations.people[key]
+    if rel == "friend" then return DSL_PLAYER_HIGHLIGHT_FRIEND end
+    if rel == "enemy" then return DSL_PLAYER_HIGHLIGHT_ENEMY end
+  end
+  return DSL_PLAYER_HIGHLIGHT_NEUTRAL
 end
+
+-- Radius -- fixed twice same day. First fix (2026-08-30, Steven: "the
+-- markers yellow circles of the players near you are to large"):
+-- confirmed against Mudlet's own real C++ source
+-- (TLuaInterpreterMapper.cpp's highlightRoom(), T2DMap.cpp's rendering)
+-- that the radius argument is a multiplier of the room's own on-screen
+-- width -- `roomRadius = (highlightRadius * mRoomWidth) / 2.0` -- NOT
+-- pixels. The old value (25) meant a 12.5-room-width radius, explaining
+-- why entire screenfuls of the map turned solid yellow. Dropped to 1.2,
+-- then per Steven's direct follow-up ("id like them a little smaller")
+-- dropped again to 0.7 -- smaller than one room's own box, a marker
+-- rather than an area fill.
+local DSL_PLAYER_HIGHLIGHT_RADIUS = 0.7
+
+-- Redesigned 2026-08-30, replacing the same-day fade-based version
+-- (removed): Steven explicitly asked to drop the fade -- "id like it to
+-- not fade actuall and turn on and off with any where command, auto or
+-- manual" -- plus reported "the player markers do not fade or disappear
+-- currently" against that version regardless. Back to the simpler
+-- always-clear-then-redraw shape, which also sidesteps needing to
+-- diagnose why the fade state machine wasn't visibly working: every
+-- firing of this handler (this parsing pipeline reacts to the "Players
+-- near you:" text itself, not to WHO sent the `where` that produced it,
+-- so both AutoWhere's automatic poll and a manually-typed `where`
+-- already trigger it the same way) clears every previously-tracked
+-- highlight and draws exactly the current set fresh -- on/off in sync
+-- with the most recent `where` result, nothing lingers.
+map.dsl.player_highlighted_rooms = map.dsl.player_highlighted_rooms or {}  -- flat list of currently-highlighted room IDs
 
 -- Same real bug as map.dsl.captureCommand() above (see its own comment
 -- for the full writeup) -- missing the leading `event` argument every
@@ -1209,47 +1226,20 @@ end
 -- Lua (string indexing via [n] just returns nil), so this failed
 -- completely silently, zero iterations, no error to notice.
 function map.dsl.highlightPlayersNear(event, list)
-  local c = DSL_PLAYER_HIGHLIGHT_RGB
-  local currentRoomByName = {}
-  if list then
-    for _, entry in ipairs(list) do
-      if entry.name and entry.room and entry.room ~= "" then
-        currentRoomByName[entry.name] = entry.room
-      end
-    end
+  for _, rid in ipairs(map.dsl.player_highlighted_rooms) do
+    pcall(unHighlightRoom, rid)
   end
-
-  -- Still-present names: full-alpha highlight, redrawn every poll so a
-  -- name that moved rooms follows to its new one.
-  local stillTracked = {}
-  for name, roomName in pairs(currentRoomByName) do
-    dsl_clearPlayerHighlight(map.dsl.player_highlights[name])
-    local ok, matches = pcall(searchRoom, roomName, false, true)
-    local rooms = {}
-    if ok and type(matches) == "table" then
-      for rid in pairs(matches) do
-        pcall(highlightRoom, rid, c[1], c[2], c[3], c[1], c[2], c[3], DSL_PLAYER_HIGHLIGHT_RADIUS, 150, 150)
-        table.insert(rooms, rid)
-      end
-    end
-    map.dsl.player_highlights[name] = { rooms = rooms, fading = false }
-    stillTracked[name] = true
-  end
-
-  -- Names missing from this poll: fade (1 cycle at reduced alpha), then remove.
-  for name, entry in pairs(map.dsl.player_highlights) do
-    if not stillTracked[name] then
-      if entry.fading then
-        dsl_clearPlayerHighlight(entry)
-        map.dsl.player_highlights[name] = nil
-      else
-        dsl_clearPlayerHighlight(entry)
-        local fadedRooms = {}
-        for _, rid in ipairs(entry.rooms) do
-          pcall(highlightRoom, rid, c[1], c[2], c[3], c[1], c[2], c[3], DSL_PLAYER_HIGHLIGHT_RADIUS, 60, 60)
-          table.insert(fadedRooms, rid)
+  map.dsl.player_highlighted_rooms = {}
+  if not list then return end
+  for _, entry in ipairs(list) do
+    if entry.room and entry.room ~= "" then
+      local c = dsl_playerHighlightColor(entry.name)
+      local ok, matches = pcall(searchRoom, entry.room, false, true)
+      if ok and type(matches) == "table" then
+        for rid in pairs(matches) do
+          pcall(highlightRoom, rid, c[1], c[2], c[3], c[1], c[2], c[3], DSL_PLAYER_HIGHLIGHT_RADIUS, 150, 150)
+          table.insert(map.dsl.player_highlighted_rooms, rid)
         end
-        map.dsl.player_highlights[name] = { rooms = fadedRooms, fading = true }
       end
     end
   end
