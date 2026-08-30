@@ -95,19 +95,47 @@ question, folded in per Steven 2026-08-29 rather than a separate check.
       split; image label is now full-height like every other window.
       `mydsl portrait title <text>` still works unchanged. Not closed
       until Steven confirms the bar is gone in-game.
-- [ ] **Mapper "not following room movement" (Steven, 2026-08-29 live-test
-      note, marked top priority in the moment)** — likely already
-      resolved by itself: the note was written right after a fresh
-      install, and `[DSL Mapper Addon]`'s own boot message says it needs
-      Mudlet's native Generic Mapper opened once first ("this addon
-      doesn't include a copy of it"). Later screenshots from the *same*
-      session (`Screenshot_20260829_222048.png` → `_234141.png`) show the
-      minimap's room name changing between captures, i.e. tracking
-      correctly — consistent with Steven having opened the Map widget
-      once in between. Needs one explicit live re-check next session
-      (walk a few rooms right after a fresh install, before touching the
-      Map widget, to confirm whether it's really fixed by "open Map once"
-      or a real regression) before this can be closed.
+- [ ] **Mapper "not following room movement" — reconfirmed 2026-08-30 by
+      Steven ("still biggest issue... mapper is prob the most important
+      module to work"), not resolved by itself as the 2026-08-29 theory
+      below assumed.** Two real findings this pass, both 2026-08-30:
+      1. **Architecture split discovered**: the live `MyDSL` profile
+         still runs the old full-fork `DSL_Generic_Mapper.xml`; the
+         freshly-reinstalled `MyDSL Test` (where Steven actually tested
+         and reported this) runs the new `DSL_Mapper_Addon.xml`
+         (2026-08-29 redesign, layers on Mudlet's own stock mapper
+         instead of forking it). The two profiles are on genuinely
+         different mapper codebases right now — not decided as
+         intentional, needs Steven's call on whether to migrate `MyDSL`
+         to match. `map.dsl.logDesync()` (always-on, writes
+         `mapper_desync_log.txt`, no `map config debug true` needed) was
+         added to the old fork's `check_room()`/`move_map()`/`find_me()`
+         (`DSL_Generic_Mapper.xml` + live `MyDSL` profile's own
+         `current/*.xml`, both synced) for whenever `MyDSL` itself
+         desyncs — but per that file's own header comment, this class of
+         diagnostic can't be replicated in the new addon (stock's
+         functions are private/non-overridable there), so it says
+         nothing about what `MyDSL Test` actually hit. Still open: build
+         an equivalent event-driven desync check for `DSL_Mapper_Addon.xml`
+         (compare `map.currentRoom` before/after a captured move command
+         fires and stock's own new-room event, since the addon can't hook
+         `check_room` directly) — not built yet, pending Steven's answer
+         on the architecture question above.
+      2. **This specific 2026-08-30 episode explained, not a code bug**:
+         confirmed directly in the raw session log — mid-session, with no
+         typed command around it, `MyDSL Test` silently loaded
+         `/MyDSL/map/2026-08-29#19-56-36map.dat` (the *other* profile's
+         map file). Per Steven: this is his own deliberate workaround
+         (`MyDSL_Full.mpackage` doesn't ship map data, so a fresh
+         `MyDSL Test` reinstall starts with an empty map — he manually
+         loads the real `MyDSL` map via the Map widget's `map show` each
+         time). Real, but a footgun: no confirmation dialog, easy to
+         land mid-session, and produces symptoms indistinguishable from
+         a genuine desync bug. Fix (added 2026-08-30): `docs/
+         MUDLET_PACKAGING_REFERENCE.md`'s pre-delivery checklist now has
+         a step to copy the live `MyDSL` map into a freshly-reinstalled
+         `MyDSL Test` proactively, so Steven doesn't need to do this
+         manually going forward.
 - [ ] **DslColors — make Census genuinely useful, document it.** The
       "integrate + toggle" and "fix known bugs" parts of this pass are
       done (2026-08-29 — see `docs/CHANGELOG.md`: master `dslcolor
@@ -329,6 +357,24 @@ one at a time:
 ---
 
 ## OPEN — Design ideas, not yet scoped
+- [ ] **Login setup popup renders wrong** — Steven, 2026-08-30 "MyDSL Test"
+      `notes.json`: "autologin appeared small in the corner docked, it
+      needs to be not docked and in the center of the screen and alter
+      the text to fit a smaller notice window, it was wide." The
+      `MyDSL_LoginSetup` `Geyser.UserWindow` (`MyDSL_Login.lua`,
+      2026-08-30 feature) needs real positioning/sizing work — centered,
+      not docked, and its instruction text needs to fit a narrower
+      window. Not yet fixed.
+- [ ] **Thinner UserWindow title bars?** — Steven, same notes.json: "is
+      it possible to make the userwindow titles bars thinner?" General
+      polish ask across all `Geyser.UserWindow`-based popups, not scoped
+      yet.
+- [ ] **Small icon/indicator for identified items** — Steven, same
+      notes.json: "a small icon or indicator of identified items would
+      be very useful, end of text has a colored small symbol?" Idea: a
+      colored marker appended to an item's display line once
+      `MyDSL.resolveItemLoreRecord()` confirms it's known/identified.
+      Not scoped yet.
 - [ ] **Skill-based affect tracking (e.g. `hide`)** — Steven, "MyDSL Test"
       `notes.json`: "its a skill not a cast, need a method for tracking
       skills like spells?" `MyDSL_AffectsView.lua`'s tracking today is

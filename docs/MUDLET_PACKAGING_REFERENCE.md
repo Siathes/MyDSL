@@ -249,3 +249,22 @@ a real, scoped-but-deferred item rather than silently skipped.
    a path. After install, check the Package Manager entry actually shows
    the icon/title/description — a wrong path shows no icon with no
    error, easy to miss without checking.
+6. **Added 2026-08-30, after a real "mapper not following" scare that
+   turned out to be this, not a code bug**: the map file (`map/*.dat`) is
+   NOT part of `MyDSL_Full.mpackage` — a "complete erase" reinstall of
+   `MyDSL Test` always starts with an empty map. Steven's own workaround
+   is to manually load the live `MyDSL` profile's newest `map/*.dat` via
+   the Map widget once connected — but that's a cross-profile load with
+   no confirmation dialog, easy to lose track of, and looks identical to
+   `map.currentRoom` desync when something else goes wrong at the same
+   time (confirmed directly this session: the log showed the swap
+   mid-session with no typed command around it). Before handing off a
+   fresh `MyDSL Test` reinstall, copy the live `MyDSL` profile's newest
+   `map/*.dat` (`ls -t "MyDSL/map/"*.dat | head -1`) into `MyDSL Test`'s
+   own `map/` folder as a new timestamped snapshot, so Steven never has
+   to do the manual cross-profile load at all. Skip this if `MyDSL
+   Test`'s own `autosave.dat` already picked up the real map from a
+   manual load earlier in the same session (check its file size —
+   ~1.4MB means it has the real data; a few hundred bytes means it's
+   still the empty post-reinstall map) — don't overwrite newer session
+   data with an older snapshot.

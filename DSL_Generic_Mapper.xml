@@ -3008,12 +3008,24 @@ local function check_room(roomID, name, exits, onlyName)
             -- mismatch does, rather than only ever being visible as an
             -- unexplained duplicate room. Enable with "map config debug true".
             map.echo("Room " .. roomID .. " rejected: incoming exit '" .. tostring(v) .. "' not found among its known exits", true)
+            if map.dsl and map.dsl.logDesync then
+              map.dsl.logDesync(string.format(
+                "check_room reject room=%s name=%q: exit '%s' not among its known exits",
+                tostring(roomID), tostring(name), tostring(v)))
+            end
             return false
         end
         t_exits[v] = nil
     end
     local exits_match = table.is_empty(t_exits) or check_doors(roomID,t_exits)
-    if not exits_match then return false end
+    if not exits_match then
+        if map.dsl and map.dsl.logDesync then
+          map.dsl.logDesync(string.format(
+            "check_room reject room=%s name=%q: leftover known exits failed check_doors()",
+            tostring(roomID), tostring(name)))
+        end
+        return false
+    end
 
     -- check room description if enabled
     if map.configs.use_description_matching and map.prompt.description then
@@ -3021,6 +3033,11 @@ local function check_room(roomID, name, exits, onlyName)
         if room_desc and room_desc ~= "" then
             if room_desc ~= map.prompt.description then
                 map.echo("Room " .. roomID .. " rejected: description mismatch", true)
+                if map.dsl and map.dsl.logDesync then
+                  map.dsl.logDesync(string.format(
+                    "check_room reject room=%s name=%q: description mismatch",
+                    tostring(roomID), tostring(name)))
+                end
                 return false
             end
         else
@@ -3256,10 +3273,26 @@ local function move_map()
                 -- instead (a move_queue desync) the next time this
                 -- happens. Enable with "map config debug true".
                 map.echo("move_map(): map.mapping=" .. tostring(map.mapping) .. " move=" .. tostring(move) .. " random_move=" .. tostring(random_move), true)
+                local dsl_desync_before = map.currentRoom
+                if map.dsl and map.dsl.logDesync then
+                  map.dsl.logDesync(string.format(
+                    "move_map fallback: dir=%s mapping=%s from_room=%s(%s) looking_for_name=%q looking_for_exits=%s",
+                    tostring(move), tostring(map.mapping), tostring(dsl_desync_before),
+                    tostring(dsl_desync_before and getRoomName(dsl_desync_before)), tostring(map.currentName),
+                    table.concat(map.currentExits or {}, ",")))
+                end
                 if map.mapping and move then
                     find_link(map.currentName, map.currentExits, move, map.configs.max_search_distance)
                 else
                     map.find_me(map.currentName,map.currentExits, move)
+                end
+                if map.dsl and map.dsl.logDesync then
+                  if map.currentRoom == dsl_desync_before then
+                    map.dsl.logDesync("  -> STUCK: currentRoom unchanged, player is likely actually standing in a different room named "
+                      .. string.format("%q", tostring(map.currentName)))
+                  else
+                    map.dsl.logDesync("  -> resolved to room " .. tostring(map.currentRoom))
+                  end
                 end
             end
         end
@@ -3783,6 +3816,7 @@ function map.find_me(name, exits, dir, manual)
         show_err("Room not found, complete room name and exit data not available.")
     end
     local rooms = find_room(name)
+    local dsl_raw_candidate_count = table.size(rooms)
     local match_IDs = {}
     for k,v in pairs(rooms) do
         if check_room(k, name, exits) then
@@ -3829,6 +3863,11 @@ function map.find_me(name, exits, dir, manual)
         find_portal = false
     elseif table.is_empty(match_IDs) then
         map.echo("Room not found in map database", not manual, true)
+        if map.dsl and map.dsl.logDesync then
+          map.dsl.logDesync(string.format(
+            "find_me FAILED: name=%q exits=%s dir=%s -- %d room(s) exist with that exact name, 0 passed the exits/description check (see check_room reject lines just above)",
+            tostring(name), table.concat(exits or {}, ","), tostring(dir), dsl_raw_candidate_count))
+        end
     end
 end
 
@@ -6036,6 +6075,28 @@ local DSL_GMCP_ROOMDATA_TIMEOUT = 2
 -- and 1 is a log file that started mid-visit, after the header had
 -- already printed in a previous session's log. Zero evidence of genuine
 -- GMCP-vs-display formatting drift for a real room name.
+
+-- Desync logger -- added 2026-08-30 per Steven ("debug data first") to
+-- pin down the real "mapper not following" report: map.currentRoom
+-- silently stuck on a room the player already left, no error shown.
+-- Unlike map.echo(..., true), this is NOT gated behind
+-- "map config debug true" -- Steven shouldn't have to remember to flip
+-- that on before every session just so a rare desync gets caught when
+-- it happens. Always-on, but writes to its own file instead of the
+-- visible console, so it never spams normal play. Wired into the three
+-- points that already had unconditional debug-only echoes describing
+-- this exact failure mode (move_map()'s fallback branch, both
+-- check_room() rejection branches, find_me()'s final "not found"
+-- branch) -- this just also records them to a file that survives past
+-- the console's scrollback.
+function map.dsl.logDesync(msg)
+  local ok, f = pcall(io.open, profilePath .. "/mapper_desync_log.txt", "a")
+  if ok and f then
+    f:write(os.date("%Y-%m-%d %H:%M:%S") .. "  " .. tostring(msg) .. "\n")
+    f:close()
+  end
+end
+
 function map.dsl.roomLooksStale(rid)
   local rd = map.dsl.gmcp and map.dsl.gmcp.room_data
   local rdFresh = rd and map.dsl.gmcp.room_data_time
