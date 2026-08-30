@@ -152,5 +152,25 @@ if type(_G.dslMapperAddonInstallUninstallHandler) == "function" then
     #removeMapEventCalls == 1 and removeMapEventCalls[1] == "dslSafeDelete")
 end
 
+------------------------------------------------------------------------
+-- use_description_matching default -- REVERSED 2026-08-30 after Steven's
+-- own live `map debug` trace showed EVERY automatic room resolution
+-- failing with "Room N rejected: description mismatch" on ordinary,
+-- correctly name+exits-matched moves (the real cause of "mapper not
+-- following"). Confirms install() no longer forces this on for a fresh
+-- profile (map.configs.dsl_generic_mapper_seen not yet set) -- a
+-- regression back to `true` here would silently reintroduce the same
+-- permanent-lockout bug on the next fresh install.
+------------------------------------------------------------------------
+if map.dsl and map.dsl.install then
+  map.configs = { debug = false }  -- fresh profile: dsl_generic_mapper_seen not set
+  local ok7 = pcall(map.dsl.install)
+  check("install() runs without error", ok7)
+  check("use_description_matching defaults to false on a fresh profile (was true, confirmed root cause of the desync)",
+    map.configs.use_description_matching == false)
+  check("install() marks the profile seen so this default-setting block doesn't re-run",
+    map.configs.dsl_generic_mapper_seen == true)
+end
+
 print(string.format("\n%d failure(s)", failures))
 os.exit(failures == 0 and 0 or 1)

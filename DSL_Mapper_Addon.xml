@@ -99,7 +99,7 @@ registerAnonymousEventHandler("sysUninstallPackage", "dslMapperAddonInstallUnins
 -- passive door-state feeding, and tiny debug/status helpers.
 -- ============================================================================
 map.dsl = map.dsl or {}
-map.dsl.version = "0.2.9"
+map.dsl.version = "0.2.10"
 map.dsl.base = "Generic Mapper 2.1.8"
 map.dsl.gmcp = map.dsl.gmcp or {}
 map.dsl.line_buffer = map.dsl.line_buffer or {}
@@ -1016,21 +1016,45 @@ end
 function map.dsl.install()
   map.dsl.registerEnvColors()
   if map.defaults then
-    map.defaults.use_description_matching = true
+    map.defaults.use_description_matching = false
     map.defaults.download_path = ""
   end
   if map.configs then
-    -- First DSL fork install should force description matching on, because DSL repeated room names are common.
-    -- search_on_look defaults off for the same reason (queued "look" entries
-    -- interacting with move_queue during a failed move caused a real bug,
-    -- see onMoveFailCleanup) -- but first-install-only, same as
-    -- use_description_matching. Fixed 2026-07-19: this used to run
-    -- unconditionally on every install() call (every reload/reconnect),
-    -- silently reverting a player's own "map config search_on_look true"
-    -- with no message. Now it only sets the default once, same as the
-    -- description-matching default right above it.
+    -- REVERSED 2026-08-30 -- this used to force description matching ON
+    -- ("DSL repeated room names are common"), but that's now a confirmed
+    -- root cause of the real "mapper not following" report, not a
+    -- theoretical risk: Steven's own live `map debug` trace showed EVERY
+    -- automatic room resolution failing with "Room N rejected:
+    -- description mismatch" -> "Room not found in map database" on
+    -- ordinary, correctly-captured moves (name+exits both matched fine
+    -- the whole time -- confirmed separately via checkRoomDesync()'s
+    -- name-only comparison finding nothing wrong). check_room() (stock,
+    -- private, unreachable from this addon) never updates a room's
+    -- stored description once set -- it only WRITES on first match, and
+    -- permanently REJECTS forever after on any drift, with no self-heal.
+    -- Once a room's stored description drifts even slightly out of sync
+    -- with what's captured on a later visit (exact cause not pinned down
+    -- -- plausibly two different description-extraction passes disagreeing
+    -- on formatting somewhere in this fork's history), that room is
+    -- permanently unresolvable via normal movement, forever, with only a
+    -- manual `map me` as a workaround (and only because by then
+    -- map.prompt.description has already been cleared, quietly skipping
+    -- the same check rather than passing it). A silent, permanent lockout
+    -- is a far worse failure mode than the duplicate-room-name edge case
+    -- this was meant to guard against, so default it off. Steven can
+    -- still opt back in per-profile with `map config
+    -- use_description_matching` if a real same-name-same-exits collision
+    -- ever shows up in practice.
+    -- search_on_look defaults off for a different reason (queued "look"
+    -- entries interacting with move_queue during a failed move caused a
+    -- real bug, see onMoveFailCleanup) -- first-install-only, same
+    -- mechanism as description-matching used to be. Fixed 2026-07-19:
+    -- this used to run unconditionally on every install() call (every
+    -- reload/reconnect), silently reverting a player's own "map config
+    -- search_on_look true" with no message. Now it only sets the default
+    -- once.
     if not map.configs.dsl_generic_mapper_seen then
-      map.configs.use_description_matching = true
+      map.configs.use_description_matching = false
       map.configs.search_on_look = false
     end
     map.configs.dsl_generic_mapper_seen = true

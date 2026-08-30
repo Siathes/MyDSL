@@ -129,25 +129,38 @@ question, folded in per Steven 2026-08-29 rather than a separate check.
          same `map.dsl.logDesync()` pattern. `DSL_Mapper_Addon.mpackage`
          rebuilt. Still needs Steven to actually install it in `MyDSL`
          (see below) before it can catch anything there.
-      3. **Steven's own reinstall test (2026-08-30, `MyDSL Test` v0.2.8):
-         loaded the correct local map this time, still confirmed "the
-         dot never moves at all" (option 1 of 3 asked) — but
-         `mapper_desync_log.txt` was never created anywhere.** No Lua
-         errors either. That's ambiguous on its own (could mean no bug,
-         could mean the check never saw good data to compare) — widened
-         `checkRoomDesync()` in v0.2.9 to log EVERY check unconditionally
-         (not just a mismatch), and added a second breadcrumb at
-         `onGenericNewRoom()` (stock's own real "onNewRoom" event) so the
-         next test will show conclusively: is GMCP room_data actually
-         refreshing per move, is `map.currentRoom` tracking it, and is
-         stock's own new-room event firing at all. If that event fires
-         correctly every move with the right room, the "dot never moves"
-         symptom points at Mudlet's own map-widget rendering, not
-         anything in this codebase — nothing further to fix here in that
-         case. `DSL_Mapper_Addon.mpackage` rebuilt (v0.2.9), copied to
-         `~/Downloads/`. Needs Steven to install this build and test
-         again, send back `mapper_desync_log.txt`'s contents (or confirm
-         it's still empty) either way.
+      3. **ROOT CAUSE CONFIRMED 2026-08-30, fix shipped in v0.2.10.**
+         Steven turned on stock's own `map debug` himself during a
+         retest (v0.2.8, correct local map loaded) and the real answer
+         was in stock's own output, not either desync logger: every
+         single automatic move failed with `Room N rejected: description
+         mismatch` → `(error): Room not found in map database` — name and
+         exits matched fine every time (consistent with
+         `checkRoomDesync()` finding nothing, since it only ever compared
+         names). A manual `map me` right after always "succeeded," but
+         only because `map.prompt.description` had already been cleared
+         by then, silently skipping the same check rather than passing
+         it. Root cause: `DSL_Mapper_Addon.xml`'s `install()` forced
+         `use_description_matching = true` on every fresh profile ("DSL
+         repeated room names are common"), but stock's `check_room()`
+         (private, unreachable from this addon) never updates a room's
+         stored description once set — first match writes it, any later
+         drift is rejected forever, no self-heal. One mismatch, ever,
+         permanently locks that room out of automatic resolution. Fix:
+         default flipped to `false` in v0.2.10 (`map.dsl.install()`) —
+         name+exits alone were already reliably correct throughout every
+         test this session. `map config use_description_matching` still
+         lets Steven opt back in per-profile if a genuine same-name-
+         same-exits collision ever actually shows up. New regression test
+         (`test_dsl_mapper_addon.lua`) locks the default in.
+         `DSL_Mapper_Addon.mpackage` rebuilt (v0.2.10), copied to
+         `~/Downloads/`. **Needs Steven to install v0.2.10 and confirm the
+         dot follows normally now** before this can be closed — the fix
+         only applies to a genuinely fresh profile (`dsl_generic_mapper_seen`
+         not yet set); an already-`true` existing profile (including
+         `MyDSL`, still on the old fork anyway) needs the manual `map
+         config use_description_matching` toggle instead, package
+         reinstall alone won't flip an already-set value back.
       4. **`MyDSL` migration to the new architecture — prepared, not
          executed.** Steven said "do all recommended" to migrating
          `MyDSL` off the old fork. Deliberately did NOT do this via raw
