@@ -561,6 +561,47 @@ end
 
 
 ------------------------------------------------------------------------
+-- INTERNAL/PUBLIC: buildTooltipText(focal, lunar)
+------------------------------------------------------------------------
+-- Steven, MyDSL Test notes.json (2026-08-30): "is it possible to have a
+-- hover ove on the moon/weather that tells the moon schedule for your
+-- moon? time till its phases?" Exposed as MW.tooltipText() (public, so
+-- it's directly testable) and wired to the widget's one real Geyser.Label
+-- via setLabelToolTip() -- confirmed real, exact signature checked
+-- directly against Mudlet's own source (TLuaInterpreterUI.cpp):
+-- setLabelToolTip(labelName, text[, duration]). Only one label exists for
+-- the whole widget (MW.ui.label, name "MW_mainLabel" -- see _buildUI()
+-- below), so the tooltip covers the whole widget, not a single moon tile;
+-- it lists all three moons plus the focal (yours) moon's countdown, which
+-- MW.countdownStr() already computes -- reused here rather than
+-- reimplemented, same one 30-real-sample-verified formula.
+
+local moonDisplayName = { red = "Red Moon", white = "White Moon", black = "Black Moon" }
+
+function MW.tooltipText(focal, lunar)
+  if not lunar then
+    return "Moon/Weather -- no lunar data yet this session (run 'lunar')."
+  end
+  local lines = {}
+  for _, color in ipairs({ "red", "white", "black" }) do
+    local moon = lunar[color]
+    if moon and moon.phase and moon.phase ~= "" then
+      local label = moonDisplayName[color] .. (color == focal and " (yours)" or "")
+      lines[#lines + 1] = string.format("%s: %s, %s", label, moon.phase, moon.position or "not visible")
+    end
+  end
+  if #lines == 0 then
+    return "Moon/Weather -- no lunar data yet this session (run 'lunar')."
+  end
+  local countdown = MW.countdownStr()
+  if countdown then
+    lines[#lines + 1] = "Next phase (yours): " .. countdown
+  end
+  return table.concat(lines, "\n")
+end
+
+
+------------------------------------------------------------------------
 -- INTERNAL: buildTimeRow()
 ------------------------------------------------------------------------
 -- Builds the HTML for Section 3: two stacked lines of time information.
@@ -701,6 +742,12 @@ function MW.render()
   -- every second for no visible benefit, which is what read as an
   -- intermittent "redraw" flicker. Comparing against the last echoed string
   -- means the label only actually repaints when something real changed.
+  local tooltip = MW.tooltipText(focal, lunar)
+  if tooltip ~= MW._lastTooltip then
+    MW._lastTooltip = tooltip
+    pcall(setLabelToolTip, "MW_mainLabel", tooltip)
+  end
+
   if html == MW._lastHtml then return end
   MW._lastHtml = html
 

@@ -74,18 +74,22 @@ question, folded in per Steven 2026-08-29 rather than a separate check.
       ("fish"/"wish"/"dish") aren't mangled. 4 new regression tests using
       the real captured strings, `test_itemlore_fuzzy_resolve.lua`. Full
       test suite + `check_known_patterns.py --all` clean.
-- [ ] **Command-line font size grew unexpectedly — new bug report, not
-      investigated yet.** Steven, `MyDSL Test/notes.json` (2026-08-30):
-      "fix the size of the command line font, somehow its big now."
-      Nothing in this session's theme/chrome work deliberately targets
-      the command-line font — `appStyleSheetCSS()`'s QLineEdit selector
-      is the likely culprit (real, in-scope native chrome), but the
-      rainbow-diagnostic screenshot found earlier this session already
-      showed the command-line input as one of the widgets `setAppStyleSheet()`
-      does NOT visibly reach, so the actual cause needs checking against
-      real Mudlet behavior, not assumed from that finding. Check whether
-      it's theme-related (try `theme chrome ui` / `theme reset`) or a
-      separate Mudlet-level setting before making a code change.
+- [ ] **Command-line font size grew unexpectedly — code-side cause ruled
+      out, 2026-08-30, needs Steven's own live check.** Steven, `MyDSL
+      Test/notes.json`: "fix the size of the command line font, somehow
+      its big now." Read `MyDSL.Theme.appStyleSheetCSS()`'s QLineEdit
+      block directly (`MyDSL_ThemeEngine.lua:780-787`): it sets
+      background/color/border/padding/selection-background-color only —
+      no `font-size`/`font-family` rule exists anywhere in it, so MyDSL's
+      own CSS cannot be the cause. Consistent with the rainbow-diagnostic
+      screenshot from earlier this session, which already showed the
+      command-line input as one of the widgets `setAppStyleSheet()`
+      doesn't visibly reach at all (likely custom-drawn, not a real
+      QLineEdit instance). Likely a Mudlet-level setting (Settings →
+      General → command line font size) or an accidental zoom (Mudlet
+      supports Ctrl+scroll-wheel font zoom on some consoles) — not
+      something in this codebase to fix. Needs Steven to check Mudlet's
+      own Settings dialog and confirm/reset there.
 - [ ] **CreatureLore vulnerability field — capture pipeline confirmed
       structurally sound, specific report not yet reproduced.** Steven:
       "creaturelore isnt capturing and updating all fields, example
@@ -856,6 +860,28 @@ one at a time:
       per-window defaults table, same mechanism as the `MyDSL_Help`
       default fixed this session), not building new layout-persistence
       machinery.
+      **Circumstantial evidence on the still-open "which theme" question,
+      2026-08-30 — not acted on, still needs his explicit pick.** Checked
+      `MyDSL Test/MyDSL_theme_settings.lua` directly: his own currently
+      saved theme there is `shattered_moonlight` with `chromeMode = "ui"`
+      — matches his own "see the screen shot, it looks great" reaction to
+      that theme earlier this session. Strong circumstantial signal for
+      what "one of the themes i liked" means, but deliberately NOT
+      promoted to the shipped code default (`refined_convergence`/`full`
+      in `MyDSL_ThemeEngine.lua`) without him actually saying so — this
+      item has been flagged three separate times as his own call, not a
+      guess to make from inference alone. Also worth noting for the
+      window-positions half above: no `MyDSL_layout.lua` exists yet in
+      either live profile (`getMudletHomeDir() .. "/MyDSL_layout.lua"`,
+      confirmed absent by direct filesystem check) — `mydsl layout save`
+      has never actually been run, so `MyDSL.Layout.defaults` (the coded
+      fallback) is still what's in effect; Mudlet's own native dock-state
+      file (`~/.config/mudlet/windowLayout.dat`) is a separate, binary,
+      Qt-internal mechanism that already auto-restores his current
+      arrangement for a same-named profile but isn't something this
+      codebase can read/export from disk — capturing "current window
+      positions" into new coded defaults needs him to run `mydsl layout
+      save` first, then hand back the resulting file.
 - [ ] **Skill-based affect tracking (e.g. `hide`)** — Steven, "MyDSL Test"
       `notes.json`: "its a skill not a cast, need a method for tracking
       skills like spells?" `MyDSL_AffectsView.lua`'s tracking today is
@@ -952,19 +978,44 @@ one at a time:
       check across profiles... we've had a couple" — `../PNP1`, `../PNP2`,
       `../DSL1`, etc.) hasn't been done yet, may turn up a second source
       to cross-check the ported patterns against.
-- [ ] **Chat buffer restore-on-toggle** — Steven, `MyDSL Test/notes.json`
-      (2026-08-30): "is there a buffer for chat that can restore previous
-      chat on a toggle?" Not scoped — needs to confirm whether EMCO/the
-      MyDSL_Chat wrapper already retains scrollback while hidden (a
-      `hide`/`show` cycle on a Geyser window doesn't normally destroy its
-      buffer) before assuming this needs new code; may already work and
-      just need confirming live.
-- [ ] **Moon/weather widget: hover tooltip with phase schedule** — Steven,
-      `MyDSL Test/notes.json` (2026-08-30): "is it possible to have a
-      hover ove on the moon/weather that tells the moon schedule for your
-      moon? time till its phases?" Needs `MyDSL_MoonWeather.lua` read
-      first to confirm what phase-timing data it actually derives/stores
-      today (vs. just current state) before scoping a tooltip around it.
+- [x] **Chat buffer restore-on-toggle — confirmed already correct,
+      2026-08-30, no code change needed.** Steven, `MyDSL Test/notes.json`:
+      "is there a buffer for chat that can restore previous chat on a
+      toggle?" Read `MyDSL_Chat.lua`'s `C.show()`/`C.hide()` (~line 2991)
+      directly: both only toggle the container widget's visibility
+      (`:show()`/`:hide()` via `MyDSL.Windows.show/hide` + the raw window
+      object) — neither calls `clear()`/`clearAll()` or recreates
+      `C.emco`. The scrollback lives in the underlying
+      `Geyser.MiniConsole` objects (`C.emco.mc[tabName]`), which are
+      untouched by a visibility toggle. `C.show()`'s `C.ensureWindow()`
+      call only creates the window if one doesn't already exist (same
+      idempotent pattern as every other WindowRegistry window) — it
+      doesn't rebuild the EMCO instance on every show. So the buffer
+      already survives a hide/show cycle; nothing to build. Leaving
+      unchecked would be wrong — this is a real confirmed non-gap, not
+      deferred work.
+- [x] **Moon/weather widget: hover tooltip with phase schedule — BUILT
+      2026-08-30, needs live confirm.** Steven, `MyDSL Test/notes.json`:
+      "is it possible to have a hover ove on the moon/weather that tells
+      the moon schedule for your moon? time till its phases?" Confirmed
+      `setLabelToolTip(labelName, text[, duration])` is a real Mudlet API
+      (checked directly against `TLuaInterpreterUI.cpp`, not assumed) and
+      that `MyDSL_MoonWeather.lua` already computes everything needed —
+      `MW.countdownStr()` (cycles + hours until the focal moon's next
+      phase, wiki-verified formula) and each moon's `phase`/`position`
+      from `MyDSL.State.lunar`. New `MW.tooltipText(focal, lunar)` (pure,
+      directly tested) lists all three moons (focal one marked "(yours)",
+      a moon never seen this session omitted) plus the focal moon's
+      countdown; wired into `MW.render()` via `setLabelToolTip("MW_mainLabel",
+      ...)`, diffed the same way as the HTML echo so it's not called every
+      second for no reason. Only one Geyser.Label exists for the whole
+      widget, so the tooltip covers the whole widget, not a single moon
+      tile — matches "your moon" (the focal one) rather than needing
+      per-tile hovering. 6 new assertions in
+      `test/test_moonweather_accessors.lua`; `setLabelToolTip`/
+      `getLabelToolTip` added to `test/mudlet_mock.lua`. Needs Steven to
+      confirm the tooltip actually renders on hover in real Mudlet (the
+      mock can't verify Qt's real tooltip rendering).
 - [ ] **Roller — comparison stats + reconnect timer.** The timer-widget
       half is ready to scope directly: `MyDSL_AlterformView.lua` is a
       ready-made template (standalone Geyser countdown window, sound

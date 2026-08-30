@@ -99,6 +99,9 @@ function _G.dechoLink(...) end
 function _G.cechoLink(...) end
 function _G.echoLink(...) end
 function _G.setLabelClickCallback(...) end
+_G.__labelToolTips = {}
+function _G.setLabelToolTip(labelName, text) _G.__labelToolTips[labelName] = text; return true end
+function _G.getLabelToolTip(labelName) return _G.__labelToolTips[labelName] end
 function _G.createLabel(...) end
 function _G.deleteLabel(...) end
 function _G.resetProfile() end
