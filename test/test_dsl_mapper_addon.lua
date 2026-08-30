@@ -317,14 +317,55 @@ end
 
 if map.dsl and map.dsl.highlightPlayersNear then
   _G.__rooms[20] = { exists = true, userdata = {}, name = "Town Square" }
-  _G.searchRoom = function(name) return name == "Town Square" and { [20] = "Town Square" } or {} end
+  _G.__rooms[21] = { exists = true, userdata = {}, name = "Market" }
+  local roomsByName = { ["Town Square"] = { [20] = "Town Square" }, ["Market"] = { [21] = "Market" } }
+  _G.searchRoom = function(name) return roomsByName[name] or {} end
   local highlightCalls = {}
-  _G.highlightRoom = function(rid, ...) highlightCalls[#highlightCalls + 1] = rid; return true end
-  _G.unHighlightRoom = function() return true end
-  map.dsl.highlighted_player_rooms = {}
+  _G.highlightRoom = function(rid, fgr, fgg, fgb, bgr, bgg, bgb, radius, a1, a2)
+    highlightCalls[#highlightCalls + 1] = { rid = rid, radius = radius, alpha = a1 }
+    return true
+  end
+  local unhighlightCalls = {}
+  _G.unHighlightRoom = function(rid) unhighlightCalls[#unhighlightCalls + 1] = rid; return true end
+  map.dsl.player_highlights = {}
+
   map.dsl.highlightPlayersNear("MyDSL.playersNear.parsed", { { name = "Someone", room = "Town Square" } })
   check("highlightPlayersNear(event, list) reads the real list from the SECOND argument, not the event name",
-    #highlightCalls == 1 and highlightCalls[1] == 20)
+    #highlightCalls == 1 and highlightCalls[1].rid == 20)
+  -- Real bug found 2026-08-30 via a live screenshot (Steven: "the
+  -- markers yellow circles... are to large"): radius is a multiplier of
+  -- the room's own on-screen width (confirmed against Mudlet's real
+  -- T2DMap.cpp source: roomRadius = highlightRadius * mRoomWidth / 2.0),
+  -- not pixels -- the old value (25) meant a 12.5-room-width radius,
+  -- swallowing whole screenfuls of the map. Locks in a sane radius
+  -- (comparable to a single room's own size) so a future regression
+  -- back to an oversized constant fails this test instead of only
+  -- showing up live.
+  check("highlight radius is comparable to one room's own size, not dozens of room-widths",
+    highlightCalls[1].radius ~= nil and highlightCalls[1].radius > 0 and highlightCalls[1].radius <= 3)
+
+  -- ---- follow + fade, added 2026-08-30 per Steven's own follow-up
+  -- ("they should also follow to the rooms for their specidifc temporary
+  -- tracking of the players location, but fade when they leave the
+  -- area") -----------------------------------------------------------
+  highlightCalls, unhighlightCalls = {}, {}
+  map.dsl.highlightPlayersNear("MyDSL.playersNear.parsed", { { name = "Someone", room = "Market" } })
+  check("a tracked player's highlight follows them to their new room on the next poll",
+    #highlightCalls == 1 and highlightCalls[1].rid == 21 and highlightCalls[1].alpha == 150)
+  check("the old room's highlight is cleared when following to the new one",
+    #unhighlightCalls >= 1 and unhighlightCalls[1] == 20)
+
+  highlightCalls, unhighlightCalls = {}, {}
+  map.dsl.highlightPlayersNear("MyDSL.playersNear.parsed", {})  -- player dropped out of this poll
+  check("a player missing from one poll gets redrawn at reduced alpha (fading), not removed outright",
+    #highlightCalls == 1 and highlightCalls[1].rid == 21 and highlightCalls[1].alpha == 60)
+  check("still tracked internally while fading", map.dsl.player_highlights["Someone"] ~= nil)
+
+  highlightCalls, unhighlightCalls = {}, {}
+  map.dsl.highlightPlayersNear("MyDSL.playersNear.parsed", {})  -- missing a SECOND consecutive poll
+  check("a player missing from a second consecutive poll is actually removed",
+    #highlightCalls == 0 and map.dsl.player_highlights["Someone"] == nil)
+  check("the faded room's highlight is cleared on final removal", #unhighlightCalls >= 1)
 end
 
 print(string.format("\n%d failure(s)", failures))

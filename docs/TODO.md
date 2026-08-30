@@ -199,6 +199,30 @@ question, folded in per Steven 2026-08-29 rather than a separate check.
       + `check_known_patterns.py --all` clean. `DSL_Mapper_Addon.mpackage`
       rebuilt (still v0.2.13, same session), published to the existing
       release.
+      **Follow-up from a screenshot, same investigation — real bug,
+      FIXED in v0.2.14**: Steven: "the markers yellow circles of the
+      players near you are to large." Confirmed against Mudlet's own
+      real C++ source (`TLuaInterpreterMapper.cpp`, `T2DMap.cpp`):
+      `highlightRoom()`'s radius argument is a multiplier of the room's
+      own on-screen width (`roomRadius = highlightRadius * mRoomWidth /
+      2.0`), not pixels — the old value (`25`) meant a highlight 12.5
+      room-widths in radius, explaining whole screenfuls of the map
+      turning solid yellow instead of marking one room. Dropped to
+      `1.2` (comparable to one room's own size). **Also built real
+      follow + fade**, per Steven's same-session follow-up ("they
+      should also follow to the rooms for their specidifc temporary
+      tracking of the players location, but fade when they leave the
+      area"): tracking moved from a flat room list to per-player-name
+      state across `where` polls — a tracked player's highlight now
+      moves with them to their new room each poll (AutoWhere already
+      re-polls every 20s, so this was mostly implicit, now made
+      explicit/correct), and a player missing from one poll gets
+      redrawn at reduced alpha (a 2-step fake fade — Mudlet has no
+      native highlight animation, confirmed) instead of vanishing
+      outright, only actually removed after a second consecutive missed
+      poll. 8 new regression tests. `DSL_Mapper_Addon.mpackage` rebuilt
+      (v0.2.14), published to the existing release. Needs Steven to
+      confirm live — both the radius and the follow/fade behavior.
 - [ ] **Help window doesn't reappear after a manual close — narrowed, not
       yet fixed.** Steven: first report was clicking a help topic link
       did nothing after closing the window once; follow-up confirmed
