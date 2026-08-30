@@ -226,13 +226,26 @@ against what native `TMap` already provides for free.
 
 ## Side question: issues with releasing the mapper as a standalone package
 
-Steven asked this directly — analysis below, not yet a decision.
+Steven asked this directly — analysis below. Since then, `DSL_Mapper_Addon.xml`
+was built (see above) — a real, tested, genuinely standalone artifact
+(zero bundled generic_mapper copy, per Steven's own clarified scope: "not
+including the generic mapper, just a wrapper/addon"). It has a **dependency
+check** (deferred 3s after load, so it doesn't false-positive on stock
+just not having loaded yet) — but **no auto-download option** yet:
+if Generic Mapper isn't present, it tells the player to open Mudlet's
+Mapper widget once (which triggers Mudlet's own built-in auto-install),
+rather than scripting an automatic `installPackage()` fetch itself. Simpler
+and lower-risk given Mudlet already bundles Generic Mapper for most
+players by default — a genuinely missing case should be rare. Worth
+revisiting if that assumption turns out wrong in practice.
 
-**What already exists**: `.gitignore` has a `DSL_Generic_Mapper.mpackage`
-entry with a comment implying a standalone build output — **but this is
-aspirational, not real**. `build_mydsl_package.py` (497 lines) has zero
-references to `generic_mapper` anywhere; nothing currently builds this
-package. Worth knowing before assuming this is half-done already.
+**What already exists for actual packaging/distribution**: `.gitignore`
+has a `DSL_Generic_Mapper.mpackage` entry with a comment implying a
+standalone build output — **still aspirational, not real, unchanged by
+this pass**. `build_mydsl_package.py` (497 lines) has zero references to
+`generic_mapper` anywhere; nothing builds `DSL_Mapper_Addon.xml` into a
+distributable `.mpackage` yet either — that's packaging/build-script work
+still to do, separate from the file itself now existing and being tested.
 
 **Real issues to weigh:**
 
@@ -279,15 +292,50 @@ resourcing question for Steven, not something this doc should decide.
 
 ## Decisions made 2026-08-29, and what shipped
 
-1. **File split**: Steven deferred the "how" to best practice. Resolved
-   pragmatically rather than as one big refactor: **new** code follows the
-   right pattern from day one (below); migrating the **existing**
-   interleaved `map.dsl.*` code out of the modified stock copy is deferred
-   — not because it's not worth doing, but because it requires touching
-   `create_room()` and other stock-derived functions this pass
-   deliberately avoided modifying (see the undo-stack note below). Still
-   open, now scoped narrower: migrate the existing interleaved code,
-   not add new interleaving.
+1. **File split — done, 2026-08-29: new `DSL_Mapper_Addon.xml`.** Steven's
+   clarification changed the target: not a lightly-patched copy of stock
+   at all, just the DSL-specific layer, assuming the player's own Mudlet
+   already has Generic Mapper (it ships built in for most players).
+   Built by diffing our fork's raw Lua against real stock 2.1.10 directly
+   (not guessing): **1,103 of ~1,167 changed lines were pure DSL
+   additions**, cleanly copyable as-is. Of the remainder:
+   - `map.checkVersion`/`map.updateVersion`/`map.echoPath`/
+     `map.export_area`/`map.import_area` are real global `map.*`
+     functions — safely **reassigned from outside** stock's source
+     (no bundled/edited copy needed) rather than patched in place.
+   - `map.configs.use_description_matching`/`download_path` defaults:
+     turned out **already handled dynamically** by `map.dsl.install()`
+     itself (confirmed by reading it — it already sets both at runtime,
+     defensively), so no separate override was even needed.
+   - **2 small diagnostic/bugfix edits sit inside genuinely `local`
+     (unreachable from outside) stock functions** — can't be replicated
+     without a bundled copy. Accepted, documented gap: these stay
+     exclusive to `DSL_Generic_Mapper.xml` (MyDSL's own internal fork),
+     absent from the standalone addon. Low-stakes (diagnostic-only /
+     one correctness edge case), not silently dropped — called out
+     explicitly in the addon's own header comment.
+   **Caught and fixed before shipping**: the first draft reassigned the
+   5 functions at bare top-level script scope, which races Mudlet's
+   actual Script-load order across separate files — if the addon
+   happened to execute before stock's own script, the overrides would
+   get silently clobbered when stock ran afterward. Fixed by moving all
+   of it into `map.dsl.installAddonOverrides()`, called from inside
+   `map.dsl.install()`, which only ever fires via `mapperScriptLoaded`/
+   `sysInstall` — both raised by stock's own boot sequence, guaranteeing
+   correct order regardless of file load timing. Tested:
+   `test/test_dsl_mapper_addon.lua` (11 assertions, including proving the
+   reassigned `map.echoPath()` carries the real nil-guard fix, not
+   stock's original crash-prone version).
+   `DSL_Generic_Mapper.xml` itself is **completely untouched** by this
+   work — confirmed via `git diff --stat`, zero lines changed — so
+   nothing about MyDSL's own live/dev profile changed or is at any risk
+   from this addition.
+   **Still open**: `DSL_Generic_Mapper.xml` (MyDSL's own fork) itself
+   still has `map.dsl.*` interleaved into a modified stock copy — this
+   pass didn't touch or migrate that, it built the clean standalone
+   artifact in parallel instead. Whether MyDSL's own live profile ever
+   switches from "maintained fork" to "stock + this same addon" is a
+   separate future decision, not needed for the standalone-package goal.
 2. **Right-click menu — shipped**: `docs/TODO.md`'s feature list was
    presented to Steven; he asked for all of it, MyDSL items under their
    own submenu. Built:

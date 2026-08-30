@@ -1,0 +1,1278 @@
+<?xml version='1.0' encoding='utf-8'?>
+<MudletPackage version="1.001">
+<ScriptPackage>
+<Script isActive="yes" isFolder="no">
+<name>DSL Mapper Addon</name>
+<packageName>DSL_Mapper_Addon</packageName>
+<script>-- =============================================================================
+-- DSL Mapper Addon -- standalone DSL-specific layer for Mudlet's OWN
+-- built-in Generic Mapper. Added 2026-08-29 -- see docs/MAPPER_REDESIGN.md
+-- for the full research/design history behind this file.
+--
+-- WHAT THIS IS: everything DSL-specific about how MyDSL's mapper fork
+-- works (door-verb parsing, sector/terrain coloring, move-cost tracking,
+-- GMCP room-data handling, the searchRoom()/area-export bug ports, the
+-- safe-delete map-menu addition) -- with ZERO copy of Mudlet's own
+-- generic_mapper.xml script bundled inside it. This package assumes
+-- Mudlet's own Generic Mapper is already installed (it ships built into
+-- Mudlet itself and is enabled by default for most players) and layers
+-- on top of it entirely through public functions and events -- nothing
+-- in this file edits, replaces, or requires a modified copy of stock.
+--
+-- WHAT THIS IS NOT: this is not DSL_Generic_Mapper.xml (MyDSL's own
+-- internal fork, used by the DSL2/MyDSL profiles themselves). That file
+-- is a separately-maintained, lightly-patched copy of stock kept for
+-- MyDSL's own use, including 2 small diagnostic/bugfix tweaks embedded
+-- inside stock's own local (non-reassignable) functions that genuinely
+-- can't be replicated here without editing stock source -- an accepted,
+-- documented, minor gap versus that fork, not an oversight. Do not
+-- install both DSL_Generic_Mapper.xml and this addon in the same
+-- profile at the same time -- they are alternatives, not complementary.
+--
+-- DEPENDENCY CHECK: deferred a few seconds after load (not checked
+-- immediately -- at t=0 there's no way to tell "stock hasn't loaded yet"
+-- apart from "stock isn't installed at all"). If Mudlet's own Generic
+-- Mapper still doesn't appear to be present after that delay, says so
+-- clearly instead of failing silently or crashing into confusing errors
+-- later when a DSL-specific function gets called with no map.* to hook.
+-- =============================================================================
+
+tempTimer(3, function()
+  if not (map and map.configs and map.echo) then
+    cecho("\n&lt;red&gt;[DSL Mapper Addon] &lt;white&gt;Mudlet's own Generic Mapper doesn't appear to be installed or loaded.\n")
+    cecho("&lt;red&gt;[DSL Mapper Addon] &lt;white&gt;This addon needs it first -- Mudlet ships it built in for most games.\n")
+    cecho("&lt;red&gt;[DSL Mapper Addon] &lt;white&gt;Open the Mapper (Ctrl+M or the compass icon) once to let Mudlet install it, then reload this addon.\n")
+  end
+end)
+
+------------------------------------------------------------------------
+-- The DSL-specific mapper layer -- copied verbatim from the git-tracked,
+-- tested DSL_Generic_Mapper.xml (not re-derived; see that file's own
+-- test/ coverage for what's verified here), with one small addition:
+-- a call to installAddonOverrides() appended to the end of install()'s
+-- body (see that function, defined further down) so the bug-fix/update-
+-- disable overrides fire at the correct, safe point in the load
+-- sequence -- everything else below this point is unchanged.
+------------------------------------------------------------------------
+
+
+
+-- ============================================================================
+-- DSL Generic Mapper 0.2.2 Minimal Hardening Layer
+-- Conservative fork layer: Generic Mapper remains the room engine.
+-- This layer only adds DSL text patterns, GMCP assist, passive sector metadata,
+-- passive door-state feeding, and tiny debug/status helpers.
+-- ============================================================================
+map.dsl = map.dsl or {}
+map.dsl.version = "0.2.7"
+map.dsl.base = "Generic Mapper 2.1.8"
+map.dsl.gmcp = map.dsl.gmcp or {}
+map.dsl.line_buffer = map.dsl.line_buffer or {}
+map.dsl.last_command = map.dsl.last_command or nil
+-- Converted to FIFO queues 2026-07-19 (code review, correctness bug):
+-- these used to be single overwritable slots. map.speedwalk()'s zero-wait
+-- branch (speedwalk_wait=false, speedwalk_delay=0 -- both real,
+-- user-toggleable configs) sends every queued direction and auto-inserted
+-- door-clearing command in one tight loop with no delay between sends.
+-- captureCommand() fired once per send, so the single slot settled on the
+-- LAST command in the batch before any server reply returned -- every
+-- door-state line streaming back afterward (e.g. "It's already open." for
+-- an earlier door) got attributed to that same final direction instead of
+-- the one that actually produced it. A FIFO queue lets each door-state
+-- reply consume the command context in the same order the commands were
+-- actually sent, which is the one ordering guarantee a text MUD protocol
+-- does give us (the server processes and replies to input in order).
+map.dsl.door_command_queue = map.dsl.door_command_queue or {}
+map.dsl.move_command_queue = map.dsl.move_command_queue or {}
+local DSL_COMMAND_QUEUE_MAX = 10
+map.dsl.last_terrain_text = map.dsl.last_terrain_text or nil
+map.dsl.last_door_line = map.dsl.last_door_line or nil
+map.dsl.last_room_apply = map.dsl.last_room_apply or nil
+
+function map.dsl.echo(msg)
+  cecho("\n&lt;yellow&gt;[DSL Generic Mapper] &lt;reset&gt; " .. tostring(msg) .. "\n")
+end
+
+-- dsl_ud(rid, key, placeholder) -- real bug found via Steven's own
+-- "dslroom raw" output ("Room weight: 1 (source=, samples=, avg
+-- cost=0.0)"): getRoomUserData() returns an EMPTY STRING for an unset
+-- key, not nil -- so plain tostring(getRoomUserData(...)) silently
+-- displayed a blank instead of a clear "not set yet" placeholder. Every
+-- display line below reads room userdata through this helper instead of
+-- calling getRoomUserData()/tostring() directly, so this can't recur
+-- field-by-field. (Functional code elsewhere -- applyMoveCost(),
+-- onTerrainLine() -- was already unaffected: it compares against a
+-- specific non-empty string like "manual", or already explicitly checks
+-- for "" itself, so this was a display-only bug.)
+function map.dsl.dsl_ud(rid, key, placeholder)
+  local v = getRoomUserData(rid, key)
+  if v == nil or v == "" then return placeholder or "?" end
+  return v
+end
+
+function map.dsl.updateDisabled()
+  map.update_waiting = nil
+  if map.update_timer then killTimer(map.update_timer); map.update_timer = nil end
+  map.dsl.echo("Updater is disabled in the DSL fork.")
+  return false
+end
+
+local dsl_long_dirs = {
+  n = "north", e = "east", s = "south", w = "west",
+  ne = "northeast", nw = "northwest", se = "southeast", sw = "southwest",
+  u = "up", d = "down",
+  north = "north", east = "east", south = "south", west = "west",
+  northeast = "northeast", northwest = "northwest", southeast = "southeast", southwest = "southwest",
+  up = "up", down = "down"
+}
+local dsl_short_dirs = {
+  north = "n", east = "e", south = "s", west = "w",
+  northeast = "ne", northwest = "nw", southeast = "se", southwest = "sw",
+  up = "up", down = "down"
+}
+local dsl_door_status = { none = 0, open = 1, closed = 2, locked = 3 }
+
+-- DSL_CONTEXT_TIMEOUT / dsl_context_fresh() -- real bug found reviewing
+-- this fork before deployment: last_door_command/last_move_command both
+-- stored a timestamp (os.time()) that nothing ever checked, so a stale
+-- context from long before could get "replayed" against a much later,
+-- unrelated door-state message (e.g. a generic "Ok." in a different
+-- room). A door/move command is only trusted to explain a game response
+-- within this window.
+local DSL_CONTEXT_TIMEOUT = 6
+
+local function dsl_context_fresh(entry)
+  return entry ~= nil and entry.time ~= nil and (os.time() - entry.time) &lt;= DSL_CONTEXT_TIMEOUT
+end
+
+-- door_command_queue/move_command_queue helpers -- see the queue
+-- conversion comment near their declaration above for why these replaced
+-- the old single overwritable slots.
+local function dsl_push_command(queue, entry)
+  table.insert(queue, entry)
+  while #queue &gt; DSL_COMMAND_QUEUE_MAX do table.remove(queue, 1) end
+end
+
+-- Pops (and discards) entries until it finds one still within
+-- DSL_CONTEXT_TIMEOUT, or the queue runs out.
+local function dsl_pop_fresh_command(queue)
+  while #queue &gt; 0 do
+    local entry = table.remove(queue, 1)
+    if dsl_context_fresh(entry) then return entry end
+  end
+  return nil
+end
+
+-- DSL_DOOR_VERBS -- real bug found reviewing this fork before deployment:
+-- the original pattern here was `cmd:match("^(open|close|lock|unlock|pick)%s+(%a+)$")`,
+-- using `|` for alternation the way PCRE/regex would -- but Lua's own
+-- string.match() uses Lua patterns, which have NO alternation operator at
+-- all ("|" is just a literal pipe character). That pattern could never
+-- match ANY real command, so the entire door-verb capture below was dead
+-- code in the shipped 0.2.2 build -- every "open/close/lock/unlock/pick"
+-- command silently fell through to the bare-direction "move" check further
+-- down, meaning last_door_command could never actually be set. Checking
+-- each verb individually (they're hardcoded literals, safe to splice into
+-- a pattern) is the correct Lua equivalent.
+local DSL_DOOR_VERBS = { "open", "close", "lock", "unlock", "pick" }
+
+local function dsl_dir_from_command(cmd)
+  if not cmd then return nil end
+  cmd = cmd:lower():trim()
+  for _, verb in ipairs(DSL_DOOR_VERBS) do
+    local target = cmd:match("^" .. verb .. "%s+(%a+)$")
+    if target then
+      -- DSL's own help ("Open object-or-direction") confirms open/close/
+      -- lock/unlock/pick are real, valid verbs against BOTH a room exit
+      -- ("open west") and a plain object/container ("open backpack") --
+      -- the third return value tells the caller which one this was, so a
+      -- non-direction target is never conflated with "no door command at
+      -- all" (see captureCommand() below for why that distinction matters).
+      local dir = dsl_long_dirs[target]
+      return dir, verb, (dir == nil)
+    end
+  end
+  local dir = dsl_long_dirs[cmd]
+  if dir then return dir, "move" end
+  return nil, nil, false
+end
+
+function map.dsl.normalizeSector(value)
+  if not value or value == "" then return "unknown" end
+  value = tostring(value):lower():trim()
+  local exact = {
+    inside = "inside", city = "city", field = "field", fields = "field", forest = "forest",
+    hills = "hills", hill = "hills", tundra = "tundra", swim = "swim", ocean = "ocean",
+    underwater = "underwater", desert = "desert", mountain = "mountain", mountains = "mountain",
+    underground = "underground", ice = "ice", icy = "ice", unknown = "unknown"
+  }
+  if exact[value] then return exact[value] end
+  if value:find("indoors", 1, true) then return "inside" end
+  if value:find("city", 1, true) then return "city" end
+  if value:find("fields", 1, true) then return "field" end
+  if value:find("forest", 1, true) then return "forest" end
+  if value:find("hills", 1, true) then return "hills" end
+  if value:find("tundra", 1, true) then return "tundra" end
+  if value:find("heated desert", 1, true) or value:find("desert", 1, true) then return "desert" end
+  if value:find("underground", 1, true) then return "underground" end
+  if value:find("mountains", 1, true) then return "mountain" end
+  if value:find("very icy", 1, true) then return "ice" end
+  if value:find("undetermined", 1, true) then return "unknown" end
+  -- Real gap found live 2026-07-18, per Steven ("is there a terrain
+  -- color for air? its not adding it to the mapper") -- confirmed via
+  -- his own log: DSL's real response to "terrain" while flying/airborne
+  -- is "There is no terrain, your in the air!!!" -- a completely
+  -- different message shape than every other terrain line (none of the
+  -- others start with "There is no terrain"), so it never matched any
+  -- existing pattern and was silently falling through to the
+  -- catch-all "return value" below (an unrecognized, unnormalized
+  -- string), never getting an environment color.
+  if value:find("no terrain", 1, true) and value:find("in the air", 1, true) then return "air" end
+  return value
+end
+
+function map.dsl.captureCommand(cmd)
+  if not cmd then return end
+  cmd = tostring(cmd):lower():trim()
+  map.dsl.last_command = cmd
+  local dir, verb, nonDirectional = dsl_dir_from_command(cmd)
+  if verb == "move" then
+    dsl_push_command(map.dsl.move_command_queue, { raw = cmd, dir = dir, time = os.time() })
+    map.dsl.captureMovePoints()
+  elseif verb and nonDirectional then
+    -- Real bug found reviewing this fork before deployment: "open
+    -- backpack"/"close pouch"/etc. are real door-verb commands aimed at
+    -- a container, not a room exit. This used to fall into the branch
+    -- below and store last_door_command with dir=nil -- then
+    -- onDoorLine()'s fallback chain (`cmd and cmd.dir or move and
+    -- move.dir`) would silently use the LAST MOVEMENT direction instead,
+    -- misattributing a container's "It's already open." to whatever exit
+    -- the player last walked through. Pushing a dir=nil marker onto BOTH
+    -- queues (not just the door one) reserves this command's own place in
+    -- the reply order with "no direction," so its eventual reply is
+    -- correctly attributed to nothing -- a container action means any
+    -- earlier movement is no longer what a new door-state message would
+    -- be describing either, and this must not shift positions in the
+    -- queue the way clearing/wiping it entirely would.
+    dsl_push_command(map.dsl.door_command_queue, { raw = cmd, dir = nil, verb = verb, time = os.time() })
+    dsl_push_command(map.dsl.move_command_queue, { raw = cmd, dir = nil, time = os.time() })
+  elseif verb then
+    dsl_push_command(map.dsl.door_command_queue, { raw = cmd, dir = dir, verb = verb, time = os.time() })
+  end
+end
+
+local DSL_LINE_BUFFER_MAX = 80
+local DSL_LINE_BUFFER_HIGH_WATER = 160
+
+-- Batch-trims instead of shifting one line off the front every single call
+-- -- fixed 2026-07-19 after a PVP perf audit found this ran on EVERY line
+-- of ALL game output (registered on onNewLine, not scoped to moves), and
+-- table.remove(buf,1) is O(n): once the buffer hit its cap, every
+-- subsequent line paid for shifting ~80 elements down by one, and text
+-- volume is highest exactly during combat/PVP, not during movement. Now
+-- the buffer is allowed to grow to a high-water mark before trimming back
+-- down to the real cap in one pass, amortizing that cost across many
+-- lines instead of paying it on every single one. Still a plain
+-- 1-indexed array afterward, so extractVisibleRoomBlock()'s consumption
+-- of it is unaffected.
+function map.dsl.captureLine()
+  if not line then return end
+  local buf = map.dsl.line_buffer
+  buf[#buf + 1] = tostring(line)
+  local oldLen = #buf
+  if oldLen &gt; DSL_LINE_BUFFER_HIGH_WATER then
+    local excess = oldLen - DSL_LINE_BUFFER_MAX
+    for i = 1, DSL_LINE_BUFFER_MAX do
+      buf[i] = buf[i + excess]
+    end
+    for i = DSL_LINE_BUFFER_MAX + 1, oldLen do
+      buf[i] = nil
+    end
+  end
+end
+
+
+local function dsl_join_exits_from_gmcp(exits)
+  if type(exits) ~= "table" then return "" end
+  local out = {}
+  for _, d in ipairs(exits) do
+    local s = tostring(d or ""):lower()
+    out[#out + 1] = dsl_long_dirs[s] or s
+  end
+  return table.concat(out, " ")
+end
+
+function map.dsl.extractVisibleRoomBlock(room_name)
+  local buf = map.dsl.line_buffer or {}
+  local exit_i
+  for i = #buf, 1, -1 do
+    if tostring(buf[i] or ""):match("^%s*%[Exits:%s*.*%]%s*$") then
+      exit_i = i
+      break
+    end
+  end
+  if not exit_i and line and tostring(line):match("^%s*%[Exits:%s*.*%]%s*$") then
+    exit_i = #buf + 1
+  end
+  if not exit_i then return nil, nil end
+
+  local room_i
+  local wanted = tostring(room_name or ""):trim()
+  if wanted ~= "" then
+    for i = exit_i - 1, 1, -1 do
+      if tostring(buf[i] or ""):trim() == wanted then
+        room_i = i
+        break
+      end
+    end
+  end
+
+  -- Fallback: choose the nearest nonblank line before the description block if GMCP name was unavailable.
+  if not room_i then
+    for i = exit_i - 1, 1, -1 do
+      local candidate = tostring(buf[i] or ""):trim()
+      if candidate ~= "" and not candidate:match("^%[") then
+        room_i = i
+        break
+      end
+    end
+  end
+  if not room_i then return nil, nil end
+
+  local desc = {}
+  for i = room_i + 1, exit_i - 1 do
+    local l = tostring(buf[i] or "")
+    local t = l:trim()
+    if t ~= "" and not t:match("^%[Exits:") then
+      for _, pat in ipairs(map.save and map.save.ignore_patterns or {}) do
+        t = string.trim(string.gsub(t, pat, ""))
+      end
+      if t ~= "" then desc[#desc + 1] = t end
+    end
+  end
+
+  local raw = {}
+  for i = room_i, exit_i do
+    raw[#raw + 1] = tostring(buf[i] or "")
+  end
+  if exit_i == #buf + 1 and line then raw[#raw + 1] = tostring(line) end
+  return table.concat(desc, "\n"), table.concat(raw, "\n")
+end
+
+-- How stale a GMCP room_data payload can be and still be trusted here --
+-- fixed 2026-07-19 (code review): there was previously no sequencing check
+-- at all tying a given room_data payload to the specific visible-text
+-- block beforeExits() is processing right now. docs/DSL_CommandRef.md
+-- confirms char_data/room_data normally fire together on every prompt, so
+-- a genuinely current payload should be at most a fraction of a second
+-- old by the time the exits line triggers this function -- 2 seconds
+-- gives real margin for processing lag without being so long it could
+-- plausibly still be describing the PREVIOUS room.
+local DSL_GMCP_ROOMDATA_TIMEOUT = 2
+
+-- roomLooksStale(rid) -- real bug reported by Steven: walking into a room
+-- Generic Mapper fails to resolve/create leaves map.currentRoom stuck on
+-- the PREVIOUS room, so a GMCP or "terrain" payload describing the room
+-- the player actually just entered gets filed onto that stale room's data
+-- instead (its color/terrain silently changes to match wherever the
+-- player really is, not what that mapped room actually is). rd.room is
+-- the same fresh-checked GMCP room name beforeExits() already trusts as
+-- ground truth to feed map.prompt.room, so comparing it against the
+-- candidate room's own stored name detects the desync directly instead of
+-- guessing from timing. Returns false (trust rid) whenever GMCP is
+-- missing/stale/nameless -- this must never be the reason a room fails to
+-- get colored on a normal move where GMCP just isn't fast enough yet.
+-- Real corpus check, 2026-08-24, in response to Claude Desktop's review of
+-- this function: does rd.room (GMCP) really agree with getRoomName()'s
+-- text-scraped name for the same real room, or could they format
+-- differently and false-positive this into blocking color on every such
+-- room? Checked all 260 log/ files with a GMCP dump: 89 of 98 rd.room
+-- values matched a standalone displayed header line in the same file
+-- exactly; the other 9 are fully explained, not real drift -- 8 are the
+-- literal string "darkness" (DSL's own GMCP placeholder for "too dark to
+-- see the room name," never a real room's actual name -- handled below)
+-- and 1 is a log file that started mid-visit, after the header had
+-- already printed in a previous session's log. Zero evidence of genuine
+-- GMCP-vs-display formatting drift for a real room name.
+function map.dsl.roomLooksStale(rid)
+  local rd = map.dsl.gmcp and map.dsl.gmcp.room_data
+  local rdFresh = rd and map.dsl.gmcp.room_data_time
+    and (os.time() - map.dsl.gmcp.room_data_time) &lt;= DSL_GMCP_ROOMDATA_TIMEOUT
+  if not rdFresh or not rd.room then return false end
+  local gmcpName = tostring(rd.room):trim()
+  -- "darkness" isn't a room name to compare -- treating it as an ordinary
+  -- mismatch would still be safe (skip = no corruption) but would also
+  -- needlessly block the sector/color write, since the corpus confirms
+  -- rd.sector keeps reporting correctly even while the room name is dark.
+  if gmcpName == "" or gmcpName:lower() == "darkness" then return false end
+  local roomName = tostring(getRoomName(rid) or ""):trim()
+  return roomName ~= "" and roomName ~= gmcpName
+end
+
+function map.dsl.beforeExits(exits)
+  map.prompt = map.prompt or {}
+  exits = tostring(exits or ""):trim()
+  local rd = map.dsl.gmcp and map.dsl.gmcp.room_data or {}
+  local rdFresh = map.dsl.gmcp and map.dsl.gmcp.room_data_time
+    and (os.time() - map.dsl.gmcp.room_data_time) &lt;= DSL_GMCP_ROOMDATA_TIMEOUT
+
+  -- GMCP assists Generic Mapper by filling prompt fields. It does not
+  -- create rooms or links by itself. Only trust rd.room when it's fresh --
+  -- otherwise this is still holding a previous room's payload (GMCP hasn't
+  -- sent a new one yet for this arrival), and falling through to the
+  -- text-based capture below is safer than filing the new room's visible
+  -- text under the old room's name.
+  if rdFresh and rd.room and tostring(rd.room):trim() ~= "" then
+    map.prompt.room = tostring(rd.room):trim()
+  end
+  if exits ~= "" then
+    map.prompt.exits = exits
+  elseif rdFresh and rd.exits then
+    map.prompt.exits = dsl_join_exits_from_gmcp(rd.exits)
+  end
+
+  local desc, raw = map.dsl.extractVisibleRoomBlock(map.prompt.room)
+  if desc and desc ~= "" and map.configs and map.configs.use_description_matching then
+    map.prompt.description = desc
+  end
+  if raw and raw ~= "" then
+    map.dsl.last_raw_room_block = raw
+  end
+  map.dsl.last_visible_exits = map.prompt.exits
+end
+
+-- Rewritten 2026-07-19 (code review, correctness bug): the previous version
+-- also re-searched the WHOLE queue by value for the failed direction and
+-- removed the first backward match, on the theory that a stale "look"
+-- entry (from search_on_look) could sit at position 1 and cause stock's
+-- own `table.remove(move_queue,1)` (map.eventHandler, registered earlier,
+-- always fires first on this same event) to remove the wrong thing,
+-- leaving the actual failed direction still queued somewhere else.
+-- Real bug: there is no way to tell "stock's removal was already correct"
+-- apart from "stock grabbed a stale look instead" from inside this
+-- function -- both look identical (a queue with no obvious problem). On a
+-- repeated-direction route (e.g. north,east,north where the first north
+-- fails), stock's removal is already correct, but the old code's blind
+-- value-search would then find and delete the SECOND, still-legitimate
+-- future "north", silently dropping a real queued step. Since
+-- search_on_look is now kept reliably off by install() (see the sticky
+-- fix above), "look" should never actually reach move_queue in the first
+-- place, so stock's own removal will always correctly target the failed
+-- move -- this function no longer needs to (unsoundly) second-guess it.
+-- What's left is defense-in-depth for a player who manually re-enables
+-- search_on_look: strip any stale "look" left stuck at the very FRONT of
+-- the queue. Restricting this to the front only (never a full scan) means
+-- it can never remove a genuinely future-queued direction, however many
+-- times that direction repeats later in the route.
+function map.dsl.onMoveFailCleanup()
+  if type(move_queue) ~= "table" then return end
+  while move_queue[1] == "look" do
+    table.remove(move_queue, 1)
+  end
+end
+
+function map.dsl.onCharData()
+  if not gmcp or not gmcp.char_data then return end
+  map.dsl.gmcp.char_data = table.deepcopy and table.deepcopy(gmcp.char_data) or gmcp.char_data
+end
+
+function map.dsl.onRoomData()
+  if not gmcp or not gmcp.room_data then return end
+  local rd = gmcp.room_data
+  map.dsl.gmcp.room_data = table.deepcopy and table.deepcopy(rd) or rd
+  -- Stamped 2026-07-19 (code review): timestamps this specific payload so
+  -- beforeExits() can tell a fresh room_data apart from one that's still
+  -- sitting from a previous room. See the freshness check there for why.
+  map.dsl.gmcp.room_data_time = os.time()
+  map.dsl.gmcp.room_name = rd.room
+  map.dsl.gmcp.exits = rd.exits
+  map.dsl.gmcp.sector = rd.sector
+  map.dsl.gmcp.normalized_sector = map.dsl.normalizeSector(rd.sector)
+  -- Do not raise onNewRoom here. GMCP assists Generic Mapper but does not create rooms/links directly.
+end
+
+-- DSL_SECTOR_ENV_IDS / DSL_SECTOR_ENV_COLORS -- per Steven ("hook up all
+-- the features we can... the terrain and room weights"), and per this
+-- fork's own scope doc, which already flagged this as the intended next
+-- step (item 7's own comment: "Support terrain coloring... later"). This
+-- is a cosmetic map-color choice keyed off the sector categories already
+-- confirmed real (map.dsl.normalizeSector()) -- not a data claim, so a
+-- chosen color per sector is fine here (unlike room weight below).
+-- Environment IDs start at 20: Mudlet reserves IDs 1-16 and 257-272 for
+-- its own use (wiki.mudlet.org's Manual:Mapper Functions page), so
+-- anything DSL-specific has to stay outside those ranges.
+local DSL_SECTOR_ENV_IDS = {
+  inside = 20, city = 21, field = 22, forest = 23, hills = 24, tundra = 25,
+  desert = 26, mountain = 27, underground = 28, ice = 29, swim = 30,
+  ocean = 31, underwater = 32, air = 33,
+}
+
+local DSL_SECTOR_ENV_COLORS = {
+  [20] = {120,120,120,255},  -- inside: grey
+  [21] = {180,180,170,255},  -- city: light stone
+  [22] = {140,200,90,255},   -- field: light green
+  [23] = {30,110,40,255},    -- forest: dark green
+  [24] = {170,140,80,255},   -- hills: tan/brown
+  [25] = {210,225,235,255},  -- tundra: pale blue-white
+  [26] = {225,195,110,255},  -- desert: sand yellow
+  [27] = {100,90,80,255},    -- mountain: dark grey-brown
+  [28] = {60,40,70,255},     -- underground: dark purple
+  [29] = {200,235,240,255},  -- ice: cyan-white
+  [30] = {60,120,200,255},   -- swim: blue
+  [31] = {30,70,150,255},    -- ocean: deep blue
+  [32] = {20,60,90,255},     -- underwater: dark teal
+  [33] = {135,206,235,255},  -- air: sky blue
+}
+
+local DSL_SECTOR_NAMES_SORTED = {}
+for k in pairs(DSL_SECTOR_ENV_IDS) do DSL_SECTOR_NAMES_SORTED[#DSL_SECTOR_NAMES_SORTED + 1] = k end
+table.sort(DSL_SECTOR_NAMES_SORTED)
+
+function map.dsl.registerEnvColors()
+  for envID, rgba in pairs(DSL_SECTOR_ENV_COLORS) do
+    pcall(setCustomEnvColor, envID, rgba[1], rgba[2], rgba[3], rgba[4])
+  end
+end
+
+-- dsl.terrain_locked -- per Steven ("this needs to get set once then have
+-- to be manually changed"): once a room's terrain/color has been set by
+-- EITHER auto-detection (GMCP or the "terrain" command) or the manual
+-- "rt"/"room terrain" alias below, applyRoomMetadata()/onTerrainLine()
+-- must never silently change it again on a later visit -- only the manual
+-- alias can. Mirrors the existing dsl.weight_source == "manual" guard for
+-- room weight (see the "rw" alias / applyMoveCost() above), narrowed to
+-- lock on the FIRST successful set rather than only after an explicit
+-- manual command, since an auto-detected value is just as real and
+-- shouldn't be silently second-guessed by a later, possibly-corrupted pass
+-- (see roomLooksStale() above -- this lock is a second, independent layer
+-- of protection against that same corruption, not just a cosmetic lock).
+function map.dsl.terrainLocked(rid)
+  return getRoomUserData(rid, "dsl.terrain_locked") == "true"
+end
+
+-- applySectorColor(rid, sector) -- color only, from the known DSL
+-- sector. Room WEIGHT is handled separately below by
+-- captureMovePoints()/applyMoveCost() -- per Steven's explicit
+-- correction ("dont make up weights, the room weight should be added as
+-- a player walks through and uses movement points to determine"), weight
+-- must come from real observed movement-point cost, not a guessed
+-- sector-&gt;number table. This function itself stays a plain, unguarded
+-- "recolor this room" primitive -- terrainLocked()/roomLooksStale() are
+-- checked by its CALLERS (applyRoomMetadata()/onTerrainLine()) before they
+-- decide to call it at all, so the manual "rt" alias below can still reuse
+-- it to actually apply a color even on an already-locked room. Note this
+-- still can't stop Mudlet's own native map-UI right-click recolor, which
+-- calls setRoomEnv() directly with no script hook to intercept it -- a
+-- manual UI recolor could still get reverted by a *future unlocked* room's
+-- next auto-color pass. Accepted, pre-existing tradeoff, unrelated to the
+-- lock added here.
+function map.dsl.applySectorColor(rid, sector)
+  if not rid or not sector or sector == "unknown" then return end
+  if not map.roomexists or not map.roomexists(rid) then return end
+  local envID = DSL_SECTOR_ENV_IDS[sector]
+  if envID and getRoomEnv(rid) ~= envID then
+    pcall(setRoomEnv, rid, envID)
+  end
+end
+
+-- setManualTerrain(rid, sectorInput) -- backs the "rt"/"room terrain"
+-- alias. Applies a normalized sector by hand and locks the room against
+-- future auto-detection, mirroring the "rw" alias's dsl.weight_source =
+-- "manual" write. Returns ok, message so the alias doesn't duplicate
+-- validation/echoing.
+function map.dsl.setManualTerrain(rid, sectorInput)
+  if not rid or not map.roomexists or not map.roomexists(rid) then
+    return false, "I don't know where that room is."
+  end
+  local sector = map.dsl.normalizeSector(sectorInput)
+  if sector == "unknown" or not DSL_SECTOR_ENV_IDS[sector] then
+    return false, "Unknown terrain \"" .. tostring(sectorInput) ..
+      "\". Known: " .. table.concat(DSL_SECTOR_NAMES_SORTED, ", ")
+  end
+  setRoomUserData(rid, "dsl.normalized_sector", sector)
+  setRoomUserData(rid, "dsl.sector_source", "manual")
+  setRoomUserData(rid, "dsl.terrain_locked", "true")
+  map.dsl.applySectorColor(rid, sector)
+  return true, sector
+end
+
+-- captureMovePoints() / applyMoveCost(rid) -- room weight derived from
+-- REAL observed movement-point cost (gmcp.char_data.move, the same real
+-- GMCP field MyDSL_DataLayer.lua already reads in the companion MyDSL
+-- profile), not a guessed table. Mechanism: record the player's current
+-- move points the instant a real movement command is sent
+-- (sysDataSendRequest fires before the command reaches the server), then
+-- when the destination room resolves, read move points again and store
+-- the delta as this room's observed entry cost. Averaged across repeat
+-- visits (via dsl.move_cost_samples/dsl.move_cost_total room userdata)
+-- so a single visit landing on a natural regen tick doesn't permanently
+-- skew the room's weight.
+function map.dsl.captureMovePoints()
+  if not (gmcp and gmcp.char_data) then return end
+  local mv = tonumber(gmcp.char_data.move)
+  if mv then map.dsl.pending_move_points = mv end
+end
+
+function map.dsl.applyMoveCost(rid)
+  if not rid or not map.roomexists or not map.roomexists(rid) then return end
+  local before = map.dsl.pending_move_points
+  map.dsl.pending_move_points = nil
+  if not before then return end
+  -- Read once, reused below for the compare-before-write at the end
+  -- (was a second identical getRoomUserData call before 2026-07-19).
+  local weightSource = getRoomUserData(rid, "dsl.weight_source")
+  if weightSource == "manual" then return end
+  if not (gmcp and gmcp.char_data) then return end
+  local after = tonumber(gmcp.char_data.move)
+  if not after then return end
+
+  local cost = before - after
+  -- Sanity guard, not a guessed weight: natural move-point regen ticking
+  -- between the command and the room resolving can make this negative,
+  -- and an unrelated move-point loss (e.g. a status effect) landing in
+  -- the same window could make it implausibly large for a single step.
+  -- Skip anything outside a plausible single-step range rather than let
+  -- a bad reading corrupt the running average.
+  if cost &lt;= 0 or cost &gt; 20 then
+    -- Debug-only visibility added 2026-07-19 (code review): this guard
+    -- used to discard silently in both directions with zero diagnostics --
+    -- a real cost over 20 (plausible for swim/mountain/climb with
+    -- encumbrance) would be thrown away forever with no visible sign that
+    -- weight-learning had quietly stopped working for that room. map.echo
+    -- itself no-ops immediately when map.configs.debug is off, so this adds
+    -- no cost by default -- see "Enable with map config debug true".
+    map.echo("applyMoveCost(): discarded implausible cost " .. tostring(cost) ..
+      " for room " .. tostring(rid) .. " (before=" .. tostring(before) ..
+      " after=" .. tostring(after) .. ")", true)
+    return
+  end
+
+  local samples = tonumber(getRoomUserData(rid, "dsl.move_cost_samples")) or 0
+  local total = tonumber(getRoomUserData(rid, "dsl.move_cost_total")) or 0
+  samples = samples + 1
+  total = total + cost
+  setRoomUserData(rid, "dsl.move_cost_samples", tostring(samples))
+  setRoomUserData(rid, "dsl.move_cost_total", tostring(total))
+
+  local avgCost = total / samples
+  local weight = math.max(1, math.floor(avgCost + 0.5))
+  if getRoomWeight(rid) ~= weight then
+    pcall(setRoomWeight, rid, weight)
+  end
+  -- Skip the write once this room is already marked "auto" -- fixed
+  -- 2026-07-19 (PVP perf audit): this used to run unconditionally on
+  -- every single move through an already-weighted room.
+  if weightSource ~= "auto" then
+    setRoomUserData(rid, "dsl.weight_source", "auto")
+  end
+end
+
+-- Writes only when the new value actually differs from what's already
+-- stored -- added 2026-07-19 (PVP perf audit). Repeat visits to an
+-- already-mapped room (fleeing/chasing through known coliseum rooms) were
+-- rewriting identical gmcp_room/gmcp_sector/normalized_sector/
+-- sector_source/terrain_text/sector_conflict values on every single
+-- arrival; each setRoomUserData call takes Mudlet's shared map lock, so
+-- skipping the ones that would be no-ops cuts real per-move overhead.
+local function dsl_setIfChanged(rid, key, value)
+  if tostring(getRoomUserData(rid, key)) ~= tostring(value) then
+    setRoomUserData(rid, key, value)
+  end
+end
+
+function map.dsl.applyRoomMetadata()
+  local rid = map.currentRoom
+  if not rid or not map.roomexists or not map.roomexists(rid) then return end
+  map.dsl.applyMoveCost(rid)
+  setRoomUserData(rid, "dsl.last_seen", tostring(os.time()))
+  map.dsl.last_room_apply = rid
+  local rd = map.dsl.gmcp and map.dsl.gmcp.room_data or nil
+  if not rd then return end
+  -- Same staleness guard as beforeExits() -- fixed 2026-07-19 (code
+  -- review): without this, a room_data payload that's still describing
+  -- the PREVIOUS room (GMCP hasn't sent a fresh one yet for this arrival)
+  -- could get filed onto the NEW room's userdata instead. Only the
+  -- GMCP-derived fields below need this guard -- last_seen/last_room_apply
+  -- above are visit bookkeeping, correct regardless of GMCP freshness.
+  local rdFresh = map.dsl.gmcp.room_data_time
+    and (os.time() - map.dsl.gmcp.room_data_time) &lt;= DSL_GMCP_ROOMDATA_TIMEOUT
+  if not rdFresh then return end
+  -- Corruption + lock guards -- see roomLooksStale()/terrainLocked() above.
+  -- Both must be checked before touching ANY of the room's terrain/sector/
+  -- color fields below, not just the color write.
+  if map.dsl.roomLooksStale(rid) then return end
+  if map.dsl.terrainLocked(rid) then return end
+  local sector = map.dsl.normalizeSector(rd.sector)
+  if rd.room then dsl_setIfChanged(rid, "dsl.gmcp_room", tostring(rd.room)) end
+  if rd.sector then dsl_setIfChanged(rid, "dsl.gmcp_sector", tostring(rd.sector)) end
+  dsl_setIfChanged(rid, "dsl.normalized_sector", sector)
+  dsl_setIfChanged(rid, "dsl.sector_source", rd.sector and "gmcp" or "unknown")
+  if map.dsl.last_terrain_text then
+    dsl_setIfChanged(rid, "dsl.terrain_text", map.dsl.last_terrain_text)
+    local tsec = map.dsl.normalizeSector(map.dsl.last_terrain_text)
+    if tsec ~= "unknown" and sector ~= "unknown" and tsec ~= sector then
+      dsl_setIfChanged(rid, "dsl.sector_conflict", "true")
+    else
+      dsl_setIfChanged(rid, "dsl.sector_conflict", "false")
+    end
+  end
+  map.dsl.applySectorColor(rid, sector)
+  if sector ~= "unknown" then setRoomUserData(rid, "dsl.terrain_locked", "true") end
+end
+
+-- Called inline, not deferred -- fixed 2026-07-19 (PVP perf audit). This
+-- used to defer applyRoomMetadata() through a tempTimer(0,...), with a
+-- comment claiming it needed to "let Generic Mapper finish resolving the
+-- room first." Traced the actual event order: stock's own onNewRoom
+-- handler (map.eventHandler, registered earlier at load) runs synchronously
+-- and fully resolves map.currentRoom via handle_exits()/capture_room_info()
+-- before this handler's body even starts, since Mudlet dispatches anonymous
+-- handlers for one raiseEvent call in registration order, not through the
+-- event/timer queue. The deferral bought nothing but one extra Qt
+-- event-loop round-trip of latency on every single move.
+-- announceAreaChange(rid) -- per Steven's MyDSL notes 2026-08-24
+-- ("mapper should announce entering/exiting a named area map...
+-- Althainia, Death's Corridor"). map.currentArea is already tracked by
+-- stock Generic Mapper's own set_room() on every real room change (see
+-- its own "map.set('currentArea', getRoomArea(map.currentRoom))" call) --
+-- this just watches for it changing and echoes a banner, no new area-
+-- tracking mechanism invented. Skips the very first room of a session
+-- (map.dsl.last_area_id starts nil) -- "entering X" from nothing isn't a
+-- real boundary crossing -- and any room with no assigned area (-1,
+-- Generic Mapper's own convention for unassigned rooms).
+function map.dsl.announceAreaChange(rid)
+  if not rid or not map.roomexists or not map.roomexists(rid) then return end
+  local newArea = getRoomArea(rid)
+  if not newArea or newArea == -1 then return end
+  local oldArea = map.dsl.last_area_id
+  if oldArea ~= nil and oldArea ~= newArea then
+    local newName = getRoomAreaName(newArea) or tostring(newArea)
+    local oldName = getRoomAreaName(oldArea) or tostring(oldArea)
+    map.dsl.echo("Entering " .. tostring(newName) .. " (leaving " .. tostring(oldName) .. ").")
+  end
+  map.dsl.last_area_id = newArea
+end
+
+function map.dsl.onGenericNewRoom()
+  map.dsl.applyRoomMetadata()
+  map.dsl.announceAreaChange(map.currentRoom)
+end
+
+function map.dsl.onTerrainLine(text)
+  text = tostring(text or line or ""):trim()
+  if text == "" then return end
+  map.dsl.last_terrain_text = text
+  local rid = map.currentRoom
+  -- Corruption + lock guards -- see roomLooksStale()/terrainLocked() above.
+  -- This is the exact function Steven's report implicated most directly:
+  -- typing "terrain" while map.currentRoom is stuck on a stale room used
+  -- to file the real room's terrain onto the wrong one with no protection
+  -- at all.
+  if rid and map.roomexists and map.roomexists(rid)
+    and not map.dsl.roomLooksStale(rid) and not map.dsl.terrainLocked(rid) then
+    setRoomUserData(rid, "dsl.terrain_text", text)
+    local normalized = map.dsl.normalizeSector(text)
+    if normalized ~= "unknown" then
+      local gsec = getRoomUserData(rid, "dsl.normalized_sector")
+      if not gsec or gsec == "" or gsec == "unknown" then
+        setRoomUserData(rid, "dsl.normalized_sector", normalized)
+        setRoomUserData(rid, "dsl.sector_source", "terrain")
+      elseif gsec ~= normalized then
+        setRoomUserData(rid, "dsl.sector_conflict", "true")
+      end
+      -- Color a room from the "terrain" command too, not just GMCP -- a
+      -- player typing "terrain" manually should get the same auto-color
+      -- benefit as GMCP-derived sector data. Weight is unaffected here --
+      -- it only comes from real observed movement-point cost.
+      map.dsl.applySectorColor(rid, getRoomUserData(rid, "dsl.normalized_sector"))
+      setRoomUserData(rid, "dsl.terrain_locked", "true")
+    end
+  end
+end
+
+function map.dsl.setGenericDoor(dir, state)
+  if not dir or not state or not map.currentRoom then return end
+  if not map.roomexists or not map.roomexists(map.currentRoom) then return end
+  local status = dsl_door_status[state]
+  if status == nil then return end
+  local door_dir = dsl_short_dirs[dir] or dir
+  if dir == "up" or dir == "down" then door_dir = dir end
+  pcall(setDoor, map.currentRoom, door_dir, status)
+  setRoomUserData(map.currentRoom, "dsl.exit." .. dir .. ".door_state", state)
+end
+
+function map.dsl.onDoorLine(text)
+  text = tostring(text or line or ""):trim()
+  if text == "" then return end
+  map.dsl.last_door_line = text
+  -- Checked before consuming any queued command context -- fixed
+  -- 2026-07-19 alongside the queue conversion: this line doesn't use
+  -- cmd/move/dir at all (it parses its own directions straight out of the
+  -- text), so it must not pop a queue entry meant for a still-pending
+  -- command's real reply. Moved above the pops that follow so this early
+  -- return can't consume anything.
+  local opened = text:match("^Opened doors?:%s*(.+)$")
+  if opened then
+    if opened ~= "none" then
+      for d in opened:gmatch("%a+") do
+        local odir = dsl_long_dirs[d]
+        if odir then map.dsl.setGenericDoor(odir, "open") end
+      end
+    end
+    return
+  end
+  local cmd = dsl_pop_fresh_command(map.dsl.door_command_queue)
+  local move = dsl_pop_fresh_command(map.dsl.move_command_queue)
+  local dir = cmd and cmd.dir or move and move.dir or nil
+  local state
+  if text:match("^It's already open%.$") then state = "open" end
+  if text:match("^It's already closed%.$") then state = "closed" end
+  if text:match("^It's already unlocked%.$") then state = "closed" end
+  if text:match("^It's not closed%.$") then state = "open" end
+  if text:match("^It can't be unlocked%.$") then state = "closed" end
+  if text:match("^It can't be locked%.$") then state = "closed" end
+  -- Real gap found cross-referencing this fork against the log corpus:
+  -- this was hardcoded to one specific NPC name, but the real DSL message
+  -- is a generic template any NPC standing near a lock can trigger --
+  -- confirmed via 4 other real NPCs producing the identical message in
+  -- sibling-profile logs ("An energy field is standing too close to the
+  -- lock.", "An ogre guard is standing too close to the lock.", "A male
+  -- bull dancer is standing too close to the lock.", "The spirit of a
+  -- grieving widow is standing too close to the lock."). Wildcarded so it
+  -- fires for any NPC, not just the one guard originally seen.
+  if text:match("^.+ is standing too close to the lock%.$") then state = "locked" end
+  if text:match("^It's locked%.$") or text:match("^The .+ is locked%.$") or text:match("^You lack the key%.$") then state = "locked" end
+  if text:match("^The .+ is closed%.$") then state = "closed" end
+  if text:match("^I see no door .+ here%.$") then state = "none" end
+  if text:match("^%*Click%*$") and cmd and (cmd.verb == "unlock" or cmd.verb == "lock") then
+    state = (cmd.verb == "unlock") and "closed" or "locked"
+  end
+  if text:match("^Ok%.$") and cmd then
+    if cmd.verb == "open" then state = "open" end
+    if cmd.verb == "close" then state = "closed" end
+    if cmd.verb == "lock" then state = "locked" end
+    if cmd.verb == "unlock" then state = "closed" end
+  end
+  if dir and state then map.dsl.setGenericDoor(dir, state) end
+end
+
+-- highlightPlayersNear(list) -- per Steven's MyDSL notes ("mapper:
+-- highlight other players' rooms (from the where command) on the map...
+-- multiple possibilities highlighted when room names are ambiguous").
+-- `list` is a {name=, room=}-shaped array raised by MyDSL_DataLayer.lua's
+-- real "Players near you:" capture (MyDSL.playersNear.parsed). Kingdom/
+-- org coloring (the other half of the original ask) is NOT built here --
+-- that needs cross-referencing DslColors_Core_v1_0's own accumulated
+-- kingdom data, a much bigger native-script integration; this delivers
+-- room-highlighting only, one flat color for every match. Room-name
+-- ambiguity (the maze-style repeated names this project has hit before,
+-- e.g. "The Wing of the Stone Dragon") is handled by highlighting EVERY
+-- match, not guessing which one -- exactly what the original ask itself
+-- asked for. Clears every previously-highlighted room first so a player
+-- who's since moved doesn't leave a stale highlight behind.
+--
+-- searchRoom()'s real return value (confirmed in Mudlet's own C++
+-- source, TLuaInterpreterMapper.cpp) is a table keyed BY ROOM ID
+-- (roomID -&gt; roomName), not a plain array -- iterate with pairs() over
+-- the keys, not ipairs() over values, or every match is silently missed.
+local DSL_PLAYER_HIGHLIGHT_RGB = { 255, 220, 60 }  -- gold -- distinct from every sector env color
+
+map.dsl.highlighted_player_rooms = map.dsl.highlighted_player_rooms or {}
+
+function map.dsl.highlightPlayersNear(list)
+  for _, rid in ipairs(map.dsl.highlighted_player_rooms) do
+    pcall(unHighlightRoom, rid)
+  end
+  map.dsl.highlighted_player_rooms = {}
+  if not list then return end
+  local c = DSL_PLAYER_HIGHLIGHT_RGB
+  for _, entry in ipairs(list) do
+    if entry.room and entry.room ~= "" then
+      local ok, matches = pcall(searchRoom, entry.room, false, true)
+      if ok and type(matches) == "table" then
+        for rid in pairs(matches) do
+          pcall(highlightRoom, rid, c[1], c[2], c[3], c[1], c[2], c[3], 25, 150, 150)
+          table.insert(map.dsl.highlighted_player_rooms, rid)
+        end
+      end
+    end
+  end
+end
+
+function map.dsl.install()
+  map.dsl.registerEnvColors()
+  if map.defaults then
+    map.defaults.use_description_matching = true
+    map.defaults.download_path = ""
+  end
+  if map.configs then
+    -- First DSL fork install should force description matching on, because DSL repeated room names are common.
+    -- search_on_look defaults off for the same reason (queued "look" entries
+    -- interacting with move_queue during a failed move caused a real bug,
+    -- see onMoveFailCleanup) -- but first-install-only, same as
+    -- use_description_matching. Fixed 2026-07-19: this used to run
+    -- unconditionally on every install() call (every reload/reconnect),
+    -- silently reverting a player's own "map config search_on_look true"
+    -- with no message. Now it only sets the default once, same as the
+    -- description-matching default right above it.
+    if not map.configs.dsl_generic_mapper_seen then
+      map.configs.use_description_matching = true
+      map.configs.search_on_look = false
+    end
+    map.configs.dsl_generic_mapper_seen = true
+    map.configs.dsl_generic_mapper_version = map.dsl.version
+    map.configs.download_path = ""
+  end
+  map.save = map.save or {}
+  map.save.ignore_patterns = map.save.ignore_patterns or {}
+  local defaults = {
+    "^You are hungry%.$",
+    "^You are thirsty%.$",
+    "^You don't know any spells of that name%.$",
+    "^System Message:%s*$",
+    "^gmcp event &lt;gmcp%.char_data&gt; display%(gmcp%) to see the full content$",
+    "^gmcp event &lt;gmcp%.room_data&gt; display%(gmcp%) to see the full content$",
+    "^gmcp event &lt;gmcp%.tick&gt; display%(gmcp%) to see the full content$",
+    "^gmcp event &lt;gmcp%.add_affect&gt; display%(gmcp%) to see the full content$",
+    "^gmcp event &lt;gmcp%.remove_affect&gt; display%(gmcp%) to see the full content$",
+    "^%[ INFO %].*$",
+    "^%[  OK  %].*$"
+  }
+  for _, pat in ipairs(defaults) do
+    if not table.contains(map.save.ignore_patterns, pat) then table.insert(map.save.ignore_patterns, pat) end
+  end
+  map.dsl.installAddonOverrides()
+end
+
+function map.dsl.status()
+  local rd = map.dsl.gmcp and map.dsl.gmcp.room_data or {}
+  local cd = map.dsl.gmcp and map.dsl.gmcp.char_data or {}
+  map.dsl.echo("Status")
+  cecho(string.format("&lt;grey&gt;  Fork: &lt;white&gt;DSL Generic Mapper %s &lt;grey&gt;on %s\n", map.dsl.version, map.dsl.base))
+  cecho(string.format("&lt;grey&gt;  Updater: &lt;white&gt;disabled\n"))
+  cecho(string.format("&lt;grey&gt;  Description matching: &lt;white&gt;%s\n", tostring(map.configs and map.configs.use_description_matching)))
+  cecho(string.format("&lt;grey&gt;  Current room: &lt;white&gt;%s &lt;grey&gt;(%s)\n", tostring(map.currentName), tostring(map.currentRoom)))
+  cecho(string.format("&lt;grey&gt;  GMCP room: &lt;white&gt;%s\n", tostring(rd.room)))
+  cecho(string.format("&lt;grey&gt;  GMCP sector: &lt;white&gt;%s &lt;grey&gt;normalized=&lt;white&gt;%s\n", tostring(rd.sector), tostring(map.dsl.gmcp.normalized_sector)))
+  cecho(string.format("&lt;grey&gt;  Fighting/flying/riding: &lt;white&gt;%s/%s/%s\n", tostring(cd.is_fighting), tostring(cd.is_flying), tostring(cd.is_riding)))
+  cecho(string.format("&lt;grey&gt;  Last terrain: &lt;white&gt;%s\n", tostring(map.dsl.last_terrain_text)))
+  cecho(string.format("&lt;grey&gt;  Last door line: &lt;white&gt;%s\n", tostring(map.dsl.last_door_line)))
+  cecho(string.format("&lt;grey&gt;  Prompt assist room/exits: &lt;white&gt;%s &lt;grey&gt;/ &lt;white&gt;%s\n", tostring(map.prompt and map.prompt.room), tostring(map.prompt and map.prompt.exits)))
+end
+
+function map.dsl.showGMCP()
+  map.dsl.echo("Latest DSL GMCP assist data")
+  display(map.dsl.gmcp or {})
+end
+
+function map.dsl.roomRaw()
+  local rid = map.currentRoom
+  if not rid or not map.roomexists or not map.roomexists(rid) then
+    map.dsl.echo("No current Generic Mapper room is resolved. Showing latest DSL assist capture instead.")
+    local rd = map.dsl.gmcp and map.dsl.gmcp.room_data or {}
+    cecho(string.format("&lt;grey&gt;GMCP room: &lt;white&gt;%s\n", rd.room or "?"))
+    cecho(string.format("&lt;grey&gt;GMCP exits: &lt;white&gt;%s\n", map.dsl.last_visible_exits or dsl_join_exits_from_gmcp(rd.exits)))
+    cecho(string.format("&lt;grey&gt;GMCP sector: &lt;white&gt;%s &lt;grey&gt;normalized=&lt;white&gt;%s\n", rd.sector or "?", (map.dsl.gmcp and map.dsl.gmcp.normalized_sector) or "?"))
+    if map.dsl.last_raw_room_block then
+      cecho("&lt;grey&gt;Latest visible room block:\n&lt;white&gt;")
+      for l in tostring(map.dsl.last_raw_room_block):gmatch("[^\n]+") do echo("  " .. l .. "\n") end
+    else
+      cecho("&lt;grey&gt;Latest visible room block: &lt;white&gt;none captured yet\n")
+    end
+    return
+  end
+  -- One-stop room report -- per Steven ("can i view room info in this
+  -- package? like description name weights terrain features etc").
+  -- map.roomLook() (the native "rl"/"room look" command) already shows
+  -- name, area, coordinates, weight, environment color, description,
+  -- exits+their weights, special exits, and per-room map features --
+  -- reused directly here instead of re-displaying any of that a second
+  -- time. Only the DSL-specific fields roomLook doesn't know about
+  -- (GMCP/terrain sector, weight source and how many real movement
+  -- samples it's averaged from, sector conflicts) are added afterward.
+  map.roomLook(tostring(rid))
+  map.dsl.echo("DSL assist detail")
+  cecho(string.format("&lt;grey&gt;GMCP sector: &lt;white&gt;%s &lt;grey&gt;terrain-command text: &lt;white&gt;%s\n",
+    map.dsl.dsl_ud(rid, "dsl.gmcp_sector", "none yet"), map.dsl.dsl_ud(rid, "dsl.terrain_text", "not typed yet")))
+  cecho(string.format("&lt;grey&gt;Normalized sector: &lt;white&gt;%s &lt;grey&gt;(source=&lt;white&gt;%s&lt;grey&gt;, conflict=&lt;white&gt;%s&lt;grey&gt;)\n",
+    map.dsl.dsl_ud(rid, "dsl.normalized_sector", "unknown"), map.dsl.dsl_ud(rid, "dsl.sector_source", "none yet"),
+    map.dsl.dsl_ud(rid, "dsl.sector_conflict", "false")))
+  local costSamples = tonumber(getRoomUserData(rid, "dsl.move_cost_samples"))
+  cecho(string.format("&lt;grey&gt;Weight source: &lt;white&gt;%s &lt;grey&gt;(%s real movement samples, avg cost=&lt;white&gt;%s&lt;grey&gt;)\n",
+    map.dsl.dsl_ud(rid, "dsl.weight_source", "none yet -- still default weight"), tostring(costSamples or 0),
+    costSamples and string.format("%.1f", (tonumber(getRoomUserData(rid, "dsl.move_cost_total")) or 0) / costSamples) or "n/a"))
+end
+
+-- Register DSL assist handlers. Clear old DSL handlers on script reload to avoid duplicate callbacks.
+if map.dsl.registeredEvents then
+  for _, id in ipairs(map.dsl.registeredEvents) do pcall(killAnonymousEventHandler, id) end
+end
+map.dsl.registeredEvents = {
+  registerAnonymousEventHandler("mapperScriptLoaded", "map.dsl.install"),
+  registerAnonymousEventHandler("sysInstall", "map.dsl.install"),
+  registerAnonymousEventHandler("gmcp.room_data", "map.dsl.onRoomData"),
+  registerAnonymousEventHandler("gmcp.char_data", "map.dsl.onCharData"),
+  registerAnonymousEventHandler("onNewRoom", "map.dsl.onGenericNewRoom"),
+  registerAnonymousEventHandler("onMoveFail", "map.dsl.onMoveFailCleanup"),
+  registerAnonymousEventHandler("onNewLine", "map.dsl.captureLine"),
+  registerAnonymousEventHandler("sysDataSendRequest", "map.dsl.captureCommand"),
+  registerAnonymousEventHandler("MyDSL.playersNear.parsed", "map.dsl.highlightPlayersNear")
+}
+
+------------------------------------------------------------------------
+-- Right-click map menu additions (added 2026-08-29, standalone-mapper
+-- design pass -- see docs/MAPPER_REDESIGN.md). Deliberately NOT
+-- interleaved into any existing stock-derived function above: this is a
+-- fresh registerAnonymousEventHandler pair calling only Mudlet's public
+-- addMapEvent/deleteRoom/getAllRoomEntrances API, nothing internal to
+-- this file. General map-editing tools, useful standalone (not MyDSL-
+-- specific) -- MyDSL's own suite-integration menu items live in a
+-- separate .lua file instead (MyDSL_MapperMenu.lua), never here, so
+-- this fork stays exactly as useful to a non-MyDSL DSL player as to us.
+------------------------------------------------------------------------
+
+-- safeDelete(ids) -- ported/adapted from the mapaddons-safe-delete
+-- community package (packages.mudlet.org), confirmed 2026-08-29 that
+-- none of this file's own deleteRoom() call sites did this: deleting a
+-- room natively leaves any OTHER room's exit still pointing at the now-
+-- gone room ID, a dangling connection invisible until you look. This
+-- converts every such incoming exit into a stub instead, before the
+-- room is actually removed.
+function map.dsl.safeDelete(ids)
+  for _, id in ipairs(ids) do
+    id = tonumber(id)
+    if id then
+      local incomingRooms = {}
+      for _, room in ipairs(getAllRoomEntrances(id)) do
+        for dir, exit in pairs(getRoomExits(room)) do
+          if exit == id then
+            incomingRooms[room] = incomingRooms[room] or {}
+            table.insert(incomingRooms[room], dir)
+          end
+        end
+      end
+      deleteRoom(id)
+      for room, dirs in pairs(incomingRooms) do
+        for _, dir in ipairs(dirs) do
+          setExitStub(room, dir, true)
+        end
+      end
+    end
+  end
+  updateMap()
+end
+
+function map.dsl.mapMenuEventHandler(event, mapEvent, ...)
+  if event == "mapAddOnEvent" then
+    if mapEvent == "dslSafeDelete" then
+      map.dsl.safeDelete({...})
+    end
+  elseif event == "mapOpenEvent" then
+    local mapEvents = getMapEvents()
+    if not mapEvents["dslSafeDelete"] then
+      addMapEvent("dslSafeDelete", "mapAddOnEvent", "", "Safe Delete (DSL)")
+    end
+  end
+end
+
+registerAnonymousEventHandler("mapAddOnEvent", "map.dsl.mapMenuEventHandler")
+registerAnonymousEventHandler("mapOpenEvent", "map.dsl.mapMenuEventHandler")
+
+tempTimer(0, [[if map and map.dsl then map.dsl.install() end]])
+-- End DSL Generic Mapper 0.2.2 Minimal Hardening Layer
+
+
+
+------------------------------------------------------------------------
+-- Addon-specific overrides -- reassigns real global map.* functions
+-- from OUTSIDE stock's own source (no edited/bundled copy needed).
+-- Called from map.dsl.install() below, NOT at top-level script scope --
+-- install() only ever runs via mapperScriptLoaded/sysInstall, both
+-- raised by stock's OWN boot sequence, which guarantees stock has
+-- already fully executed and defined its own map.checkVersion/
+-- map.updateVersion/map.echoPath/map.export_area/map.import_area by the
+-- time this runs. Running these reassignments at bare top-level script
+-- scope instead would race stock's own script load order and could get
+-- silently clobbered if stock happened to execute after this addon.
+------------------------------------------------------------------------
+function map.dsl.installAddonOverrides()
+  map.echoPath = function(from, to)
+    assert(tonumber(from) and tonumber(to), "map.echoPath: both from and to have to be room IDs")
+    -- Ported from upstream generic_mapper.xml 2.1.9 (PR #9467, 2026-07-25):
+    -- searchRoom() for a missing roomID now returns nil+message instead of a
+    -- truthy error string on newer Mudlet versions -- harmless on our pinned
+    -- 4.20.1 today (that C++ behavior change hasn't shipped for us yet), but
+    -- string.upper(nil) would hard-crash the moment it does. Fixing
+    -- proactively rather than waiting for the crash.
+    local from_name = searchRoom(from) or "room " .. from
+    local to_name = searchRoom(to) or "room " .. to
+    if getPath(from, to) then
+      map.echo(
+        "&lt;white&gt;Directions from &lt;yellow&gt;" ..
+        string.upper(from_name) ..
+        " &lt;white&gt;to &lt;yellow&gt;" ..
+        string.upper(to_name) ..
+        "&lt;white&gt;:"
+      )
+      map.echo(table.concat(speedWalkDir, ", "))
+      return map.speedWalkDir
+    else
+      map.echo(
+        "&lt;white&gt;I can't find a way from &lt;yellow&gt;" ..
+        string.upper(from_name) ..
+        " &lt;white&gt;to &lt;yellow&gt;" ..
+        string.upper(to_name) ..
+        "&lt;white&gt;"
+      )
+    end
+  end
+  
+  
+  
+  
+  map.export_area = function(name)
+      -- used to export a single area to a file
+      local areas = getAreaTable()
+      name = string.lower(name)
+      for k,v in pairs(areas) do
+          if name == string.lower(k) then name = k end
+      end
+      if not areas[name] then
+          show_err("No such area.")
+      end
+      local rooms = getAreaRooms(areas[name])
+      local tmp = {}
+      for k,v in pairs(rooms) do
+          tmp[v] = v
+      end
+      rooms = tmp
+      local tbl = {}
+      tbl.name = name
+      tbl.rooms = {}
+      tbl.exits = {}
+      tbl.special = {}
+      local rname, exits, stubs, doors, special, portals, door_up, door_down, coords, environment, roomChar, hash
+      for k,v in pairs(rooms) do
+          rname = getRoomName(v)
+          exits = getRoomExits(v)
+          stubs = getExitStubs(v)
+          doors = getDoors(v)
+          special = getSpecialExitsSwap(v)
+          portals = getRoomUserData(v,"portals") or ""
+  	environment = getRoomEnv(v)
+  	roomChar = getRoomChar(v)
+          coords = {getRoomCoordinates(v)}
+          hash = getRoomHashByID(v)
+          tbl.rooms[v] = {name = rname, coords = coords, exits = exits, stubs = stubs, doors = doors, door_up = door_up,
+              door_down = door_down, door_in = door_in, door_out = door_out, special = special, portals = portals, environment = environment, roomChar = roomChar, hash = hash}
+          tmp = {}
+          for k1,v1 in pairs(exits) do
+              if not table.contains(rooms,v1) then
+                  tmp[k1] = {v1, getRoomName(v1)}
+              end
+          end
+          if not table.is_empty(tmp) then
+              tbl.exits[v] = tmp
+          end
+          tmp = {}
+          for k1,v1 in pairs(special) do
+              if not table.contains(rooms,v1) then
+                  tmp[k1] = {v1, getRoomName(v1)}
+              end
+          end
+          if not table.is_empty(tmp) then
+              tbl.special[v] = tmp
+          end
+      end
+      local path = profilePath.."/"..string.gsub(string.lower(name),"%s","_")..".dat"
+      table.save(path,tbl)
+      map.echo("Area " .. name .. " exported to " .. path)
+  end
+  
+  map.import_area = function(name)
+      name = profilePath .. "/" .. string.gsub(string.lower(name),"%s","_") .. ".dat"
+      local tbl = {}
+      table.load(name,tbl)
+      if table.is_empty(tbl) then
+          show_err("No file found")
+      end
+      local areas = getAreaTable()
+      local areaID = areas[tbl.name] or addAreaName(tbl.name)
+      local rooms = {}
+      local ID
+      local hash_conflicts = 0
+      for k,v in pairs(tbl.rooms) do
+          ID = createRoomID()
+          rooms[k] = ID
+          addRoom(ID)
+          setRoomName(ID,v.name)
+          setRoomArea(ID,areaID)
+          setRoomCoordinates(ID,unpack(v.coords))
+          if type(v.stubs) == "table" then
+              for i,j in pairs(v.stubs) do
+                  setExitStub(ID,j,true)
+              end
+          end
+          for i,j in pairs(v.doors) do
+              setDoor(ID,i,j)
+          end
+          setRoomUserData(ID,"portals",v.portals)
+  	setRoomEnv(ID,v.environment)
+  	setRoomChar(ID,v.roomChar)
+          -- taking over a hash the map already uses would move the mapper's room
+          -- identification onto this imported copy, so leave those rooms hashless
+          if v.hash then
+              if getRoomIDbyHash(v.hash) == -1 then
+                  setRoomIDbyHash(ID,v.hash)
+              else
+                  hash_conflicts = hash_conflicts + 1
+              end
+          end
+      end
+      for k,v in pairs(tbl.rooms) do
+          for i,j in pairs(v.exits) do
+              if rooms[j] then
+                  connect_rooms(rooms[k],rooms[j],i)
+              end
+          end
+          for i,j in pairs(v.special) do
+              if rooms[j] then
+                  addSpecialExit(rooms[k],rooms[j],i)
+              end
+          end
+      end
+      for k,v in pairs(tbl.exits) do
+          for i,j in pairs(v) do
+              if getRoomName(j[1]) == j[2] then
+                  connect_rooms(rooms[k],j[1],i)
+              end
+          end
+      end
+      for k,v in pairs(tbl.special) do
+          for i,j in pairs(v) do
+              addSpecialExit(k,j[1],i)
+          end
+      end
+      map.fix_portals()
+      map.echo("Area " .. tbl.name .. " imported from " .. name)
+      if hash_conflicts &gt; 0 then
+          map.echo(string.format("%d imported room(s) left without a hash, the map already has rooms using those.", hash_conflicts), false, true)
+      end
+  end
+  
+
+  -- DSL_Generic_Mapper.xml achieves update-disabling by editing stock's
+  -- checkVersion()/updateVersion() bodies in place; this addon reassigns
+  -- the same two real global functions from outside instead.
+  map.checkVersion = function() end
+  map.updateVersion = map.dsl.updateDisabled
+end
+</script>
+<eventHandlerList />
+</Script>
+</ScriptPackage>
+<KeyPackage />
+<HelpPackage>
+<helpURL />
+</HelpPackage>
+</MudletPackage>
