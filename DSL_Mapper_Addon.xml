@@ -98,8 +98,27 @@ registerAnonymousEventHandler("sysUninstallPackage", "dslMapperAddonInstallUnins
 -- This layer only adds DSL text patterns, GMCP assist, passive sector metadata,
 -- passive door-state feeding, and tiny debug/status helpers.
 -- ============================================================================
+-- REAL BUG found 2026-08-30, via Steven's own report ("still not
+-- updating terrain") turning up an empty mapper_desync_log.txt despite
+-- the diagnostic logging added earlier the same day: `profilePath` was
+-- referenced (map.dsl.logDesync(), map.export_area(), map.import_area())
+-- but never actually DEFINED anywhere in this file. DSL_Generic_Mapper.xml
+-- (the old full-fork this addon's logic was derived from) has its own
+-- `local profilePath = getMudletHomeDir()` -- but that's scoped to THAT
+-- file's own separate script chunk, invisible here; this addon is a
+-- genuinely standalone script with no shared Lua scope with stock. Every
+-- call using it was wrapped in a pcall that silently swallowed the
+-- resulting "attempt to concatenate a nil value" error -- so
+-- logDesync() has been silently failing to write ANYTHING since it was
+-- added, explaining why every diagnostic built earlier today came back
+-- empty regardless of what was actually happening in the mapper. (The
+-- existing test suite never caught this either: mudlet_mock.lua's own
+-- test harness stubs a fake global profilePath, which happens to paper
+-- over exactly this gap.)
+local profilePath = getMudletHomeDir()
+
 map.dsl = map.dsl or {}
-map.dsl.version = "0.2.12"
+map.dsl.version = "0.2.13"
 map.dsl.base = "Generic Mapper 2.1.8"
 map.dsl.gmcp = map.dsl.gmcp or {}
 map.dsl.line_buffer = map.dsl.line_buffer or {}

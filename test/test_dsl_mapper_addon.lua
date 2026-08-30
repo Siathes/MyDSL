@@ -72,7 +72,14 @@ table.contains = table.contains or function(t, v) for _, x in pairs(t) do if x =
 table.is_empty = table.is_empty or function(t) return next(t) == nil end
 table.save = table.save or function() return true end
 table.load = table.load or function() end
-_G.profilePath = "/tmp/mock"
+-- Deliberately NOT stubbing _G.profilePath here (was removed 2026-08-30):
+-- doing so papered over a real bug where the addon referenced profilePath
+-- without ever defining it -- silently broke logDesync() from the moment
+-- it was added, since a real Mudlet run has no such global. The addon
+-- now defines its own `local profilePath = getMudletHomeDir()`; leaving
+-- no global stub here means a regression back to relying on an
+-- undefined/external profilePath would show up as a real test failure
+-- (see the logDesync() file-write test below), not silently pass.
 
 local chunk, loadErr = load(scriptBody, "dsl_mapper_addon")
 check("DSL_Mapper_Addon.xml's script loads without a syntax error", chunk ~= nil and loadErr == nil)
@@ -266,6 +273,28 @@ if map.dsl and map.dsl.applySectorColor then
     check("a room with a real recognized sector DOES get terrain-locked (unchanged success-path behavior)",
       getRoomUserData(12, "dsl.terrain_locked") == "true")
   end
+end
+
+------------------------------------------------------------------------
+-- logDesync() actually writes a real file -- added 2026-08-30, the
+-- regression test for the profilePath bug fixed above. Without a real
+-- getMudletHomeDir()-derived path, this would have silently no-op'd
+-- (pcall around io.open swallowing "attempt to concatenate a nil
+-- value") for this addon's entire lifetime and nobody would have known
+-- until a live report came back with an empty log file.
+------------------------------------------------------------------------
+if map.dsl and map.dsl.logDesync then
+  local logPath = getMudletHomeDir() .. "/mapper_desync_log.txt"
+  os.remove(logPath)
+  map.dsl.logDesync("test marker line")
+  local f = io.open(logPath, "r")
+  check("logDesync() actually creates mapper_desync_log.txt at a real, resolvable path", f ~= nil)
+  if f then
+    local content = f:read("*a")
+    f:close()
+    check("logDesync() writes the message content", content:find("test marker line", 1, true) ~= nil)
+  end
+  os.remove(logPath)
 end
 
 print(string.format("\n%d failure(s)", failures))

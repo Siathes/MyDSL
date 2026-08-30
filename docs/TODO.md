@@ -86,9 +86,34 @@ question, folded in per Steven 2026-08-29 rather than a separate check.
       (v0.2.12), **published to the existing public GitHub release**
       (`mapper-addon-v0.2.11` tag — same tag, updated asset, since this
       is a bugfix on the just-released public version, not worth a
-      whole new tag for). Needs Steven to reinstall and confirm terrain
-      color now applies; if it still doesn't, `mapper_desync_log.txt`
-      will show exactly why for the first time.
+      whole new tag for).
+      **v0.2.12 tested live, still broken — but found the REAL root
+      cause, 2026-08-30**: Steven confirmed v0.2.12 installed
+      ("dsl mapper package says 0.2.12. still not updating terrain"),
+      but `mapper_desync_log.txt` never appeared at all — meaning the
+      diagnostic logging itself was silently failing, not that it had
+      nothing to report. Traced it: `map.dsl.logDesync()` (and
+      `map.export_area()`/`map.import_area()`) referenced a `profilePath`
+      variable that was **never actually defined anywhere in this file**.
+      `DSL_Generic_Mapper.xml` (the old full-fork this logic was derived
+      from) has its own `local profilePath = getMudletHomeDir()`, but
+      that's scoped to that file's own separate script chunk, invisible
+      to this genuinely-standalone addon. Every use was wrapped in a
+      `pcall` that silently swallowed the resulting "attempt to
+      concatenate a nil value" error — so `logDesync()` has been
+      silently writing NOTHING since it was added earlier the same day,
+      which is why every earlier diagnostic attempt this session came
+      back empty regardless of what was actually happening. The existing
+      test suite never caught it either — `mudlet_mock.lua`'s test
+      harness stubs a fake global `profilePath`, which happened to paper
+      over exactly this gap. Fixed: added `local profilePath =
+      getMudletHomeDir()` at module scope; removed the test's stub and
+      added a real regression test proving `logDesync()` actually
+      creates a file at a resolvable path. This does NOT by itself fix
+      terrain coloring — it fixes the ability to SEE why it's failing.
+      `DSL_Mapper_Addon.mpackage` rebuilt (v0.2.13), needs Steven to
+      reinstall, reproduce, and send `mapper_desync_log.txt` — this
+      should finally have real content.
 - [ ] **AffectsView: click-to-track/untrack on a spell — real constraint
       found, concrete design pitched, not yet built.** Steven: "can we
       rightclick add to tracked untrack (any recommend options) on the
