@@ -1168,55 +1168,51 @@ work actually starts.)*
 - **LiveView's "age" field — confirmed correct as-is, 2026-07-16.**
 - **Itemstat trigger retirement — sequencing confirmed 2026-07-16.**
 - **"Prompt Line 1" parsing — dropped, confirmed 2026-07-16.**
-- **Staying on Mudlet 4.20.1 — real, reproducible bug on 4.21/4.22
-  (docked `Geyser.UserWindow`s with percentage-sized children stopped
-  recomputing layout on dock/resize), but the PR #9334 "reject
-  suspicious shrinkage" root-cause citation from 2026-07-12 is
-  confirmed WRONG (Claude Desktop, 2026-08-29 — pulled the actual PR
-  diff: it's a null-pointer guard for an unrelated same-named-docked-
-  window-recreation crash, no shrinkage/size-comparison logic anywhere
-  in it). The real root cause was never actually identified — the PR
-  number was a plausible-sounding guess that stuck. This matters now
-  because Mudlet 5.0 shipped 2026-08-29 with a Geyser layout rewrite
-  (the exact code path in question) — genuinely unknown whether the
-  original bug still exists post-rewrite. Needs a real re-test on a
-  disposable profile (the native-content consolidation project's own
-  planned test profile is the natural place) before considering an
-  upgrade off 4.20.1 — see
-  `~/Downloads/mudlet_upgrade_assessment.md` for the full writeup.**
-  **2026-08-29 research (not a retest, doesn't resolve the question):**
-  Mudlet 5.0's own release notes give measured numbers for the Geyser
-  rewrite — -47.2% per layout move, -53.8% per layout resize — a
-  positive but non-conclusive signal, since it confirms the layout
-  engine was rewritten, not that this specific bug is gone. No
-  deprecated/removed APIs found anywhere in 5.0 that MyDSL's code
-  depends on (checked against `Geyser.*`, `registerAnonymousEventHandler`,
-  `tempRegexTrigger`, GMCP handling, `table.load`/`table.save` — all
-  clean), so staying on 4.20.1 indefinitely if the retest comes back bad
-  carries no forced-migration risk either way. Also found several
-  genuinely useful new APIs worth adopting once/if the upgrade happens
-  (not before — no reason to write code against an engine we're not
-  running): `getWindowGeometry()`/`windowVisible()` (could simplify the
-  10 `MyDSL_windowstate_<Name>.lua` files' hand-tracked visibility/
-  position state), `remainingNamedTimer()` (worth a look for
-  `MyDSL_AffectsView.lua`'s affect-expiry countdowns), and a named fix
-  for `setBackgroundImage()`'s "unreliable in Mudlet 4.20.1" comment
-  already sitting in `MyDSL_LocationView.lua:22` — worth a direct
-  retest of that specific comment once on a testable newer version.
-  **Real finding, 2026-08-30**: `MyDSL Test`'s own screenshots from this
-  session's live-test pass show the Mudlet window title bar reading
-  "MyDSL Test — Mudlet 5.0.0", not 4.20.1 — confirmed directly from the
-  screenshot pixels, not inferred. Every window in those screenshots
-  (Scan/Affects/Location/Players Near/Portrait/Focus/Help/Chat/History/
-  Group/Right Here, all docked) is sized and positioned correctly with
-  no visible layout corruption, informal positive evidence the original
-  dock/resize bug this decision was about may not reproduce on 5.0 —
-  but that's screenshots during a session that never specifically
-  exercised the dock/resize repro steps from Claude Desktop's runbook,
-  not a substitute for actually running them. Flagged to Steven directly
-  rather than silently assumed either way — needs him to confirm whether
-  `MyDSL Test` was deliberately upgraded to 5.0 (in which case this
-  decision itself may be ready to revisit) or if that's news to him.
+- **UPGRADED to Mudlet 5.0, deliberately — confirmed by Steven 2026-08-30,
+  supersedes the "staying on 4.20.1" hold below.** Steven, directly, after
+  this being flagged from screenshot evidence for the third separate time
+  this project has run into it: **"make not of 5.0 this is the 3rd time
+  its come up and 5.0 is why we are pushing improvments"** — i.e. this
+  whole live-test session's push (theme system, ambient background,
+  mapper fixes, moon/weather tooltip, etc.) is happening ON and BECAUSE OF
+  5.0, not despite it. This is now the standing baseline version for
+  `MyDSL Test` (and likely `MyDSL`, unconfirmed) — **stop flagging a
+  Mudlet-version mismatch as news; it's the intended state.** The original
+  dock/resize concern that justified staying on 4.20.1 (below, kept for
+  history) appears to be moot in practice: every docked window across this
+  whole session's screenshots sized and positioned correctly under 5.0,
+  with zero layout-corruption symptoms reported despite heavy live window
+  interaction (theme cycling, chrome mode switching, moon/weather widget
+  changes). Not a substitute for ever formally running Claude Desktop's
+  dock/resize repro steps if the question resurfaces, but no longer an
+  open blocker to anything. The "useful new 5.0 APIs" list two paragraphs
+  down (`getWindowGeometry()`/`windowVisible()`/`remainingNamedTimer()`/
+  the `setBackgroundImage()` retest) is now actually worth picking up,
+  since 5.0 is the real running engine, not a hypothetical future one.
+- **Historical — why 4.20.1 was the hold in the first place.** Real,
+  reproducible bug on 4.21/4.22 (docked `Geyser.UserWindow`s with
+  percentage-sized children stopped recomputing layout on dock/resize),
+  but the PR #9334 "reject suspicious shrinkage" root-cause citation from
+  2026-07-12 was confirmed WRONG (Claude Desktop, 2026-08-29 — pulled the
+  actual PR diff: it's a null-pointer guard for an unrelated same-named-
+  docked-window-recreation crash, no shrinkage/size-comparison logic
+  anywhere in it) — the real root cause was never actually identified,
+  the PR number was a plausible-sounding guess that stuck.
+  **2026-08-29 research (done before the upgrade, informed but didn't
+  resolve it):** Mudlet 5.0's own release notes give measured numbers for
+  its Geyser layout rewrite — -47.2% per layout move, -53.8% per layout
+  resize. No deprecated/removed APIs found anywhere in 5.0 that MyDSL's
+  code depends on (checked against `Geyser.*`,
+  `registerAnonymousEventHandler`, `tempRegexTrigger`, GMCP handling,
+  `table.load`/`table.save` — all clean). Also found several useful new
+  APIs, listed above as now-worth-adopting: `getWindowGeometry()`/
+  `windowVisible()` (could simplify the 10 `MyDSL_windowstate_<Name>.lua`
+  files' hand-tracked visibility/position state), `remainingNamedTimer()`
+  (worth a look for `MyDSL_AffectsView.lua`'s affect-expiry countdowns),
+  and a named fix for `setBackgroundImage()`'s "unreliable in Mudlet
+  4.20.1" comment already sitting in `MyDSL_LocationView.lua:22` — worth
+  a direct retest of that specific comment now that 5.0 is the real
+  running version.
 - Most settings are character-bound; **window layout is the one
   deliberate exception** (not per-character). **Corrected 2026-08-29**:
   it's not per-profile either — `saveWindowLayout()` writes

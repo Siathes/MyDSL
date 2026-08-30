@@ -2,7 +2,11 @@
 
 ## Project
 Modular 4-layer passive observation UI for Dark and Shattered Lands (DSL),
-a MUD running in Mudlet 4.20.1. Profile: this directory.
+a MUD running in Mudlet 5.0.0 (upgraded from 4.20.1 as of 2026-08-30, per
+Steven: "5.0 is why we are pushing improvments" — see `docs/TODO.md`'s
+DECISIONS RECORDED section for the full history of the earlier
+dock/resize concern that had held the project on 4.20.1). Profile: this
+directory.
 
 **This system is universal, not character-specific.** Kien (W-Elf Druid,
 True Neutral, Arkane kingdom) is the current primary test character, but the
