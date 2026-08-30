@@ -53,5 +53,32 @@ check("setTheme() calls setAppStyleSheet() again so native chrome follows the sw
 check("the CSS applied on switch matches this theme's own appStyleSheetCSS()",
   appliedCSS[1] == MyDSL.Theme.appStyleSheetCSS("tron_blue"))
 
+------------------------------------------------------------------------
+-- chromeMode -- "2 versions of each theme" (2026-08-30): "full" also
+-- themes native Mudlet chrome, "ui" restores/keeps Mudlet's own default
+-- look, touching only MyDSL's own windows (via the existing per-window
+-- setUserWindowStyleSheet() path, unaffected by this setting).
+------------------------------------------------------------------------
+check("chromeMode defaults to 'full'", MyDSL.Theme.chromeMode == "full")
+
+appliedCSS = {}
+MyDSL.Theme.setChromeMode("ui")
+check("setChromeMode('ui') persists the mode", MyDSL.Theme.chromeMode == "ui")
+check("switching to 'ui' immediately clears the app stylesheet (restores native Mudlet chrome)",
+  #appliedCSS == 1 and appliedCSS[1] == "")
+
+appliedCSS = {}
+MyDSL.Theme.setTheme("muted_scroll_nature")
+check("a theme switch while chromeMode is 'ui' does NOT push chrome CSS -- native chrome stays untouched",
+  #appliedCSS == 1 and appliedCSS[1] == "")
+
+appliedCSS = {}
+MyDSL.Theme.setChromeMode("full")
+check("switching back to 'full' immediately re-applies the active theme's chrome CSS",
+  #appliedCSS == 1 and appliedCSS[1] == MyDSL.Theme.appStyleSheetCSS(MyDSL.Theme.active))
+
+check("setChromeMode() rejects an invalid mode instead of silently accepting it",
+  MyDSL.Theme.setChromeMode("bogus") == false and MyDSL.Theme.chromeMode == "full")
+
 print(string.format("\n%d failure(s)", failures))
 os.exit(failures == 0 and 0 or 1)

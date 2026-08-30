@@ -441,6 +441,9 @@ function MyDSL.Theme.loadActive()
   if type(loaded.overrides) == "table" then
     MyDSL.Theme.overrides = loaded.overrides
   end
+  if loaded.chromeMode == "full" or loaded.chromeMode == "ui" then
+    MyDSL.Theme.chromeMode = loaded.chromeMode
+  end
 end
 
 function MyDSL.Theme.saveActive()
@@ -448,6 +451,7 @@ function MyDSL.Theme.saveActive()
     active = MyDSL.Theme.active,
     overrides = MyDSL.Theme.overrides,
     customPresets = MyDSL.Theme.customPresets,
+    chromeMode = MyDSL.Theme.chromeMode,
   })
   if not ok then
     debugc("[MyDSL] ThemeEngine: failed to save theme settings to " .. THEME_FILE())
@@ -639,9 +643,42 @@ function MyDSL.Theme.appStyleSheetCSS(name)
   )
 end
 
+-- chromeMode -- added 2026-08-30 per Steven ("once we decide on a couple
+-- themes... have one that if 'full' it will include mudlet ui items,
+-- and 'ui' version that is just themeing the MyDSL UI and restores/
+-- keeps the default or previous mudlet theme. so 2 versions of each
+-- theme"). Deliberately NOT two separate named presets per theme (e.g.
+-- "tron_blue"/"tron_blue_full") -- that would duplicate every color
+-- definition. Instead this is an orthogonal setting: whichever preset is
+-- active, chromeMode decides whether its colors also reach native
+-- Mudlet chrome (QMenuBar/QTabBar/QScrollBar/etc, via
+-- appStyleSheetCSS()) or stay confined to MyDSL's own windows.
+-- "ui" restores/keeps the default Mudlet look via setAppStyleSheet("")
+-- -- Mudlet exposes no getAppStyleSheet()/resetAppStyleSheet() (confirmed
+-- via a real code search of Mudlet's own source, zero hits for either),
+-- but an empty stylesheet is Qt's own real mechanism for reverting every
+-- widget to native platform styling, and nothing in this codebase calls
+-- setAppStyleSheet() other than MyDSL.Theme itself (confirmed), so this
+-- is a genuine restore, not an approximation.
+-- Default "full" -- matches what Steven has actively been testing and
+-- approving all this session; switch to "ui" any time with
+-- `theme chrome ui`.
+MyDSL.Theme.chromeMode = MyDSL.Theme.chromeMode or "full"
+
 function MyDSL.Theme.applyAppStyleSheet()
-  local ok = pcall(setAppStyleSheet, MyDSL.Theme.appStyleSheetCSS(MyDSL.Theme.active))
+  local css = (MyDSL.Theme.chromeMode == "full") and MyDSL.Theme.appStyleSheetCSS(MyDSL.Theme.active) or ""
+  local ok = pcall(setAppStyleSheet, css)
   if not ok then debugc("[MyDSL] ThemeEngine: setAppStyleSheet failed") end
+end
+
+-- setChromeMode(mode) -- "full" or "ui". Persists + re-applies
+-- immediately, same live-effect pattern as setTheme() itself.
+function MyDSL.Theme.setChromeMode(mode)
+  if mode ~= "full" and mode ~= "ui" then return false end
+  MyDSL.Theme.chromeMode = mode
+  MyDSL.Theme.saveActive()
+  MyDSL.Theme.applyAppStyleSheet()
+  return true
 end
 
 
@@ -1028,6 +1065,24 @@ if not MyDSL.Theme._aliasesInstalled then
     else
       cecho("\n<firebrick>[MyDSL] Unknown theme '" .. tostring(name) .. "'. Try 'theme list'.\n")
     end
+  end)
+
+  -- "theme chrome full/ui" -- added 2026-08-30, per Steven's "2 versions
+  -- of each theme" ask. See MyDSL.Theme.chromeMode's own comment above
+  -- for the full design writeup.
+  tempAlias("^theme chrome (full|ui)$", function()
+    local mode = matches[2]
+    MyDSL.Theme.setChromeMode(mode)
+    if mode == "full" then
+      cecho("\n<green>[MyDSL] Theme chrome: <white>full <green>-- native Mudlet UI (menus/tabs/scrollbars/etc) now themed too.\n")
+    else
+      cecho("\n<green>[MyDSL] Theme chrome: <white>ui <green>-- native Mudlet UI restored to its default look; only MyDSL's own windows stay themed.\n")
+    end
+  end)
+
+  tempAlias("^theme chrome$", function()
+    cecho("\n<gold>[MyDSL] Theme chrome mode: <white>" .. MyDSL.Theme.chromeMode
+      .. "<gold> (try 'theme chrome full' or 'theme chrome ui')\n")
   end)
 
   tempAlias("^theme new (.+)$", function()
