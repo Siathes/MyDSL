@@ -1203,6 +1203,20 @@ work actually starts.)*
   for `setBackgroundImage()`'s "unreliable in Mudlet 4.20.1" comment
   already sitting in `MyDSL_LocationView.lua:22` — worth a direct
   retest of that specific comment once on a testable newer version.
+  **Real finding, 2026-08-30**: `MyDSL Test`'s own screenshots from this
+  session's live-test pass show the Mudlet window title bar reading
+  "MyDSL Test — Mudlet 5.0.0", not 4.20.1 — confirmed directly from the
+  screenshot pixels, not inferred. Every window in those screenshots
+  (Scan/Affects/Location/Players Near/Portrait/Focus/Help/Chat/History/
+  Group/Right Here, all docked) is sized and positioned correctly with
+  no visible layout corruption, informal positive evidence the original
+  dock/resize bug this decision was about may not reproduce on 5.0 —
+  but that's screenshots during a session that never specifically
+  exercised the dock/resize repro steps from Claude Desktop's runbook,
+  not a substitute for actually running them. Flagged to Steven directly
+  rather than silently assumed either way — needs him to confirm whether
+  `MyDSL Test` was deliberately upgraded to 5.0 (in which case this
+  decision itself may be ready to revisit) or if that's news to him.
 - Most settings are character-bound; **window layout is the one
   deliberate exception** (not per-character). **Corrected 2026-08-29**:
   it's not per-profile either — `saveWindowLayout()` writes
