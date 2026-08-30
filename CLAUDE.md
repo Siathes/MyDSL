@@ -225,13 +225,20 @@ background job:
   tools. Not yet audited — check before building the not-yet-started Layer 4
   reference library (items/mobs/lore), same reuse-before-reinvent principle
   as PNP/EMCO.
-- Sibling Mudlet profiles (e.g. `../Dark & Shattered Lands - PNP`, `../PNP1`,
-  `../PNP2`, `../DSL1`, `../DSL - Kien`) and `~/Downloads/` — read access to
-  these is already granted via `.claude/settings.local.json`'s
-  `Read(//home/owner/**)` rule, which persists across sessions on this
-  machine (it's a local file, not session state). Check these when looking
-  for older reference implementations, uploaded logs, or exported files —
-  don't assume something doesn't exist without checking there first.
+- **Old sibling Mudlet profiles removed 2026-08-30** (`Dark & Shattered
+  Lands - PNP`/`PNP1`/`PNP2`, `DSL`, `DSL1`, `DSL - Kien`,
+  `Qinrathaz-Vaelis`, plus 11 empty scratch profiles from July's mapper
+  dev period — `Test`/`Test1-7`/`old`/`dslnew`/`dslpnpupdate`) — per
+  Steven, only `MyDSL`/`MyDSL Test` (live play) and `DSL2` (this repo)
+  are current now. Every profile's gameplay logs (1090 files, deduped by
+  filename across copies of the same character) and personal portraits
+  (19 files) were consolidated into `~/Documents/DSL_MUD_Archive/` before
+  deletion — check there for older reference implementations/uploaded
+  logs, not the old sibling profile paths (gone). `~/Downloads/` — read
+  access to this and the archive above is already granted via
+  `.claude/settings.local.json`'s `Read(//home/owner/**)` rule, which
+  persists across sessions on this machine (it's a local file, not
+  session state).
 
 ## Philosophy (non-negotiable except where noted)
 - **MyDSL 1.0 global mandate, confirmed 2026-08-25 — supersedes
