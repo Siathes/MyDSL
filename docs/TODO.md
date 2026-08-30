@@ -82,21 +82,19 @@ question, folded in per Steven 2026-08-29 rather than a separate check.
       "MyDSL Test"), then delete the now-unneeded profiles. Needs real
       scoping before work starts — this is a large, structural,
       GUI-driven undertaking.
-- [ ] **Portrait window "black title bar" (Steven, 2026-08-29 live-test
-      note)** — reported but not reproduced in the session's own
-      screenshots (Portrait's title bar rendered themed/tan like every
-      other window there). `MyDSL_PortraitView.lua` does go through the
-      normal `MyDSL.Windows.ensure()` → `applyTheme()` path (confirmed by
-      reading `getWindowEntry()`/`getWindowObject()` — no bypass found),
-      so this isn't the same "duplicate window, never registered" bug
-      class as MoonWeather/AlterformView. Needs a fresh screenshot of the
-      actual black bar to pin down (a 1px seam at a specific theme, or
-      something zoom-level-dependent that isn't visible in the existing
-      captures). One real, unrelated dead-code finding while checking this:
-      `MyDSL_PortraitView.lua` calls `MyDSL.Windows.ensureHeader(...)`
-      twice, a function that doesn't exist anywhere in the codebase —
-      harmless (falls through to its own `else` branch both times) but
-      worth deleting next time this file is touched.
+- [ ] **Portrait window "black title bar" — root cause found and fixed
+      2026-08-30, needs live re-confirm.** A fresh screenshot (Steven
+      circled it in red) pinned it down: a solid black bar between the
+      native title bar and the portrait image. Cause: the 2026-08-26
+      "Direction A+" pass reserved the top 10% of Portrait's content area
+      for `MyDSL.Windows.ensureHeader()`, a function never actually
+      implemented anywhere (confirmed nil project-wide) — every other
+      window from that pass just uses the native title bar with no
+      reserved gap; Portrait alone kept both the dead call and the
+      resulting empty margin. Removed both call sites and the 10%/90%
+      split; image label is now full-height like every other window.
+      `mydsl portrait title <text>` still works unchanged. Not closed
+      until Steven confirms the bar is gone in-game.
 - [ ] **Mapper "not following room movement" (Steven, 2026-08-29 live-test
       note, marked top priority in the moment)** — likely already
       resolved by itself: the note was written right after a fresh
@@ -217,6 +215,27 @@ item above rather than needing its own decision.)*
 Fixed in code (or already known-good), none of it closed until Steven
 confirms it in-game. Bundle these into upcoming play sessions rather than
 one at a time:
+- [ ] **Item identify not reachable by click, root cause found + fixed
+      2026-08-30** (Steven, "MyDSL Test" `notes.json`: "c ident pants...
+      items arent persisting after identifying"). `identify` WAS
+      persisting correctly the whole time (confirmed directly in
+      `itemlore_db.lua`) — the real bug was every equipment/inventory/
+      container hover-click site looking ItemLore up by the EXACT
+      displayed short description, which DSL doesn't guarantee matches
+      `identify`'s own canonical object name (real captured example, same
+      session: equipment shows "a heat resistant pair of pants", identify
+      reports "heat resistant pants" — neither string contains the
+      other). Added `MyDSL.bestFuzzyMatch()`'s missing token-overlap tier
+      plus a shared `MyDSL.resolveItemLoreRecord()` helper, wired into all
+      4 click sites (equipment/others'-equipment/inventory/container).
+      `test/test_itemlore_fuzzy_resolve.lua`, 8 assertions, all pass; full
+      58-suite run clean.
+- [ ] **LocationView's exits normalized to compass order, 2026-08-30**
+      (Steven: "need to normalize those exits like live window
+      (consistent)"). Was alphabetizing (`east north south west`) since
+      `getRoomExits()` returns an unordered table; now sorts by compass
+      position (N/NE/E/SE/S/SW/W/NW/up/down/in/out) matching the Live
+      window's own natural reading order.
 - [ ] DataLayer room-capture: 3 more fixture-line gaps + an NPC-verb gap.
 - [ ] Focus/TargetView populating during a Leveling fight AND during
       normal manual combat.
@@ -267,6 +286,35 @@ one at a time:
 ---
 
 ## OPEN — Design ideas, not yet scoped
+- [ ] **Autologin "not doing anything" — not a bug, confirmed 2026-08-30**
+      (Steven, "MyDSL Test" `notes.json`). `MyDSL_Login.lua` deliberately
+      never creates `MyDSL_login_credentials.lua` itself (Principle 5: no
+      credentials in tracked code/backups, ever) — Steven has to
+      hand-create that file once per profile. Confirmed neither `MyDSL`
+      nor `MyDSL Test`'s profile folder has one yet, so there's nothing
+      for it to autofill. Not something to fix in code; needs Steven to
+      create the file (see `MyDSL_Login.lua`'s own header comment for the
+      exact format) in whichever profile(s) he wants it active.
+- [ ] **Skill-based affect tracking (e.g. `hide`)** — Steven, "MyDSL Test"
+      `notes.json`: "its a skill not a cast, need a method for tracking
+      skills like spells?" `MyDSL_AffectsView.lua`'s tracking today is
+      built around cast/spell duration messages; a skill like hide has no
+      equivalent "modifies X for N cycles" line to key off. Needs a real
+      design pass — what real DSL output (if any) signals hide's start/
+      end — before this can be scoped, same class of blocker as the
+      bash/spell-cast-announcement corpus gap already tracked above.
+- [ ] **New DslColors title(s) to add to defaults** — Steven, "MyDSL Test"
+      `notes.json`: "some new titles to add to dslcolor defaults", no
+      specific title(s) named. Needs Steven to say which title(s) before
+      this can be actioned.
+- [ ] **Leveling module's areas/routes/mobs data missing on fresh
+      install** — Steven, "MyDSL Test" `notes.json`: "mydsl leveling areas
+      need to have the areas that where created for it loaded already...
+      we had area routes and mobs before." This data likely predates the
+      2026-08-30 profile cleanup and may only exist in
+      `~/Documents/DSL_MUD_Archive/` now (or may need to be rebuilt from
+      scratch) — needs a check of what `MyDSL_Leveling.lua` actually
+      expects/reads before concluding anything, not assumed lost.
 - [ ] **TargetView: debuffs on target / aura auto-populate / scan
       auto-populate** — all three confirmed deferred until a real
       design+build pass (no corpus text to build against yet for the

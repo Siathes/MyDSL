@@ -292,6 +292,20 @@ function M.saveProfiles()
   return saveTable(M.profileFile(), data)
 end
 
+-- Real gap found live 2026-08-30 (Steven, "MyDSL Test" notes.json: "need
+-- to normalize those exits like live window (consistent)"). getRoomExits()
+-- returns an unordered table (pairs() gives no guaranteed order), so some
+-- sort was always needed for a stable display -- but plain table.sort()
+-- alphabetizes ("east north south west"), while the Live window's own
+-- `[Exits: ...]` line (MyDSL_LiveView.lua) shows the game's natural
+-- compass order untouched. Sorting by compass position instead of
+-- alphabetically matches that same reading order.
+local DIRECTION_ORDER = {
+  north = 1, northeast = 2, east = 3, southeast = 4,
+  south = 5, southwest = 6, west = 7, northwest = 8,
+  up = 9, down = 10, out = 11, ["in"] = 12,
+}
+
 local function flattenExits(exits)
   if type(exits) ~= "table" then return safeStr(exits) end
   local t = {}
@@ -302,7 +316,13 @@ local function flattenExits(exits)
       table.insert(t, v)
     end
   end
-  table.sort(t)
+  table.sort(t, function(a, b)
+    local oa, ob = DIRECTION_ORDER[a], DIRECTION_ORDER[b]
+    if oa and ob then return oa < ob end
+    if oa then return true end
+    if ob then return false end
+    return a < b
+  end)
   local out = table.concat(t, " ")
   return safeStr(out)
 end

@@ -52,6 +52,38 @@ local function itemKey(name)
   return trim(tostring(name or "")):lower():gsub("^[Aa]n? ", ""):gsub("^[Tt]he ", "")
 end
 
+-- MyDSL.resolveItemLoreRecord(itemName) -- added 2026-08-30, real bug
+-- found live (Steven: "c ident pants... items arent persisting after
+-- identifying"). identify persisted the record correctly (confirmed
+-- directly in itemlore_db.lua), but every click-hover site below
+-- (equipment/others'-equipment/inventory/container) looked the record up
+-- by the exact displayed short description -- which DSL doesn't
+-- guarantee matches identify's own canonical object name (real example,
+-- same session: equipment shows "a heat resistant pair of pants",
+-- identify reports "heat resistant pants"). Exact key first, then the
+-- same fuzzy-match fallback MyDSL.resolveGroundItem() already uses
+-- against every known ItemLore record, so "no stats" only really means
+-- "never identified/lored", not "identified but unreachable by name".
+-- Returns (rec, resolvedName) -- resolvedName is what should be passed
+-- to MyDSL.ItemReference.render() so its own lookup succeeds too;
+-- falls back to the original itemName when nothing matches.
+function MyDSL.resolveItemLoreRecord(itemName)
+  local key = itemKey(itemName)
+  if MyDSL.ItemLore and MyDSL.ItemLore.get then
+    local rec = MyDSL.ItemLore.get(key)
+    if rec then return rec, itemName end
+  end
+  if MyDSL.ItemLore and MyDSL.ItemLore.db and MyDSL.bestFuzzyMatch then
+    local candidates = {}
+    for k, rec in pairs(MyDSL.ItemLore.db) do
+      candidates[#candidates + 1] = { name = rec.name or k, rec = rec }
+    end
+    local hit = MyDSL.bestFuzzyMatch(itemName, candidates)
+    if hit then return hit.rec, hit.name end
+  end
+  return nil, itemName
+end
+
 -- MyDSL.resolveGroundItem(key) -- added 2026-07-16, ItemLore's counterpart
 -- to resolveMobName() (see the SCAN section above for the shared
 -- normalizeForMatch()/bestFuzzyMatch() helper both use). Given a ground
@@ -426,12 +458,11 @@ function MyDSL.parseEquipLine(rawSlot, rest)
   -- untouched equipment line in the main console -- never deletes or
   -- reprints anything.
   if itemName ~= "" and setLink and selectString then
-    local key = itemName:lower():gsub("^[Aa]n? ", ""):gsub("^[Tt]he ", "")
-    local rec = MyDSL.ItemLore and MyDSL.ItemLore.get and MyDSL.ItemLore.get(key)
+    local rec, resolvedName = MyDSL.resolveItemLoreRecord(itemName)
     local hint = "Click for Item Reference" .. MyDSL.buildItemStatsSuffix(rec)
     local cmd = string.format(
       'if MyDSL and MyDSL.ItemReference then MyDSL.ItemReference.render("%s"); MyDSL.ItemReference.show() end',
-      itemName:gsub('"', '\\"'))
+      resolvedName:gsub('"', '\\"'))
     local okSel, selected = pcall(selectString, "main", itemName, 1)
     if okSel and selected then
       pcall(setLink, "main", cmd, hint)
@@ -506,12 +537,11 @@ function MyDSL.parseOthersEquipLine(rest)
   -- lore captures, or a scrape import); doesn't write anything back --
   -- seeing someone else hold an item tells us nothing about its stats,
   -- only identify/lore on it would, and that's unchanged.
-  local key = itemName:lower():gsub("^[Aa]n? ", ""):gsub("^[Tt]he ", "")
-  local rec = MyDSL.ItemLore and MyDSL.ItemLore.get and MyDSL.ItemLore.get(key)
+  local rec, resolvedName = MyDSL.resolveItemLoreRecord(itemName)
   local hint = "Click for Item Reference" .. MyDSL.buildItemStatsSuffix(rec)
   local cmd = string.format(
     'if MyDSL and MyDSL.ItemReference then MyDSL.ItemReference.render("%s"); MyDSL.ItemReference.show() end',
-    itemName:gsub('"', '\\"'))
+    resolvedName:gsub('"', '\\"'))
   local okSel, selected = pcall(selectString, "main", itemName, 1)
   if okSel and selected then
     pcall(setLink, "main", cmd, hint)
@@ -588,11 +618,11 @@ function MyDSL.parseInventoryLine(line)
   -- only the parsing/storage half. Same technique as
   -- MyDSL.parseEquipLine()'s already-working item hover.
   if itemName ~= "" and setLink and selectString then
-    local rec = MyDSL.ItemLore and MyDSL.ItemLore.get and MyDSL.ItemLore.get(key)
+    local rec, resolvedName = MyDSL.resolveItemLoreRecord(itemName)
     local hint = "Click for Item Reference" .. MyDSL.buildItemStatsSuffix(rec)
     local cmd = string.format(
       'if MyDSL and MyDSL.ItemReference then MyDSL.ItemReference.render("%s"); MyDSL.ItemReference.show() end',
-      itemName:gsub('"', '\\"'))
+      resolvedName:gsub('"', '\\"'))
     local okSel, selected = pcall(selectString, "main", itemName, 1)
     if okSel and selected then
       pcall(setLink, "main", cmd, hint)
@@ -690,18 +720,17 @@ function MyDSL.parseContainerHoldsLine(line)
   local itemName = trim(remaining)
   if itemName == "" then return end
 
-  local key = itemName:lower():gsub("^[Aa]n? ", ""):gsub("^[Tt]he ", "")
   table.insert(containerBlock.items, { item = itemName, flags = flags, count = tonumber(count) or 1 })
 
   -- Hover/click, same "move text, don't invent it" technique as
   -- MyDSL.parseEquipLine()'s item hover -- attaches to the already-
   -- printed line in the main console, never edits/reprints it.
   if setLink and selectString then
-    local rec = MyDSL.ItemLore and MyDSL.ItemLore.get and MyDSL.ItemLore.get(key)
+    local rec, resolvedName = MyDSL.resolveItemLoreRecord(itemName)
     local hint = "Click for Item Reference" .. MyDSL.buildItemStatsSuffix(rec)
     local cmd = string.format(
       'if MyDSL and MyDSL.ItemReference then MyDSL.ItemReference.render("%s"); MyDSL.ItemReference.show() end',
-      itemName:gsub('"', '\\"'))
+      resolvedName:gsub('"', '\\"'))
     local okSel, selected = pcall(selectString, "main", itemName, 1)
     if okSel and selected then
       pcall(setLink, "main", cmd, hint)

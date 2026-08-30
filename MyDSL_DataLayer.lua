@@ -391,13 +391,36 @@ function MyDSL.normalizeForMatch(name)
   return trim(s)
 end
 
+-- wordSet(s) -- helper for bestFuzzyMatch()'s token-overlap tier below.
+local function wordSet(s)
+  local set, n = {}, 0
+  for w in s:gmatch("%a+") do
+    if not set[w] then n = n + 1 end
+    set[w] = true
+  end
+  return set, n
+end
+
 -- bestFuzzyMatch(target, candidates) -- candidates is an array of tables
 -- each with a .name field (any other fields are carried through on the
 -- returned match unchanged). Returns the winning candidate table, or nil
 -- if nothing scored, or the top score was tied between two+ candidates.
+--
+-- Token-overlap tier added 2026-08-30, real bug found live (Steven: "c
+-- ident pants... items arent persisting after identifying"): DSL's
+-- inventory/equipment short description can reorder or insert words
+-- around identify's own canonical object name (confirmed real, same
+-- session's log: equipment line "a heat resistant pair of pants" vs.
+-- `identify`'s "Object 'heat resistant pants' is type..."), so neither
+-- string is a substring of the other and the existing containment tier
+-- (score 50) correctly declines. All 3 of target's real words ("heat",
+-- "resistant", "pants") do appear in the candidate, just not contiguously
+-- -- a full word-set-subset match, scored below containment since it's a
+-- weaker signal (word order/adjacency ignored entirely).
 function MyDSL.bestFuzzyMatch(target, candidates)
   local t = MyDSL.normalizeForMatch(target)
   if t == "" then return nil end
+  local tWords, tCount = wordSet(t)
   local best, bestScore, tie = nil, 0, false
   for _, c in ipairs(candidates or {}) do
     local cName = MyDSL.normalizeForMatch(c.name)
@@ -407,6 +430,19 @@ function MyDSL.bestFuzzyMatch(target, candidates)
         score = 100
       elseif cName:find(t, 1, true) or t:find(cName, 1, true) then
         score = 50
+      elseif tCount > 0 then
+        -- Subset check runs whichever direction is smaller-into-larger --
+        -- either side can be the "messier" one (a stored canonical name
+        -- can itself be shorter OR longer than a given display string
+        -- depending on the caller), so this isn't assumed fixed.
+        local cWords, cCount = wordSet(cName)
+        local smaller, larger = tWords, cWords
+        if cCount < tCount then smaller, larger = cWords, tWords end
+        local allPresent = true
+        for w in pairs(smaller) do
+          if not larger[w] then allPresent = false; break end
+        end
+        if allPresent then score = 30 end
       end
       if score > bestScore then
         best, bestScore, tie = c, score, false
