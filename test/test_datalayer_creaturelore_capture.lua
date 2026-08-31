@@ -75,6 +75,42 @@ check("the real loreStart trigger is registered", MyDSL._triggers.loreStart ~= n
 check("loreStart's real pattern is the confirmed real header shape",
   _G.__triggers[MyDSL._triggers.loreStart].pattern == "^Creature:\\s")
 
+------------------------------------------------------------------------
+-- Vulnerabilities capture -- real corpus fixture confirmed 2026-08-30 via
+-- a live screenshot (bloodshackle brute). DSL's own game text misspells
+-- the label ("Vulnerbilities:" not "Vulnerabilities:"), which is why the
+-- correctly-spelled pattern alone never matched anything -- see
+-- MyDSL_DataLayer_CreatureLore.lua's own comment on the fix.
+------------------------------------------------------------------------
+MyDSL.beginCreatureLore("Creature: a bloodshackle brute Race: half-ogre")
+local vulnBody = {
+  "The creature has the following characteristics:",
+  "Resistances: blunt",
+  "Vulnerbilities: mental",
+}
+for _, ln in ipairs(vulnBody) do
+  _G.line = ln
+  _G.__triggers[MyDSL._triggers.loreBody].func()
+end
+local rv = MyDSL.State.creaturelore
+check("vulnerabilities captured from DSL's real misspelled label ('Vulnerbilities:')",
+  type(rv.vulns) == "table" and #rv.vulns == 1 and rv.vulns[1] == "mental")
+check("resistances still captured alongside the vulnerabilities fix",
+  type(rv.resists) == "table" and #rv.resists == 1 and rv.resists[1] == "blunt")
+
+_G.line = ""
+MyDSL.endCreatureLore()
+
+-- Correctly-spelled fallback still works too, in case DSL ever fixes the
+-- typo or another mob uses the correct spelling.
+MyDSL.beginCreatureLore("Creature: a test correctly-spelled mob Race: human")
+_G.line = "Vulnerabilities: fire"
+_G.__triggers[MyDSL._triggers.loreBody].func()
+check("correctly-spelled 'Vulnerabilities:' still matches as a fallback",
+  type(MyDSL.State.creaturelore.vulns) == "table" and MyDSL.State.creaturelore.vulns[1] == "fire")
+_G.line = ""
+MyDSL.endCreatureLore()
+
 print(string.rep("-", 60))
 if failures == 0 then
   print("ALL PASS")

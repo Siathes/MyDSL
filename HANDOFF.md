@@ -30,6 +30,44 @@ by prompting each with "check repo" plus his own notes.
 
 ## Latest from Claude Code
 
+**2026-08-30 (post-public-release housekeeping pass — `MyDSL Test/notes.json` reconciled, two real bugs found+fixed from a live screenshot)**
+
+Public prerelease shipped, Steven said "it has been shared, i will test
+this week." Routine check of `MyDSL Test`'s notes.json (per this file's
+own housekeeping rule) turned up real new content. Two confirmed
+bugs, both fixed with regression tests — full detail in `docs/TODO.md`
+(TOP PRIORITY + NEEDS LIVE CONFIRMATION) and `docs/CHANGELOG.md`'s
+2026-08-30 entry:
+- **CreatureLore vulnerability field, root cause found.** A screenshot
+  Steven dropped showed DSL's own `lore` text: `Vulnerbilities: mental`
+  — DSL misspells its own label (missing the second "a"). The
+  correctly-spelled pattern this codebase had been using could never
+  match. Fixed to match the real spelling, correct spelling kept as
+  fallback.
+- **Adaptive word-wrap goes stale after a font-size change.** Traced
+  from a "Focus text not wrapping" report. `enableAdaptiveWrap()`'s
+  guard made Mudlet's `enableAutoWrap()` (which computes its wrap
+  column from the console's font AT CALL TIME) run only once ever per
+  console — a later font-only change (`focus font <n>`, no resize
+  event) left the wrap column stale. Same bug in all 4 call sites
+  (TargetView/CreatureReference/ItemReference/Leveling), fixed
+  generically in the shared helper.
+
+Answered (no code, just reasoning) Steven's "room pictures for
+duplicate-named rooms" question — it's the same mechanism as the
+`use_description_matching` mapper fix from 2026-08-29, not a separate
+bug; he needs to revisit the affected rooms once then flip matching
+back on.
+
+Logged everything else from that notes.json pass as new `docs/TODO.md`
+items (emote→local-chat idea, event/calendar concrete example,
+MoonWeather "drops info" report, a mob-targeting question, mapper
+border/alt-line color question, a mapper feature-audit request) — each
+needs either a live repro from Steven or a scoping decision, nothing
+guessed at.
+
+No ask this round — routine housekeeping pass, all committed/pushed.
+
 **2026-08-29 (live Mudlet 5.0 test underway — real install, real bugs found and fixed)**
 
 Session moved from research/design into actually installing both

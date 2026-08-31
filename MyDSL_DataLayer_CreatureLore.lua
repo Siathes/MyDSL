@@ -128,15 +128,17 @@ function MyDSL.parseCreatureLoreLine(line)
   if dice then r.damage = dice; r.damageType = trim(dtype) end
 
   -- Characteristics list, each its own line: "Immunities: charm",
-  -- "Resistances: blunt cold". Vulnerabilities line format is unconfirmed
-  -- in the log corpus (zero real examples found) but documented in
-  -- DSL_Helpfiles/creaturelore.txt as a real category -- parsed the same
-  -- way defensively; harmless if it never matches.
+  -- "Resistances: blunt cold". Vulnerabilities line confirmed real
+  -- 2026-08-30 via a live screenshot (bloodshackle brute, "Vulnerbilities:
+  -- mental") -- DSL's own game text misspells the label, dropping the
+  -- second "a" ("Vulnerbilities" not "Vulnerabilities"). This is why the
+  -- correctly-spelled pattern never matched anything in the corpus. Kept
+  -- the correct spelling as a fallback in case another mob/room uses it.
   local imm = line:match("^Immunities:%s*(.+)$")
   if imm then r.immunities = splitWords(imm) end
   local res = line:match("^Resistances:%s*(.+)$")
   if res then r.resists = splitWords(res) end
-  local vuln = line:match("^Vulnerabilities:%s*(.+)$")
+  local vuln = line:match("^Vulnerbilities:%s*(.+)$") or line:match("^Vulnerabilities:%s*(.+)$")
   if vuln then r.vulns = splitWords(vuln) end
 
   -- Affects: "This creature is affected by charm" -- confirmed real via

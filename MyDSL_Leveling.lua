@@ -392,7 +392,7 @@ function L.ensureUI()
   local fontSize = MyDSL.Windows and MyDSL.Windows.getFontSize(WIN, 9) or 9
   if L._mc.log then L._mc.log:setFontSize(fontSize) end
   if MyDSL.Windows and MyDSL.Windows.enableAdaptiveWrap then
-    MyDSL.Windows.enableAdaptiveWrap(L._mc.log)
+    MyDSL.Windows.enableAdaptiveWrap(L._mc.log, fontSize)
   end
 end
 

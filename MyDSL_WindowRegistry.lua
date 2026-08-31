@@ -864,10 +864,26 @@ MyDSL.Windows.loadTitles()
 -- Mudlet's GeyserMiniConsole.lua), so calling it before a font resize
 -- would lock in the wrong wrap width, same as the original bug this whole
 -- fix started from.
-function MyDSL.Windows.enableAdaptiveWrap(consoleObj)
-  if not consoleObj or consoleObj._autoWrapSet or not consoleObj.enableAutoWrap then return end
+--
+-- fontSize (optional) -- added 2026-08-30 after a real gap was found:
+-- MiniConsole's own reposition() override recomputes the wrap column
+-- automatically on a WINDOW resize (confirmed in MyDSL_RouteHelper.lua's
+-- comment), but a font-size-only change (e.g. `focus font <n>`) fires no
+-- resize/reposition at all -- so the old permanent one-shot guard left
+-- the wrap column locked to whatever font was active the very first time
+-- a window rendered, silently going stale for anyone who changed a
+-- window's font afterward (real symptom: long stat lines clipping at the
+-- edge instead of wrapping). Now re-enables wrap whenever the caller's
+-- reported fontSize actually changes, not just once ever. Callers that
+-- don't pass fontSize keep the old strictly-once behavior.
+function MyDSL.Windows.enableAdaptiveWrap(consoleObj, fontSize)
+  if not consoleObj or not consoleObj.enableAutoWrap then return end
+  if consoleObj._autoWrapSet and (fontSize == nil or consoleObj._autoWrapFontSize == fontSize) then
+    return
+  end
   pcall(function() consoleObj:enableAutoWrap() end)
   consoleObj._autoWrapSet = true
+  consoleObj._autoWrapFontSize = fontSize
 end
 
 MyDSL.Windows.loadFontSizes()

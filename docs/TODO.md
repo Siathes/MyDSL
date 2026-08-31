@@ -93,28 +93,25 @@ question, folded in per Steven 2026-08-29 rather than a separate check.
       supports Ctrl+scroll-wheel font zoom on some consoles) — not
       something in this codebase to fix. Needs Steven to check Mudlet's
       own Settings dialog and confirm/reset there.
-- [ ] **CreatureLore vulnerability field — capture pipeline confirmed
-      structurally sound, specific report not yet reproduced.** Steven:
+- [x] **CreatureLore vulnerability field — ROOT CAUSE FOUND + FIXED
+      2026-08-30, confirmed from a live screenshot, not guessed.** Steven:
       "creaturelore isnt capturing and updating all fields, example
       philosophy student in logs has fire vuln but doesnt show in
-      bestiary or focus." Checked the real current DB record AND the raw
-      `lore`/`consider` output for "a gnome philosophy instructor" in the
-      same session's log (`MyDSL Test/log/2026-08-30#10-51-24.txt` line
-      1226) — `hp`, `race`, `sex`, `damage`, `resists` (via
-      `table.save()`'s shared-reference encoding) all captured correctly.
-      The ONLY line DSL actually sent under "The creature has the
-      following characteristics:" was `Resistances: mental disease` —
-      no `Vulnerabilities:` line appears anywhere in that specific lore
-      output. Since `Resistances:` (identical label-list format) parsed
-      correctly in this exact real example, the `Vulnerabilities:`
-      pattern (same shape, `^Vulnerabilities:%s*(.+)$`) should work
-      correctly whenever DSL actually sends one — but no real example of
-      that line has ever been found in the accessible corpus (the code's
-      own comment already flagged this as unconfirmed when written).
-      Needs Steven to point at the SPECIFIC raw text/timestamp where he
-      saw a fire vulnerability, so the actual line shape (if it differs
-      from the assumed one) can be confirmed rather than guessed at
-      again.
+      bestiary or focus." A screenshot Steven dropped in
+      `~/Pictures/Screenshots/` (`Screenshot_20260830_190741.png`, a
+      bloodshackle brute's `lore` output) shows the real line DSL sends:
+      `Vulnerbilities: mental` — **DSL's own game text misspells the
+      label**, missing the second "a" ("Vulnerbilities" not
+      "Vulnerabilities"). That's exactly why the correctly-spelled pattern
+      (`^Vulnerabilities:%s*(.+)$`) never matched anything in the corpus —
+      it was never going to, DSL doesn't send that spelling.
+      `MyDSL_DataLayer_CreatureLore.lua`'s vuln pattern now matches the
+      real misspelled label first, falling back to the correct spelling in
+      case another mob or a future DSL patch uses it. 3 new regression
+      tests (`test/test_datalayer_creaturelore_capture.lua`, using the
+      exact real corpus line) — full suite + `check_known_patterns.py
+      --all` clean. Needs Steven to confirm live (bestiary/Focus should
+      now show vulnerabilities for any mob DSL reports one for).
 - [ ] **CreatureLore/ScanLook matching already anchored on "Creature: X",
       not race — confirmed correct, per Steven's own architecture
       question.** "this is similar to the creaturelore connection we
@@ -563,6 +560,33 @@ question, folded in per Steven 2026-08-29 rather than a separate check.
       attached. Still open from here: real testers' feedback (issues,
       or Steven relaying reports) once anyone actually installs it.
 
+- [ ] **Room pictures for duplicate-named rooms — Steven's own question
+      already answered by the mapper redesign above, needs his timing
+      call.** Steven, `MyDSL Test/notes.json`, flagged "top priority":
+      "what happened to location and mapper working together to have room
+      pictures with incremented numbers for duplicate named rooms. if
+      this is because it needs description on, then lets turn it back on
+      and ill delete/replace rooms that need editing?" This is the exact
+      same mechanism as the "MyDSL not following room movement" fix
+      above, not a separate bug: `MyDSL_LocationView.lua`'s
+      `mydsl location set <filename>` already persists a picture per real
+      room ID (not per room name), so two rooms named "The Wing of the
+      Stone Dragon" already get independent pictures — but that only
+      works if the mapper resolves them to two DIFFERENT room IDs in the
+      first place, which needs `use_description_matching` on. It was
+      deliberately defaulted OFF 2026-08-30 (see above) because turning it
+      on before a room's stored description was healed under the current
+      capture format permanently locked that room out of resolution — the
+      fix was `syncRoomDescription()`, which heals descriptions during
+      normal play *while matching stays off*. So: not "turn it back on and
+      delete/replace rooms" — the room data doesn't need deleting, it
+      needs revisiting once (matching off) so `syncRoomDescription()` can
+      heal it, THEN `map config use_description_matching true` restores
+      the duplicate-name-room distinction safely. Needs Steven to actually
+      revisit the affected duplicate-name rooms (e.g. Wing of the Stone
+      Dragon) once under current code, then flip matching back on and
+      confirm room pictures resolve independently per room.
+
 *(Native-content tracking's Principle-2 question is answered, not open:
 Principle 2 is "Toggleable By Default" — MYDSL_1.0_PHILOSOPHY.md, unrelated
 to the automation rule Steven was thinking of, which was a different,
@@ -615,6 +639,41 @@ one at a time:
       6 `WEATHER_PALETTE` colors in `MyDSL_AmbientBackground.lua`, so he
       can compare/tune options visually before another round-trip of
       guessing at hex values from a description. Not built yet.
+- [ ] **MoonWeather sometimes drops weather info — reported, not yet
+      reproduced.** Steven, `MyDSL Test/notes.json`: "check logs for
+      weather not captured, some updates arent showing moon/weather or it
+      at least drops the weather info at some point. will monitor." No
+      specific timestamp given yet — per this project's "stale data beats
+      spam" principle, `MW.render()` should always show the last known
+      state rather than going blank, so if it really is blanking out
+      (not just not updating) that's a real regression against that rule.
+      Needs a specific log excerpt or timestamp from Steven once it
+      recurs — he's already monitoring for it.
+- [x] **Focus window: long stat lines (Vuln/Affects) not wrapping — REAL
+      BUG FOUND + FIXED 2026-08-30, needs live re-confirm.** Steven,
+      `MyDSL Test/notes.json`: "need text to wrap in focus see
+      screenshot." The matching screenshot
+      (`Screenshot_20260830_190642.png`) shows a small bat's Affects line
+      ("detect_invis detect_hidden sneak flying dark v...") clipped at the
+      window's right edge, despite `MyDSL.Windows.enableAdaptiveWrap()`
+      already being wired into this exact console since 2026-07-18.
+      Root cause: that helper's guard made `enableAutoWrap()` (which
+      computes its wrap column from the console's CURRENT font size) run
+      only ONCE, ever, per console — but changing a window's font later
+      (e.g. `focus font <n>`) calls `setFontSize()` alone, which fires no
+      resize/reposition event, so the wrap column silently went stale for
+      anyone who'd changed Focus's (or Bestiary's, or Item Reference's, or
+      Leveling's — same helper, same bug, all 4 call sites) font size
+      after first load. Fixed generically in the shared helper
+      (`MyDSL_WindowRegistry.lua`'s `enableAdaptiveWrap()` now takes an
+      optional `fontSize` and re-enables wrap whenever it actually
+      changes) rather than one-off in TargetView — all 4 call sites
+      (`MyDSL_TargetView.lua`, `MyDSL_CreatureReference.lua`,
+      `MyDSL_ItemReference.lua`, `MyDSL_Leveling.lua`) updated to pass
+      their real current font size. 4 new regression tests
+      (`test/test_windowregistry_adaptive_wrap_refresh.lua`). Needs Steven
+      to confirm live, especially if he's changed Focus's font size at
+      any point — that's the exact condition this bug needed to trigger.
 - [x] **DslColors — 29 titles Steven had already added live promoted to
       shipped defaults — CONFIRMED live 2026-08-30** ("dsl color is
       working great and has all adds so far" — `MyDSL Test/notes.json`).
@@ -1062,6 +1121,54 @@ one at a time:
       called d100 mechanics (old was d20 or d25?)." Scope: check the
       Shattered Archive dump plus DSL's own helpfiles for its actual roll
       mechanic before proposing anything.
+- [ ] **Emote capture → local chat — idea, needs pattern research.**
+      Steven, `MyDSL Test/notes.json`: "through all the logs are you able
+      to build a pattern to catch emotes, mine and others? id like to put
+      them in local chat. basic emotes, not complex t/pmotes." Scope is
+      DSL's stock `emote`/social-command output (not targeted/programmed
+      t-motes or p-motes), routed into `MyDSL_Chat.lua`'s Local tab the
+      same way other chat categories already get routed. Needs a real
+      corpus pass (`log/`) to confirm the actual line shape(s) basic
+      emotes produce before writing a pattern — not yet researched.
+- [ ] **DSL event/date reminder module — concrete real-world example
+      added 2026-08-30.** Folds into the already-scoped "DSL event/date
+      reminder module" item above (LOW/OPEN section, Discord dropped,
+      stays inside Mudlet). Steven, `MyDSL Test/notes.json`, gave a
+      concrete real broadcast as the kind of thing he wants to log
+      manually (not auto-captured): a "Serket" sermon announcement with
+      date/time/location/host. Confirms the shape: manual entry of an
+      event with a date/time and free-text description, reminded on
+      login or while playing — not scraped from broadcast text. Still not
+      built.
+- [ ] **Mapper — box border color + alternate-line color customization —
+      question, not yet answered.** Steven, `MyDSL Test/notes.json`: "did
+      we have a feature to change the color of the mapper displayed box
+      border? and the mapper altenate line? i want to work on testing the
+      mapper." Grepped `DSL_Mapper_Addon.xml` and Mudlet's own mapper
+      API — no existing MyDSL feature for either. Both would be native
+      Mudlet mapper rendering settings if they exist at all (not
+      DSL-specific logic) — needs research against `wiki.mudlet.org`'s
+      Map settings/API before answering whether Mudlet exposes this at
+      all, let alone building a MyDSL-side control for it.
+- [ ] **Mapper feature audit + completion pass — requested, not yet
+      scoped.** Steven, `MyDSL Test/notes.json`: "check all mapper
+      features and we will focus a pass on completion of the mapper and
+      standalone." A broader ask than any single item above — wants a
+      real inventory of what `DSL_Mapper_Addon.xml` currently does/
+      doesn't do (building on `docs/MAPPER_REDESIGN.md`'s existing
+      architecture findings) before a dedicated completion pass. Needs
+      scoping with Steven before starting — large enough to warrant Plan
+      Mode per this project's own workflow rule.
+- [ ] **Bloodshackle brute: could not be targeted as a mob — question,
+      by-design or bug not yet determined.** Steven, `MyDSL Test/
+      notes.json`: "bloodshackle brute could not be targeted as a mob and
+      has a colored name? by design?" A colored mob name in DSL commonly
+      signals a special/quest/uninteractable NPC (by-design DSL
+      convention, not something MyDSL controls) but this hasn't been
+      confirmed against DSL's own helpfiles/corpus for this specific
+      case. Needs Steven to say what command he used to target it (e.g.
+      `murder`/`consider`) and what DSL's own response text was, so this
+      can be checked against real output rather than guessed at.
 
 ---
 

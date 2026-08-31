@@ -291,7 +291,7 @@ function IR.ensureUI()
   -- handles the "must run after setFontSize()" ordering and the per-console
   -- once-only guard -- see its own comment for why the guard lives on the
   -- console object itself, not a module-level flag.
-  MyDSL.Windows.enableAdaptiveWrap(IR._mc.item)
+  MyDSL.Windows.enableAdaptiveWrap(IR._mc.item, itemFont)
 
   if MyDSL.Theme and MyDSL.Theme.styleConsole then
     MyDSL.Theme.styleConsole(IR._mc.item, IR_WIN, itemFont)

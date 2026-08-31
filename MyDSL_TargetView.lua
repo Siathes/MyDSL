@@ -904,7 +904,7 @@ function TV.init()
   -- alone wasn't reliable -- shared helper (MyDSL_WindowRegistry.lua)
   -- handles the "must run after setFontSize()" ordering and the
   -- per-console once-only guard.
-  MyDSL.Windows.enableAdaptiveWrap(TV._mc.stats)
+  MyDSL.Windows.enableAdaptiveWrap(TV._mc.stats, TV.config.fontSize)
 
   -- Theme-driven background/font for the stats console. fontSize is the
   -- persisted user override (TV.config.fontSize, added 2026-07-11 per

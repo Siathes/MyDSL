@@ -307,7 +307,7 @@ function CR.ensureUI()
   -- (MyDSL_RouteHelper.lua). Shared helper (MyDSL_WindowRegistry.lua)
   -- handles the "must run after setFontSize()" ordering and the
   -- per-console once-only guard.
-  MyDSL.Windows.enableAdaptiveWrap(CR._mc.lore)
+  MyDSL.Windows.enableAdaptiveWrap(CR._mc.lore, loreFont)
 
   -- Theme-driven background/font, added 2026-07-11 (this console had no
   -- font size or color set at all before -- fell back to Mudlet's tiny
