@@ -559,6 +559,13 @@ question, folded in per Steven 2026-08-29 rather than a separate check.
       GitHub prerelease with the sanitized `MyDSL_Full.mpackage`
       attached. Still open from here: real testers' feedback (issues,
       or Steven relaying reports) once anyone actually installs it.
+      **Updated 2026-08-30**: rebuilt and re-uploaded to the same release
+      asset with the CreatureLore-vulnerability and adaptive-wrap fixes
+      from this pass — re-sanitized (the residual native-XML "Steven"
+      occurrences still need the post-build perl-sed step every rebuild,
+      see the checklist item above) and confirmed XML well-formed before
+      upload. Anyone downloading fresh from the release gets the fixes;
+      anyone already installed needs to reinstall to pick them up.
 
 - [ ] **Room pictures for duplicate-named rooms — Steven's own question
       already answered by the mapper redesign above, needs his timing
