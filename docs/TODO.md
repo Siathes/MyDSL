@@ -123,6 +123,18 @@ question, folded in per Steven 2026-08-29 rather than a separate check.
       `race`, a separate field) — matches the architecture Steven
       described as correct. No change needed here; flagging in case a
       different, more specific bug is what he actually meant.
+- [ ] **New follow-up on the same connection, reconciled from `MyDSL
+      Test/notes.json` 2026-09-05 (was sitting unread)**: "can we get
+      around some of the right here vs creature tags, by assigning the
+      reference from the look description and making it connect to the
+      creature tags? not sure if this makes sense." Likely about
+      `resolveMobName()` failing to match when a mob's `look`-description
+      wording differs from its `Creature: X` tag text (the same class of
+      naming-mismatch problem already solved for item identify — see the
+      fixed "Item identify not connecting to inventory description"
+      item above) — but needs Steven to clarify what "right here" refers
+      to (a specific DSL prompt/room line?) and give a concrete example
+      before this can be scoped for real.
 - [ ] **Mapping-mode indicator — idea, not built.** Steven: "be nice if
       there was an indicator of some kind that start mapping was on
       besides the one message, like a running echo ...Mapping, something
@@ -646,6 +658,19 @@ one at a time:
       6 `WEATHER_PALETTE` colors in `MyDSL_AmbientBackground.lua`, so he
       can compare/tune options visually before another round-trip of
       guessing at hex values from a description. Not built yet.
+      **Second follow-up, reconciled from `MyDSL Test/notes.json`
+      2026-09-05 (was sitting unread)**: "lets tone the ambianet
+      background down. if we cant get weather cause we are indoors, make
+      it a simple black or near black/grey background. not close to
+      other backgrounds. reevaluate weather colors and have them match
+      the sky/outdoors during those conditions (subtly enough to see,
+      but not distract)." Two asks: (1) an indoor/no-weather state should
+      render as a near-black/grey background, distinct from every real
+      weather color, not just fall back into the palette; (2) revisit the
+      6 `WEATHER_PALETTE` colors themselves so each one actually reads as
+      that condition's real sky/outdoor color. Not scoped or built yet —
+      needs a look at `MyDSL_AmbientBackground.lua`'s current indoor
+      handling before starting.
 - [ ] **MoonWeather sometimes drops weather info — reported, not yet
       reproduced.** Steven, `MyDSL Test/notes.json`: "check logs for
       weather not captured, some updates arent showing moon/weather or it
