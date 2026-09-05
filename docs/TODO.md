@@ -605,6 +605,26 @@ question, folded in per Steven 2026-08-29 rather than a separate check.
       revisit the affected duplicate-name rooms (e.g. Wing of the Stone
       Dragon) once under current code, then flip matching back on and
       confirm room pictures resolve independently per room.
+      **Evidence found 2026-09-05, from `MyDSL Test/mapper_desync_log.txt`
+      (not yet flagged by Steven — found during a routine log sweep)**:
+      real 2026-09-02/2026-09-04 play sessions show 1,287
+      `check: ... stored_name="The Wing of the Stone Dragon" ...  -> ok`
+      lines with zero rejections/mismatches anywhere in the file (grepped
+      the whole 3,454-line log for anything other than `-> ok`) — the
+      player was in that exact room, repeatedly, across two separate
+      sessions, and `syncRoomDescription()` never once failed to
+      reconcile it. Strong real-world evidence the healing this fix
+      relies on has already happened for at least this room, but **not
+      conclusive on its own**: room IDs 23/24/25 all show as distinct
+      already (23 "The Wings of the Stone Dragon", 24/25 "The Wing of
+      the Stone Dragon" — note the "Wings"/"Wing" spelling difference on
+      23, so that pair may not even be the duplicate-name case at
+      issue), and none of this confirms whether `use_description_matching`
+      has actually been flipped back on yet or whether room pictures
+      resolve independently once it is. Needs Steven to confirm directly:
+      has he already flipped `map config use_description_matching true`,
+      and if so, do duplicate-name rooms in that area now get distinct
+      pictures?
 
 *(Native-content tracking's Principle-2 question is answered, not open:
 Principle 2 is "Toggleable By Default" — MYDSL_1.0_PHILOSOPHY.md, unrelated
