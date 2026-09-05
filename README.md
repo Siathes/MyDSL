@@ -2,6 +2,9 @@
 
 **Bringing Algoron to life.**
 
+[![Download MyDSL Full (testing build)](https://img.shields.io/badge/Download-MyDSL%20Full%20(testing)-informational?style=for-the-badge)](https://github.com/Siathes/MyDSL/releases/tag/mydsl-full-v1.0.0-testing)
+[![Download DSL Mapper Addon](https://img.shields.io/badge/Download-DSL%20Mapper%20Addon-2ea44f?style=for-the-badge)](https://github.com/Siathes/MyDSL/releases/tag/mapper-addon-v0.2.11)
+
 A Mudlet addon suite for **Dark and Shattered Lands** (dsl-mud.org) that turns your console into a living view of the world — real weather and time of day coloring your background as it changes, all three of Algoron's moons tracked at once, and a full window layout for combat, group, target, mapping, and more laid over the game's own text without ever hiding or replacing a line of it.
 
 ![MyDSL running a full window layout in Mudlet — combat, group, target, chat, mapper, vitals, and more, all open at once](docs/images/mydsl-full-suite.png)
