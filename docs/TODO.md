@@ -1289,6 +1289,31 @@ one at a time:
       architecture findings) before a dedicated completion pass. Needs
       scoping with Steven before starting — large enough to warrant Plan
       Mode per this project's own workflow rule.
+      **Partial scoping input, 2026-09-05 (Claude Cowork, from an
+      unrelated exercise)**: Steven had Claude map a hand-recorded maze
+      from a different game (an Excel sheet of rooms/exits/items) and
+      asked what it implied for this mapper. Two things confirmed rather
+      than assumed: `MAPPER_REDESIGN.md`'s "no room vnum" finding is the
+      right frame for any maze feature (name/exits/description matching
+      is genuinely the ceiling, not a client-side shortfall); and
+      Mudlet's multi-point custom exit lines are GUI-only with no Lua
+      hook (re-confirmed against the same finding already in that doc),
+      so `addSpecialExit()` stays the only scriptable way to represent a
+      non-adjacent connection — nothing to build tooling around there.
+      Three candidate features surfaced, cheapest first, none scoped or
+      approved yet: (1) an "ambiguous match" room-userdata flag, set
+      whenever `check_room()`'s candidate list only resolves via
+      `check_link()` narrowing rather than a clean unique match, so those
+      specific rooms surface for a manual double-check later; (2) a
+      connectivity/hub flag for rooms with an unusually high exit count,
+      same userdata pattern `applySectorColor()` already uses; (3) an
+      item-marker room-disambiguation system, matching the existing "Cork
+      compass" idea in `MyDSL_IdeaBacklog.md` and mirroring the sample
+      maze's own per-room object-marker column — confirmed by grep that
+      no room-to-item data model exists anywhere yet
+      (`CreatureLore`/`ItemLore`/`DataLayer` all come up empty), so this
+      one is real new feature work, same conclusion this doc already
+      reached for "mobs/items known in this room," not a quick wire-up.
 - [ ] **Bloodshackle brute: could not be targeted as a mob — question,
       by-design or bug not yet determined.** Steven, `MyDSL Test/
       notes.json`: "bloodshackle brute could not be targeted as a mob and
