@@ -22,15 +22,102 @@ bottom for the full list of what this pass turned up, including the
 real double-fired-work performance bugs Steven specifically asked this
 audit to find).
 
-**Pass 2 (not started): Steven's notes.** Steven reads each section,
-adds his own notes directly into this doc (what he actually intended
-for that file vs. what's really there), then Claude Code picks the file
-back up, acts on the notes, does the real cleanup (removes confirmed-
-dead code, fixes connection/namespace issues, addresses flagged
-performance spots), and verifies the same way this project always does:
-targeted revert to confirm a fix is real, full test suite +
-`check_known_patterns.py --all`, live confirmation via `log/`/MyDSL's
-own logs where possible.
+**Pass 2 (done, but in the wrong copy — reconciled 2026-09-05): Steven's
+notes.** Steven actually did this pass — but wrote his notes directly
+into his own Obsidian daily-note copy of this doc
+(`~/Documents/Obsidian Vault/2026-08-04.md`), not this git-tracked file,
+so it sat unreconciled until a routine notes sweep found it. His
+annotations (collected below, cross-checked against current source
+where a claim needed verifying) are the real Pass-2 input this doc's
+own workflow describes; the derived action items live in `docs/
+TODO.md`'s TOP PRIORITY section rather than being restated here.
+
+**Steven's Pass-2 notes, by section (verbatim, lightly grouped):**
+- **General, before reading section-by-section:** minimize/remove
+  aliases and duplicated features that exist because of spelling
+  mistakes or near-duplicate helper/feature names (example given:
+  `creaturelore` vs. `creaturelores`); check Mudlet Lua best practices
+  (namespace guards etc.) and record them for reference; re-review this
+  project's own restrictions/philosophy/guides for continued relevance
+  (example given: "not editing the mapper," since superseded); whether
+  a cross-module API exists or is needed (**already answered 2026-08-25
+  — no formal API, direct `MyDSL.State.*` reads are the standard
+  pattern, see `docs/MYDSL_1.0_PHILOSOPHY.md`**); incorporate/rewrite
+  anywhere there are unmerged patches; remove old debug/test code no
+  longer needed; an alias-shortcut idea for `creaturelore`/`identify`
+  that sends the game command and activates the capture script in one
+  step, extended to spells/scrolls/other items (**already tracked**,
+  see TODO.md's "Extend creaturelore/identify alias-shortcut pattern");
+  full native-content integration, mapper old code kept only as design
+  reference for a DSL-specific rewrite (**already tracked** as the
+  Top Priority "Native-content full consolidation" item and `docs/
+  MAPPER_REDESIGN.md`); a pass through triggers for character-name
+  leaks (**done**, 2026-08-30 privacy sweep); the login trigger's
+  plaintext password (**already tracked/fixed**, see TODO.md's
+  Autologin entry); review every gameplay trigger's purpose with Steven
+  explaining the unknown ones live (**not yet done** — needs a live
+  session).
+- **Section 1 (`MyDSL_DataLayer.lua`):** wants a plain-English (non-
+  coder) explanation of the `MyDSL.save()`/`table.load()` naming
+  ambiguity (9 modules call something similarly named — unclear how
+  many actually mean *this* file's function); wants a decision on
+  whether the 12 modules bypassing the Get/Set API to read
+  `MyDSL.State.*` directly is fine as-is or should be reined in; on the
+  Get/Set API's near-zero real usage: confirms this is exactly the
+  "incomplete/dead/unused" pattern the audit was meant to catch, wants
+  it resolved per Lua/Mudlet best practice (keep-and-enforce vs.
+  drop-and-document); same "best practice" call requested for
+  `MyDSL.on()`'s single-consumer narrowness, explicitly OK with a web
+  search for the relevant best practice if needed; approves the
+  DataBridge double-fire fix ("Good find, let's fix" — **confirmed
+  already fixed**, see section 9 below).
+- **Section 7 (`MyDSL_RawCapture.lua`):** approves removal ("This can
+  be removed as it doesn't sound like it's needed" — **already done**,
+  removed entirely 2026-08-27).
+- **Section 8 (`MyDSL_TickSource.lua`):** approves gating the always-on
+  4Hz `T.loop()` to TickView's visibility state, even if no measurable
+  gain results, "because it's the right thing to do" — **checked
+  2026-09-05, still NOT implemented**: `T.loop()` still
+  self-reschedules unconditionally every 0.25s regardless of
+  `MyDSL_TickView`'s shown/hidden state.
+- **Section 9 (`MyDSL_DataBridge.lua`):** "Definitely fix this with the
+  best case option" (the debounce-all-11-events coalesce, not just the
+  narrower 3-event fix) — **confirmed already fixed**: `onAny()` now
+  defers through a single `tempTimer(0, ...)` shared by all 11
+  registrations.
+- **Section 11 (`MyDSL_PromptSetup.lua`):** wants a live playtest of
+  this module (not yet confirmed done).
+- **Section 12 (`MyDSL_AutoWhere.lua`):** wants to review and update
+  all of this project's own mandates/design philosophy — likely mostly
+  superseded by the 2026-08-25 MyDSL 1.0 mandate, worth a final
+  confirmation pass with Steven that nothing older still needs updating.
+- **Section 14 (`MyDSL_MovementSounds.lua`):** wants sound coverage
+  checked against real logs (are all sound types actually being
+  captured?) and a terrain-specific sound option considered, alongside
+  tighter integration with movement keybinds.
+- **Section 16 (`MyDSL_Roller.lua`):** "Check for the old trigger, that
+  stuff can probably go" (**already closed** — TODO.md/CHANGELOG record
+  the pre-port native Roller trigger as confirmed gone); wants more
+  roll-customization options — rolling for whichever stats matter most
+  for a given build, since there are many valid variations (**already
+  tracked**, see TODO.md's "Roller — comparison stats" item).
+- **Section 17 (`MyDSL_ChatTriggers.lua`):** wants a real rewrite/
+  evaluation pass — does it actually capture every chat channel and
+  toggle gag correctly, is it properly tied into Chat/EMCO ("emco
+  should be fully integrated but it doesn't look right to me").
+- **Section 25 (`MyDSL_GroupView.lua`):** wants better quick-action
+  button customization — a real selectable/dropdown way to change
+  which buttons are assigned in-game, not the current hardcoded pair.
+- **Section 26 (`MyDSL_TickView.lua`):** wants a lessons-learned pass
+  and rewrite.
+- **Section 27 (`MyDSL_CharacterAssist.lua`):** asks whether to just
+  consolidate the flagged issues (**already closed** — the phase-2
+  TODO triage dropped this, "revisit only if it resurfaces").
+- **Section 28 (`MyDSL_LayoutEngine.lua`):** wants a lessons-learned
+  pass, same ask repeated.
+- **Section 29 (`MyDSL_Help.lua`):** "This needs a lot of work, design
+  philosophy discussion" — no specifics given yet, needs a live
+  conversation to scope.
 
 Claude Desktop does spot-check QA on both the inventory and the
 cleanups via the usual `HANDOFF.md` "check repo" loop.

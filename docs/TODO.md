@@ -38,6 +38,79 @@ DEFERRED gets started without an explicit go-ahead.
 
 ## TOP PRIORITY
 
+- [ ] **Optimization Audit Pass 2 — Steven's real notes found unreconciled
+      in Obsidian, 2026-09-05.** He'd actually done the "Pass 2" step
+      `docs/OPTIMIZATION_AUDIT.md` describes (reading each section, adding
+      his own notes) — just in his own Obsidian daily-note copy of the
+      doc, not the git-tracked one, so it sat unread for over a week. Full
+      verbatim collection now lives in `OPTIMIZATION_AUDIT.md`'s own
+      updated Pass-2 intro; several items turned out to already be done
+      (RawCapture removal, the DataBridge double-fire debounce, the old
+      Roller trigger) and are marked as such there. **Still genuinely
+      open, in rough priority order**:
+      1. **DataLayer Get/Set API decision.** 12 modules read
+         `MyDSL.State.*` directly, bypassing the documented Get/Set API,
+         which has ~1 real caller. Steven wants a best-practice-based
+         call: formally deprecate/delete the API and fix the header
+         comment to match reality, or actually start enforcing it. Needs
+         a plain-English explanation of the related `MyDSL.save()`/
+         `table.load()` naming-ambiguity finding too (which of the 9
+         similarly-named callers actually mean DataLayer's own function).
+      2. **`MyDSL_TickSource.lua`'s 4Hz loop — approved fix, not yet
+         built.** Gate `T.loop()` to `MyDSL_TickView`'s visibility state
+         (confirmed 2026-09-05 still unconditional). Steven's exact
+         words: do it even if no measurable performance gain results,
+         "because it's the right thing to do."
+      3. **`MyDSL_ChatTriggers.lua` vs. Chat/EMCO — real audit + possible
+         rewrite requested.** Does it actually capture every chat
+         channel and toggle gag correctly; Steven's own read is "emco
+         should be fully integrated but it doesn't look right to me."
+      4. **`MyDSL_GroupView.lua` quick-action buttons — real UI feature
+         request.** Wants a selectable/dropdown way to configure which
+         two quick-action buttons show, replacing the current hardcoded
+         pair.
+      5. **`MyDSL_MovementSounds.lua`** — audit real sound-type coverage
+         against `log/`, consider a terrain-specific sound option.
+      6. **Three separate "needs a lessons-learned pass and rewrite"
+         asks** (`MyDSL_TickView.lua`, `MyDSL_LayoutEngine.lua`) and one
+         "needs a lot of work, design philosophy discussion" ask
+         (`MyDSL_Help.lua`) — none scoped with specifics yet, need a live
+         conversation with Steven to turn into real work items.
+      7. **`MyDSL_AutoWhere.lua` section's general ask**: review/update
+         every project mandate and design-philosophy doc for continued
+         relevance — likely mostly already superseded by the 2026-08-25
+         MyDSL 1.0 mandate, worth one confirmation pass rather than
+         assuming.
+      8. **`MyDSL_PromptSetup.lua`** — wants a live playtest, not yet
+         confirmed done.
+      9. Review every gameplay trigger's purpose with Steven explaining
+         the unknown ones live (from the general pre-read notes) — folds
+         into the already-tracked native-content consolidation session.
+- [ ] **Feature ideas from the same Obsidian note, DSL/UI-relevant only
+      (found 2026-09-05, not yet scoped or built)**:
+      - **A DPS/damage-summary gauge for the combat window** — damage
+        per round/tick, or a fight summary total, in the combat
+        condenser.
+      - **Map exploration fog-of-war** — dim/gray unexplored rooms, only
+        brighten/reveal a room's real colors once the player has
+        actually entered it.
+      - **Ambient background — a concrete design idea for the still-open
+        "refine weather colors" follow-up** (see the existing Ambient
+        background item below): assign each weather/time/terrain
+        "anchor" an RGB value and gradient between them rather than
+        picking one fixed color per condition — brightest example given
+        is a clear desert at high sun, darkest a lightless cave; cold/
+        snow conditions lean blue-hued; at real extremes (pitch black,
+        can't-see) also reduce console text contrast slightly as a
+        subtle (not disruptive) cue, not just shift the background color.
+      - **Research ask**: look at Mudlet's own web client and its mapper/
+        renderer/editor for ideas or reusable approaches — not yet done.
+      - Also mentioned, lower-confidence/unscoped: a combat sound cue
+        for bard spells/buffs ("would actually cool for RP"), and a
+        vague "random character creator" idea — unclear if this means a
+        Roller enhancement or something else; needs Steven to clarify
+        before it's actionable.
+
 **Session plan (agreed 2026-08-29, Claude Desktop's proposal):** the
 native-content consolidation item and the `MyDSL_Full.mpackage`
 from-scratch install test both need Steven's hands on Mudlet's GUI and
@@ -625,6 +698,11 @@ question, folded in per Steven 2026-08-29 rather than a separate check.
       has he already flipped `map config use_description_matching true`,
       and if so, do duplicate-name rooms in that area now get distinct
       pictures?
+      **Answered directly by Steven, 2026-09-05: not done yet** — he has
+      not flipped `use_description_matching` back on and hasn't checked
+      whether room pictures resolve independently. **Deliberately parked
+      for a little later, not urgent** — revisit next time Steven's doing
+      hands-on mapper/room testing rather than chasing it standalone.
 
 *(Native-content tracking's Principle-2 question is answered, not open:
 Principle 2 is "Toggleable By Default" — MYDSL_1.0_PHILOSOPHY.md, unrelated
