@@ -12,8 +12,7 @@ from-scratch install test" entry for what's confirmed vs. still
 unverified. [Open an issue](https://github.com/Siathes/MyDSL/issues) if
 something doesn't work as documented here.
 
-**[Download the latest release →](https://github.com/Siathes/MyDSL/releases)**
-(look for the prerelease tagged `mydsl-full-*`)
+**[Download MyDSL Full v1.0.0 (Testing) →](https://github.com/Siathes/MyDSL/releases/tag/mydsl-full-v1.0.0-testing)**
 
 ## Requirements
 
