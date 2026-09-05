@@ -359,6 +359,7 @@ MyDSL.Help.modules = {
       { cmd = "mydsl log <category> <on|off>", desc = "Per-category logging. Categories: combat, chat, history (on by default); group, righthere, focus, playersnear (debug-only, off by default).", example = "mydsl log combat off" },
       { cmd = "mydsl who <name>", desc = "DslColors' known-person info (passthrough to `dslcolor show`).", example = "mydsl who playername" },
       { cmd = "mydsl test", desc = "Smoke test: module load / window / character-binding status.", example = "mydsl test" },
+      { cmd = "mydsl test full", desc = "Everything 'mydsl test' checks, plus every other module's own status command in one pass (assets, leveling areas, dslcolor, mapper, tick) -- for live-testing the NEEDS LIVE CONFIRMATION batch in docs/TODO.md.", example = "mydsl test full" },
       { cmd = "toggle <module>", desc = "PNP's universal on/off switch (combat, affects, moons, ...).", example = "toggle affects" },
       { cmd = "mydsl layout save", desc = "Save current window positions/visibility (per profile).", example = "mydsl layout save" },
       { cmd = "mydsl layout reset", desc = "Reset in-memory layout to defaults -- run `mydsl layout save` after to persist.", example = "mydsl layout reset" },

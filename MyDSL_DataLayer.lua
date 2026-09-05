@@ -351,6 +351,81 @@ MyDSL._aliases.test = tempAlias(
   [[MyDSL.test()]]
 )
 
+------------------------------------------------------------------------
+-- MyDSL.testFull() + "mydsl test full" -- 2026-09-05, aggregates every
+-- other module's own read-only status/diagnostic command into one
+-- report, specifically for the batch of NEEDS LIVE CONFIRMATION items
+-- in docs/TODO.md that are pure command-line checks (no combat, no
+-- specific room/mob needed) -- run this once per play session instead
+-- of typing each status command by hand. Everything called here is a
+-- pre-existing read-only status function; this adds no new game state.
+------------------------------------------------------------------------
+function MyDSL.testFull()
+  MyDSL.test()
+
+  echo("\n=== live-confirmation checks ===\n")
+
+  -- Asset fetch (docs/TODO.md: "real end-to-end network fetch itself
+  -- still needs a live in-Mudlet test"). Reports on-disk install state,
+  -- not just whether a fetch is queued.
+  if MyDSL.AssetFetch and MyDSL.AssetFetch.status then
+    local ok, err = pcall(MyDSL.AssetFetch.status)
+    if not ok then cecho("<red>[MyDSL.Assets] status() errored: " .. tostring(err) .. "<reset>\n") end
+  else
+    cecho("<yellow>Assets: MyDSL_AssetFetch.lua not loaded<reset>\n")
+  end
+
+  -- Leveling autoseed (docs/TODO.md: "a genuinely fresh profile ... should
+  -- show all 40 areas via 'mydsl leveling areas' with zero manual import
+  -- needed"). Count only -- listAreas() itself is a 40-line dump, too
+  -- verbose for a quick smoke check.
+  if MyDSL.Leveling and MyDSL.Leveling.areas then
+    local count = 0
+    for _ in pairs(MyDSL.Leveling.areas) do count = count + 1 end
+    if count == 0 then
+      cecho("<red>Leveling: 0 areas known -- autoseed did not run (expected 40 on a fresh profile)<reset>\n")
+    else
+      echo("Leveling: " .. count .. " areas known" .. (count == 40 and " (matches expected seed count)" or " (expected 40 -- check 'mydsl leveling areas' for what's missing/extra)") .. "\n")
+    end
+  else
+    cecho("<yellow>Leveling: MyDSL_Leveling.lua not loaded<reset>\n")
+  end
+
+  -- DslColors -- native XML module, own "dslcolor test" diagnostic
+  -- ("confirms the core script, alias, counts, and save status").
+  -- expandAlias() runs it through Mudlet's real alias-matching pipeline
+  -- rather than duplicating its logic here, same as a player typing it.
+  if expandAlias then
+    local ok, err = pcall(expandAlias, "dslcolor test")
+    if not ok then cecho("<red>[DslColors] 'dslcolor test' errored: " .. tostring(err) .. "<reset>\n") end
+  end
+
+  -- Mapper (DSL_Mapper_Addon.xml / DSL_Generic_Mapper.xml's own
+  -- map.dsl.status()) -- only present if a mapper fork is actually
+  -- loaded in this profile.
+  if _G.map and map.dsl and map.dsl.status then
+    local ok, err = pcall(map.dsl.status)
+    if not ok then cecho("<red>[map.dsl] status() errored: " .. tostring(err) .. "<reset>\n") end
+  else
+    cecho("<yellow>Mapper: map.dsl not loaded in this profile<reset>\n")
+  end
+
+  -- TickSource -- confirms the shared tick-timing authority is alive;
+  -- cheap, always-safe to call.
+  if MyDSL.TickSource and MyDSL.TickSource.status then
+    local ok, err = pcall(MyDSL.TickSource.status)
+    if not ok then cecho("<red>[TickSource] status() errored: " .. tostring(err) .. "<reset>\n") end
+  end
+
+  echo("=== end live-confirmation checks ===\n")
+end
+
+if MyDSL._aliases.testFull then pcall(killAlias, MyDSL._aliases.testFull) end
+MyDSL._aliases.testFull = tempAlias(
+  "^mydsl test full$",
+  [[MyDSL.testFull()]]
+)
+
 -- MyDSL.normalizeForMatch(name) / MyDSL.bestFuzzyMatch(target, candidates)
 -- -- promoted to real MyDSL.* table functions 2026-08-25 while splitting
 -- MyDSL_DataLayer.lua by domain (see docs/TODO.md): confirmed via grep

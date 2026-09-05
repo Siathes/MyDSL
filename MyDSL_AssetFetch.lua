@@ -48,10 +48,41 @@ local function zipDownloadPath(name)
   return getMudletHomeDir() .. "/" .. AF.assets[name].label .. "_download.zip"
 end
 
+-- installState(name) -- on-disk check, not just "is a fetch in progress":
+-- Sounds/RoomPics extract to fixed, known subpaths (see the RELEASE_BASE
+-- comment above), so we can tell whether a fetch actually landed without
+-- tracking any extra state of our own. Added for "mydsl test full"/
+-- live-testing use -- the real end-to-end fetch has never been confirmed
+-- working in a live client (see docs/TODO.md), so this is the fastest way
+-- to check the outcome after running "mydsl assets fetch <name>".
+local INSTALL_DIRS = {
+  sounds = "Sounds",
+  roompics = "MyDSL/roompics",
+}
+
+function AF.installState(name)
+  local rel = INSTALL_DIRS[name]
+  if not rel then return "unknown asset" end
+  local dir = getMudletHomeDir() .. "/" .. rel
+  if not (lfs and lfs.attributes) then return "cannot check (no lfs)" end
+  local mode = lfs.attributes(dir, "mode")
+  if mode ~= "directory" then return "not installed (" .. rel .. "/ absent)" end
+  local count = 0
+  if lfs.dir then
+    local ok, iter = pcall(lfs.dir, dir)
+    if ok then
+      for entry in iter do
+        if entry ~= "." and entry ~= ".." then count = count + 1 end
+      end
+    end
+  end
+  return "installed, " .. count .. " entries in " .. rel .. "/"
+end
+
 function AF.status()
   ce("Optional assets (never auto-fetched, run 'mydsl assets fetch <name>'):")
   for name, a in pairs(AF.assets) do
-    echo("  " .. name .. " -- " .. a.label .. " (" .. a.sizeHint .. ")\n")
+    echo("  " .. name .. " -- " .. a.label .. " (" .. a.sizeHint .. ") -- " .. AF.installState(name) .. "\n")
   end
   if AF._active then
     echo("  currently fetching: " .. AF._active .. "\n")
